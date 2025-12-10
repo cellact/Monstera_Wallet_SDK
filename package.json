@@ -1,0 +1,33 @@
+{
+  "name": "@arnacon/wallet-sdk",
+  "version": "1.0.0",
+  "description": "JavaScript SDK for wallet operations through smart contract interactions",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest",
+    "example:create": "node examples/create-wallet.js",
+    "example:contracts": "node examples/contract-methods.js",
+    "example:template": "node examples/script-template.js"
+  },
+  "keywords": [
+    "wallet",
+    "ethereum",
+    "crypto",
+    "blockchain",
+    "sdk",
+    "non-custodial",
+    "web3",
+    "contracts",
+    "smart-contracts"
+  ],
+  "author": "Arnacon",
+  "license": "MIT",
+  "dependencies": {
+    "web3": "^4.0.0",
+    "ethers": "^6.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0"
+  }
+}
+
