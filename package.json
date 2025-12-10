@@ -44,12 +44,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/Ariana0699/Wallet_SDK.git"
+    "url": "https://github.com/Ariana0699/Wallet_SDK_JavaScript.git"
   },
   "bugs": {
-    "url": "https://github.com/Ariana0699/Wallet_SDK/issues"
+    "url": "https://github.com/Ariana0699/Wallet_SDK_JavaScript/issues"
   },
-  "homepage": "https://github.com/Ariana0699/Wallet_SDK#readme",
+  "homepage": "https://github.com/Ariana0699/Wallet_SDK_JavaScript#readme",
   "dependencies": {
     "web3": "^4.0.0",
     "ethers": "^6.0.0"
