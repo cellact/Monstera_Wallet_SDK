@@ -82,3 +82,5 @@ coverage/
 tmp/
 temp/
 *.tmp
+
+SDK_ANALYSIS.md

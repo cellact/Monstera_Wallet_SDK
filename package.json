@@ -1,10 +1,26 @@
 {
   "name": "@arnacon/wallet-sdk",
   "version": "1.0.0",
-  "description": "JavaScript SDK for wallet operations through smart contract interactions",
+  "description": "JavaScript SDK for wallet operations through smart contract interactions. Create and manage wallets via smart contracts with a simple, idiomatic API.",
   "main": "src/index.js",
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "require": "./src/index.js",
+      "import": "./src/index.js",
+      "default": "./src/index.js"
+    }
+  },
+  "files": [
+    "src",
+    "examples",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.js",
     "example:create": "node examples/create-wallet.js",
     "example:contracts": "node examples/contract-methods.js",
     "example:template": "node examples/script-template.js"
@@ -18,16 +34,41 @@
     "non-custodial",
     "web3",
     "contracts",
-    "smart-contracts"
+    "smart-contracts",
+    "arnacon"
   ],
   "author": "Arnacon",
   "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Ariana0699/Wallet_SDK.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ariana0699/Wallet_SDK/issues"
+  },
+  "homepage": "https://github.com/Ariana0699/Wallet_SDK#readme",
   "dependencies": {
     "web3": "^4.0.0",
     "ethers": "^6.0.0"
   },
   "devDependencies": {
-    "jest": "^29.0.0"
+    "jest": "^29.0.0",
+    "eslint": "^8.0.0"
+  },
+  "peerDependencies": {
+    "ethers": "^6.0.0 || ^5.0.0",
+    "web3": "^4.0.0 || ^3.0.0 || ^1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ethers": {
+      "optional": true
+    },
+    "web3": {
+      "optional": true
+    }
   }
 }
 

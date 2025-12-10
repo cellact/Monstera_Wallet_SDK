@@ -5,6 +5,8 @@
  */
 
 const ContractClient = require('./contracts/ContractClient');
+const { ConfigurationError, ValidationError } = require('../errors/WalletError');
+const { validateUsername, validateSecret, validateAddress, validatePrivateKey, validateRpcUrl } = require('../utils/validation');
 
 class Wallet {
   constructor(options = {}) {
@@ -52,24 +54,22 @@ class Wallet {
   static async create(options = {}) {
     const { username, secret, contractAddress, rpcUrl, network, signerPrivateKey } = options;
     
-    if (!username) {
-      throw new Error('Username is required');
-    }
-    
-    if (!secret) {
-      throw new Error('Secret is required');
-    }
-    
-    if (!contractAddress) {
-      throw new Error('Contract address is required');
-    }
-    
-    if (!rpcUrl) {
-      throw new Error('RPC URL is required');
-    }
-    
-    if (!signerPrivateKey) {
-      throw new Error('Signer private key is required (for onlyAuthorized modifier)');
+    // Validate inputs with descriptive errors
+    try {
+      validateUsername(username);
+      validateSecret(secret);
+      validateAddress(contractAddress, 'contractAddress');
+      validateRpcUrl(rpcUrl);
+      validatePrivateKey(signerPrivateKey, 'signerPrivateKey');
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new ValidationError(
+        `Invalid parameter: ${error.message}`,
+        'create',
+        error
+      );
     }
     
     // Initialize contract client
@@ -123,12 +123,22 @@ class Wallet {
   static async import(options) {
     const { address, contractAddress, rpcUrl, network } = options;
     
-    if (!address) {
-      throw new Error('Address is required');
-    }
-    
-    if (!contractAddress) {
-      throw new Error('Contract address is required');
+    // Validate inputs with descriptive errors
+    try {
+      validateAddress(address, 'address');
+      validateAddress(contractAddress, 'contractAddress');
+      if (rpcUrl) {
+        validateRpcUrl(rpcUrl);
+      }
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new ValidationError(
+        `Invalid parameter: ${error.message}`,
+        'import',
+        error
+      );
     }
     
     return new Wallet({
