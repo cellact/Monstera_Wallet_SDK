@@ -13,6 +13,8 @@ class ContractClient {
     this.web3 = null;
     this.ethers = null;
     this.initialized = false;
+    // Default Sapphire wrapper setting (can be overridden per call)
+    this.defaultUseSapphireWrapper = config.useSapphireWrapper || false;
   }
 
   /**
@@ -162,14 +164,21 @@ class ContractClient {
    * @param {String} methodName - Method name
    * @param {Array} params - Method parameters
    * @param {String} privateKey - Private key for signing
+   * @param {Object} options - Additional options
+   * @param {Boolean} options.useSapphireWrapper - Whether to use Oasis Sapphire wrapper (default: false or client default)
    * @returns {Promise<Object>} Transaction result
    */
-  async callWrite(contractAddress, methodName, params = [], privateKey) {
+  async callWrite(contractAddress, methodName, params = [], privateKey, options = {}) {
     if (!privateKey) {
       throw new Error('Private key required for write operations');
     }
     
     await this.initialize();
+    
+    // Determine if we should use Sapphire wrapper
+    const useSapphireWrapper = options.useSapphireWrapper !== undefined 
+      ? options.useSapphireWrapper 
+      : this.defaultUseSapphireWrapper;
     
     const abi = this.getContractABI(contractAddress) || this.getMinimalABI(methodName);
     
@@ -177,7 +186,19 @@ class ContractClient {
       if (this.ethers) {
         // Ethers.js
         const wallet = new this.ethers.Wallet(privateKey, this.provider);
-        const contract = new this.ethers.Contract(contractAddress, abi, wallet);
+        
+        // Wrap signer for Oasis Sapphire if requested
+        let signer = wallet;
+        if (useSapphireWrapper) {
+          try {
+            const { wrapEthersSigner } = require('@oasisprotocol/sapphire-ethers-v6');
+            signer = wrapEthersSigner(wallet);
+          } catch (err) {
+            throw new Error(`Sapphire wrapper requested but @oasisprotocol/sapphire-ethers-v6 is not installed: ${err.message}`);
+          }
+        }
+        
+        const contract = new this.ethers.Contract(contractAddress, abi, signer);
         
         // Convert Buffer params to hex strings if needed
         const processedParams = params.map(p => {
@@ -187,19 +208,48 @@ class ContractClient {
           return p;
         });
         
+        // For methods that return values, try to get them via static call first
+        // This works for methods like createUser that return values
+        let returnValues = null;
+        let userAddress = null;
+        let publicKey = null;
+        
+        try {
+          // Try static call to preview return values (works before state change)
+          // Note: This may not work for all methods, especially if they depend on state
+          const staticResult = await contract[methodName].staticCall(...processedParams);
+          if (Array.isArray(staticResult) && staticResult.length >= 2) {
+            returnValues = staticResult;
+            userAddress = staticResult[0];
+            publicKey = staticResult[1];
+          } else if (staticResult !== null && staticResult !== undefined) {
+            returnValues = staticResult;
+          }
+        } catch (e) {
+          // Static call may fail for write methods, that's okay
+          // We'll try to get values from events after the transaction
+        }
+        
+        // Execute the transaction
         const tx = await contract[methodName](...processedParams);
         const receipt = await tx.wait();
         
-        // Parse return values from transaction receipt/logs if available
-        let returnValues = null;
-        if (receipt.logs && receipt.logs.length > 0) {
-          // Try to decode events
+        // Try to parse return values from events if not already obtained
+        if (!returnValues && receipt.logs && receipt.logs.length > 0) {
           const eventInterface = new this.ethers.Interface(abi);
           for (const log of receipt.logs) {
             try {
               const decoded = eventInterface.parseLog(log);
               if (decoded && decoded.args) {
-                returnValues = decoded.args;
+                // If we find an event with args, use it as return values
+                if (!returnValues) {
+                  returnValues = decoded.args;
+                  // Try to extract common return values from event args
+                  if (Array.isArray(decoded.args) && decoded.args.length >= 2) {
+                    userAddress = decoded.args[0];
+                    publicKey = decoded.args[1];
+                  }
+                }
               }
             } catch (e) {
               // Ignore parsing errors
@@ -214,8 +264,8 @@ class ContractClient {
           gasUsed: receipt.gasUsed.toString(),
           result: returnValues,
           // Extract common return values
-          userAddress: returnValues ? returnValues[0] : null,
-          publicKey: returnValues ? returnValues[1] : null
+          userAddress: userAddress,
+          publicKey: publicKey
         };
       } else if (this.web3) {
         // Web3.js
@@ -294,9 +344,9 @@ class ContractClient {
   /**
    * Call contract method (alias for callRead)
    */
-  async call(contractAddress, methodName, params = [], privateKey = null) {
+  async call(contractAddress, methodName, params = [], privateKey = null, options = {}) {
     if (privateKey) {
-      return await this.callWrite(contractAddress, methodName, params, privateKey);
+      return await this.callWrite(contractAddress, methodName, params, privateKey, options);
     }
     return await this.callRead(contractAddress, methodName, params);
   }

@@ -40,6 +40,7 @@ class Wallet {
    * @param {String} options.rpcUrl - RPC URL for the blockchain network
    * @param {String} options.network - Network name (default: 'ethereum')
    * @param {String} options.signerPrivateKey - Private key of authorized signer (for onlyAuthorized modifier)
+   * @param {Boolean} options.useSapphireWrapper - Whether to use Oasis Sapphire wrapper for TEE encryption (default: false)
    * @returns {Promise<Wallet>} Wallet instance with created address and public key
    * 
    * @example
@@ -48,11 +49,12 @@ class Wallet {
    *   secret: 'my-secret-password',
    *   contractAddress: '0x...',
    *   rpcUrl: 'https://mainnet.infura.io/v3/YOUR_KEY',
-   *   signerPrivateKey: '0x...' // Authorized signer
+   *   signerPrivateKey: '0x...', // Authorized signer
+   *   useSapphireWrapper: true // For Oasis Sapphire TEE methods
    * });
    */
   static async create(options = {}) {
-    const { username, secret, contractAddress, rpcUrl, network, signerPrivateKey } = options;
+    const { username, secret, contractAddress, rpcUrl, network, signerPrivateKey, useSapphireWrapper } = options;
     
     // Validate inputs with descriptive errors
     try {
@@ -76,8 +78,13 @@ class Wallet {
     const contractClient = new ContractClient({
       network: network || 'ethereum',
       rpcUrl,
-      contractAddress
+      contractAddress,
+      useSapphireWrapper: useSapphireWrapper || false
     });
+    
+    // Register contract ABI for proper method calling
+    const { registerWalletContract } = require('../contracts/WalletContract');
+    registerWalletContract(contractClient, contractAddress);
     
     // Convert secret to bytes if it's a string
     let secretBytes;
@@ -92,20 +99,38 @@ class Wallet {
       contractAddress,
       'createUser',
       [username, secretBytes],
-      signerPrivateKey
+      signerPrivateKey,
+      { useSapphireWrapper: useSapphireWrapper || false }
     );
+
+    console.log('result', result);
+    
+    // Check if the call was successful
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to create wallet');
+    }
     
     // Extract return values: (address userAddress, bytes memory publicKey)
-    const userAddress = result.userAddress || result[0];
-    const publicKey = result.publicKey || result[1];
+    // const userAddress = result.userAddress || (result.result && result.result[0]);
+    // const publicKey = result.publicKey || (result.result && result.result[1]);
+    const transactionHash = result.transactionHash;
+    const blockNumber = result.blockNumber;
+    const gasUsed = result.gasUsed;
+    
+    // if (!userAddress) {
+    //   throw new Error('Wallet creation succeeded but no user address returned');
+    // }
     
     return new Wallet({
-      address: userAddress,
-      publicKey: publicKey,
+      // address: userAddress,
+      // publicKey: publicKey,
       username: username,
       network: network || 'ethereum',
       contractAddress,
       rpcUrl,
+      // transactionHash,
+      // blockNumber,
+      // gasUsed,
       contracts: options.contracts
     });
   }
@@ -195,9 +220,11 @@ class Wallet {
    * @param {String} methodName - Method name
    * @param {Array} params - Method parameters
    * @param {String} privateKey - Private key for signing the transaction
+   * @param {Object} options - Additional options
+   * @param {Boolean} options.useSapphireWrapper - Whether to use Oasis Sapphire wrapper for TEE encryption (default: false)
    * @returns {Promise<Object>} Transaction result
    */
-  async callContractWrite(methodName, params = [], privateKey) {
+  async callContractWrite(methodName, params = [], privateKey, options = {}) {
     if (!privateKey) {
       throw new Error('Private key required for write operations');
     }
@@ -206,7 +233,8 @@ class Wallet {
       this.config.contractAddress,
       methodName,
       params,
-      privateKey
+      privateKey,
+      options
     );
   }
 
