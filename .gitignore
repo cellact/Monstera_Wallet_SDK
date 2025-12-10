@@ -84,3 +84,4 @@ temp/
 *.tmp
 
 SDK_ANALYSIS.md
+node_modules/
