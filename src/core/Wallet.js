@@ -48,7 +48,7 @@ class Wallet {
    *   username: 'alice',
    *   secret: 'my-secret-password',
    *   contractAddress: '0x...',
-   *   rpcUrl: 'https://mainnet.infura.io/v3/YOUR_KEY',
+   *   rpcUrl: 'https://testnet.sapphire.oasis.io',
    *   signerPrivateKey: '0x...', // Authorized signer
    *   useSapphireWrapper: true // For Oasis Sapphire TEE methods
    * });
@@ -79,7 +79,7 @@ class Wallet {
       network: network || 'ethereum',
       rpcUrl,
       contractAddress,
-      useSapphireWrapper: useSapphireWrapper || false
+      useSapphireWrapper: useSapphireWrapper || true
     });
     
     // Register contract ABI for proper method calling
@@ -100,7 +100,7 @@ class Wallet {
       'createUser',
       [username, secretBytes],
       signerPrivateKey,
-      { useSapphireWrapper: useSapphireWrapper || false }
+      { useSapphireWrapper: useSapphireWrapper || true }
     );
 
     console.log('result', result);
@@ -177,10 +177,58 @@ class Wallet {
 
   /**
    * Get wallet address
-   * @returns {String}
+   * @param {Object} options - Get wallet address options
+   * @param {String} options.username - Username for the wallet
+   * @param {String} options.contractAddress - Address of the wallet contract
+   * @param {String} options.rpcUrl - RPC URL for the blockchain network
+   * @param {String} options.network - Network name
+   * @returns {Promise<String>} Wallet address
    */
-  getAddress() {
-    return this.address;
+  static async getAddress(options = {}) {
+    const { username, contractAddress, rpcUrl, network } = options;
+
+    try {
+      validateUsername(username);
+      validateAddress(contractAddress, 'contractAddress');
+      validateRpcUrl(rpcUrl);
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        throw error;
+      }
+      throw new ValidationError(
+        `Invalid parameter: ${error.message}`,
+        'getAddress',
+        error
+      );
+    }
+
+    // Initialize contract client
+    const contractClient = new ContractClient({
+      network: network || 'ethereum',
+      rpcUrl,
+      contractAddress,
+      useSapphireWrapper: false
+    });
+
+    // Register contract ABI for proper method calling
+    const { registerWalletContract } = require('../contracts/WalletContract');
+    registerWalletContract(contractClient, contractAddress);
+
+    const result = await contractClient.callRead(
+      contractAddress,
+      'getWalletAddress',
+      [username]
+    );
+
+    console.log('result', result);
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to get wallet address');
+    }
+
+    const address = result.result[0];
+
+    return address;
   }
 
   /**

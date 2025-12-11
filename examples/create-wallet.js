@@ -17,7 +17,7 @@ async function createWalletExample() {
 
   // Configuration
   const config = {
-    username: 'Jane',
+    username: 'Miza',
     secret: 'my-secret-password-123',
     contractAddress: process.env.INTERACTOR_CONTRACT_ADDRESS, // Your wallet contract address; replace with your own contract address from .env file
     rpcUrl: DEFAULT_RPC_URL, // Or your RPC endpoint
