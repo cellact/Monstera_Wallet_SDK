@@ -23,6 +23,7 @@
     "lint": "eslint src/**/*.js",
     "example:create": "node examples/create-wallet.js",
     "example:get-address": "node examples/get-wallet.js",
+    "example:get-info": "node examples/get-info.js",
     "example:contracts": "node examples/contract-methods.js",
     "example:template": "node examples/script-template.js"
   },

@@ -136,44 +136,100 @@ class Wallet {
     });
   }
 
-  /**
-   * Import/load an existing wallet by address
-   * 
-   * @param {Object} options - Import options
-   * @param {String} options.address - Wallet address
-   * @param {String} options.contractAddress - Address of the wallet contract
-   * @param {String} options.rpcUrl - RPC URL for the blockchain network
-   * @param {String} options.network - Network name
-   * @returns {Promise<Wallet>} Wallet instance
-   */
-  static async import(options) {
-    const { address, contractAddress, rpcUrl, network } = options;
+  // /**
+  //  * Import/load an existing wallet by address
+  //  * 
+  //  * @param {Object} options - Import options
+  //  * @param {String} options.address - Wallet address
+  //  * @param {String} options.contractAddress - Address of the wallet contract
+  //  * @param {String} options.rpcUrl - RPC URL for the blockchain network
+  //  * @param {String} options.network - Network name
+  //  * @returns {Promise<Wallet>} Wallet instance
+  //  */
+  // static async import(options) {
+  //   const { address, contractAddress, rpcUrl, network } = options;
     
-    // Validate inputs with descriptive errors
+  //   // Validate inputs with descriptive errors
+  //   try {
+  //     validateAddress(address, 'address');
+  //     validateAddress(contractAddress, 'contractAddress');
+  //     if (rpcUrl) {
+  //       validateRpcUrl(rpcUrl);
+  //     }
+  //   } catch (error) {
+  //     if (error instanceof ValidationError) {
+  //       throw error;
+  //     }
+  //     throw new ValidationError(
+  //       `Invalid parameter: ${error.message}`,
+  //       'import',
+  //       error
+  //     );
+  //   }
+    
+  //   return new Wallet({
+  //     address,
+  //     network: network || 'ethereum',
+  //     contractAddress,
+  //     rpcUrl,
+  //     contracts: options.contracts
+  //   });
+  // }
+
+  static async getInfo(options = {}) {
+    const { username, contractAddress, rpcUrl, network } = options;
+
     try {
-      validateAddress(address, 'address');
+      validateUsername(username);
       validateAddress(contractAddress, 'contractAddress');
-      if (rpcUrl) {
-        validateRpcUrl(rpcUrl);
-      }
+      validateRpcUrl(rpcUrl);
     } catch (error) {
       if (error instanceof ValidationError) {
         throw error;
       }
       throw new ValidationError(
         `Invalid parameter: ${error.message}`,
-        'import',
+        'getAddress',
         error
       );
     }
-    
-    return new Wallet({
-      address,
+
+    // Initialize contract client
+    const contractClient = new ContractClient({
       network: network || 'ethereum',
-      contractAddress,
       rpcUrl,
-      contracts: options.contracts
+      contractAddress,
+      useSapphireWrapper: false
     });
+
+    // Register contract ABI for proper method calling
+    const { registerWalletContract } = require('../contracts/WalletContract');
+    registerWalletContract(contractClient, contractAddress);
+
+    const result = await contractClient.callRead(
+      contractAddress,
+      'getUserInfo',
+      [username]
+    );
+
+    console.log('[getInfo] result', result);
+
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to get wallet info');
+    }
+
+    // Extract return values and create a result object
+    const resultObject = {
+      success: result.success,
+      // result: result.result,
+      userAddress: result.result[0],
+      publicKey: result.result[1],
+      hasSecret: result.result[2]
+    };
+
+    console.log('[getInfo] resultObject', resultObject);
+
+    return resultObject;
   }
 
   /**
@@ -230,21 +286,21 @@ class Wallet {
     return result;
   }
 
-  /**
-   * Get wallet public key
-   * @returns {String|Buffer}
-   */
-  getPublicKey() {
-    return this.publicKey;
-  }
+  // /**
+  //  * Get wallet public key
+  //  * @returns {String|Buffer}
+  //  */
+  // getPublicKey() {
+  //   return this.publicKey;
+  // }
 
-  /**
-   * Get username
-   * @returns {String}
-   */
-  getUsername() {
-    return this.username;
-  }
+  // /**
+  //  * Get username
+  //  * @returns {String}
+  //  */
+  // getUsername() {
+  //   return this.username;
+  // }
 
   /**
    * Call a smart contract method (read-only)
