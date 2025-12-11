@@ -41,17 +41,7 @@ class Wallet {
    * @param {String} options.network - Network name (default: 'ethereum')
    * @param {String} options.signerPrivateKey - Private key of authorized signer (for onlyAuthorized modifier)
    * @param {Boolean} options.useSapphireWrapper - Whether to use Oasis Sapphire wrapper for TEE encryption (default: false)
-   * @returns {Promise<Wallet>} Wallet instance with created address and public key
-   * 
-   * @example
-   * const wallet = await Wallet.create({
-   *   username: 'alice',
-   *   secret: 'my-secret-password',
-   *   contractAddress: '0x...',
-   *   rpcUrl: 'https://testnet.sapphire.oasis.io',
-   *   signerPrivateKey: '0x...', // Authorized signer
-   *   useSapphireWrapper: true // For Oasis Sapphire TEE methods
-   * });
+   * @returns {Promise<Wallet>} Wallet instance with created address and public key 
    */
   static async create(options = {}) {
     const { username, secret, contractAddress, rpcUrl, network, signerPrivateKey, useSapphireWrapper } = options;
@@ -103,32 +93,43 @@ class Wallet {
       { useSapphireWrapper: useSapphireWrapper || true }
     );
 
-    console.log('result', result);
+    console.log('[create] result', result);
     
     // Check if the call was successful
     if (!result.success) {
       throw new Error(result.error || 'Failed to create wallet');
     }
     
-    // Extract return values: (address userAddress, bytes memory publicKey)
-    // const userAddress = result.userAddress || (result.result && result.result[0]);
-    // const publicKey = result.publicKey || (result.result && result.result[1]);
+    // Extract return values
     const transactionHash = result.transactionHash;
     const blockNumber = result.blockNumber;
     const gasUsed = result.gasUsed;
-    
-    // if (!userAddress) {
-    //   throw new Error('Wallet creation succeeded but no user address returned');
-    // }
+
+    // After the transaction succeeds, fetch the address and public key
+    const result2 = await Wallet.getAddress({
+      username: username,
+      contractAddress: contractAddress,
+      rpcUrl: rpcUrl,
+      network: network || 'ethereum'
+    });
+
+    if (!result2.success) {
+      throw new Error(result.error || 'Failed to get wallet address');
+    }
+
+    const userAddress = result2.result;
+
+    // TODO: Get public key
+
     
     return new Wallet({
-      // address: userAddress,
+      address: userAddress,
       // publicKey: publicKey,
       username: username,
-      network: network || 'ethereum',
+      network: network,
       contractAddress,
       rpcUrl,
-      // transactionHash,
+      // transactionHash, // TODO: add transactionHash, blockNumber, gasUsed to the result object
       // blockNumber,
       // gasUsed,
       contracts: options.contracts
@@ -182,7 +183,7 @@ class Wallet {
    * @param {String} options.contractAddress - Address of the wallet contract
    * @param {String} options.rpcUrl - RPC URL for the blockchain network
    * @param {String} options.network - Network name
-   * @returns {Promise<String>} Wallet address
+   * @returns {Promise<Object>} Result object containing success, result, transactionHash, blockNumber, gasUsed
    */
   static async getAddress(options = {}) {
     const { username, contractAddress, rpcUrl, network } = options;
@@ -220,15 +221,13 @@ class Wallet {
       [username]
     );
 
-    console.log('result', result);
+    console.log('[getAddress] result', result);
 
     if (!result.success) {
       throw new Error(result.error || 'Failed to get wallet address');
     }
 
-    const address = result.result[0];
-
-    return address;
+    return result;
   }
 
   /**

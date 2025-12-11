@@ -29,9 +29,9 @@ async function getWalletAddressExample() {
     console.log();
 
     // Create wallet - this calls the createUser contract method
-    const address = await Wallet.getAddress(config);
+    const result = await Wallet.getAddress(config);
 
-    console.log('User wallet address', address);
+    console.log('User wallet address', result.result);
 
     console.log('✅ Wallet address retrieved successfully!');
     console.log();

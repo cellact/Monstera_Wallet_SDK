@@ -17,7 +17,7 @@ async function createWalletExample() {
 
   // Configuration
   const config = {
-    username: 'Miza',
+    username: 'Miraaaaaaaa',
     secret: 'my-secret-password-123',
     contractAddress: process.env.INTERACTOR_CONTRACT_ADDRESS, // Your wallet contract address; replace with your own contract address from .env file
     rpcUrl: DEFAULT_RPC_URL, // Or your RPC endpoint
@@ -35,10 +35,10 @@ async function createWalletExample() {
     // Create wallet - this calls the createUser contract method
     const wallet = await Wallet.create(config);
 
-    // console.log('wallet', wallet);
+    console.log('wallet', wallet);
 
     console.log('✅ Wallet created successfully!');
-    // console.log('User Address:', wallet.getAddress());
+    // console.log('User Address:', wallet.getAddress()); // TODO: decide on whether keep create wallet and get address separate 
     // console.log('Public Key:', wallet.getPublicKey());
     // console.log('Username:', wallet.getUsername());
     console.log();
