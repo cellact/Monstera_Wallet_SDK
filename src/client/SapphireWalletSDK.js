@@ -123,7 +123,13 @@ class SapphireWalletSDK {
       // Wait for transaction
       const receipt = await tx.wait();
 
-      console.log('[createWallet] tx', tx);
+      // Debug: log receipt
+      // console.log('[createWallet] receipt:', {
+      //   hash: receipt.hash,
+      //   blockNumber: receipt.blockNumber,
+      //   status: receipt.status,
+      //   logsLength: receipt.logs?.length
+      // });
       
       // Parse WalletCreated event
       const eventData = parseWalletCreatedEvent(receipt, factory);
@@ -137,6 +143,7 @@ class SapphireWalletSDK {
         success: true,
         wallet: eventData.wallet,
         authenticator: eventData.authenticator,
+        storage: eventData.storage, // Storage contract address
         transactionHash: receipt.hash,
         blockNumber: receipt.blockNumber,
         gasUsed: receipt.gasUsed.toString()

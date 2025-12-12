@@ -31,7 +31,7 @@ async function createWalletExample() {
     // Note: mnemonic is generated automatically, but not returned by default for security
     const result = await sdk.wallets.createWallet({
       password: 'my-secure-password-123',
-      returnMnemonic: false // Set to true if you need the mnemonic (not recommended for production)
+      returnMnemonic: true // Set to true if you need the mnemonic (not recommended for production)
     });
 
     console.log('✅ Wallet created successfully!');

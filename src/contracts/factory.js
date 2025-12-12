@@ -54,14 +54,14 @@ const FACTORY_ABI = [
       {
         "indexed": true,
         "internalType": "address",
-        "name": "authenticator",
+        "name": "storage_",
         "type": "address"
       },
       {
         "indexed": false,
-        "internalType": "bytes",
-        "name": "seed",
-        "type": "bytes"
+        "internalType": "address",
+        "name": "authenticator",
+        "type": "address"
       }
     ],
     "name": "WalletCreated",
@@ -100,23 +100,51 @@ function parseWalletCreatedEvent(receipt, factoryContract) {
   
   const iface = factoryContract.interface;
   
-  for (const log of receipt.logs) {
+  // Find the WalletCreated event
+  const walletCreatedEvent = receipt.logs.find((log) => {
     try {
       const parsed = iface.parseLog(log);
-      if (parsed && parsed.name === 'WalletCreated') {
-        return {
-          wallet: parsed.args.wallet,
-          authenticator: parsed.args.authenticator,
-          seed: parsed.args.seed
-        };
-      }
-    } catch (e) {
-      // Not the event we're looking for, continue
-      continue;
+      return parsed?.name === 'WalletCreated';
+    } catch {
+      return false;
     }
+  });
+  
+  if (!walletCreatedEvent) {
+    // Debug: log all events to see what we're getting
+    console.log('[parseWalletCreatedEvent] Total logs:', receipt.logs?.length);
+    if (receipt.logs && receipt.logs.length > 0) {
+      console.log('[parseWalletCreatedEvent] Trying to parse logs...');
+      receipt.logs.forEach((log, i) => {
+        try {
+          const parsed = iface.parseLog(log);
+          console.log(`[parseWalletCreatedEvent] Log ${i}:`, parsed?.name || 'unknown');
+        } catch (e) {
+          console.log(`[parseWalletCreatedEvent] Log ${i}: failed to parse (not from factory)`);
+        }
+      });
+    }
+    return null;
   }
   
-  return null;
+  // Parse the event
+  try {
+    const parsedEvent = iface.parseLog(walletCreatedEvent);
+    
+    if (!parsedEvent || parsedEvent.name !== 'WalletCreated') {
+      return null;
+    }
+    
+    return {
+      wallet: parsedEvent.args?.wallet,
+      storage: parsedEvent.args?.storage_, // Note: field name is storage_ in contract
+      authenticator: parsedEvent.args?.authenticator
+    };
+  } catch (error) {
+    // Failed to parse event
+    console.error('[parseWalletCreatedEvent] Error parsing event:', error.message);
+    return null;
+  }
 }
 
 module.exports = {
