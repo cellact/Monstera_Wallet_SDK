@@ -8,8 +8,8 @@
 const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword } = require('../crypto/wallet');
-const { getFactoryContract, parseWalletCreatedEvent } = require('../contracts/factory');
-const { getWalletLogicContract } = require('../contracts/walletLogic');
+const { getWalletFactoryContract, parseWalletCreatedEvent } = require('../contracts/core/walletFactory');
+const { getWalletLogicContract } = require('../contracts/core/walletLogic');
 
 /**
  * Sapphire Wallet SDK
@@ -85,79 +85,66 @@ class SapphireWalletSDK {
    * - Parse WalletCreated event
    * 
    * @param {Object} options - Wallet creation options
-   * @param {String} options.password - User password
-   * @param {String} [options.mnemonic] - Optional mnemonic (if not provided, generates new one)
-   * @param {Boolean} [options.returnMnemonic=false] - Whether to return mnemonic in result
-   * @returns {Promise<Object>} Creation result with wallet address, tx hash, and optionally mnemonic
+   * @param {Bytes} options.passwordHash - User password hash
+   * @param {String} options.authenticator - Authenticator contract address (optional, dafaults to PasswordAuthenticator)
+   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWallet(options = {}) {
-    const { password, mnemonic: providedMnemonic, returnMnemonic = false } = options;
+    const { passwordHash, authenticator = this.addresses.passwordAuth } = options;
 
-    if (!password || typeof password !== 'string') {
+    // TODO: check that passwordHash is correct type (bytes)
+    if (!passwordHash) {
       throw new Error('Password is required');
     }
 
-    if (!this.addresses.factory) {
-      throw new Error('Factory address is required. Set it in config.addresses.factory');
-    }
+    // if (!this.addresses.factory) {
+    //   throw new Error('Factory address is required. Set it in config.addresses.factory');
+    // }
 
-    if (!this.addresses.passwordAuth) {
-      throw new Error('Password authenticator address is required. Set it in config.addresses.passwordAuth');
-    }
+    // if (!authenticator) {
+    //   throw new Error('Authenticator address is required. Set it in config.addresses.passwordAuth');
+    // }
 
-    // Off-chain: Generate mnemonic (if not provided)
-    const mnemonic = providedMnemonic || generateMnemonic();
+    // Off-chain: Generate mnemonic
+    const mnemonic = generateMnemonic();
     
     // Off-chain: Derive seed from mnemonic
     const seed = deriveSeed(mnemonic);
     
-    // Off-chain: Hash password
-    const passwordHash = hashPassword(password);
-    
     // On-chain: Get factory contract with wrapped signer
-    const factory = getFactoryContract(this.writeSigner, this.addresses.factory);
+    const factory = getWalletFactoryContract(this.writeSigner, this.addresses.factory);
     
     // On-chain: Call createWallet
     try {
       const tx = await factory.createWallet(
         seed, // bytes seed
-        this.addresses.passwordAuth, // address authenticator
+        authenticator, // address authenticator
         passwordHash // bytes authConfig (password hash)
       );
       
       // Wait for transaction
       const receipt = await tx.wait();
 
-      // Debug: log receipt
-      // console.log('[createWallet] receipt:', {
-      //   hash: receipt.hash,
-      //   blockNumber: receipt.blockNumber,
-      //   status: receipt.status,
-      //   logsLength: receipt.logs?.length
-      // });
-      
       // Parse WalletCreated event
       const eventData = parseWalletCreatedEvent(receipt, factory);
       
       if (!eventData) {
         throw new Error('WalletCreated event not found in transaction receipt');
       }
+
+      // TODO: hash the mnemonic and return it hashed? 
       
       // Build result
       const result = {
         success: true,
         wallet: eventData.wallet,
+        mnemonic: mnemonic,
         authenticator: eventData.authenticator,
         storage: eventData.storage, // Storage contract address
         transactionHash: receipt.hash,
         blockNumber: receipt.blockNumber,
         gasUsed: receipt.gasUsed.toString()
       };
-      
-      // Optionally include mnemonic (security: only if requested)
-      if (returnMnemonic) {
-        result.mnemonic = mnemonic;
-      }
       
       return result;
     } catch (error) {
@@ -238,7 +225,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Sign a message with a wallet (Sign EIP-191 personal message)
+   * Sign a message with an account's private key
    * 
    * @param {Object} options - Sign message options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)

@@ -16,8 +16,8 @@ const { getReadProvider, getWriteSigner } = require('./provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword } = require('./crypto/wallet');
 
 // Export contract utilities
-const { getFactoryContract } = require('./contracts/factory');
-const { getWalletLogicContract } = require('./contracts/walletLogic');
+const { getWalletFactoryContract } = require('./contracts/core/walletFactory');
+const { getWalletLogicContract } = require('./contracts/core/walletLogic');
 
 // Export errors (existing)
 const {
@@ -47,7 +47,7 @@ module.exports = {
   hashPassword,
   
   // Contract utilities
-  getFactoryContract,
+  getWalletFactoryContract,
   getWalletLogicContract,
   
   // Errors

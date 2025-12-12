@@ -7,7 +7,7 @@
 /**
  * Factory contract ABI (minimal - only methods we use)
  */
-const FACTORY_ABI = [
+const WALLET_FACTORY_ABI = [
   {
     "inputs": [
       {
@@ -70,35 +70,35 @@ const FACTORY_ABI = [
 ];
 
 /**
- * Get factory contract instance
+ * Get wallet factory contract instance
  * 
  * @param {Object} signerOrProvider - Ethers Signer or Provider
- * @param {String} factoryAddress - Factory contract address
+ * @param {String} walletFactoryAddress - Wallet factory contract address
  * @returns {Object} Contract instance
  */
-function getFactoryContract(signerOrProvider, factoryAddress) {
+function getWalletFactoryContract(signerOrProvider, walletFactoryAddress) {
   const { ethers } = require('ethers');
   
-  if (!factoryAddress) {
-    throw new Error('Factory address is required');
+  if (!walletFactoryAddress) {
+    throw new Error('Wallet factory address is required');
   }
   
-  return new ethers.Contract(factoryAddress, FACTORY_ABI, signerOrProvider);
+  return new ethers.Contract(walletFactoryAddress, WALLET_FACTORY_ABI, signerOrProvider);
 }
 
 /**
  * Parse WalletCreated event from transaction receipt
  * 
  * @param {Object} receipt - Transaction receipt
- * @param {Object} factoryContract - Factory contract instance
+ * @param {Object} walletFactoryContract - Wallet factory contract instance
  * @returns {Object|null} Parsed event data or null if not found
  */
-function parseWalletCreatedEvent(receipt, factoryContract) {
+function parseWalletCreatedEvent(receipt, walletFactoryContract) {
   if (!receipt || !receipt.logs) {
     return null;
   }
   
-  const iface = factoryContract.interface;
+  const iface = walletFactoryContract.interface;
   
   // Find the WalletCreated event
   const walletCreatedEvent = receipt.logs.find((log) => {
@@ -148,8 +148,8 @@ function parseWalletCreatedEvent(receipt, factoryContract) {
 }
 
 module.exports = {
-  FACTORY_ABI,
-  getFactoryContract,
+  WALLET_FACTORY_ABI,
+  getWalletFactoryContract,
   parseWalletCreatedEvent
 };
 
