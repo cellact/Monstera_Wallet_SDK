@@ -50,7 +50,8 @@ class SapphireWalletSDK {
     // Namespace for wallet operations
     this.wallets = {
       createWallet: this.createWallet.bind(this),
-      getAccountAddress: this.getAccountAddress.bind(this)
+      getAccountAddress: this.getAccountAddress.bind(this),
+      getAccount: this.getAccount.bind(this)
     };
   }
 
@@ -191,7 +192,47 @@ class SapphireWalletSDK {
     } catch (error) {
       throw new Error(`Failed to get account address: ${error.message}`);
     }
+  }
 
+  /**
+   * Get account private key and address
+   * 
+   * @param {Object} options - Account options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
+   * @param {Number} options.index - Account index
+   * @returns {Promise<Object>} Account
+   */
+  async getAccount(options = {}) {
+    const { walletAddress, authProof, index } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    // TODO: check that authProof is correct type (bytes)
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+    
+    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+      throw new Error('Index is required and must be a non-negative integer');
+    }
+
+    const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const { privateKey, account } = await walletLogic.getAccount(authProof, index);
+      const result = {
+        success: true,
+        privateKey: privateKey.toString(),
+        accountAddress: account
+      };
+
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to get account: ${error.message}`);
+    }
   }
 }
 
