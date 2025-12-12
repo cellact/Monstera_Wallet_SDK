@@ -16,21 +16,6 @@ const { getWalletLogicContract } = require('../contracts/core/walletLogic');
  * 
  * Main entry point for wallet operations on Oasis Sapphire.
  * 
- * @example
- * ```javascript
- * const sdk = SapphireWalletSDK.fromConfig({
- *   network: 'testnet',
- *   addresses: {
- *     factory: '0x...',
- *     passwordAuth: '0x...'
- *   },
- *   signerOrProvider: privateKey // or Signer/Provider instance
- * });
- * 
- * const result = await sdk.wallets.createWallet({
- *   password: 'my-password'
- * });
- * ```
  */
 class SapphireWalletSDK {
   constructor(config) {
@@ -75,27 +60,20 @@ class SapphireWalletSDK {
   /**
    * Create a new wallet
    * 
-   * Off-chain:
-   * - Generate mnemonic
-   * - Derive seed (PBKDF2)
-   * - Hash password (keccak256)
-   * 
-   * On-chain:
-   * - Call factory.createWallet(seed, PASSWORD_AUTH_ADDRESS, passwordHash)
-   * - Parse WalletCreated event
-   * 
    * @param {Object} options - Wallet creation options
-   * @param {Bytes} options.passwordHash - User password hash
+   * @param {Bytes} options.authConfig - Authentication configuration (bytes)
    * @param {String} options.authenticator - Authenticator contract address (optional, dafaults to PasswordAuthenticator)
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWallet(options = {}) {
-    const { passwordHash, authenticator = this.addresses.passwordAuth } = options;
+    const { authConfig, authenticator = this.addresses.passwordAuth } = options;
 
     // TODO: check that passwordHash is correct type (bytes)
-    if (!passwordHash) {
-      throw new Error('Password is required');
+    if (!authConfig) {
+      throw new Error('Auth config is required');
     }
+
+    // TODO: check in a mapping if authConfig is valid (either password hash or whitelist)
 
     // if (!this.addresses.factory) {
     //   throw new Error('Factory address is required. Set it in config.addresses.factory');
@@ -119,7 +97,7 @@ class SapphireWalletSDK {
       const tx = await factory.createWallet(
         seed, // bytes seed
         authenticator, // address authenticator
-        passwordHash // bytes authConfig (password hash)
+        authConfig // bytes authConfig
       );
       
       // Wait for transaction
