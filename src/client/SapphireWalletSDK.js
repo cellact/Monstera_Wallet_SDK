@@ -9,6 +9,7 @@ const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword } = require('../crypto/wallet');
 const { getFactoryContract, parseWalletCreatedEvent } = require('../contracts/factory');
+const { getWalletLogicContract } = require('../contracts/walletLogic');
 
 /**
  * Sapphire Wallet SDK
@@ -48,7 +49,8 @@ class SapphireWalletSDK {
     
     // Namespace for wallet operations
     this.wallets = {
-      createWallet: this.createWallet.bind(this)
+      createWallet: this.createWallet.bind(this),
+      getAccountAddress: this.getAccountAddress.bind(this)
     };
   }
 
@@ -158,6 +160,38 @@ class SapphireWalletSDK {
     } catch (error) {
       throw new Error(`Failed to create wallet: ${error.message}`);
     }
+  }
+
+  /**
+   * Get account address from wallet
+   * 
+   * @param {Object} options - Account address options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Number} options.index - Account index (uint32)
+   * @returns {Promise<String>} Account address
+   */
+  async getAccountAddress(options = {}) {
+    const { walletAddress, index } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    // index can be 0 or positive integer - check explicitly for undefined/null
+    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+      throw new Error('Index is required and must be a non-negative integer');
+    }
+
+    // Get wallet logic contract
+    const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const accountAddress = await walletLogic.getAccountAddress(index);
+      return accountAddress;
+    } catch (error) {
+      throw new Error(`Failed to get account address: ${error.message}`);
+    }
+
   }
 }
 
