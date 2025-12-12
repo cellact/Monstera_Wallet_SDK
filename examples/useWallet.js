@@ -104,6 +104,37 @@ async function useWalletExample() {
     }
   }
 
+  // sign a hash with account's private key
+  try {
+    console.log('Signing a raw hash (authenticated)...');
+    console.log();
+
+    const hash = ethers.keccak256(ethers.toUtf8Bytes("Some data to hash"));
+
+    const result = await sdk.wallets.sign({
+      walletAddress: process.env.TEST_WALLET_ADDRESS,
+      authProof: authProof,
+      index: 0,
+      hash: hash
+    });
+
+    console.log('Signature:', result.signature);
+
+    // verify signature 
+    const expectedAddr = await sdk.wallets.getAccountAddress({
+        walletAddress: process.env.TEST_WALLET_ADDRESS,
+        index: 0
+    });
+    const recovered = ethers.recoverAddress(hash, result.signature);
+    const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
+    console.log(`   Recovered: ${recovered}`);
+    console.log(`   ${match ? "✅ Signature valid!" : "❌ Signature invalid!"}`);
+  } catch (error) {
+    console.error('❌ Error signing hash:', error.message);
+    if (error.stack) {
+      console.error('Stack:', error.stack);
+    }
+  }
 }
 
 // Run example

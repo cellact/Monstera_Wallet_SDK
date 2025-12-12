@@ -52,7 +52,8 @@ class SapphireWalletSDK {
       createWallet: this.createWallet.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
       getAccount: this.getAccount.bind(this),
-      signMessage: this.signMessage.bind(this)
+      signMessage: this.signMessage.bind(this),
+      sign: this.sign.bind(this)
     };
   }
 
@@ -270,6 +271,50 @@ class SapphireWalletSDK {
 
     try {
       const signature = await walletLogic.signMessage(authProof, index, message);
+      const result = {
+        success: true,
+        signature: signature
+      };
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to sign message: ${error.message}`);
+    }
+  }
+
+  /**
+   * Sign a hash with an account's private key
+   * 
+   * @param {Object} options - Sign hash options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
+   * @param {Number} options.index - Account index
+   * @param {Bytes} options.hash - Hash to sign
+   * @returns {Promise<String>} Signed message
+   */
+  async sign(options = {}) {
+    const { walletAddress, authProof, index, hash } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    // TODO: check that authProof is correct type (bytes)
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+    
+    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+      throw new Error('Index is required and must be a non-negative integer');
+    }
+    
+    if (!hash) {
+      throw new Error('Hash is required');
+    }
+
+    const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const signature = await walletLogic.sign(authProof, index, hash);
       const result = {
         success: true,
         signature: signature
