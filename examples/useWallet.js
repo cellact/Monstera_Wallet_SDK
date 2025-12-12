@@ -70,6 +70,40 @@ async function useWalletExample() {
     }
   }
 
+  // sign message (EIP-191 personal message)
+  try {
+    console.log('Signing message...');
+    console.log();
+
+    const message = 'Hello from Monstera!';
+    const bytesMessage = ethers.toUtf8Bytes(message);
+
+    const result = await sdk.wallets.signMessage({
+      walletAddress: process.env.TEST_WALLET_ADDRESS,
+      authProof: authProof,
+      index: 0,
+      message: bytesMessage
+    });
+
+    console.log('Message:', message);
+    console.log('Signature:', result.signature);
+
+    // verify signature 
+    const expectedAddr = await sdk.wallets.getAccountAddress({
+        walletAddress: process.env.TEST_WALLET_ADDRESS,
+        index: 0
+    });
+    const recovered = ethers.verifyMessage(message, result.signature);
+    const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
+    console.log(`   Recovered: ${recovered}`);
+    console.log(`   ${match ? "✅ Signature valid!" : "❌ Signature invalid!"}`);
+  } catch (error) {
+    console.error('❌ Error signing message:', error.message);
+    if (error.stack) {
+      console.error('Stack:', error.stack);
+    }
+  }
+
 }
 
 // Run example
