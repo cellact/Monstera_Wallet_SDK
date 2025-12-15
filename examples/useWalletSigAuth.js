@@ -7,7 +7,7 @@
 
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers } = require('ethers');
+const { ethers, Wallet } = require('ethers');
 
 async function useWalletSigAuthExample() {
   console.log('=== Create and use Wallet (with Wallet Signature Authenticator) Example ===\n');
@@ -30,7 +30,6 @@ async function useWalletSigAuthExample() {
   const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY || "";
   const ALLOWED_2_KEY = process.env.ALLOWED_2_KEY || "";
 
-
   try {
     console.log('Creating wallet...');
     console.log('Network:', sdk.network);
@@ -44,7 +43,7 @@ async function useWalletSigAuthExample() {
     console.log(`Whitelist: ${whitelist.join(", ")}`);
 
     // Create wallet with password hash
-    const result = await sdk.wallets.createWallet({
+    result = await sdk.wallets.createWallet({
       authConfig: authConfig,
       authenticator: sdk.addresses.walletSignatureAuth
     });
@@ -61,6 +60,38 @@ async function useWalletSigAuthExample() {
     
   } catch (error) {
     console.error('❌ Error creating wallet:', error.message);
+    if (error.stack) {
+      console.error('Stack:', error.stack);
+    }
+  }
+
+  const allowed1Signer = new Wallet(ALLOWED_1_KEY, sdk.readProvider);
+
+  // Verify address matches
+  if (allowed1Signer.address.toLowerCase() !== ALLOWED_1.toLowerCase()) {
+    throw new Error(`ALLOWED_1_KEY doesn't match ${ALLOWED_1}`);
+  }
+
+  try {
+    console.log('Creating auth proof...');
+    console.log();
+
+    if (!result || !result.wallet) {
+      console.error('❌ Wallet creation failed, cannot create auth proof');
+      return;
+    }
+
+    console.log('Wallet address:', result.wallet);
+
+    const authProof = await sdk.wallets.createAuthProof({
+      authenticateFor: result.wallet,
+      signer: allowed1Signer
+    });
+
+    console.log('Auth proof:', authProof);
+  }
+  catch (error) {
+    console.error('❌ Error creating auth proof:', error.message);
     if (error.stack) {
       console.error('Stack:', error.stack);
     }

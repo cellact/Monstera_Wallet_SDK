@@ -7,9 +7,10 @@
 
 const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
-const { generateMnemonic, deriveSeed, hashPassword } = require('../crypto/wallet');
+const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent } = require('../contracts/core/walletFactory');
 const { getWalletLogicContract } = require('../contracts/core/walletLogic');
+const { ethers, Wallet, HDNodeWallet } = require('ethers');
 
 /**
  * Sapphire Wallet SDK
@@ -38,7 +39,8 @@ class SapphireWalletSDK {
       getAccountAddress: this.getAccountAddress.bind(this),
       getAccount: this.getAccount.bind(this),
       signMessage: this.signMessage.bind(this),
-      sign: this.sign.bind(this)
+      sign: this.sign.bind(this),
+      createAuthProof: this.createAuthProof.bind(this)
     };
   }
 
@@ -288,6 +290,42 @@ class SapphireWalletSDK {
     } catch (error) {
       throw new Error(`Failed to sign message: ${error.message}`);
     }
+  }
+
+  async createAuthProof(options = {}) {
+    // const { authenticateFor, signer, authenticator, deadline } = options;
+    const { authenticateFor, signer } = options;
+    let { authenticator, deadline } = options;
+
+    if (!authenticateFor || typeof authenticateFor !== 'string') {
+      throw new Error('Authenticate for is required and must be a string');
+    }
+
+    if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
+      throw new Error('Signer must be a Wallet or HDNodeWallet');
+    }
+
+    // if no authenticator contract address provided use default from config
+    if (!authenticator || typeof authenticator !== 'string') {
+      authenticator = this.addresses.walletSignatureAuth;
+    }
+
+    // if deadline is provided, check if it is a number and in the future
+    if (deadline && (typeof deadline !== 'number' || deadline < Date.now())) {
+      throw new Error('Deadline must be a number and in the future');
+    } else if (!deadline) {
+      // if no deadline provided, default to 1 hour from now
+      deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+    }
+
+    // get chainId from config
+    const chainId = this.chainId;
+
+    const authProof = await createAuthProof(authenticateFor, signer, chainId, authenticator, deadline);
+
+    // console.log('[createAuthProof] Auth proof:', authProof);
+
+    return authProof;
   }
 }
 

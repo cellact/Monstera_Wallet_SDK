@@ -5,7 +5,7 @@
  */
 
 const crypto = require('crypto');
-const { ethers } = require('ethers');
+const { ethers, Wallet, HDNodeWallet } = require('ethers');
 
 /**
  * Generate a new mnemonic phrase
@@ -105,11 +105,65 @@ function createWalletFromMnemonic(mnemonic, path = "m/44'/60'/0'/0/0") {
   };
 }
 
+/**
+ * Create auth proof (EIP-712 authentication proof)
+ * 
+ * @param {Object} authenticateFor - Wallet to authenticate for (Wallet or HDNodeWallet); the smart contract wallet being accessed
+ * @param {Object} signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
+ * @param {String} chainId - Chain ID
+ * @param {String} authenticator - Wallet signature authenticator contract address
+ * @param {Number} deadline - Deadline for the auth proof
+ * @returns {String} Auth proof (bytes)
+ */
+async function createAuthProof(authenticateFor, signer, chainId, authenticator, deadline) {
+
+  // if (!authenticateFor || !(authenticateFor instanceof ethers.Wallet || authenticateFor instanceof ethers.HDNodeWallet)) {
+  //   throw new Error('Main wallet must be a Wallet or HDNodeWallet');
+  // }
+
+  // // signer must be a Wallet or HDNodeWallet
+  // if (!(signer instanceof ethers.Wallet || signer instanceof ethers.HDNodeWallet)) {
+  //   throw new Error('Signer must be a Wallet or HDNodeWallet');
+  // }
+
+  // if (!deadline || typeof deadline !== 'number' || deadline < Date.now()) {
+  //   throw new Error('Deadline must be a number and in the future');
+  // }
+
+  // build EIP-712 domain
+  const domain = {
+    name: "WalletSignatureAuthenticator",
+    version: "1",
+    chainId: chainId, 
+    verifyingContract: authenticator 
+  };
+  const types = {
+    WalletAuth: [
+      { name: "wallet", type: "address" },
+      { name: "deadline", type: "uint256" }
+    ]
+  };
+  const value = { wallet: authenticateFor, deadline };
+  
+  const signature = await signer.signTypedData(domain, types, value);
+
+  // console.log('[createAuthProof] Signature:', signature);
+
+  const authProof = ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "bytes"], [deadline, signature]);
+
+  // console.log('[createAuthProof] Auth proof ahsvdj:', authProof);
+
+  return authProof;
+
+  // return ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "bytes"], [deadline, signature]);
+}
+
 module.exports = {
   generateMnemonic,
   deriveSeed,
   hashPassword,
   encodeAuthConfig,
-  createWalletFromMnemonic
+  createWalletFromMnemonic,
+  createAuthProof
 };
 
