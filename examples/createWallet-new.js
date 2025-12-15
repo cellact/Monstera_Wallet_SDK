@@ -9,24 +9,21 @@ require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers } = require('ethers');
 
-async function createWalletExample() {
+async function main() {
+  console.log("=".repeat(70));
   console.log('=== Create Wallet Example ===\n');
+  console.log("=".repeat(70));
 
-  // Option 1: Using testnet with environment variables
+  // Initialize SDK
   const sdk = SapphireWalletSDK.fromConfig({
     network: 'testnet', // or 'mainnet'
-    addresses: {
-      walletFactory: process.env.WALLET_FACTORY_CONTRACT_ADDRESS, // Set in .env
-      passwordAuth: process.env.PASSWORD_AUTH_ADDRESS // Set in .env
-    },
+    // addresses are optional - will defaults from config/networks.js if not provided
     signerOrProvider: process.env.SIGNER_PRIVATE_KEY // Private key for signing transactions
   });
 
   try {
     console.log('Creating wallet...');
     console.log('Network:', sdk.network);
-    console.log('Wallet Factory:', sdk.addresses.walletFactory);
-    console.log('Authenticator:', sdk.addresses.passwordAuth);
     console.log();
 
     // prepare password hash
@@ -42,6 +39,7 @@ async function createWalletExample() {
     console.log('Wallet Address:', result.wallet);
     console.log('Mnemonic:', result.mnemonic);
     console.log('Authenticator:', result.authenticator);
+    console.log('KeyVault:', result.keyVault);
     console.log('Storage:', result.storage);
     console.log('Transaction Hash:', result.transactionHash);
     console.log('Block Number:', result.blockNumber);
@@ -57,5 +55,13 @@ async function createWalletExample() {
 }
 
 // Run example
-createWalletExample().catch(console.error);
-
+main()
+  .then(() => {
+    console.log("\n✅ Test suite completed successfully!");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("\n❌ Test suite failed:");
+    console.error(error);
+    process.exit(1);
+  });

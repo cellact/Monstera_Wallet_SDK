@@ -54,6 +54,12 @@ const WALLET_FACTORY_ABI = [
       {
         "indexed": true,
         "internalType": "address",
+        "name": "keyVault",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
         "name": "storage_",
         "type": "address"
       },
@@ -124,6 +130,32 @@ const WALLET_FACTORY_ABI = [
   },
   {
     "inputs": [],
+    "name": "defaultKeyVaultImpl",
+    "outputs": [
+      {
+        "internalType": "contract KeyVaultImplementation",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getDefaultKeyVaultImpl",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "implementation",
     "outputs": [
       {
@@ -188,6 +220,25 @@ const WALLET_FACTORY_ABI = [
         "internalType": "uint256",
         "name": "",
         "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "walletKeyVault",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -298,9 +349,10 @@ function parseWalletCreatedEvent(receipt, walletFactoryContract) {
     if (!parsedEvent || parsedEvent.name !== 'WalletCreated') {
       return null;
     }
-    
+
     return {
       wallet: parsedEvent.args?.wallet,
+      keyVault: parsedEvent.args?.keyVault,
       storage: parsedEvent.args?.storage_, // Note: field name is storage_ in contract
       authenticator: parsedEvent.args?.authenticator
     };

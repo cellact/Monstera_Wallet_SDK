@@ -29,14 +29,20 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    factory: '0x90FCf6FB887A146380352f974eB8d7c109AC8896', // Set after deployment
+    factory: '0xBaa3349BB53dcAa73Ed9eF80757e55Fb501eC53f', // Set after deployment
+    beacon: '0x87af76c76FABc07CE9205f20A99301b5a214B6Ae',
+    logic: '0x8629E753175106F5aD097B5c65D5F306B3dfdb80',
+    keyVaultImpl: '0x225073e1414750F7a975D85797A31095917EE169',
     wallet: '0x76a80aF9eba04529fCedd823e9712a79B98D5D1A',   // Set after deployment
     storage: null,  // Set after deployment
-    passwordAuth: '0xBA3ae785E079C97a0BfAffa16dc2e2f0a1493CF8', // Set after deployment
+    passwordAuth: '0x0d0E1714A90bfb471d3f85358FfF2b57b53125e6', // Set after deployment
     walletSignatureAuth: '0x5eDF7FBFEE84DC2Ec92c7113D369f3E9450c3Ba4' // Set after deployment
   },
   mainnet: {
     factory: null,
+    beacon: null,
+    logic: null,
+    keyVaultImpl: null,
     wallet: null,
     storage: null,
     passwordAuth: null,

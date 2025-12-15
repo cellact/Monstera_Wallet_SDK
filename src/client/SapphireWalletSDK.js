@@ -127,6 +127,7 @@ class SapphireWalletSDK {
         wallet: eventData.wallet,
         mnemonic: mnemonic,
         authenticator: eventData.authenticator,
+        keyVault: eventData.keyVault,
         storage: eventData.storage, // Storage contract address
         transactionHash: receipt.hash,
         blockNumber: receipt.blockNumber,
