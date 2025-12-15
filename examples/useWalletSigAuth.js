@@ -274,43 +274,40 @@ async function main() {
     }
   }
 
-//   // ============ STEP 6: Add NOT Allowed #1 to Whitelist ============
-//   console.log("\n" + "=".repeat(70));
-//   console.log("STEP 6: Add NOT Allowed #1 to Whitelist");
-//   console.log("=".repeat(70));
+  // ============ STEP 6: Add NOT Allowed #1 to Whitelist ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 6: Add NOT Allowed #1 to Whitelist");
+  console.log("=".repeat(70));
 
-//   try {
-//     // Use allowed1 to add notAllowed1
-//     const authProof = await sdk.wallets.createAuthProof({
-//       authenticateFor: walletAddress,
-//       signer: allowed1Signer,
-//     });
+  try {
+    // Use allowed1 to add notAllowed1
+    const authProof = await sdk.wallets.createAuthProof({
+      authenticateFor: walletAddress,
+      signer: allowed1Signer,
+    });
     
-//     // Connect walletSigAuth with allowed1Signer for write operations
-//     const walletSigAuthWithSigner = getWalletSignatureAuthenticatorContract(
-//       allowed1Signer.connect(sdk.writeProvider),
-//       sdk.addresses.walletSignatureAuth
-//     );
+    // Add notAllowed1 to whitelist
+    const addResult = await sdk.wallets.addToWhitelist({
+      walletAddress: walletAddress, 
+      authProof: authProof,
+      newAddress: notAllowed1.address
+    });
     
-//     const addTx = await walletSigAuthWithSigner.addToWhitelist(
-//       walletAddress,
-//       authProof,
-//       notAllowed1.address
-//     );
-//     await addTx.wait();
-    
-//     console.log(`   ✅ Added ${notAllowed1.address.slice(0, 10)}... to whitelist`);
-//     console.log(`   Transaction Hash: ${addTx.hash}`);
+    console.log(`   ✅ Added ${notAllowed1.address.slice(0, 10)}... to whitelist`);
+    console.log(`   Transaction Hash: ${addResult.hash}`);
 
-//     // Verify
-//     const isNowWhitelisted = await walletSigAuth.isWhitelisted(walletAddress, notAllowed1.address);
-//     console.log(`   ✅ isWhitelisted: ${isNowWhitelisted}`);
-//   } catch (e) {
-//     console.log(`   ❌ FAILED to add: ${e.message}`);
-//     if (e.stack) {
-//       console.log(`   Stack: ${e.stack.slice(0, 200)}...`);
-//     }
-//   }
+    // Verify
+    const isNowWhitelisted = await sdk.wallets.isWhitelisted({
+        walletAddress: walletAddress,
+        addressToCheck: notAllowed1.address
+    });
+    console.log(`   ✅ isWhitelisted: ${isNowWhitelisted}`);
+  } catch (e) {
+    console.log(`   ❌ FAILED to add: ${e.message}`);
+    if (e.stack) {
+      console.log(`   Stack: ${e.stack.slice(0, 200)}...`);
+    }
+  }
 
 //   // ============ STEP 7: Try (previously) NOT Allowed #1 → Should NOW Succeed ============
 //   console.log("\n" + "=".repeat(70));

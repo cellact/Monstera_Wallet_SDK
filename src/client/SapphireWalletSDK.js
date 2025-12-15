@@ -10,6 +10,7 @@ const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent } = require('../contracts/core/walletFactory');
 const { getWalletLogicContract } = require('../contracts/core/walletLogic');
+const { getWalletSignatureAuthenticatorContract } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
 
 /**
@@ -40,7 +41,9 @@ class SapphireWalletSDK {
       getAccount: this.getAccount.bind(this),
       signMessage: this.signMessage.bind(this),
       sign: this.sign.bind(this),
-      createAuthProof: this.createAuthProof.bind(this)
+      createAuthProof: this.createAuthProof.bind(this),
+      addToWhitelist: this.addToWhitelist.bind(this),
+      isWhitelisted: this.isWhitelisted.bind(this)
     };
   }
 
@@ -326,6 +329,74 @@ class SapphireWalletSDK {
     // console.log('[createAuthProof] Auth proof:', authProof);
 
     return authProof;
+  }
+
+  /**
+   * Add a new address to the whitelist
+   * 
+   * @param {Object} options - Add to whitelist options
+   * @param {String} options.walletAddress - Wallet address 
+   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
+   * @param {String} options.newAddress - New address to add to the whitelist
+   * @returns {Promise<Object>} Transaction receipt
+   */
+  async addToWhitelist(options = {}) {
+    const { walletAddress, authProof, newAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    // TODO: check that authProof is correct type (bytes)
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+
+    if (!newAddress || typeof newAddress !== 'string') {
+      throw new Error('New address is required');
+    }
+
+    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.writeSigner, this.addresses.walletSignatureAuth);
+
+    try {
+      const tx = await walletSigAuth.addToWhitelist(walletAddress, authProof, newAddress);
+      const receipt = await tx.wait();
+      
+      // console.log('[addToWhitelist] Transaction receipt:', receipt);
+
+      return receipt;
+    } catch (error) {
+      throw new Error(`Failed to add to whitelist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if an address is whitelisted
+   * 
+   * @param {Object} options - Is whitelisted options
+   * @param {String} options.walletAddress - Wallet address 
+   * @param {String} options.addressToCheck - Address to check if it is whitelisted
+   * @returns {Promise<Boolean>} True if address is whitelisted, false otherwise
+   */
+  async isWhitelisted(options = {}) {
+    const { walletAddress, addressToCheck } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    if (!addressToCheck || typeof addressToCheck !== 'string') {
+      throw new Error('Address to check is required');
+    }
+
+    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
+
+    try {
+      const isWhitelisted = await walletSigAuth.isWhitelisted(walletAddress, addressToCheck);
+      return isWhitelisted;
+    } catch (error) {
+      throw new Error(`Failed to check if address is whitelisted: ${error.message}`);
+    }
   }
 }
 
