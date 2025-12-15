@@ -37,6 +37,7 @@ class SapphireWalletSDK {
     // Namespace for wallet operations
     this.wallets = {
       createWallet: this.createWallet.bind(this),
+      walletCount: this.walletCount.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
       getAccount: this.getAccount.bind(this),
       signMessage: this.signMessage.bind(this),
@@ -133,6 +134,21 @@ class SapphireWalletSDK {
       return result;
     } catch (error) {
       throw new Error(`Failed to create wallet: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the number of wallets created
+   * 
+   * @returns {Promise<Number>} Number of wallets created
+   */
+  async walletCount() {
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+    try {
+      const count = await factory.walletCount();
+      return count;
+    } catch (error) {
+      throw new Error(`Failed to get wallet count: ${error.message}`);
     }
   }
 
