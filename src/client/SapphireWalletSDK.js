@@ -40,8 +40,10 @@ class SapphireWalletSDK {
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
       implementation: this.implementation.bind(this),
+      getKeyVault: this.getKeyVault.bind(this),
+      getAuthenticator: this.getAuthenticator.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
-      getAccount: this.getAccount.bind(this),
+      // getAccount: this.getAccount.bind(this),
       signMessage: this.signMessage.bind(this),
       sign: this.sign.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
@@ -197,6 +199,54 @@ class SapphireWalletSDK {
   }
 
   /**
+   * Get the key vault address for a wallet
+   * 
+   * @param {Object} options - Key vault options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} Key vault address
+   */
+  async getKeyVault(options = {}) {
+    const { walletAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    const logic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const keyVault = await logic.getKeyVault();
+      return keyVault;
+    } catch (error) {
+      throw new Error(`Failed to get key vault address: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the authenticator address
+   * 
+   * @param {Object} options - Authenticator options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} Authenticator address
+   */
+  async getAuthenticator(options = {}) {
+    const { walletAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    const logic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const authenticator = await logic.getAuthenticator();
+      return authenticator;
+    } catch (error) {
+      throw new Error(`Failed to get authenticator address: ${error.message}`);
+    }
+  }
+
+  /**
    * Get account address from wallet
    * 
    * @param {Object} options - Account address options
@@ -227,46 +277,46 @@ class SapphireWalletSDK {
     }
   }
 
-  /**
-   * Get account private key and address
-   * 
-   * @param {Object} options - Account options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
-   * @param {Number} options.index - Account index
-   * @returns {Promise<Object>} Account
-   */
-  async getAccount(options = {}) {
-    const { walletAddress, authProof, index } = options;
+  // /**
+  //  * Get account private key and address
+  //  * 
+  //  * @param {Object} options - Account options
+  //  * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+  //  * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
+  //  * @param {Number} options.index - Account index
+  //  * @returns {Promise<Object>} Account
+  //  */
+  // async getAccount(options = {}) {
+  //   const { walletAddress, authProof, index } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
+  //   if (!walletAddress || typeof walletAddress !== 'string') {
+  //     throw new Error('Wallet address is required');
+  //   }
 
-    // TODO: check that authProof is correct type (bytes)
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
+  //   // TODO: check that authProof is correct type (bytes)
+  //   if (!authProof) {
+  //     throw new Error('Auth proof is required');
+  //   }
     
-    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
-      throw new Error('Index is required and must be a non-negative integer');
-    }
+  //   if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+  //     throw new Error('Index is required and must be a non-negative integer');
+  //   }
 
-    const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
+  //   const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
 
-    try {
-      const { privateKey, account } = await walletLogic.getAccount(authProof, index);
-      const result = {
-        success: true,
-        privateKey: privateKey.toString(),
-        accountAddress: account
-      };
+  //   try {
+  //     const { privateKey, account } = await walletLogic.getAccount(authProof, index);
+  //     const result = {
+  //       success: true,
+  //       privateKey: privateKey.toString(),
+  //       accountAddress: account
+  //     };
 
-      return result;
-    } catch (error) {
-      throw new Error(`Failed to get account: ${error.message}`);
-    }
-  }
+  //     return result;
+  //   } catch (error) {
+  //     throw new Error(`Failed to get account: ${error.message}`);
+  //   }
+  // }
 
   /**
    * Sign a message with an account's private key

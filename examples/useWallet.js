@@ -1,6 +1,8 @@
 /**
- * Use Wallet Example
+ * Use the wallet example (get addresses, sign messages)
  * 
+ * Run: node examples/useWallet.js
+
  * Demonstrates how to use a wallet using the SapphireWalletSDK
  * with clean API.
  */
@@ -9,21 +11,35 @@ require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers } = require('ethers');
 
-async function useWalletExample() {
-  console.log('=== Use Wallet Example (New SDK) ===\n');
+// ============ CONFIGURATION ============
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
+const PASSWORD = process.env.TEST_PASSWORD || "";
 
-  // Option 1: Using testnet with environment variables
+async function main() {
+  console.log("=".repeat(70));
+  console.log('=== Use Wallet Example ===\n');
+  console.log("=".repeat(70));
+
+  // Initialize SDK
   const sdk = SapphireWalletSDK.fromConfig({
     network: 'testnet', // or 'mainnet'
-    addresses: {
-      factory: process.env.FACTORY_CONTRACT_ADDRESS, // Set in .env
-      passwordAuth: process.env.PASSWORD_AUTH_ADDRESS // Set in .env
-    },
-    signerOrProvider: process.env.SIGNER_PRIVATE_KEY // Private key for signing transactions
+    signerOrProvider: SIGNER_PRIVATE_KEY // Private key for signing transactions
   });
 
-  // Prepare auth proof (raw password bytes - contract hashes internally)
-  const PASSWORD = process.env.TEST_PASSWORD;
+  // Show architecture info
+  const keyVaultAddr = await sdk.wallets.getKeyVault({ 
+    walletAddress: WALLET_ADDRESS 
+  });
+  const authAddr = await sdk.wallets.getAuthenticator({ 
+    walletAddress: WALLET_ADDRESS 
+  });
+  console.log("\nWallet Stack:");
+  console.log(`  Wallet (proxy): ${WALLET_ADDRESS}`);
+  console.log(`  └── KeyVault:   ${keyVaultAddr}`);
+  console.log(`      └── Auth:   ${authAddr}`);
+
+  // Prepare auth proof (raw password bytes)
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   try {
@@ -33,7 +49,7 @@ async function useWalletExample() {
 
     // Get account address
     const result = await sdk.wallets.getAccountAddress({
-      walletAddress: process.env.TEST_WALLET_ADDRESS,
+      walletAddress: WALLET_ADDRESS,
       index: 0
     });
 
@@ -48,28 +64,6 @@ async function useWalletExample() {
     }
   }
 
-  // get account private key and address
-  try {
-    console.log('Getting account private key and address...');
-    console.log();
-
-    const result = await sdk.wallets.getAccount({
-      walletAddress: process.env.TEST_WALLET_ADDRESS,
-      authProof: authProof,
-      index: 0
-    });
-
-    console.log('✅ Account private key and address retrieved successfully!');
-    console.log('Private Key:', result.privateKey);
-    console.log('Account Address:', result.accountAddress);
-
-  } catch (error) {
-    console.error('❌ Error getting account private key and address:', error.message);
-    if (error.stack) {
-      console.error('Stack:', error.stack);
-    }
-  }
-
   // sign message (EIP-191 personal message)
   try {
     console.log('Signing message...');
@@ -79,7 +73,7 @@ async function useWalletExample() {
     const bytesMessage = ethers.toUtf8Bytes(message);
 
     const result = await sdk.wallets.signMessage({
-      walletAddress: process.env.TEST_WALLET_ADDRESS,
+      walletAddress: WALLET_ADDRESS,
       authProof: authProof,
       index: 0,
       message: bytesMessage
@@ -90,7 +84,7 @@ async function useWalletExample() {
 
     // verify signature 
     const expectedAddr = await sdk.wallets.getAccountAddress({
-        walletAddress: process.env.TEST_WALLET_ADDRESS,
+        walletAddress: WALLET_ADDRESS,
         index: 0
     });
     const recovered = ethers.verifyMessage(message, result.signature);
@@ -112,7 +106,7 @@ async function useWalletExample() {
     const hash = ethers.keccak256(ethers.toUtf8Bytes("Some data to hash"));
 
     const result = await sdk.wallets.sign({
-      walletAddress: process.env.TEST_WALLET_ADDRESS,
+      walletAddress: WALLET_ADDRESS,
       authProof: authProof,
       index: 0,
       hash: hash
@@ -122,7 +116,7 @@ async function useWalletExample() {
 
     // verify signature 
     const expectedAddr = await sdk.wallets.getAccountAddress({
-        walletAddress: process.env.TEST_WALLET_ADDRESS,
+        walletAddress: WALLET_ADDRESS,
         index: 0
     });
     const recovered = ethers.recoverAddress(hash, result.signature);
@@ -138,5 +132,13 @@ async function useWalletExample() {
 }
 
 // Run example
-useWalletExample().catch(console.error);
-
+main()
+  .then(() => {
+    console.log("\n✅ Test suite completed successfully!");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("\n❌ Test suite failed:");
+    console.error(error);
+    process.exit(1);
+  });
