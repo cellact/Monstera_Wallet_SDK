@@ -43,7 +43,8 @@ class SapphireWalletSDK {
       sign: this.sign.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
       addToWhitelist: this.addToWhitelist.bind(this),
-      isWhitelisted: this.isWhitelisted.bind(this)
+      isWhitelisted: this.isWhitelisted.bind(this),
+      getWhitelist: this.getWhitelist.bind(this)
     };
   }
 
@@ -396,6 +397,30 @@ class SapphireWalletSDK {
       return isWhitelisted;
     } catch (error) {
       throw new Error(`Failed to check if address is whitelisted: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the whitelist for a wallet
+   * 
+   * @param {Object} options - Get whitelist options
+   * @param {String} options.walletAddress - Wallet address 
+   * @returns {Promise<Array<String>>} Whitelist addresses
+   */
+  async getWhitelist(options = {}) {
+    const { walletAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+    
+    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
+
+    try {
+      const whitelist = await walletSigAuth.getWhitelist(walletAddress);
+      return whitelist;
+    } catch (error) {
+      throw new Error(`Failed to get whitelist: ${error.message}`);
     }
   }
 }

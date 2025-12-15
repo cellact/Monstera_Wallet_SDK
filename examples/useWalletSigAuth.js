@@ -23,8 +23,6 @@
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers, Wallet } = require('ethers');
-const { getWalletSignatureAuthenticatorContract } = require('../src/contracts/authenticators/WalletSignatureAuthenticator');
-const { getWalletLogicContract } = require('../src/contracts/core/walletLogic');
 
 // ============ CONFIGURATION ============
 
@@ -130,9 +128,6 @@ async function main() {
     process.exit(1);
   }
 
-  // Get wallet contract
-  const walletSigAuth = getWalletSignatureAuthenticatorContract(sdk.readProvider, sdk.addresses.walletSignatureAuth);
-
   // ============ STEP 2: Try NOT Allowed #1 → Should Fail ============
   console.log("\n" + "=".repeat(70));
   console.log("STEP 2: Try NOT Allowed #1 → Should FAIL");
@@ -158,7 +153,6 @@ async function main() {
       authProof: authProof,
       index: 0
     });
-    // await wallet.getAccount(authProof, 0);
     console.log(`   ❌ getAccount succeeded - UNEXPECTED!`);
   } catch (e) {
     console.log(`   ✅ Correctly rejected: ${notAllowed1.address.slice(0, 10)}... not authorized`);
@@ -244,7 +238,6 @@ async function main() {
       authenticateFor: walletAddress,
       signer: allowed2Signer,
     });
-
     
     const accountResult = await sdk.wallets.getAccount({
       walletAddress: walletAddress,
@@ -309,28 +302,32 @@ async function main() {
     }
   }
 
-//   // ============ STEP 7: Try (previously) NOT Allowed #1 → Should NOW Succeed ============
-//   console.log("\n" + "=".repeat(70));
-//   console.log("STEP 7: Try (previously) NOT Allowed #1 → Should NOW SUCCEED");
-//   console.log("=".repeat(70));
+  // ============ STEP 7: Try (previously) NOT Allowed #1 → Should NOW Succeed ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 7: Try (previously) NOT Allowed #1 → Should NOW SUCCEED");
+  console.log("=".repeat(70));
 
-//   try {
-//     const authProof = await sdk.wallets.createAuthProof({
-//       authenticateFor: walletAddress,
-//       signer: notAllowed1,
-//     });
+  try {
+    const authProof = await sdk.wallets.createAuthProof({
+      authenticateFor: walletAddress,
+      signer: notAllowed1,
+    });
     
-//     const [privateKey, address] = await wallet.getAccount(authProof, 0);
-//     console.log(`   ✅ getAccount succeeded!`);
-//     console.log(`      Address: ${address}`);
-//     console.log(`      PrivKey: ${ethers.hexlify(privateKey).slice(0, 20)}...`);
-//     console.log(`   🎉 Previously denied account now has access!`);
-//   } catch (e) {
-//     console.log(`   ❌ FAILED: ${e.message}`);
-//     if (e.stack) {
-//       console.log(`   Stack: ${e.stack.slice(0, 200)}...`);
-//     }
-//   }
+    const accountResult = await sdk.wallets.getAccount({
+      walletAddress: walletAddress,
+      authProof: authProof,
+      index: 0
+    });
+    console.log(`   ✅ getAccount succeeded!`);
+    console.log(`      Address: ${accountResult.accountAddress}`);
+    console.log(`      PrivKey: ${ethers.hexlify(accountResult.privateKey).slice(0, 20)}...`);
+    console.log(`   🎉 Previously denied account now has access!`);
+  } catch (e) {
+    console.log(`   ❌ FAILED: ${e.message}`);
+    if (e.stack) {
+      console.log(`   Stack: ${e.stack.slice(0, 200)}...`);
+    }
+  }
 
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(70));
@@ -341,7 +338,9 @@ async function main() {
   console.log(`   Mnemonic: ${mnemonic}`);
   
   try {
-    const currentWhitelist = await walletSigAuth.getWhitelist(walletAddress);
+    const currentWhitelist = await sdk.wallets.getWhitelist({
+      walletAddress: walletAddress,
+    });
     console.log("\n   Current Whitelist:");
     currentWhitelist.forEach((addr, i) => {
       console.log(`      ${i + 1}. ${addr}`);
