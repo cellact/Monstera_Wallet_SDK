@@ -78,6 +78,25 @@ async function main() {
     process.exit(1);
   }
 
+  // ============ STEP 3: Get current WalletLogic implementation. ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 3: Get current WalletLogic implementation.");
+  console.log("=".repeat(70));
+
+  try {
+    // Get current WalletLogic implementation
+    const result = await sdk.wallets.implementation();
+
+    console.log(`   ✅ Current WalletLogic implementation: ${result}`);
+    
+  } catch (error) {
+    console.error(`   ❌ FAILED to get current WalletLogic implementation: ${error.message}`);
+    if (error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+    process.exit(1);
+  }
+
   console.log("=".repeat(70));
 }
 

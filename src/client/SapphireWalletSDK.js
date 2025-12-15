@@ -39,6 +39,7 @@ class SapphireWalletSDK {
       createWallet: this.createWallet.bind(this),
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
+      implementation: this.implementation.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
       getAccount: this.getAccount.bind(this),
       signMessage: this.signMessage.bind(this),
@@ -145,6 +146,7 @@ class SapphireWalletSDK {
    */
   async walletCount() {
     const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
     try {
       const count = await factory.walletCount();
       return count;
@@ -174,6 +176,22 @@ class SapphireWalletSDK {
       return isWallet;
     } catch (error) {
       throw new Error(`Failed to check if address is a wallet created by this factory: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get current WalletLogic implementation
+   * 
+   * @returns {Promise<String>} Current WalletLogic implementation
+   */
+  async implementation() {
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
+    try {
+      const implementation = await factory.implementation();
+      return implementation;
+    } catch (error) {
+      throw new Error(`Failed to get current WalletLogic implementation: ${error.message}`);
     }
   }
 
