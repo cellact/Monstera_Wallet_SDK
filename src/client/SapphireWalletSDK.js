@@ -40,6 +40,7 @@ class SapphireWalletSDK {
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
       implementation: this.implementation.bind(this),
+      getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this),
       getKeyVault: this.getKeyVault.bind(this),
       getAuthenticator: this.getAuthenticator.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
@@ -194,6 +195,17 @@ class SapphireWalletSDK {
       return implementation;
     } catch (error) {
       throw new Error(`Failed to get current WalletLogic implementation: ${error.message}`);
+    }
+  }
+
+  async getDefaultKeyVaultImpl() {
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
+    try {
+      const defaultKeyVaultImpl = await factory.getDefaultKeyVaultImpl();
+      return defaultKeyVaultImpl;
+    } catch (error) {
+      throw new Error(`Failed to get default key vault implementation: ${error.message}`);
     }
   }
 
@@ -390,7 +402,7 @@ class SapphireWalletSDK {
     const chainId = this.chainId;
 
     const authProof = await createAuthProof(signer, chainId, authenticator, deadline, keyVault);
-    
+
     return authProof;
   }
 

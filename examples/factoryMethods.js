@@ -5,6 +5,9 @@
  * 
  * Tests:
  * 1. Get total number of wallets created
+ * 2. Check if an address is a wallet created by this factory
+ * 3. Get current WalletLogic implementation.
+ * 4. Get default key vault implementation.
  * 
  * Required env vars:
  *   TEST_WALLET_ADDRESS=0x... (address to check if it is a wallet created by this factory)
@@ -15,7 +18,6 @@
 
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers, Wallet } = require('ethers');
 
 // Test wallet address
 const TEST_WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS;
@@ -28,15 +30,11 @@ async function main() {
   // Initialize SDK
   const sdk = SapphireWalletSDK.fromConfig({
     network: 'testnet', // or 'mainnet'
-    // addresses are optional - will defaults from config/networks.js if not provided
     signerOrProvider: process.env.SIGNER_PRIVATE_KEY
   });
 
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${sdk.network}`);
-
-  let walletAddress;
-  let mnemonic;
 
   // ============ STEP 1: Get total number of wallets created ============
   console.log("\n" + "=".repeat(70));
@@ -91,6 +89,25 @@ async function main() {
     
   } catch (error) {
     console.error(`   ❌ FAILED to get current WalletLogic implementation: ${error.message}`);
+    if (error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+    process.exit(1);
+  }
+
+  // ============ STEP 4: Get default key vault implementation. ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 4: Get default key vault implementation.");
+  console.log("=".repeat(70));
+
+  try {
+    // Get default key vault implementation
+    const result = await sdk.wallets.getDefaultKeyVaultImpl();
+
+    console.log(`   ✅ Default key vault implementation: ${result}`);
+    
+  } catch (error) {
+    console.error(`   ❌ FAILED to get default key vault implementation: ${error.message}`);
     if (error.stack) {
       console.error(`   Stack: ${error.stack}`);
     }
