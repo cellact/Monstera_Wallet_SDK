@@ -38,6 +38,7 @@ class SapphireWalletSDK {
     this.wallets = {
       createWallet: this.createWallet.bind(this),
       walletCount: this.walletCount.bind(this),
+      isWallet: this.isWallet.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
       getAccount: this.getAccount.bind(this),
       signMessage: this.signMessage.bind(this),
@@ -149,6 +150,30 @@ class SapphireWalletSDK {
       return count;
     } catch (error) {
       throw new Error(`Failed to get wallet count: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if an address is a wallet created by this factory
+   * 
+   * @param {Object} options - Is wallet options
+   * @param {String} options.walletAddress - Wallet address to check
+   * @returns {Promise<Boolean>} True if address is a wallet created by this factory, false otherwise
+   */
+  async isWallet(options = {}) {
+    const { walletAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
+    try {
+      const isWallet = await factory.isWallet(walletAddress);
+      return isWallet;
+    } catch (error) {
+      throw new Error(`Failed to check if address is a wallet created by this factory: ${error.message}`);
     }
   }
 

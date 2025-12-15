@@ -7,6 +7,7 @@
  * 1. Get total number of wallets created
  * 
  * Required env vars:
+ *   TEST_WALLET_ADDRESS=0x... (address to check if it is a wallet created by this factory)
  *   WALLET_FACTORY_CONTRACT_ADDRESS=0x...
  *   WALLET_SIGNATURE_AUTH_ADDRESS=0x...
  *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
@@ -15,6 +16,9 @@
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers, Wallet } = require('ethers');
+
+// Test wallet address
+const TEST_WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS;
 
 async function main() {
   console.log("=".repeat(70));
@@ -34,7 +38,7 @@ async function main() {
   let walletAddress;
   let mnemonic;
 
-  // ============ STEP 1: Create Wallet with Whitelist ============
+  // ============ STEP 1: Get total number of wallets created ============
   console.log("\n" + "=".repeat(70));
   console.log("STEP 1: Get total number of wallets created");
   console.log("=".repeat(70));
@@ -47,6 +51,27 @@ async function main() {
 
   } catch (error) {
     console.error(`   ❌ FAILED to get total number of wallets created: ${error.message}`);
+    if (error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+    process.exit(1);
+  }
+
+  // ============ STEP 2: Check if an address is a wallet created by this factory ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 2: Check if an address is a wallet created by this factory");
+  console.log("=".repeat(70));
+
+  try {
+    // Check if an address is a wallet created by this factory
+    const result = await sdk.wallets.isWallet({
+        walletAddress:TEST_WALLET_ADDRESS
+    });
+
+    console.log(`   ✅ Address ${TEST_WALLET_ADDRESS} is ${result ? 'a' : 'not a'} wallet created by this factory`);
+
+  } catch (error) {
+    console.error(`   ❌ FAILED to check if address is a wallet created by this factory: ${error.message}`);
     if (error.stack) {
       console.error(`   Stack: ${error.stack}`);
     }
