@@ -43,9 +43,8 @@ async function main() {
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   try {
-    console.log('Getting account address...');
-    console.log('Network:', sdk.network);
-    console.log();
+    console.log("\n1. Getting account addresses...");
+    // console.log('Network:', sdk.network);
 
     // Get account address
     const result = await sdk.wallets.getAccountAddress({
@@ -64,10 +63,14 @@ async function main() {
     }
   }
 
+  // ============ AUTHENTICATED FUNCTIONS ============
+  console.log("\n" + "=".repeat(60));
+  console.log("AUTHENTICATED FUNCTIONS (need password)");
+  console.log("=".repeat(60));
+
   // sign message (EIP-191 personal message)
   try {
-    console.log('Signing message...');
-    console.log();
+    console.log("\n3. Signing a message...");
 
     const message = 'Hello from Monstera!';
     const bytesMessage = ethers.toUtf8Bytes(message);
@@ -98,10 +101,9 @@ async function main() {
     }
   }
 
-  // sign a hash with account's private key
+  // sign a hash
   try {
-    console.log('Signing a raw hash (authenticated)...');
-    console.log();
+    console.log("\n4. Signing a raw hash...");
 
     const hash = ethers.keccak256(ethers.toUtf8Bytes("Some data to hash"));
 

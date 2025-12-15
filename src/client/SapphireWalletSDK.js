@@ -277,6 +277,16 @@ class SapphireWalletSDK {
     }
   }
 
+  // async getAccountAddresses(options = {}) {
+  //   const { walletAddress, fromIndex, count } = options;
+
+  //   if (!walletAddress || typeof walletAddress !== 'string') {
+  //     throw new Error('Wallet address is required');
+  //   }
+    
+    
+  // }
+
   // /**
   //  * Get account private key and address
   //  * 
