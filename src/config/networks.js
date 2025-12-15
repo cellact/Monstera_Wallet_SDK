@@ -29,22 +29,22 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    factory: '0xBaa3349BB53dcAa73Ed9eF80757e55Fb501eC53f', // Set after deployment
+    factory: '0xe99c901446A265aAfb2E8653C34AC4a25CB42094', // Set after deployment
     beacon: '0x87af76c76FABc07CE9205f20A99301b5a214B6Ae',
-    logic: '0x8629E753175106F5aD097B5c65D5F306B3dfdb80',
+    // logic: '0x8629E753175106F5aD097B5c65D5F306B3dfdb80',
     keyVaultImpl: '0x225073e1414750F7a975D85797A31095917EE169',
     wallet: '0x76a80aF9eba04529fCedd823e9712a79B98D5D1A',   // Set after deployment
-    storage: null,  // Set after deployment
-    passwordAuth: '0x0d0E1714A90bfb471d3f85358FfF2b57b53125e6', // Set after deployment
-    walletSignatureAuth: '0x5eDF7FBFEE84DC2Ec92c7113D369f3E9450c3Ba4' // Set after deployment
+    // storage: null,  // Set after deployment
+    passwordAuth: '0x579DAE1e43Aed272580AF19DD2D6a77A4a953338', // Set after deployment
+    walletSignatureAuth: '0x3d2269a48a899DAA318EbaD992DbF17d7E94b21e' // Set after deployment
   },
   mainnet: {
     factory: null,
     beacon: null,
-    logic: null,
+    // logic: null,
     keyVaultImpl: null,
     wallet: null,
-    storage: null,
+    // storage: null,
     passwordAuth: null,
     walletSignatureAuth: null
   }
