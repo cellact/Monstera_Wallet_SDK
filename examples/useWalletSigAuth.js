@@ -42,17 +42,12 @@ async function main() {
   // Initialize SDK
   const sdk = SapphireWalletSDK.fromConfig({
     network: 'testnet', // or 'mainnet'
-    addresses: {
-      walletFactory: process.env.WALLET_FACTORY_CONTRACT_ADDRESS,
-      walletSignatureAuth: process.env.WALLET_SIGNATURE_AUTH_ADDRESS
-    },
+    // addresses are optional - will defaults from config/networks.js if not provided
     signerOrProvider: process.env.SIGNER_PRIVATE_KEY
   });
 
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${sdk.network}`);
-  console.log(`   Wallet Factory: ${sdk.addresses.walletFactory}`);
-  console.log(`   Authenticator: ${sdk.addresses.walletSignatureAuth}`);
 
   // Validate required keys
   if (!ALLOWED_1_KEY || !ALLOWED_2_KEY) {
@@ -134,13 +129,13 @@ async function main() {
   console.log("=".repeat(70));
 
   try {
-
+    // Create auth proof
     const authProof = await sdk.wallets.createAuthProof({
       authenticateFor: walletAddress,
       signer: notAllowed1,
     });
     
-    // Try to call getAccountAddress (public function - should work)
+    // Get account address
     const accountAddress = await sdk.wallets.getAccountAddress({
       walletAddress: walletAddress,
       index: 0
