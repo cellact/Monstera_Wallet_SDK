@@ -43,7 +43,6 @@ class SapphireWalletSDK {
       getKeyVault: this.getKeyVault.bind(this),
       getAuthenticator: this.getAuthenticator.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
-      // getAccount: this.getAccount.bind(this),
       signMessage: this.signMessage.bind(this),
       sign: this.sign.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
@@ -277,57 +276,6 @@ class SapphireWalletSDK {
     }
   }
 
-  // async getAccountAddresses(options = {}) {
-  //   const { walletAddress, fromIndex, count } = options;
-
-  //   if (!walletAddress || typeof walletAddress !== 'string') {
-  //     throw new Error('Wallet address is required');
-  //   }
-    
-    
-  // }
-
-  // /**
-  //  * Get account private key and address
-  //  * 
-  //  * @param {Object} options - Account options
-  //  * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-  //  * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
-  //  * @param {Number} options.index - Account index
-  //  * @returns {Promise<Object>} Account
-  //  */
-  // async getAccount(options = {}) {
-  //   const { walletAddress, authProof, index } = options;
-
-  //   if (!walletAddress || typeof walletAddress !== 'string') {
-  //     throw new Error('Wallet address is required');
-  //   }
-
-  //   // TODO: check that authProof is correct type (bytes)
-  //   if (!authProof) {
-  //     throw new Error('Auth proof is required');
-  //   }
-    
-  //   if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
-  //     throw new Error('Index is required and must be a non-negative integer');
-  //   }
-
-  //   const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
-
-  //   try {
-  //     const { privateKey, account } = await walletLogic.getAccount(authProof, index);
-  //     const result = {
-  //       success: true,
-  //       privateKey: privateKey.toString(),
-  //       accountAddress: account
-  //     };
-
-  //     return result;
-  //   } catch (error) {
-  //     throw new Error(`Failed to get account: ${error.message}`);
-  //   }
-  // }
-
   /**
    * Sign a message with an account's private key
    * 
@@ -362,11 +310,7 @@ class SapphireWalletSDK {
 
     try {
       const signature = await walletLogic.signMessage(authProof, index, message);
-      const result = {
-        success: true,
-        signature: signature
-      };
-      return result;
+      return signature;
     } catch (error) {
       throw new Error(`Failed to sign message: ${error.message}`);
     }
@@ -406,11 +350,7 @@ class SapphireWalletSDK {
 
     try {
       const signature = await walletLogic.sign(authProof, index, hash);
-      const result = {
-        success: true,
-        signature: signature
-      };
-      return result;
+      return signature;
     } catch (error) {
       throw new Error(`Failed to sign message: ${error.message}`);
     }
@@ -418,7 +358,7 @@ class SapphireWalletSDK {
 
   async createAuthProof(options = {}) {
     // const { authenticateFor, signer, authenticator, deadline } = options;
-    const { authenticateFor, signer } = options;
+    const { authenticateFor, signer, keyVault } = options;
     let { authenticator, deadline } = options;
 
     if (!authenticateFor || typeof authenticateFor !== 'string') {
@@ -427,6 +367,10 @@ class SapphireWalletSDK {
 
     if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
       throw new Error('Signer must be a Wallet or HDNodeWallet');
+    }
+
+    if (!keyVault || typeof keyVault !== 'string') {
+      throw new Error('Key vault is required and must be a string');
     }
 
     // if no authenticator contract address provided use default from config
@@ -445,10 +389,8 @@ class SapphireWalletSDK {
     // get chainId from config
     const chainId = this.chainId;
 
-    const authProof = await createAuthProof(authenticateFor, signer, chainId, authenticator, deadline);
-
-    // console.log('[createAuthProof] Auth proof:', authProof);
-
+    const authProof = await createAuthProof(signer, chainId, authenticator, deadline, keyVault);
+    
     return authProof;
   }
 
@@ -456,15 +398,15 @@ class SapphireWalletSDK {
    * Add a new address to the whitelist
    * 
    * @param {Object} options - Add to whitelist options
-   * @param {String} options.walletAddress - Wallet address 
+   * @param {String} options.keyVaultAddress - Key vault address 
    * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
    * @param {String} options.newAddress - New address to add to the whitelist
    * @returns {Promise<Object>} Transaction receipt
    */
   async addToWhitelist(options = {}) {
-    const { walletAddress, authProof, newAddress } = options;
+    const { keyVaultAddress, authProof, newAddress } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
       throw new Error('Wallet address is required');
     }
 
@@ -480,11 +422,9 @@ class SapphireWalletSDK {
     const walletSigAuth = getWalletSignatureAuthenticatorContract(this.writeSigner, this.addresses.walletSignatureAuth);
 
     try {
-      const tx = await walletSigAuth.addToWhitelist(walletAddress, authProof, newAddress);
+      const tx = await walletSigAuth.addToWhitelist(keyVaultAddress, authProof, newAddress);
       const receipt = await tx.wait();
       
-      // console.log('[addToWhitelist] Transaction receipt:', receipt);
-
       return receipt;
     } catch (error) {
       throw new Error(`Failed to add to whitelist: ${error.message}`);
@@ -495,14 +435,14 @@ class SapphireWalletSDK {
    * Check if an address is whitelisted
    * 
    * @param {Object} options - Is whitelisted options
-   * @param {String} options.walletAddress - Wallet address 
+   * @param {String} options.keyVaultAddress - Key vault address 
    * @param {String} options.addressToCheck - Address to check if it is whitelisted
    * @returns {Promise<Boolean>} True if address is whitelisted, false otherwise
    */
   async isWhitelisted(options = {}) {
-    const { walletAddress, addressToCheck } = options;
+    const { keyVaultAddress, addressToCheck } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
       throw new Error('Wallet address is required');
     }
 
@@ -513,7 +453,7 @@ class SapphireWalletSDK {
     const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
 
     try {
-      const isWhitelisted = await walletSigAuth.isWhitelisted(walletAddress, addressToCheck);
+      const isWhitelisted = await walletSigAuth.isWhitelisted(keyVaultAddress, addressToCheck);
       return isWhitelisted;
     } catch (error) {
       throw new Error(`Failed to check if address is whitelisted: ${error.message}`);
@@ -524,20 +464,20 @@ class SapphireWalletSDK {
    * Get the whitelist for a wallet
    * 
    * @param {Object} options - Get whitelist options
-   * @param {String} options.walletAddress - Wallet address 
+   * @param {String} options.keyVaultAddress - Key vault address 
    * @returns {Promise<Array<String>>} Whitelist addresses
    */
   async getWhitelist(options = {}) {
-    const { walletAddress } = options;
+    const { keyVaultAddress } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
       throw new Error('Wallet address is required');
     }
     
     const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
 
     try {
-      const whitelist = await walletSigAuth.getWhitelist(walletAddress);
+      const whitelist = await walletSigAuth.getWhitelist(keyVaultAddress);
       return whitelist;
     } catch (error) {
       throw new Error(`Failed to get whitelist: ${error.message}`);

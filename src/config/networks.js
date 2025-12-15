@@ -36,7 +36,7 @@ const DEFAULT_ADDRESSES = {
     wallet: '0x76a80aF9eba04529fCedd823e9712a79B98D5D1A',   // Set after deployment
     // storage: null,  // Set after deployment
     passwordAuth: '0x579DAE1e43Aed272580AF19DD2D6a77A4a953338', // Set after deployment
-    walletSignatureAuth: '0x3d2269a48a899DAA318EbaD992DbF17d7E94b21e' // Set after deployment
+    walletSignatureAuth: '0x1F671873ea77eaDF1984BD2563A1D9DC60d8eEFc' // Set after deployment
   },
   mainnet: {
     factory: null,
