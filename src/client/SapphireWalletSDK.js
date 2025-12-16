@@ -9,7 +9,7 @@ const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../contracts/core/walletFactory');
-const { getWalletLogicContract } = require('../contracts/core/walletLogic');
+const { getWalletLogicContract, parseAuthenticatorChangedEvent } = require('../contracts/core/walletLogic');
 const { getWalletSignatureAuthenticatorContract } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
 
@@ -55,7 +55,7 @@ class SapphireWalletSDK {
       signTransaction: this.signTransaction.bind(this),
       signMessage: this.signMessage.bind(this),
       sign: this.sign.bind(this),
-      // changeAuthenticator: this.changeAuthenticator.bind(this),
+      // changeAuthenticator: this.changeAuthenticator.bind(this), // not fully implemented yet (needs to be tested)
       // upgradeKeyVault: this.upgradeKeyVault.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
 
@@ -595,6 +595,72 @@ class SapphireWalletSDK {
       throw new Error(`Failed to sign message: ${error.message}`);
     }
   }
+
+  /**
+   * Change the authenticator (User-only)
+   * 
+   * @param {Object} options - Change authenticator options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
+   * @param {String} options.newAuthenticatorAddress - New authenticator contract address
+   * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
+   * @returns {Promise<Object>} Change authenticator result
+   */
+  async changeAuthenticator(options = {}) {
+    const { walletAddress, authProof, newAuthenticatorAddress, newAuthConfig } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    // TODO: check that authProof is correct type (bytes)
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+
+    if (!newAuthenticatorAddress || typeof newAuthenticatorAddress !== 'string') {
+      throw new Error('New authenticator address is required');
+    }
+
+    if (!newAuthConfig) {
+      throw new Error('New auth config is required');
+    }
+
+    const walletLogic = getWalletLogicContract(this.writeSigner, walletAddress);
+
+    try {
+      const tx = await walletLogic.changeAuthenticator(authProof, newAuthenticatorAddress, newAuthConfig);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      console.log("   Transaction receipt:", receipt);
+
+      // Parse WalletCreated event
+      const eventData = parseAuthenticatorChangedEvent(receipt, walletLogic);
+      console.log("[changeAuthenticator] Event data:", eventData);
+      
+      if (!eventData) {
+        throw new Error('WalletCreated event not found in transaction receipt');
+      }
+
+      const result = {
+        success: true,
+        oldAuth: eventData.oldAuth,
+        newAuth: eventData.newAuth,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to change authenticator: ${error.message}`);
+    }
+    
+    
+  }
+
 
   async createAuthProof(options = {}) {
     // const { authenticateFor, signer, authenticator, deadline } = options;
