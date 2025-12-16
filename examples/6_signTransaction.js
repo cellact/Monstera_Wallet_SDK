@@ -95,25 +95,61 @@ async function main() {
 
   // Counter contract ABI
   const COUNTER_ABI = [
-    "function count() view returns (uint256)",
-    "function increment()",
-    "function incrementBy(uint256 amount)"
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "by",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "newCount",
+          "type": "uint256"
+        }
+      ],
+      "name": "Incremented",
+      "type": "event"
+    },
+    {
+      "inputs": [],
+      "name": "count",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "increment",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "incrementBy",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
   ];
 
-  // Counter contract bytecode
-  // NOTE: You need to compile a Counter contract and provide the bytecode here.
-  // Create a Counter.sol file with:
-  //   pragma solidity ^0.8.0;
-  //   contract Counter {
-  //     uint256 public count;
-  //     function increment() public { count++; }
-  //     function incrementBy(uint256 amount) public { count += amount; }
-  //   }
-  // Compile with: solc --bin Counter.sol | tail -1
-  // Or use Hardhat/Foundry to compile and get the bytecode from artifacts
-  // 
-  // This is a placeholder - replace with your compiled bytecode
-  const COUNTER_BYTECODE = process.env.COUNTER_BYTECODE || "0x";
+  const COUNTER_BYTECODE = process.env.COUNTER_BYTECODE || "0x6080806040523461001657610163908161001c8239f35b600080fdfe608080604052600436101561001357600080fd5b600090813560e01c90816303df179c146100c65750806306661abd146100a95763d09de08a1461004257600080fd5b346100a657806003193601126100a65780546000198114610092576001018082556040519081527f38ac789ed44572701765277c4d0970f2db1c1a571ed39e84358095ae4eaa542060203392a280f35b634e487b7160e01b82526011600452602482fd5b80fd5b50346100a657806003193601126100a65760209054604051908152f35b90503461012957602036600319011261012957815460043581018091116101155780835581527f38ac789ed44572701765277c4d0970f2db1c1a571ed39e84358095ae4eaa542060203392a280f35b634e487b7160e01b83526011600452602483fd5b5080fdfea264697066735822122027ffb7296a96af125559a72a946250ff78075f9534148f0c7f37996c4dc8f68e64736f6c63430008180033";
   
   if (COUNTER_BYTECODE === "0x" || COUNTER_BYTECODE.length < 100) {
     console.error("\n❌ ERROR: Counter contract bytecode not provided!");
@@ -136,17 +172,6 @@ async function main() {
 
   // Sign deployment via Sapphire (key stays in enclave!)
   console.log("   Requesting signature from Sapphire...");
-//   const signedDeployTx = await sapphireWallet.signTransaction(
-//     authProof,
-//     ACCOUNT_INDEX,
-//     deployNonce,
-//     gasPrice,
-//     deployGasLimit,
-//     ethers.ZeroAddress,  // to = 0x0 for contract creation
-//     0,                   // value
-//     deployData,          // bytecode
-//     AMOY_CHAIN_ID
-//   );
   const signedDeployTx = await sdk.wallets.signTransaction({
     walletAddress: SAPPHIRE_WALLET_ADDRESS,
     authProof: authProof,
@@ -159,7 +184,6 @@ async function main() {
     data: deployData,
     chainId: AMOY_CHAIN_ID
   });
-
 
   console.log("   Broadcasting deployment...");
   const deployTxResponse = await amoyProvider.broadcastTransaction(signedDeployTx);
@@ -190,17 +214,6 @@ async function main() {
   console.log(`   Nonce: ${nonce}`);
 
   console.log("   Requesting signature from Sapphire...");
-//   const signedTx = await sapphireWallet.signTransaction(
-//     authProof,
-//     ACCOUNT_INDEX,
-//     nonce,
-//     gasPrice,
-//     gasLimit,
-//     counterAddress,
-//     0,
-//     txData,
-//     AMOY_CHAIN_ID
-//   );
   const signedTx = await sdk.wallets.signTransaction({
     walletAddress: SAPPHIRE_WALLET_ADDRESS,
     authProof: authProof,
@@ -233,17 +246,6 @@ async function main() {
   const nonce2 = await amoyProvider.getTransactionCount(accountAddress);
 
   console.log("   Requesting signature from Sapphire...");
-//   const signedTx2 = await sapphireWallet.signTransaction(
-//     authProof,
-//     ACCOUNT_INDEX,
-//     nonce2,
-//     gasPrice,
-//     gasLimit,
-//     counterAddress,
-//     0,
-//     txData2,
-//     AMOY_CHAIN_ID
-//   );
   const signedTx2 = await sdk.wallets.signTransaction({
     walletAddress: SAPPHIRE_WALLET_ADDRESS,
     authProof: authProof,

@@ -44,6 +44,8 @@ class SapphireWalletSDK {
       getKeyVault: this.getKeyVault.bind(this),
       getAuthenticator: this.getAuthenticator.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
+      getAccountAddresses: this.getAccountAddresses.bind(this),
+      signTransaction: this.signTransaction.bind(this),
       signMessage: this.signMessage.bind(this),
       sign: this.sign.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
@@ -238,7 +240,7 @@ class SapphireWalletSDK {
    * 
    * @param {Object} options - Authenticator options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} Authenticator address
+   * @returns {Promise<String>} Authenticator address (from KeyVault)
    */
   async getAuthenticator(options = {}) {
     const { walletAddress } = options;
@@ -289,7 +291,112 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Sign a message with an account's private key
+   * Get account addresses from wallet
+   * 
+   * @param {Object} options - Account addresses options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Number} options.fromIndex - From index (uint32)
+   * @param {Number} options.count - Count (uint32)
+   * @returns {Promise<Array<String>>} Array of account addresses
+   */
+  async getAccountAddresses(options = {}) {
+    const { walletAddress, fromIndex, count } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+    
+    if (fromIndex === undefined || fromIndex === null || typeof fromIndex !== 'number' || fromIndex < 0 || !Number.isInteger(fromIndex)) {
+      throw new Error('From index is required and must be a non-negative integer');
+    }
+
+    if (count === undefined || count === null || typeof count !== 'number' || count < 0 || !Number.isInteger(count)) {
+      throw new Error('Count is required and must be a non-negative integer');
+    }
+    
+    const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const accountAddresses = await walletLogic.getAccountAddresses(fromIndex, count);
+      return accountAddresses;
+    } catch (error) {
+      throw new Error(`Failed to get account addresses: ${error.message}`);
+    }
+  }
+
+  /**
+   * Sign a raw transaction with an account's private key
+   * 
+   * @param {Object} options - Sign transaction options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
+   * @param {Number} options.index - Account index
+   * @param {Number} options.nonce - Nonce
+   * @param {Number} options.gasPrice - Gas price
+   * @param {Number} options.gasLimit - Gas limit
+   * @param {String} options.to - To address
+   * @param {Number} options.value - Value
+   * @param {Bytes} options.data - Data
+   * @param {Number} options.chainId - Chain ID
+   * @param {Object} options.transaction - Transaction to sign
+   * @returns {Promise<String>} Signed transaction
+   */
+  async signTransaction(options = {}) {
+    const { walletAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    // TODO: check that authProof is correct type (bytes)
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+
+    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+      throw new Error('Index is required and must be a non-negative integer');
+    }
+
+    if (nonce === undefined || nonce === null || typeof nonce !== 'number' || nonce < 0 || !Number.isInteger(nonce)) {
+      throw new Error('Nonce is required and must be a non-negative integer');
+    }
+
+    if (!gasPrice) {
+      throw new Error('Gas price is required and must be a non-negative integer');
+    }
+
+    if (!gasLimit) {
+      throw new Error('Gas limit is required and must be a non-negative integer');
+    }
+
+    if (!to || typeof to !== 'string') {
+      throw new Error('To address is required and must be a string');
+    }
+
+    if (value === undefined || value === null || typeof value !== 'number' || value < 0 || !Number.isInteger(value)) {
+      throw new Error('Value is required and must be a non-negative integer');
+    }
+
+    if (!data || typeof data !== 'string') {
+      throw new Error('Data is required and must be a string');
+    }
+
+    if (chainId === undefined || chainId === null || typeof chainId !== 'number' || chainId < 0 || !Number.isInteger(chainId)) {
+      throw new Error('Chain ID is required and must be a non-negative integer');
+    }
+
+    const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const signature = await walletLogic.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId);
+      return signature;
+    } catch (error) {
+      throw new Error(`Failed to sign transaction: ${error.message}`);
+    }
+  }
+
+  /**
+   * Sign EIP-191 personal message with an account's private key
    * 
    * @param {Object} options - Sign message options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -329,7 +436,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Sign a hash with an account's private key
+   * Sign a Sign a 32-byte hash with an account's private key
    * 
    * @param {Object} options - Sign hash options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
