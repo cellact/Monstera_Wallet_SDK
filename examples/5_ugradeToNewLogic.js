@@ -18,6 +18,7 @@ const { ethers } = require("ethers");
 // ============ CONFIGURATION ============
 const TEST_WALLET = process.env.TEST_WALLET_ADDRESS || ""; // Optional: to verify upgrade
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS || "";
 const NEW_LOGIC_ADDRESS = process.env.NEW_LOGIC_ADDRESS || "";
 
 const sdk = SapphireWalletSDK.fromConfig({
@@ -30,7 +31,16 @@ async function main() {
   console.log("Step 5: Upgrade WalletLogic (Admin)");
   console.log("=".repeat(70));
 
-  // TODO: verify caller is admin
+  // Verify caller is admin
+  const admin = await sdk.wallets.getAdmin();
+  console.log(`   Admin: ${admin}`);
+  if (admin.toLowerCase() !== ADMIN_ADDRESS.toLowerCase()) {
+    console.error(`   ERROR: You are not the admin!`);
+    console.error(`   Admin: ${admin}`);
+    console.error(`   You:   ${ADMIN_ADDRESS}`);
+    process.exit(1);
+  }
+  console.log("   ✅ Confirmed: You are the admin");
 
   // Check current implementation
   const oldImpl = await sdk.wallets.implementation();
@@ -49,7 +59,6 @@ async function main() {
   console.log("=".repeat(70));
 
   const result = await sdk.wallets.upgradeLogic({
-    walletAddress: TEST_WALLET,
     newLogicAddress: NEW_LOGIC_ADDRESS
   });
   console.log(`   Transaction: ${result.transactionHash}`);

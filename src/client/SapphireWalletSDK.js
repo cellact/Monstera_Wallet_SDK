@@ -43,7 +43,8 @@ class SapphireWalletSDK {
       implementation: this.implementation.bind(this),
       getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this),
       upgradeLogic: this.upgradeLogic.bind(this), // Admin function
-      // transferAdmin: this.transferAdmin.bind(this), // Admin function
+      transferAdmin: this.transferAdmin.bind(this), // Admin function
+      getAdmin: this.getAdmin.bind(this), // Admin function
 
       // WalletLogic functions
       // initialize: this.initialize.bind(this),
@@ -241,11 +242,7 @@ class SapphireWalletSDK {
    * @returns {Promise<Object>} Upgrade logic result
    */
   async upgradeLogic(options = {}) {
-    const { walletAddress, newLogicAddress } = options;
-
-    if (!walletAddress || typeof walletAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
+    const { newLogicAddress } = options;
 
     if (!newLogicAddress || typeof newLogicAddress !== 'string') {
       throw new Error('New logic address is required');
@@ -280,6 +277,59 @@ class SapphireWalletSDK {
       throw new Error(`Failed to upgrade logic: ${error.message}`);
     }
     
+  }
+
+  /**
+   * Transfer admin ownership to a new address (Admin function)
+   * 
+   * @param {Object} options - Transfer admin options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.newAdminAddress - New admin address
+   * @returns {Promise<Object>} Transfer admin result
+   */
+  async transferAdmin(options = {}) {
+    const { newAdminAddress } = options;
+
+    if (!newAdminAddress || typeof newAdminAddress !== 'string') {
+      throw new Error('New admin address is required');
+    }
+
+    const factory = getWalletFactoryContract(this.writeSigner, this.addresses.factory);
+
+    try {
+      const tx = await factory.transferAdmin(newAdminAddress);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      const result = {
+        success: true,
+        newAdmin: newAdminAddress,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+      
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to transfer admin: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the admin address (for wallet factory)
+   * 
+   * @returns {Promise<String>} Admin address
+   */
+  async getAdmin() {
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
+    try {
+      const admin = await factory.admin();
+      return admin;
+    } catch (error) {
+      throw new Error(`Failed to get admin address: ${error.message}`);
+    }
   }
 
   /**
