@@ -363,9 +363,70 @@ function parseWalletCreatedEvent(receipt, walletFactoryContract) {
   }
 }
 
+/**
+ * Parse BeaconUpgraded event from transaction receipt
+ * 
+ * @param {Object} receipt - Transaction receipt
+ * @param {Object} walletFactoryContract - Wallet factory contract instance
+ * @returns {Object|null} Parsed event data or null if not found
+ */
+function parseBeaconUpgradedEvent(receipt, walletFactoryContract) {
+  if (!receipt || !receipt.logs) {
+    return null;
+  }
+  
+  const iface = walletFactoryContract.interface;
+  
+  // Find the WalletCreated event
+  const beaconUpgradedEvent = receipt.logs.find((log) => {
+    try {
+      const parsed = iface.parseLog(log);
+      return parsed?.name === 'BeaconUpgraded';
+    } catch {
+      return false;
+    }
+  });
+  
+  if (!beaconUpgradedEvent) {
+    // Debug: log all events to see what we're getting
+    console.log('[parseBeaconUpgradedEvent] Total logs:', receipt.logs?.length);
+    if (receipt.logs && receipt.logs.length > 0) {
+      console.log('[parseBeaconUpgradedEvent] Trying to parse logs...');
+      receipt.logs.forEach((log, i) => {
+        try {
+          const parsed = iface.parseLog(log);
+          console.log(`[parseBeaconUpgradedEvent] Log ${i}:`, parsed?.name || 'unknown');
+        } catch (e) {
+          console.log(`[parseBeaconUpgradedEvent] Log ${i}: failed to parse (not from factory)`);
+        }
+      });
+    }
+    return null;
+  }
+  
+  // Parse the event
+  try {
+    const parsedEvent = iface.parseLog(beaconUpgradedEvent);
+    
+    if (!parsedEvent || parsedEvent.name !== 'BeaconUpgraded') {
+      return null;
+    }
+
+    return {
+      oldImpl: parsedEvent.args?.oldImpl,
+      newLogic: parsedEvent.args?.newLogic,
+    };
+  } catch (error) {
+    // Failed to parse event
+    console.error('[parseBeaconUpgradedEvent] Error parsing event:', error.message);
+    return null;
+  }
+}
+
 module.exports = {
   WALLET_FACTORY_ABI,
   getWalletFactoryContract,
-  parseWalletCreatedEvent
+  parseWalletCreatedEvent,
+  parseBeaconUpgradedEvent
 };
 

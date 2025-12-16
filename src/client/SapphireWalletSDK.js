@@ -8,7 +8,7 @@
 const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
-const { getWalletFactoryContract, parseWalletCreatedEvent } = require('../contracts/core/walletFactory');
+const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../contracts/core/walletFactory');
 const { getWalletLogicContract } = require('../contracts/core/walletLogic');
 const { getWalletSignatureAuthenticatorContract } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
@@ -36,11 +36,17 @@ class SapphireWalletSDK {
     
     // Namespace for wallet operations
     this.wallets = {
+      // WalletFactory functions
       createWallet: this.createWallet.bind(this),
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
       implementation: this.implementation.bind(this),
       getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this),
+      upgradeLogic: this.upgradeLogic.bind(this), // Admin function
+      // transferAdmin: this.transferAdmin.bind(this), // Admin function
+
+      // WalletLogic functions
+      // initialize: this.initialize.bind(this),
       getKeyVault: this.getKeyVault.bind(this),
       getAuthenticator: this.getAuthenticator.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
@@ -48,10 +54,25 @@ class SapphireWalletSDK {
       signTransaction: this.signTransaction.bind(this),
       signMessage: this.signMessage.bind(this),
       sign: this.sign.bind(this),
+      // changeAuthenticator: this.changeAuthenticator.bind(this),
+      // upgradeKeyVault: this.upgradeKeyVault.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
+
+      // WalletSignatureAuthenticator functions
+      // verify: this.verify.bind(this),
+      // configure: this.configure.bind(this),
       addToWhitelist: this.addToWhitelist.bind(this),
+      // removeFromWhitelist: this.removeFromWhitelist.bind(this),
+      // isConfigured: this.isConfigured.bind(this),
       isWhitelisted: this.isWhitelisted.bind(this),
-      getWhitelist: this.getWhitelist.bind(this)
+      getWhitelist: this.getWhitelist.bind(this),
+      // domainSeparator: this.domainSeparator.bind(this),
+
+      // PasswordAuthenticator functions
+      // verify: this.verify.bind(this),
+      // configure: this.configure.bind(this),
+      // changePassword: this.changePassword.bind(this),
+      // isConfigured: this.isConfigured.bind(this),
     };
   }
 
@@ -209,6 +230,56 @@ class SapphireWalletSDK {
     } catch (error) {
       throw new Error(`Failed to get default key vault implementation: ${error.message}`);
     }
+  }
+
+  /**
+   * Upgrade the logic of a wallet (Admin function)
+   * 
+   * @param {Object} options - Upgrade logic options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.newLogicAddress - New walletLogic contract address
+   * @returns {Promise<Object>} Upgrade logic result
+   */
+  async upgradeLogic(options = {}) {
+    const { walletAddress, newLogicAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    if (!newLogicAddress || typeof newLogicAddress !== 'string') {
+      throw new Error('New logic address is required');
+    }
+
+    const factory = getWalletFactoryContract(this.writeSigner, this.addresses.factory);
+
+    try {
+      const tx = await factory.upgradeLogic(newLogicAddress);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse BeaconUpgraded event
+      const eventData = parseBeaconUpgradedEvent(receipt, factory);
+      
+      if (!eventData) {
+        throw new Error('BeaconUpgraded event not found in transaction receipt');
+      }
+
+      const result = {
+        success: true,
+        oldImpl: eventData.oldImpl,
+        newLogic: eventData.newLogic,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to upgrade logic: ${error.message}`);
+    }
+    
   }
 
   /**
