@@ -8,6 +8,7 @@
  * 2. Check if an address is a wallet created by this factory
  * 3. Get current WalletLogic implementation.
  * 4. Get default key vault implementation.
+ * 5. Get beacon address.
  * 
  * Required env vars:
  *   TEST_WALLET_ADDRESS=0x... (address to check if it is a wallet created by this factory)
@@ -108,6 +109,25 @@ async function main() {
     
   } catch (error) {
     console.error(`   ❌ FAILED to get default key vault implementation: ${error.message}`);
+    if (error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+    process.exit(1);
+  }
+
+  // ============ STEP 5: Get beacon address. ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 5: Get beacon address.");
+  console.log("=".repeat(70));
+
+  try {
+    // Get beacon address
+    const result = await sdk.wallets.getBeaconAddr();
+
+    console.log(`   ✅ Beacon address: ${result}`);
+
+  } catch (error) {
+    console.error(`   ❌ FAILED to get beacon address: ${error.message}`);
     if (error.stack) {
       console.error(`   Stack: ${error.stack}`);
     }

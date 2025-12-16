@@ -47,6 +47,7 @@ class SapphireWalletSDK {
       transferAdmin: this.transferAdmin.bind(this), // Admin function
       getAdmin: this.getAdmin.bind(this), // Admin function
       getWalletKeyVault: this.getWalletKeyVault.bind(this),
+      getBeaconAddr: this.getBeaconAddr.bind(this),
 
       // WalletLogic functions
       // initialize: this.initialize.bind(this),
@@ -78,8 +79,16 @@ class SapphireWalletSDK {
       // isConfigured: this.isConfigured.bind(this),
 
       // KeyVault functions
-      getKeyVaultImplementation: this.getKeyVaultImplementation.bind(this),
-      upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this),
+      // initialize: this.initialize.bind(this),
+      getKeyVaultImplementation: this.getKeyVaultImplementation.bind(this), // implementation in keyVault contract
+      upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
+      // changeAuthenticator: this.changeAuthenticator.bind(this),
+      // getAccountAddress: this.getAccountAddress.bind(this),
+      // getAccountAddresses: this.getAccountAddresses.bind(this),
+      // signTransaction: this.signTransaction.bind(this),
+      // signMessage: this.signMessage.bind(this),
+      // sign: this.sign.bind(this),
+      // executeWithAuth: this.executeWithAuth.bind(this),
     };
   }
 
@@ -358,6 +367,25 @@ class SapphireWalletSDK {
       return keyVaultAddr;
     } catch (error) {
       throw new Error(`Failed to get wallet key vault address: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the beacon address for a wallet (from wallet factory)
+   * 
+   * The beacon controlling WalletLogic upgrades
+   * 
+   * @returns {Promise<String>} Beacon address
+   */
+  async getBeaconAddr() {
+
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
+    try {
+      const beaconAddr = await factory.beacon();
+      return beaconAddr;
+    } catch (error) {
+      throw new Error(`Failed to get beacon address: ${error.message}`);
     }
   }
 
@@ -690,7 +718,6 @@ class SapphireWalletSDK {
     
   }
 
-
   /**
    * Upgrade the keyVaultImplementation (via walletLogic contract) (User-only)
    * 
@@ -740,7 +767,6 @@ class SapphireWalletSDK {
       throw new Error(`Failed to upgrade key vault implementation: ${error.message}`);
     }
   }
-
 
   async createAuthProof(options = {}) {
     // const { authenticateFor, signer, authenticator, deadline } = options;
@@ -885,7 +911,6 @@ class SapphireWalletSDK {
       throw new Error(`Failed to get key vault implementation: ${error.message}`);
     }
   }
-
 
   /**
    * Upgrade the keyVaultImplementation (via keyVault contract) (User-only)
