@@ -19,6 +19,7 @@ const { generateMnemonic, deriveSeed, hashPassword } = require('./crypto/wallet'
 const { getWalletFactoryContract } = require('./contracts/core/walletFactory');
 const { getWalletLogicContract } = require('./contracts/core/walletLogic');
 const { getWalletSignatureAuthenticatorContract } = require('./contracts/authenticators/WalletSignatureAuthenticator');
+const { getKeyVaultContract } = require('./contracts/core/keyVault');
 
 // Export errors (existing)
 const {
@@ -51,6 +52,7 @@ module.exports = {
   getWalletFactoryContract,
   getWalletLogicContract,
   getWalletSignatureAuthenticatorContract,
+  getKeyVaultContract,
   
   // Errors
   WalletError,
