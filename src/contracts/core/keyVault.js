@@ -404,11 +404,70 @@ function getKeyVaultContract(signerOrProvider, keyVaultAddress) {
     
     return new ethers.Contract(keyVaultAddress, KEYVAULT_ABI, signerOrProvider);
 }
+
+/**
+ * Parse ImplementationUpgraded event from transaction receipt
+ * 
+ * @param {Object} receipt - Transaction receipt
+ * @param {Object} keyVaultContract - KeyVault contract instance
+ * @returns {Object|null} Parsed event data or null if not found
+ */
+function parseImplementationUpgradedEvent(receipt, keyVaultContract) {
+    if (!receipt || !receipt.logs) {
+      return null;
+    }
+    
+    const iface = keyVaultContract.interface;
+    
+    // Find the ImplementationUpgraded event
+    const implementationUpgradedEvent = receipt.logs.find((log) => {
+      try {
+        const parsed = iface.parseLog(log);
+        return parsed?.name === 'ImplementationUpgraded';
+      } catch {
+        return false;
+      }
+    });
+    
+    if (!implementationUpgradedEvent) {
+      // Debug: log all events to see what we're getting
+      console.log('[parseImplementationUpgradedEvent] Total logs:', receipt.logs?.length);
+      if (receipt.logs && receipt.logs.length > 0) {
+        console.log('[parseImplementationUpgradedEvent] Trying to parse logs...');
+        receipt.logs.forEach((log, i) => {
+          try {
+            const parsed = iface.parseLog(log);
+            console.log(`[parseImplementationUpgradedEvent] Log ${i}:`, parsed?.name || 'unknown');
+          } catch (e) {
+            console.log(`[parseImplementationUpgradedEvent] Log ${i}: failed to parse (not from keyVault)`);
+          }
+        });
+      }
+      return null;
+    }
+    
+    // Parse the event
+    try {
+      const parsedEvent = iface.parseLog(implementationUpgradedEvent);
+      if (!parsedEvent || parsedEvent.name !== 'ImplementationUpgraded') {
+        return null;
+      }
   
+      return {
+        oldImpl: parsedEvent.args?.oldImpl,
+        newImpl: parsedEvent.args?.newImpl,
+      };
+    } catch (error) {
+      // Failed to parse event
+      console.error('[parseImplementationUpgradedEvent] Error parsing event:', error.message);
+      return null;
+    }
+}
+
   
 module.exports = {
     KEYVAULT_ABI,
     getKeyVaultContract,
+    parseImplementationUpgradedEvent
 };
-    
     

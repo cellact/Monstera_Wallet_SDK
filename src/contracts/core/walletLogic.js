@@ -368,11 +368,72 @@ function parseAuthenticatorChangedEvent(receipt, walletLogicContract) {
     return null;
   }
 }
+
+// // Is actually a KeyVault contract event 
+// /**
+//  * Parse ImplementationUpgraded event from transaction receipt
+//  * 
+//  * @param {Object} receipt - Transaction receipt
+//  * @param {Object} walletLogicContract - Wallet logic contract instance
+//  * @returns {Object|null} Parsed event data or null if not found
+//  */
+// function parseImplementationUpgradedEvent(receipt, walletLogicContract) {
+//   if (!receipt || !receipt.logs) {
+//     return null;
+//   }
   
+//   const iface = walletLogicContract.interface;
+  
+//   // Find the ImplementationUpgraded event
+//   const implementationUpgradedEvent = receipt.logs.find((log) => {
+//     try {
+//       const parsed = iface.parseLog(log);
+//       return parsed?.name === 'ImplementationUpgraded';
+//     } catch {
+//       return false;
+//     }
+//   });
+  
+//   if (!implementationUpgradedEvent) {
+//     // Debug: log all events to see what we're getting
+//     console.log('[parseImplementationUpgradedEvent] Total logs:', receipt.logs?.length);
+//     if (receipt.logs && receipt.logs.length > 0) {
+//       console.log('[parseImplementationUpgradedEvent] Trying to parse logs...');
+//       receipt.logs.forEach((log, i) => {
+//         try {
+//           const parsed = iface.parseLog(log);
+//           console.log(`[parseImplementationUpgradedEvent] Log ${i}:`, parsed?.name || 'unknown');
+//         } catch (e) {
+//           console.log(`[parseImplementationUpgradedEvent] Log ${i}: failed to parse (not from logic)`);
+//         }
+//       });
+//     }
+//     return null;
+//   }
+  
+//   // Parse the event
+//   try {
+//     const parsedEvent = iface.parseLog(implementationUpgradedEvent);
+//     if (!parsedEvent || parsedEvent.name !== 'ImplementationUpgraded') {
+//       return null;
+//     }
+
+//     return {
+//       oldImpl: parsedEvent.args?.oldImpl,
+//       newImplementation: parsedEvent.args?.newImplementation,
+//     };
+//   } catch (error) {
+//     // Failed to parse event
+//     console.error('[parseImplementationUpgradedEvent] Error parsing event:', error.message);
+//     return null;
+//   }
+// }
+
   module.exports = {
     WALLET_LOGIC_ABI,
     getWalletLogicContract,
-    parseAuthenticatorChangedEvent
+    parseAuthenticatorChangedEvent,
+    // parseImplementationUpgradedEvent
   };
   
   

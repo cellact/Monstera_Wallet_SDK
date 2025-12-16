@@ -12,6 +12,7 @@ const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEv
 const { getWalletLogicContract, parseAuthenticatorChangedEvent } = require('../contracts/core/walletLogic');
 const { getWalletSignatureAuthenticatorContract } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
+const { getKeyVaultContract, parseImplementationUpgradedEvent } = require('../contracts/core/keyVault');
 
 /**
  * Sapphire Wallet SDK
@@ -45,6 +46,7 @@ class SapphireWalletSDK {
       upgradeLogic: this.upgradeLogic.bind(this), // Admin function
       transferAdmin: this.transferAdmin.bind(this), // Admin function
       getAdmin: this.getAdmin.bind(this), // Admin function
+      getWalletKeyVault: this.getWalletKeyVault.bind(this),
 
       // WalletLogic functions
       // initialize: this.initialize.bind(this),
@@ -56,7 +58,7 @@ class SapphireWalletSDK {
       signMessage: this.signMessage.bind(this),
       sign: this.sign.bind(this),
       // changeAuthenticator: this.changeAuthenticator.bind(this), // not fully implemented yet (needs to be tested)
-      // upgradeKeyVault: this.upgradeKeyVault.bind(this),
+      upgradeKeyVault: this.upgradeKeyVault.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
 
       // WalletSignatureAuthenticator functions
@@ -74,6 +76,10 @@ class SapphireWalletSDK {
       // configure: this.configure.bind(this),
       // changePassword: this.changePassword.bind(this),
       // isConfigured: this.isConfigured.bind(this),
+
+      // KeyVault functions
+      getKeyVaultImplementation: this.getKeyVaultImplementation.bind(this),
+      upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this),
     };
   }
 
@@ -333,11 +339,34 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Get the key vault address for a wallet
+   * Get the keyVault contract address for a wallet (from wallet factory)
    * 
-   * @param {Object} options - Key vault options
+   * @param {Object} options - KeyVault options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} Key vault address
+   * @returns {Promise<String>} KeyVault contract address
+   */
+  async getWalletKeyVault(options = {}) {
+    const { walletAddress } = options;
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
+    try {
+      const keyVaultAddr = await factory.walletKeyVault(walletAddress);
+      return keyVaultAddr;
+    } catch (error) {
+      throw new Error(`Failed to get wallet key vault address: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the keyVault contract address for a wallet (from wallet logic)
+   * 
+   * @param {Object} options - KeyVault options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} KeyVault contract address
    */
   async getKeyVault(options = {}) {
     const { walletAddress } = options;
@@ -349,8 +378,8 @@ class SapphireWalletSDK {
     const logic = getWalletLogicContract(this.readProvider, walletAddress);
 
     try {
-      const keyVault = await logic.getKeyVault();
-      return keyVault;
+      const keyVaultAddr = await logic.getKeyVault();
+      return keyVaultAddr;
     } catch (error) {
       throw new Error(`Failed to get key vault address: ${error.message}`);
     }
@@ -636,12 +665,12 @@ class SapphireWalletSDK {
 
       console.log("   Transaction receipt:", receipt);
 
-      // Parse WalletCreated event
+      // Parse AuthenticatorChanged event
       const eventData = parseAuthenticatorChangedEvent(receipt, walletLogic);
       console.log("[changeAuthenticator] Event data:", eventData);
       
       if (!eventData) {
-        throw new Error('WalletCreated event not found in transaction receipt');
+        throw new Error('AuthenticatorChanged event not found in transaction receipt');
       }
 
       const result = {
@@ -659,6 +688,57 @@ class SapphireWalletSDK {
     }
     
     
+  }
+
+
+  /**
+   * Upgrade the keyVaultImplementation (via walletLogic contract) (User-only)
+   * 
+   * @param {Object} options - Upgrade keyVault implementation options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.newImplAddr - New keyVault contract address
+   * @returns {Promise<Object>} Upgrade keyVault result
+   */
+  async upgradeKeyVault(options = {}) {
+    const { walletAddress, authProof, newImplAddr } = options;
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+    if (!newImplAddr || typeof newImplAddr !== 'string') {
+      throw new Error('New key vault address is required');
+    }
+
+    const walletLogic = getWalletLogicContract(this.writeSigner, walletAddress);
+
+    try {
+      const tx = await walletLogic.upgradeKeyVault(authProof, newImplAddr);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse ImplementationUpgraded event
+      const eventData = parseImplementationUpgradedEvent(receipt, walletLogic);
+      
+      if (!eventData) {
+        throw new Error('ImplementationUpgraded event not found in transaction receipt');
+      }
+
+      const result = {
+        success: true,
+        oldImpl: eventData.oldImpl,
+        newImplAddr: eventData.newImplementation,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to upgrade key vault implementation: ${error.message}`);
+    }
   }
 
 
@@ -789,6 +869,73 @@ class SapphireWalletSDK {
       throw new Error(`Failed to get whitelist: ${error.message}`);
     }
   }
+
+  /**
+   * Get the keyVaultImplementation contract address (from keyVault contract)
+   * 
+   * @returns {Promise<String>} KeyVaultImplementation address
+   */
+  async getKeyVaultImplementation() {
+    const keyVault = getKeyVaultContract(this.readProvider, this.addresses.keyVault);
+
+    try {
+    const keyVaultImplAddr = await keyVault.implementation();
+    return keyVaultImplAddr;
+  } catch (error) {
+      throw new Error(`Failed to get key vault implementation: ${error.message}`);
+    }
+  }
+
+
+  /**
+   * Upgrade the keyVaultImplementation (via keyVault contract) (User-only)
+   * 
+   * @param {Object} options - Upgrade keyVaultImplementation options
+   * @param {Bytes} options.authProof - Auth proof (bytes)
+   * @param {String} options.newImplAddr - New keyVaultImplementation contract address
+   * @returns {Promise<Object>} Upgrade keyVaultImplementation result
+   */
+  async upgradeKeyVaultImpl(options = {}) {
+    const { authProof, newImplAddr } = options;
+
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+    if (!newImplAddr || typeof newImplAddr !== 'string') {
+      throw new Error('New key vault implementation address is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.writeSigner, this.addresses.keyVault);
+
+    try {
+      const tx = await keyVault.upgradeImplementation(authProof, newImplAddr);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse ImplementationUpgraded event
+      const eventData = parseImplementationUpgradedEvent(receipt, keyVault);
+      console.log("[upgradeKeyVaultImpl] Event data:", eventData);
+      
+      if (!eventData) {
+        throw new Error('ImplementationUpgraded event not found in transaction receipt');
+      }
+
+      const result = {
+        success: true,
+        oldImpl: eventData.oldImpl,
+        newImpl: eventData.newImpl,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to upgrade key vault implementation: ${error.message}`);
+    }
+  }
+
 }
 
 module.exports = SapphireWalletSDK;
