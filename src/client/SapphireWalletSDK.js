@@ -89,9 +89,9 @@ class SapphireWalletSDK {
       // changeAuthenticatorKeyVault: this.changeAuthenticatorKeyVault.bind(this), // changeAuthenticator in keyVault contract
       getAccountAddressKeyVault: this.getAccountAddressKeyVault.bind(this), // getAccountAddress in keyVault contract
       getAccountAddressesKeyVault: this.getAccountAddressesKeyVault.bind(this), // getAccountAddresses in keyVault contract
-      // signTransaction: this.signTransaction.bind(this),
-      // signMessage: this.signMessage.bind(this),
-      // sign: this.sign.bind(this),
+      // signTransactionKeyVault: this.signTransactionKeyVault.bind(this), // signTransaction in keyVault contract
+      signKeyVault: this.signKeyVault.bind(this), // sign in keyVault contract
+      signMessageKeyVault: this.signMessageKeyVault.bind(this), // signMessage in keyVault contract
       // executeWithAuth: this.executeWithAuth.bind(this),
     };
   }
@@ -1301,6 +1301,86 @@ class SapphireWalletSDK {
     }
     catch (error) {
       throw new Error(`Failed to get account addresses: ${error.message}`);
+    }
+  }
+
+  /**
+   * Sign a 32-byte hash (from keyVault contract)
+   * 
+   * @param {Object} options - Sign hash options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Auth proof (bytes)
+   * @param {Number} options.index - Account index (uint32)
+   * @param {Bytes32} options.hash - Hash to sign (bytes32)
+   * @returns {Promise<Bytes>} Signed hash (bytes)
+   */
+  async signKeyVault(options = {}) {
+    const { keyVaultAddress, authProof, index, hash } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+  
+    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+      throw new Error('Index is required and must be a non-negative integer');
+    }
+
+    if (!hash) {
+      throw new Error('Hash is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+
+    try {
+      const signedHash = await keyVault.sign(authProof, index, hash);
+      return signedHash;
+    }
+    catch (error) {
+      throw new Error(`Failed to sign hash: ${error.message}`);
+    }
+  }
+
+  /**
+   * Sign an EIP-191 message (from keyVault contract)
+   * 
+   * @param {Object} options - Sign message options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Auth proof (bytes)
+   * @param {Number} options.index - Account index (uint32)
+   * @param {Bytes} options.message - Message to sign (bytes)
+   * @returns {Promise<Bytes>} Signed message (bytes)
+   */
+  async signMessageKeyVault(options = {}) {
+    const { keyVaultAddress, authProof, index, message } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+    
+    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+      throw new Error('Index is required and must be a non-negative integer');
+    }
+
+    if (!message) {
+      throw new Error('Message is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+
+    try {
+      const signedMessage = await keyVault.signMessage(authProof, index, message);
+      return signedMessage;
+    }
+    catch (error) {
+      throw new Error(`Failed to sign message: ${error.message}`);
     }
   }
 }

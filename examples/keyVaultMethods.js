@@ -11,6 +11,8 @@
  * 5. change the authenticator contract address
  * 6. get the account address from the keyVault contract
  * 7. get multiple account addresses from the keyVault contract
+ * 8. sign a 32-byte hash with the keyVault contract
+ * 9. sign an EIP-191 message with the keyVault contract
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
@@ -25,6 +27,7 @@ const { ethers, HDNodeWallet, Wallet } = require('ethers');
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
+const PASSWORD = process.env.TEST_PASSWORD || "";
 
 const sdk = SapphireWalletSDK.fromConfig({
   network: 'testnet',
@@ -149,6 +152,47 @@ async function main() {
   }
   if (!accountAddresses) {
     console.error("❌ ERROR: Failed to get account addresses");
+    process.exit(1);
+  }
+
+  // ============ STEP 8: Sign a 32-byte hash with the keyVault contract ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 8: Sign a 32-byte hash");
+  console.log("=".repeat(70));
+
+  // Prepare auth proof (raw password bytes)
+  const authProof = ethers.toUtf8Bytes(PASSWORD);
+
+  const hash = ethers.keccak256(ethers.toUtf8Bytes("Hello from TheWallet!"));
+
+  const signedHash = await sdk.wallets.signKeyVault({
+    keyVaultAddress: keyVaultAddr,
+    authProof: authProof,
+    index: 0,
+    hash: hash
+  });
+  console.log(`   Signature (signed hash): ${signedHash}`);
+  if (!signedHash) {
+    console.error("❌ ERROR: Failed to sign hash");
+    process.exit(1);
+  }
+
+  // ============ STEP 9: Sign an EIP-191 message with the keyVault contract ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 9: Sign an EIP-191 message with the keyVault contract");
+  console.log("=".repeat(70));
+
+  const message = "Hello from TheWallet!";
+
+  const signature = await sdk.wallets.signMessageKeyVault({
+    keyVaultAddress: keyVaultAddr,
+    authProof: authProof,
+    index: 0,
+    message: ethers.toUtf8Bytes(message)
+  });
+  console.log(`   Signatur (signed message): ${signature}`);
+  if (!signature) {
+    console.error("❌ ERROR: Failed to sign message");
     process.exit(1);
   }
 
