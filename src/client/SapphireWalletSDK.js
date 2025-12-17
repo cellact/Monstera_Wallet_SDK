@@ -10,7 +10,7 @@ const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../contracts/core/walletFactory');
 const { getWalletLogicContract, parseAuthenticatorChangedEvent } = require('../contracts/core/walletLogic');
-const { getWalletSignatureAuthenticatorContract } = require('../contracts/authenticators/WalletSignatureAuthenticator');
+const { getWalletSignatureAuthenticatorContract, parseWhitelistRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
 const { getKeyVaultContract, parseImplementationUpgradedEvent } = require('../contracts/core/keyVault');
 const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../contracts/authenticators/PasswordAuthenticator');
@@ -67,7 +67,7 @@ class SapphireWalletSDK {
       // verify: this.verify.bind(this),
       // configure: this.configure.bind(this),
       addToWhitelist: this.addToWhitelist.bind(this),
-      // removeFromWhitelist: this.removeFromWhitelist.bind(this),
+      removeFromWhitelist: this.removeFromWhitelist.bind(this),
       // isConfigured: this.isConfigured.bind(this),
       isWhitelisted: this.isWhitelisted.bind(this),
       getWhitelist: this.getWhitelist.bind(this),
@@ -841,6 +841,60 @@ class SapphireWalletSDK {
       return receipt;
     } catch (error) {
       throw new Error(`Failed to add to whitelist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Remove an address from the whitelist
+   * 
+   * @param {Object} options - Remove from whitelist options
+   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
+   * @param {String} options.addressToRemove - Address to remove from the whitelist
+   * @returns {Promise<Object>} Transaction receipt
+   */
+  async removeFromWhitelist(options = {}) {
+    const { keyVaultAddress, authProof, addressToRemove } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+  
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+
+    if (!addressToRemove || typeof addressToRemove !== 'string') {
+      throw new Error('Address is required');
+    }
+
+    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.writeSigner, this.addresses.walletSignatureAuth);
+
+    try {
+      const tx = await walletSigAuth.removeFromWhitelist(keyVaultAddress, authProof, addressToRemove);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse WhitelistRemoved event
+      const eventData = parseWhitelistRemovedEvent(receipt, walletSigAuth);
+      console.log("[removeFromWhitelist] Event data:", eventData);
+      
+      if (!eventData) {
+        throw new Error('WhitelistRemoved event not found in transaction receipt');
+      }
+
+      const result = {
+        success: true,
+        wallet: eventData.wallet,
+        removed: eventData.removed,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to remove from whitelist: ${error.message}`);
     }
   }
 

@@ -392,7 +392,69 @@ function getWalletSignatureAuthenticatorContract(signerOrProvider, walletSignatu
     return new ethers.Contract(walletSignatureAuthenticatorAddress, WALLET_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
+/**
+ * Parse WhitelistRemoved event from transaction receipt
+ * 
+ * @param {Object} receipt - Transaction receipt
+ * @param {Object} walletSignatureAuthenticatorContract - Wallet signature authenticator contract instance
+ * @returns {Object|null} Parsed event data or null if not found
+ */
+function parseWhitelistRemovedEvent(receipt, walletSignatureAuthenticatorContract) {
+    if (!receipt || !receipt.logs) {
+        return null;
+    }
+
+    const iface = walletSignatureAuthenticatorContract.interface;
+
+    // Find the WhitelistRemoved event
+    const whitelistRemovedEvent = receipt.logs.find((log) => {
+        try {
+            const parsed = iface.parseLog(log);
+            return parsed?.name === 'AddressRemoved';
+        } catch {
+            return false;
+        }
+    });
+
+    if (!whitelistRemovedEvent) {
+        // Debug: log all events to see what we're getting
+        console.log('[parseWhitelistRemovedEvent] Total logs:', receipt.logs?.length);
+        if (receipt.logs && receipt.logs.length > 0) {
+          console.log('[parseWhitelistRemovedEvent] Trying to parse logs...');
+          receipt.logs.forEach((log, i) => {
+            try {
+              const parsed = iface.parseLog(log);
+              console.log(`[parseWhitelistRemovedEvent] Log ${i}:`, parsed?.name || 'unknown');
+            } catch (e) {
+              console.log(`[parseWhitelistRemovedEvent] Log ${i}: failed to parse (not from walletSignatureAuthenticator)`);
+            }
+          });
+        }
+        return null;
+    } else {
+        console.log('[parseWhitelistRemovedEvent] WhitelistRemoved event found');
+    }
+
+    // Parse the event
+    try {
+        const parsedEvent = iface.parseLog(whitelistRemovedEvent);
+        if (!parsedEvent || parsedEvent.name !== 'AddressRemoved') {
+            return null;
+        }
+
+        return {
+            wallet: parsedEvent.args?.wallet,
+            removed: parsedEvent.args?.removed,
+        };
+    } catch (error) {
+        // Failed to parse event
+        console.error('[parseWhitelistRemovedEvent] Error parsing event:', error.message);
+        return null;
+    }
+}
+
 module.exports = {
     WALLET_SIGNATURE_AUTHENTICATOR_ABI,
-    getWalletSignatureAuthenticatorContract
+    getWalletSignatureAuthenticatorContract,
+    parseWhitelistRemovedEvent
 };
