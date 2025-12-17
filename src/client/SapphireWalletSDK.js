@@ -56,7 +56,7 @@ class SapphireWalletSDK {
       // WalletLogic functions
       getKeyvaultAddr: this.getKeyvaultAddr.bind(this), // state variable in walletLogic contract
       isInitialized: this.isInitialized.bind(this), // state variable in walletLogic contract
-      // initialize: this.initialize.bind(this),
+      initializeWalletLogic: this.initializeWalletLogic.bind(this), // initialize in walletLogic contract 
       getAccountAddress: this.getAccountAddress.bind(this),
       getAccountAddresses: this.getAccountAddresses.bind(this),
       getKeyVault: this.getKeyVault.bind(this),
@@ -895,6 +895,39 @@ class SapphireWalletSDK {
       return isInitialized;
     } catch (error) {
       throw new Error(`Failed to check if wallet is initialized: ${error.message}`);
+    }
+  }
+
+  /**
+   * Initialize a wallet logic contract (via walletLogic contract)
+   * 
+   * @param {Object} options - Initialize wallet logic options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<Object>} Initialize wallet logic result
+   */
+  async initializeWalletLogic(options = {}) {
+    const { walletAddress, keyVaultAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('Key vault address is required');
+    }
+
+    const walletLogic = getWalletLogicContract(this.writeSigner, walletAddress);
+  
+    try {
+      const tx = await walletLogic.initialize(keyVaultAddress);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      return receipt;
+    } catch (error) {
+      throw new Error(`Failed to initialize wallet logic: ${error.message}`);
     }
   }
 

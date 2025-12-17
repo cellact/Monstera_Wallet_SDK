@@ -16,6 +16,7 @@ const { SapphireWalletSDK } = require('../src/index-new');
 
 // Test wallet address
 const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS;
+const NEW_KEYVAULT_ADDRESS = process.env.NEW_KEYVAULT_ADDRESS;
 
 async function main() {
   console.log("=".repeat(70));
@@ -52,7 +53,27 @@ async function main() {
     process.exit(1);
   }
 
-  
+  // ============ STEP 2: Initialize a wallet logic contract. ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 2: Initialize a wallet logic contract (with new key vault).");
+  console.log("=".repeat(70));
+
+  try {
+    // Initialize a wallet logic contract
+    const result = await sdk.wallets.initializeWalletLogic({
+      walletAddress: WALLET_ADDRESS,
+      keyVaultAddress: NEW_KEYVAULT_ADDRESS
+    });
+
+    console.log(`   ✅ Initialize wallet logic contract result: ${result}`);
+
+  } catch (error) {
+    console.error(`   ❌ FAILED to initialize wallet logic contract: ${error.message}`);
+    if (error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+    process.exit(1);
+  }
 }
 
 // Run example
