@@ -51,7 +51,7 @@ class SapphireWalletSDK {
       getBeaconAddr: this.getBeaconAddr.bind(this),
 
       // WalletLogic functions
-      // initialize: this.initialize.bind(this),
+      isInitialized: this.isInitialized.bind(this),
       getKeyVault: this.getKeyVault.bind(this),
       getAuthenticator: this.getAuthenticator.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
@@ -62,7 +62,6 @@ class SapphireWalletSDK {
       // changeAuthenticator: this.changeAuthenticator.bind(this), // not fully implemented yet (needs to be tested)
       upgradeKeyVault: this.upgradeKeyVault.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
-      isInitialized: this.isInitialized.bind(this),
 
       // WalletSignatureAuthenticator functions
       // verify: this.verify.bind(this),
