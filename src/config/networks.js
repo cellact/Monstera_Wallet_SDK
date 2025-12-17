@@ -29,9 +29,9 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    wallet: '0x76a80aF9eba04529fCedd823e9712a79B98D5D1A',   // Set after deployment
+    wallet: '0x76a80aF9eba04529fCedd823e9712a79B98D5D1A',   // Set after deployment (should not be there)
     factory: '0xe99c901446A265aAfb2E8653C34AC4a25CB42094', // Set after deployment
-    keyVault: '0x487320327993eC76356f2F2BB01aE839b8bc8C2c', // Set after deployment
+    keyVault: '0x487320327993eC76356f2F2BB01aE839b8bc8C2c', // Set after deployment (should not be there)
     passwordAuth: '0x579DAE1e43Aed272580AF19DD2D6a77A4a953338', // Set after deployment
     walletSignatureAuth: '0x1F671873ea77eaDF1984BD2563A1D9DC60d8eEFc' // Set after deployment
   },

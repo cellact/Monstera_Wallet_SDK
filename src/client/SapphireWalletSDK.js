@@ -13,6 +13,7 @@ const { getWalletLogicContract, parseAuthenticatorChangedEvent } = require('../c
 const { getWalletSignatureAuthenticatorContract } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
 const { getKeyVaultContract, parseImplementationUpgradedEvent } = require('../contracts/core/keyVault');
+const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../contracts/authenticators/PasswordAuthenticator');
 
 /**
  * Sapphire Wallet SDK
@@ -75,8 +76,8 @@ class SapphireWalletSDK {
       // PasswordAuthenticator functions
       // verify: this.verify.bind(this),
       // configure: this.configure.bind(this),
-      // changePassword: this.changePassword.bind(this),
-      // isConfigured: this.isConfigured.bind(this),
+      // changePassword: this.changePassword.bind(this), // not fully implemented yet (needs to be tested)
+      isConfigured: this.isConfigured.bind(this),
 
       // KeyVault functions
       // initialize: this.initialize.bind(this),
@@ -654,7 +655,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Change the authenticator (User-only)
+   * Change the authenticator (User-only) (via walletLogic contract)
    * 
    * @param {Object} options - Change authenticator options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -893,6 +894,84 @@ class SapphireWalletSDK {
       return whitelist;
     } catch (error) {
       throw new Error(`Failed to get whitelist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Change the password of a wallet
+   * 
+   * @param {Object} options - Change password options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.currentPassword - raw password bytes (utf8 encoded string)
+   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
+   * @returns {Promise<Object>} Change password result
+   */
+  async changePassword(options = {}) {
+    const { walletAddress, currentPassword, newPasswordHash } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    if (!currentPassword) {
+      throw new Error('Current password is required');
+    }
+
+    if (!newPasswordHash) {
+      throw new Error('New password hash is required');
+    }
+
+    const passwordAuth = getPasswordAuthenticatorContract(this.writeSigner, this.addresses.passwordAuth);
+
+    try {
+      const tx = await passwordAuth.changePassword(walletAddress, currentPassword, newPasswordHash);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse PasswordChanged event
+      const eventData = parsePasswordChangedEvent(receipt, passwordAuth);
+      console.log("[changePassword] Event data:", eventData);
+      
+      if (!eventData) {
+        throw new Error('PasswordChanged event not found in transaction receipt');
+      }
+
+      const result = {
+        success: true,
+        walletAddress: eventData.wallet,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to change password: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if a wallet is configured (via passwordAuthenticator contract)
+   * 
+   * @param {Object} options - Check if wallet is configured options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
+   */
+  async isConfigured(options = {}) {
+    const { walletAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    const passwordAuth = getPasswordAuthenticatorContract(this.readProvider, this.addresses.passwordAuth);
+
+    try {
+      const isConfigured = await passwordAuth.isConfigured(walletAddress);
+      return isConfigured;
+    } catch (error) {
+      throw new Error(`Failed to check if wallet is configured: ${error.message}`);
     }
   }
 
