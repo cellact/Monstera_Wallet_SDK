@@ -9,10 +9,10 @@ const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../contracts/core/walletFactory');
-const { getWalletLogicContract, parseAuthenticatorChangedEvent } = require('../contracts/core/walletLogic');
+const { getWalletLogicContract } = require('../contracts/core/walletLogic');
 const { getWalletSignatureAuthenticatorContract, parseWhitelistRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
-const { getKeyVaultContract, parseImplementationUpgradedEvent } = require('../contracts/core/keyVault');
+const { getKeyVaultContract, parseImplementationUpgradedEvent, parseAuthenticatorChangedEvent } = require('../contracts/core/keyVault');
 const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../contracts/authenticators/PasswordAuthenticator');
 
 /**
@@ -740,7 +740,6 @@ class SapphireWalletSDK {
 
       // Parse AuthenticatorChanged event
       const eventData = parseAuthenticatorChangedEvent(receipt, walletLogic);
-      console.log("[changeAuthenticator] Event data:", eventData);
       
       if (!eventData) {
         throw new Error('AuthenticatorChanged event not found in transaction receipt');
@@ -1336,6 +1335,65 @@ class SapphireWalletSDK {
       return result;
     } catch (error) {
       throw new Error(`Failed to upgrade key vault implementation: ${error.message}`);
+    }
+  }
+
+
+  /**
+   * Change the authenticator (via keyVault contract) (User-only)
+   * 
+   * @param {Object} options - Change authenticator options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Auth proof (bytes)
+   * @param {String} options.newAuthenticatorAddr - New authenticator contract address
+   * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
+   * @returns {Promise<Object>} Change authenticator result
+   */
+  async changeAuthenticatorKeyVault(options = {}) {
+    const { keyVaultAddress, authProof, newAuthenticatorAddr, newAuthConfig } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+
+    if (!newAuthenticatorAddr || typeof newAuthenticatorAddr !== 'string') {
+      throw new Error('New authenticator address is required');
+    }
+
+    if (!newAuthConfig) {
+      throw new Error('New auth config is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+
+    try {
+      const tx = await keyVault.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig);
+
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse AuthenticatorChanged event
+      const eventData = parseAuthenticatorChangedEvent(receipt, keyVault);
+
+      if (!eventData) {
+        throw new Error('AuthenticatorChanged event not found in transaction receipt');
+      }
+      const result = {
+        success: true,
+        oldAuth: eventData.oldAuth,
+        newAuth: eventData.newAuth,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+      return result;
+
+    } catch (error) {
+      throw new Error(`Failed to change authenticator in key vault: ${error.message}`);
     }
   }
 

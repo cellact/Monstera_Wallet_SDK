@@ -465,10 +465,71 @@ function parseImplementationUpgradedEvent(receipt, keyVaultContract) {
     }
 }
 
+/**
+ * Parse AuthenticatorChanged event from transaction receipt
+ * 
+ * @param {Object} receipt - Transaction receipt
+ * @param {Object} keyVaultContract - KeyVault contract instance
+ * @returns {Object|null} Parsed event data or null if not found
+ */
+function parseAuthenticatorChangedEvent(receipt, keyVaultContract) {
+  if (!receipt || !receipt.logs) {
+    return null;
+  }
+  
+  const iface = keyVaultContract.interface;
+  
+  // Find the AuthenticatorChanged event
+  const authenticatorChangedEvent = receipt.logs.find((log) => {
+    try {
+      const parsed = iface.parseLog(log);
+      return parsed?.name === 'AuthenticatorChanged';
+    } catch {
+      return false;
+    }
+  });
+  
+  if (!authenticatorChangedEvent) {
+    // Debug: log all events to see what we're getting
+    console.log('[parseAuthenticatorChangedEvent] Total logs:', receipt.logs?.length);
+    if (receipt.logs && receipt.logs.length > 0) {
+      console.log('[parseAuthenticatorChangedEvent] Trying to parse logs...');
+      receipt.logs.forEach((log, i) => {
+        try {
+          const parsed = iface.parseLog(log);
+          console.log(`[parseAuthenticatorChangedEvent] Log ${i}:`, parsed?.name || 'unknown');
+        } catch (e) {
+          console.log(`[parseAuthenticatorChangedEvent] Log ${i}: failed to parse (not from logic)`);
+        }
+      });
+    }
+    return null;
+  }
+  
+  // Parse the event
+  try {
+    const parsedEvent = iface.parseLog(authenticatorChangedEvent);
+    
+    if (!parsedEvent || parsedEvent.name !== 'AuthenticatorChanged') {
+      return null;
+    }
+
+    return {
+      oldAuth: parsedEvent.args?.oldAuth,
+      newAuth: parsedEvent.args?.newAuth,
+    };
+  } catch (error) {
+    // Failed to parse event
+    console.error('[parseAuthenticatorChangedEvent] Error parsing event:', error.message);
+    return null;
+  }
+}
+
   
 module.exports = {
     KEYVAULT_ABI,
     getKeyVaultContract,
-    parseImplementationUpgradedEvent
+    parseImplementationUpgradedEvent,
+    parseAuthenticatorChangedEvent
 };
     

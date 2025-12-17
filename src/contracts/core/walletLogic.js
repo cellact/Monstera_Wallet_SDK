@@ -309,65 +309,65 @@ const WALLET_LOGIC_ABI = [
   }
 
 // Is actually a KeyVault contract event 
-/**
- * Parse AuthenticatorChanged event from transaction receipt
- * 
- * @param {Object} receipt - Transaction receipt
- * @param {Object} walletLogicContract - Wallet logic contract instance
- * @returns {Object|null} Parsed event data or null if not found
- */
-function parseAuthenticatorChangedEvent(receipt, walletLogicContract) {
-  if (!receipt || !receipt.logs) {
-    return null;
-  }
+// /**
+//  * Parse AuthenticatorChanged event from transaction receipt
+//  * 
+//  * @param {Object} receipt - Transaction receipt
+//  * @param {Object} walletLogicContract - Wallet logic contract instance
+//  * @returns {Object|null} Parsed event data or null if not found
+//  */
+// function parseAuthenticatorChangedEvent(receipt, walletLogicContract) {
+//   if (!receipt || !receipt.logs) {
+//     return null;
+//   }
   
-  const iface = walletLogicContract.interface;
+//   const iface = walletLogicContract.interface;
   
-  // Find the AuthenticatorChanged event
-  const authenticatorChangedEvent = receipt.logs.find((log) => {
-    try {
-      const parsed = iface.parseLog(log);
-      return parsed?.name === 'AuthenticatorChanged';
-    } catch {
-      return false;
-    }
-  });
+//   // Find the AuthenticatorChanged event
+//   const authenticatorChangedEvent = receipt.logs.find((log) => {
+//     try {
+//       const parsed = iface.parseLog(log);
+//       return parsed?.name === 'AuthenticatorChanged';
+//     } catch {
+//       return false;
+//     }
+//   });
   
-  if (!authenticatorChangedEvent) {
-    // Debug: log all events to see what we're getting
-    console.log('[parseAuthenticatorChangedEvent] Total logs:', receipt.logs?.length);
-    if (receipt.logs && receipt.logs.length > 0) {
-      console.log('[parseAuthenticatorChangedEvent] Trying to parse logs...');
-      receipt.logs.forEach((log, i) => {
-        try {
-          const parsed = iface.parseLog(log);
-          console.log(`[parseAuthenticatorChangedEvent] Log ${i}:`, parsed?.name || 'unknown');
-        } catch (e) {
-          console.log(`[parseAuthenticatorChangedEvent] Log ${i}: failed to parse (not from logic)`);
-        }
-      });
-    }
-    return null;
-  }
+//   if (!authenticatorChangedEvent) {
+//     // Debug: log all events to see what we're getting
+//     console.log('[parseAuthenticatorChangedEvent] Total logs:', receipt.logs?.length);
+//     if (receipt.logs && receipt.logs.length > 0) {
+//       console.log('[parseAuthenticatorChangedEvent] Trying to parse logs...');
+//       receipt.logs.forEach((log, i) => {
+//         try {
+//           const parsed = iface.parseLog(log);
+//           console.log(`[parseAuthenticatorChangedEvent] Log ${i}:`, parsed?.name || 'unknown');
+//         } catch (e) {
+//           console.log(`[parseAuthenticatorChangedEvent] Log ${i}: failed to parse (not from logic)`);
+//         }
+//       });
+//     }
+//     return null;
+//   }
   
-  // Parse the event
-  try {
-    const parsedEvent = iface.parseLog(authenticatorChangedEvent);
+//   // Parse the event
+//   try {
+//     const parsedEvent = iface.parseLog(authenticatorChangedEvent);
     
-    if (!parsedEvent || parsedEvent.name !== 'AuthenticatorChanged') {
-      return null;
-    }
+//     if (!parsedEvent || parsedEvent.name !== 'AuthenticatorChanged') {
+//       return null;
+//     }
 
-    return {
-      oldAuth: parsedEvent.args?.oldAuth,
-      newAuth: parsedEvent.args?.newAuth,
-    };
-  } catch (error) {
-    // Failed to parse event
-    console.error('[parseAuthenticatorChangedEvent] Error parsing event:', error.message);
-    return null;
-  }
-}
+//     return {
+//       oldAuth: parsedEvent.args?.oldAuth,
+//       newAuth: parsedEvent.args?.newAuth,
+//     };
+//   } catch (error) {
+//     // Failed to parse event
+//     console.error('[parseAuthenticatorChangedEvent] Error parsing event:', error.message);
+//     return null;
+//   }
+// }
 
 // // Is actually a KeyVault contract event 
 // /**
@@ -432,7 +432,7 @@ function parseAuthenticatorChangedEvent(receipt, walletLogicContract) {
   module.exports = {
     WALLET_LOGIC_ABI,
     getWalletLogicContract,
-    parseAuthenticatorChangedEvent,
+    // parseAuthenticatorChangedEvent,
     // parseImplementationUpgradedEvent
   };
   
