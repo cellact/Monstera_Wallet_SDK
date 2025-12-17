@@ -83,7 +83,7 @@ class SapphireWalletSDK {
       getStorageAddr: this.getStorageAddr.bind(this),
       getAuthenticatorKeyVault: this.getAuthenticatorKeyVault.bind(this), // authenticator in keyVault contract
       getKeyVaultImplAddr: this.getKeyVaultImplAddr.bind(this), // implementation in keyVault contract
-      // initialize: this.initialize.bind(this),
+      isInitializedKeyVault: this.isInitializedKeyVault.bind(this), // initialized in keyVault contract
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
       // changeAuthenticator: this.changeAuthenticator.bind(this),
       // getAccountAddress: this.getAccountAddress.bind(this),
@@ -1160,6 +1160,30 @@ class SapphireWalletSDK {
     }
     catch (error) {
       throw new Error(`Failed to get implementation address: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if a keyVault is initialized (from keyVault contract)
+   * 
+   * @param {Object} options - Check if keyVault is initialized options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<Boolean>} True if keyVault is initialized, false otherwise
+   */
+  async isInitializedKeyVault(options = {}) {
+    const { keyVaultAddress } = options;
+    
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    try {
+      const isInitialized = await keyVault.initialized();
+      return isInitialized;
+    }
+    catch (error) {
+      throw new Error(`Failed to check if key vault is initialized: ${error.message}`);
     }
   }
 
