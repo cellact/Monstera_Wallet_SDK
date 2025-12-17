@@ -62,6 +62,7 @@ class SapphireWalletSDK {
       // changeAuthenticator: this.changeAuthenticator.bind(this), // not fully implemented yet (needs to be tested)
       upgradeKeyVault: this.upgradeKeyVault.bind(this),
       createAuthProof: this.createAuthProof.bind(this),
+      isInitialized: this.isInitialized.bind(this),
 
       // WalletSignatureAuthenticator functions
       // verify: this.verify.bind(this),
@@ -805,6 +806,29 @@ class SapphireWalletSDK {
     const authProof = await createAuthProof(signer, chainId, authenticator, deadline, keyVault);
 
     return authProof;
+  }
+
+  /**
+   * Check if a wallet is initialized (via walletLogic contract)
+   * 
+   * @param {Object} options - Is initialized options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<Boolean>} True if wallet is initialized, false otherwise
+   */
+  async isInitialized(options = {}) {
+    const { walletAddress } = options;
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const isInitialized = await walletLogic.initialized();
+      return isInitialized;
+    } catch (error) {
+      throw new Error(`Failed to check if wallet is initialized: ${error.message}`);
+    }
   }
 
   /**

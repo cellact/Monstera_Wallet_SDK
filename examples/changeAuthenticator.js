@@ -63,6 +63,16 @@ async function main() {
 
   // Prepare auth proof
   const authProof = ethers.toUtf8Bytes(PASSWORD);
+  // try {
+  //   authProof = await sdk.wallets.createAuthProof({
+  //     authenticateFor: WALLET_ADDRESS,
+  //     signer: sdk.writeSigner, // signer is the account that is changing the authenticator
+  //     keyVault: keyVault
+  //   });
+  // } catch (error) {
+  //   console.log(`   ❌ FAILED to create auth proof: ${error.message}`);
+  //   process.exit(1);
+  // }
 
   // Prepare new auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");
