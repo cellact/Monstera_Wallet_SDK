@@ -88,7 +88,7 @@ class SapphireWalletSDK {
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
       // changeAuthenticatorKeyVault: this.changeAuthenticatorKeyVault.bind(this), // changeAuthenticator in keyVault contract
       getAccountAddressKeyVault: this.getAccountAddressKeyVault.bind(this), // getAccountAddress in keyVault contract
-      // getAccountAddresses: this.getAccountAddresses.bind(this),
+      getAccountAddressesKeyVault: this.getAccountAddressesKeyVault.bind(this), // getAccountAddresses in keyVault contract
       // signTransaction: this.signTransaction.bind(this),
       // signMessage: this.signMessage.bind(this),
       // sign: this.sign.bind(this),
@@ -1268,6 +1268,39 @@ class SapphireWalletSDK {
     }
     catch (error) {
       throw new Error(`Failed to get account address: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get multiple account addresses from a wallet for a given range of indexes (from keyVault contract)
+   * 
+   * @param {Object} options - Get account addresses options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Number} options.fromIndex - From index (uint32)
+   * @param {Number} options.count - Count (uint32)
+   * @returns {Promise<Array<String>>} Array of account addresses
+   */
+  async getAccountAddressesKeyVault(options = {}) {
+    const { keyVaultAddress, fromIndex, count } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+    if (fromIndex === undefined || fromIndex === null || typeof fromIndex !== 'number' || fromIndex < 0 || !Number.isInteger(fromIndex)) {
+      throw new Error('From index is required and must be a non-negative integer');
+    }
+    if (count === undefined || count === null || typeof count !== 'number' || count < 0 || !Number.isInteger(count)) {
+      throw new Error('Count is required and must be a non-negative integer');
+    }
+
+    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    
+    try {
+      const accountAddresses = await keyVault.getAccountAddresses(fromIndex, count);
+      return accountAddresses;
+    }
+    catch (error) {
+      throw new Error(`Failed to get account addresses: ${error.message}`);
     }
   }
 }

@@ -10,6 +10,7 @@
  * 4. check if a keyVault is initialized
  * 5. change the authenticator contract address
  * 6. get the account address from the keyVault contract
+ * 7. get multiple account addresses from the keyVault contract
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
@@ -131,7 +132,26 @@ async function main() {
     console.error("❌ ERROR: Failed to get account address");
     process.exit(1);
   }
-  
+
+  // ============ STEP 7: Get multiple account addresses from the keyVault contract ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 7: Get multiple account addresses (indexes 0-4) from the keyVault contract");
+  console.log("=".repeat(70));
+
+  const accountAddresses = await sdk.wallets.getAccountAddressesKeyVault({
+    keyVaultAddress: keyVaultAddr,
+    fromIndex: 0,
+    count: 5
+  });
+  // log each account address with index
+  for (let i = 0; i < accountAddresses.length; i++) {
+    console.log(`   Account Address (index ${i}): ${accountAddresses[i]}`);
+  }
+  if (!accountAddresses) {
+    console.error("❌ ERROR: Failed to get account addresses");
+    process.exit(1);
+  }
+
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(70));
   console.log("SUMMARY");
