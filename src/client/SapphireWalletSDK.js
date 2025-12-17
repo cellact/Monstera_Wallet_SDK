@@ -82,6 +82,7 @@ class SapphireWalletSDK {
       // KeyVault functions
       getStorageAddr: this.getStorageAddr.bind(this),
       getAuthenticatorKeyVault: this.getAuthenticatorKeyVault.bind(this), // authenticator in keyVault contract
+      getKeyVaultImplAddr: this.getKeyVaultImplAddr.bind(this), // implementation in keyVault contract
       // initialize: this.initialize.bind(this),
       getKeyVaultImplementation: this.getKeyVaultImplementation.bind(this), // implementation in keyVault contract
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
@@ -1123,18 +1124,43 @@ class SapphireWalletSDK {
    */
   async getAuthenticatorKeyVault(options = {}) {
     const { keyVaultAddress } = options;
-    
+
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
       throw new Error('KeyVault address is required');
     }
 
     const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
     try {
-      const authenticator = await keyVault.authenticator();
-      return authenticator;
+      const authenticatorAddr = await keyVault.authenticator();
+      return authenticatorAddr;
     }
     catch (error) {
       throw new Error(`Failed to get authenticator address: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the implementation contract address (from keyVault contract)
+   * 
+   * @param {Object} options - Get implementation options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<String>} Implementation address
+   */
+  async getKeyVaultImplAddr(options = {}) {
+    const { keyVaultAddress } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+
+    try {
+      const keyVaultImplAddr = await keyVault.implementation();
+      return keyVaultImplAddr;
+    }
+    catch (error) {
+      throw new Error(`Failed to get implementation address: ${error.message}`);
     }
   }
 

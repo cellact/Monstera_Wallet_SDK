@@ -5,6 +5,8 @@
  * 
  * Tests:
  * 1. get the storage contract address holding the keys
+ * 2. get the authenticator contract address
+ * 3. get the implementation contract address
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
@@ -64,7 +66,24 @@ async function main() {
     keyVaultAddress: keyVaultAddr
   });
   console.log(`   Authenticator: ${authenticatorAddr}`);
+  if (!authenticatorAddr) {
+    console.error("❌ ERROR: Failed to get authenticator address");
+    process.exit(1);
+  }
 
+  // ============ STEP 3: Get KeyVaultImplementation contract address ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 3: Get KeyVaultImplementation contract address");
+  console.log("=".repeat(70));
+
+  const keyVaultImplAddr = await sdk.wallets.getKeyVaultImplAddr({
+    keyVaultAddress: keyVaultAddr
+  });
+  console.log(`   Implementation: ${keyVaultImplAddr}`);
+  if (!keyVaultImplAddr) {
+    console.error("❌ ERROR: Failed to get implementation address");
+    process.exit(1);
+  }
   
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(70));
@@ -74,6 +93,7 @@ async function main() {
   console.log(`   KeyVault: ${keyVaultAddr}`);
   console.log(`   Storage: ${storageAddr}`);
   console.log(`   Authenticator: ${authenticatorAddr}`);
+  console.log(`   KeyVaultImplementation: ${keyVaultImplAddr}`);
   console.log("=".repeat(70));
 }
 
