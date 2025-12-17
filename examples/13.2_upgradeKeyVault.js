@@ -86,6 +86,7 @@ async function main() {
 
     // upgrade KeyVaultImplementation (via keyVault contract)
     const result = await sdk.wallets.upgradeKeyVaultImpl({
+      keyVaultAddress: keyVaultAddr,
       authProof: authProof,
       newImplAddr: NEW_KEYVAULT_IMPL_ADDRESS
     });

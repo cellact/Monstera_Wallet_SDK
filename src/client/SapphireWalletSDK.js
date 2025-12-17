@@ -1115,12 +1115,17 @@ class SapphireWalletSDK {
    * Upgrade the keyVaultImplementation (via keyVault contract) (User-only)
    * 
    * @param {Object} options - Upgrade keyVaultImplementation options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @param {Bytes} options.authProof - Auth proof (bytes)
    * @param {String} options.newImplAddr - New keyVaultImplementation contract address
    * @returns {Promise<Object>} Upgrade keyVaultImplementation result
    */
   async upgradeKeyVaultImpl(options = {}) {
-    const { authProof, newImplAddr } = options;
+    const { keyVaultAddress, authProof, newImplAddr } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
 
     if (!authProof) {
       throw new Error('Auth proof is required');
@@ -1129,7 +1134,7 @@ class SapphireWalletSDK {
       throw new Error('New key vault implementation address is required');
     }
 
-    const keyVault = getKeyVaultContract(this.writeSigner, this.addresses.keyVault);
+    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
 
     try {
       const tx = await keyVault.upgradeImplementation(authProof, newImplAddr);
@@ -1139,7 +1144,6 @@ class SapphireWalletSDK {
 
       // Parse ImplementationUpgraded event
       const eventData = parseImplementationUpgradedEvent(receipt, keyVault);
-      console.log("[upgradeKeyVaultImpl] Event data:", eventData);
       
       if (!eventData) {
         throw new Error('ImplementationUpgraded event not found in transaction receipt');
