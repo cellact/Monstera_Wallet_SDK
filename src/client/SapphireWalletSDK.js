@@ -39,12 +39,12 @@ class SapphireWalletSDK {
     // Namespace for wallet operations
     this.wallets = {
       // WalletFactory functions
-      getAdmin: this.getAdmin.bind(this), // Admin function
-      getBeaconAddr: this.getBeaconAddr.bind(this),
-      // getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this),
-      // getWallets: this.getWallets.bind(this), // wallets in walletFactory contract
-      getWalletKeyVault: this.getWalletKeyVault.bind(this),
-      // getWalletStorage: this.getWalletStorage.bind(this),
+      getAdmin: this.getAdmin.bind(this), // state variable in walletFactory contract
+      getBeaconAddr: this.getBeaconAddr.bind(this), // state variable in walletFactory contract
+      getDefaultKeyVaultImplAddr: this.getDefaultKeyVaultImplAddr.bind(this), // state variable in walletFactory contract
+      // getWallets: this.getWallets.bind(this), // wallets in walletFactory contract 
+      getWalletKeyVault: this.getWalletKeyVault.bind(this), // state variable in walletFactory contract
+      getWalletStorage: this.getWalletStorage.bind(this), // state variable in walletFactory contract
       createWallet: this.createWallet.bind(this),
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
@@ -382,6 +382,29 @@ class SapphireWalletSDK {
   }
 
   /**
+   * Get the storage contract address for a wallet (from wallet factory)
+   * 
+   * @param {Object} options - Storage options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} Storage contract address
+   */
+  async getWalletStorage(options = {}) {
+    const { walletAddress } = options;
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
+    try {
+      const storageAddr = await factory.walletStorage(walletAddress);
+      return storageAddr;
+    } catch (error) {
+      throw new Error(`Failed to get wallet storage address: ${error.message}`);
+    }
+  }
+
+  /**
    * Get the beacon address for a wallet (from wallet factory)
    * 
    * The beacon controlling WalletLogic upgrades
@@ -397,6 +420,17 @@ class SapphireWalletSDK {
       return beaconAddr;
     } catch (error) {
       throw new Error(`Failed to get beacon address: ${error.message}`);
+    }
+  }
+
+  async getDefaultKeyVaultImplAddr() {
+    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+
+    try {
+      const defaultKeyVaultImpl = await factory.getDefaultKeyVaultImpl();
+      return defaultKeyVaultImpl;
+    } catch (error) {
+      throw new Error(`Failed to get default key vault implementation: ${error.message}`);
     }
   }
 

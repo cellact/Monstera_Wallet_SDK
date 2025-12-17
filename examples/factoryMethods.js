@@ -7,8 +7,10 @@
  * 1. Get total number of wallets created
  * 2. Check if an address is a wallet created by this factory
  * 3. Get current WalletLogic implementation.
- * 4. Get default key vault implementation.
+ * 4. Get default keyVaultImplementation.
  * 5. Get beacon address.
+ * 6. Get default keyVaultImplementation address
+ * 7. Get storage contract address for a wallet.
  * 
  * Required env vars:
  *   TEST_WALLET_ADDRESS=0x... (address to check if it is a wallet created by this factory)
@@ -134,7 +136,43 @@ async function main() {
     process.exit(1);
   }
 
+  // ============ STEP 6: Get default keyVaultImplementation address. ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 6: Get default keyVaultImplementation address.");
   console.log("=".repeat(70));
+
+  try {
+    // Get default key vault implementation address
+    const result = await sdk.wallets.getDefaultKeyVaultImplAddr();
+    console.log(`   ✅ Default keyVaultImplementation address: ${result}`);
+
+  } catch (error) {
+    console.error(`   ❌ FAILED to get default keyVaultImplementation address: ${error.message}`);
+    if (error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+    process.exit(1);
+  }
+
+  // ============ STEP 7: Get storage contract address for a wallet. ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 7: Get storage contract address for a wallet.");
+  console.log("=".repeat(70));
+
+  try {
+    // Get default storage implementation address
+    const result = await sdk.wallets.getWalletStorage({
+      walletAddress: TEST_WALLET_ADDRESS
+    });
+    console.log(`   ✅ Storage contract address: ${result}`);
+
+  } catch (error) {
+    console.error(`   ❌ FAILED to get storage contract address for a wallet: ${error.message}`);
+    if (error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+    process.exit(1);
+  }
 }
 
 // Run example
