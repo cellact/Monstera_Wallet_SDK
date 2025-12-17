@@ -84,9 +84,10 @@ class SapphireWalletSDK {
       getAuthenticatorKeyVault: this.getAuthenticatorKeyVault.bind(this), // authenticator in keyVault contract
       getKeyVaultImplAddr: this.getKeyVaultImplAddr.bind(this), // implementation in keyVault contract
       isInitializedKeyVault: this.isInitializedKeyVault.bind(this), // initialized in keyVault contract
+      // initilizeKeyVault: this.initilizeKeyVault.bind(this), // initialize in keyVault contract - do we need this in the SDK?
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
-      // changeAuthenticator: this.changeAuthenticator.bind(this),
-      // getAccountAddress: this.getAccountAddress.bind(this),
+      // changeAuthenticatorKeyVault: this.changeAuthenticatorKeyVault.bind(this), // changeAuthenticator in keyVault contract
+      getAccountAddressKeyVault: this.getAccountAddressKeyVault.bind(this), // getAccountAddress in keyVault contract
       // getAccountAddresses: this.getAccountAddresses.bind(this),
       // signTransaction: this.signTransaction.bind(this),
       // signMessage: this.signMessage.bind(this),
@@ -1172,7 +1173,7 @@ class SapphireWalletSDK {
    */
   async isInitializedKeyVault(options = {}) {
     const { keyVaultAddress } = options;
-    
+
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
       throw new Error('KeyVault address is required');
     }
@@ -1188,7 +1189,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Upgrade the keyVaultImplementation (via keyVault contract) (User-only)
+   * Upgrade the keyVaultImplementation contract address (via keyVault contract) (User-only)
    * 
    * @param {Object} options - Upgrade keyVaultImplementation options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -1240,6 +1241,35 @@ class SapphireWalletSDK {
     }
   }
 
+  /**
+   * Get one of a wallet's account addresses for a given index (from keyVault contract)
+   * 
+   * @param {Object} options - Get account address options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Number} options.index - Account index (uint32)
+   * @returns {Promise<String>} Account address
+   */
+  async getAccountAddressKeyVault(options = {}) {
+    const { keyVaultAddress, index } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+      throw new Error('Index is required and must be a non-negative integer');
+    }
+
+    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+
+    try {
+      const accountAddress = await keyVault.getAccountAddress(index);
+      return accountAddress;
+    }
+    catch (error) {
+      throw new Error(`Failed to get account address: ${error.message}`);
+    }
+  }
 }
 
 module.exports = SapphireWalletSDK;

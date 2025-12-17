@@ -8,6 +8,8 @@
  * 2. get the authenticator contract address
  * 3. get the implementation contract address
  * 4. check if a keyVault is initialized
+ * 5. change the authenticator contract address
+ * 6. get the account address from the keyVault contract
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
@@ -99,6 +101,36 @@ async function main() {
     console.error("❌ ERROR: KeyVault is not initialized");
     process.exit(1);
   }
+
+//   // ============ STEP 5: Change the authenticator contract address ============
+//   console.log("\n" + "=".repeat(70));
+//   console.log("STEP 5: Change the authenticator contract address");
+//   console.log("=".repeat(70));
+
+//   const newAuthenticatorAddr = await sdk.wallets.changeAuthenticatorKeyVault({
+//     keyVaultAddress: keyVaultAddr,
+//     authProof: authProof
+//   });
+//   console.log(`   New Authenticator: ${newAuthenticatorAddr}`);
+//   if (!newAuthenticatorAddr) {
+//     console.error("❌ ERROR: Failed to change authenticator address");
+//     process.exit(1);
+//   }
+
+  // ============ STEP 6: Get the account address from the keyVault contract ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 6: Get the account address (index 0) from the keyVault contract");
+  console.log("=".repeat(70));
+
+  const accountAddress = await sdk.wallets.getAccountAddressKeyVault({
+    keyVaultAddress: keyVaultAddr,
+    index: 0
+  });
+  console.log(`   Account Address (index 0): ${accountAddress}`);
+  if (!accountAddress) {
+    console.error("❌ ERROR: Failed to get account address");
+    process.exit(1);
+  }
   
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(70));
@@ -109,6 +141,7 @@ async function main() {
   console.log(`   Storage: ${storageAddr}`);
   console.log(`   Authenticator: ${authenticatorAddr}`);
   console.log(`   KeyVaultImplementation: ${keyVaultImplAddr}`);
+  console.log(`   Account Address (index 0): ${accountAddress}`);
   console.log("=".repeat(70));
 }
 
