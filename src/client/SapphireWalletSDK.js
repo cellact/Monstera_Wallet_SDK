@@ -84,7 +84,6 @@ class SapphireWalletSDK {
       getAuthenticatorKeyVault: this.getAuthenticatorKeyVault.bind(this), // authenticator in keyVault contract
       getKeyVaultImplAddr: this.getKeyVaultImplAddr.bind(this), // implementation in keyVault contract
       // initialize: this.initialize.bind(this),
-      getKeyVaultImplementation: this.getKeyVaultImplementation.bind(this), // implementation in keyVault contract
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
       // changeAuthenticator: this.changeAuthenticator.bind(this),
       // getAccountAddress: this.getAccountAddress.bind(this),
@@ -1140,7 +1139,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Get the implementation contract address (from keyVault contract)
+   * Get the KeyVaultImplementation contract address (from keyVault contract)
    * 
    * @param {Object} options - Get implementation options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -1161,29 +1160,6 @@ class SapphireWalletSDK {
     }
     catch (error) {
       throw new Error(`Failed to get implementation address: ${error.message}`);
-    }
-  }
-
-  /**
-   * Get the keyVaultImplementation contract address (from keyVault contract)
-   * 
-   * @param {Object} options - Get keyVaultImplementation options
-   * @param {String} options.keyVaultAddress - KeyVault contract address 
-   * @returns {Promise<String>} KeyVaultImplementation address
-   */
-  async getKeyVaultImplementation(options = {}) {
-    const { keyVaultAddress } = options;
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
-
-    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
-
-    try {
-    const keyVaultImplAddr = await keyVault.implementation();
-    return keyVaultImplAddr;
-  } catch (error) {
-      throw new Error(`Failed to get key vault implementation: ${error.message}`);
     }
   }
 
