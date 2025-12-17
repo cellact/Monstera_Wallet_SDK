@@ -1,0 +1,74 @@
+/**
+ * Step X: KeyVault method examples
+ * 
+ * Run: node examples/keyVaultMethods.js
+ * 
+ * Tests:
+ * 1. get the storage contract address holding the keys
+ * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
+ *   ALLOWED_1_KEY=0x... (private key for first allowed address)
+ *   ALLOWED_2_KEY=0x... (private key for second allowed address)
+ */
+
+require('dotenv').config();
+const { SapphireWalletSDK } = require('../src/index-new');
+const { ethers, HDNodeWallet, Wallet } = require('ethers');
+
+// ============ CONFIGURATION ============
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
+
+const sdk = SapphireWalletSDK.fromConfig({
+  network: 'testnet',
+  signerOrProvider: SIGNER_PRIVATE_KEY
+});
+
+async function main() {
+  console.log("=".repeat(70));
+  console.log("Step X: KeyVault method examples");
+  console.log("=".repeat(70));
+
+  // Get keyVault address for a wallet
+  const keyVaultAddr = await sdk.wallets.getKeyVault({
+    walletAddress: WALLET_ADDRESS
+  });
+  console.log(`   KeyVault: ${keyVaultAddr}`);
+  if (!keyVaultAddr) {
+    console.error("❌ ERROR: Failed to get key vault address");
+    process.exit(1);
+  }
+
+  // ============ STEP 1: Get storage contract holding the keys ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 1: Get storage contract holding the keys");
+  console.log("=".repeat(70));
+
+  const storageAddr = await sdk.wallets.getStorageAddr({
+    keyVaultAddress: keyVaultAddr
+  });
+
+  console.log(`   Storage: ${storageAddr}`);
+  if (!storageAddr) {
+    console.error("❌ ERROR: Failed to get storage address");
+    process.exit(1);
+  }
+
+  
+  // ============ SUMMARY ============
+  console.log("\n" + "=".repeat(70));
+  console.log("SUMMARY");
+  console.log("=".repeat(70));
+  console.log(`   Wallet: ${WALLET_ADDRESS}`);
+  console.log(`   KeyVault: ${keyVaultAddr}`);
+  console.log(`   Storage: ${storageAddr}`);
+  console.log("=".repeat(70));
+}
+
+main()
+  .then(() => process.exit(0))
+  .catch((error) => {
+    console.error(error);
+    process.exit(1);
+  });

@@ -80,6 +80,7 @@ class SapphireWalletSDK {
       isConfigured: this.isConfigured.bind(this),
 
       // KeyVault functions
+      getStorageAddr: this.getStorageAddr.bind(this),
       // initialize: this.initialize.bind(this),
       getKeyVaultImplementation: this.getKeyVaultImplementation.bind(this), // implementation in keyVault contract
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
@@ -1085,6 +1086,30 @@ class SapphireWalletSDK {
       return isConfigured;
     } catch (error) {
       throw new Error(`Failed to check if wallet is configured: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the storage contract address holding the keys (from keyVault contract)
+   * 
+   * @param {Object} options - Get storage address options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<String>} Storage contract address
+   */
+  async getStorageAddr(options = {}) {
+    const { keyVaultAddress } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+
+    try {
+      const storageAddr = await keyVault.storage_();
+      return storageAddr;
+    } catch (error) {
+      throw new Error(`Failed to get storage address: ${error.message}`);
     }
   }
 
