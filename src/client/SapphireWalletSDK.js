@@ -87,10 +87,10 @@ class SapphireWalletSDK {
       isConfigured: this.isConfigured.bind(this),
 
       // KeyVault functions
-      getStorageAddr: this.getStorageAddr.bind(this),
-      getAuthenticatorKeyVault: this.getAuthenticatorKeyVault.bind(this), // authenticator in keyVault contract
-      getKeyVaultImplAddr: this.getKeyVaultImplAddr.bind(this), // implementation in keyVault contract
-      isInitializedKeyVault: this.isInitializedKeyVault.bind(this), // initialized in keyVault contract
+      getStorageAddr: this.getStorageAddr.bind(this), // state variable in keyVault contract
+      getAuthenticatorKeyVault: this.getAuthenticatorKeyVault.bind(this), // authenticator in keyVault contract; state variable in keyVault contract
+      getKeyVaultImplAddr: this.getKeyVaultImplAddr.bind(this), // implementation in keyVault contract; state variable in keyVault contract
+      isInitializedKeyVault: this.isInitializedKeyVault.bind(this), // initialized in keyVault contract; state variable in keyVault contract
       // initilizeKeyVault: this.initilizeKeyVault.bind(this), // initialize in keyVault contract - do we need this in the SDK?
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
       // changeAuthenticatorKeyVault: this.changeAuthenticatorKeyVault.bind(this), // changeAuthenticator in keyVault contract
