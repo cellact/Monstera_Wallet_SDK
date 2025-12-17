@@ -82,6 +82,18 @@ async function main() {
     process.exit(1);
   }
 
+  // ============ STEP 3: Get the EIP-712 domain seperator ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 3: Get the EIP-712 domain seperator");
+  console.log("=".repeat(70));
+
+  const domainSeparator = await sdk.wallets.getDomainSeparator();
+  console.log(`   ✅ domainSeparator: ${domainSeparator}`);
+  if (!domainSeparator) {
+    console.error("❌ ERROR: Failed to get domain separator");
+    process.exit(1);
+  }
+
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(70));
   console.log("SUMMARY");
@@ -90,6 +102,7 @@ async function main() {
   console.log(`   KeyVault: ${result.keyVault}`);
   console.log(`   Mnemonic: ${result.mnemonic}`);
   console.log(`   isConfigured: ${isConfigured ? "✅ Yes" : "❌ No"}`);
+  console.log(`   domainSeparator: ${domainSeparator}`);
   console.log("=".repeat(70));
 }
 

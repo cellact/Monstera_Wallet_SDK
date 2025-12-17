@@ -71,7 +71,7 @@ class SapphireWalletSDK {
       isConfiguredWalletSigAuth: this.isConfiguredWalletSigAuth.bind(this), // isConfigured in WalletSignatureAuthenticator contract
       isWhitelisted: this.isWhitelisted.bind(this),
       getWhitelist: this.getWhitelist.bind(this),
-      // domainSeparator: this.domainSeparator.bind(this),
+      getDomainSeparator: this.getDomainSeparator.bind(this),
 
       // PasswordAuthenticator functions
       // verify: this.verify.bind(this),
@@ -992,6 +992,22 @@ class SapphireWalletSDK {
       return whitelist;
     } catch (error) {
       throw new Error(`Failed to get whitelist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the EIP-712 domain seperator
+   * 
+   * @returns {Promise<Bytes32>} EIP-712 domain seperator
+   */
+  async getDomainSeparator() {
+    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
+
+    try {
+      const domainSeparator = await walletSigAuth.domainSeparator();
+      return domainSeparator;
+    } catch (error) {
+      throw new Error(`Failed to get domain separator: ${error.message}`);
     }
   }
 
