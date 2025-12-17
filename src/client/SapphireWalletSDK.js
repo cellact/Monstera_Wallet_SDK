@@ -68,7 +68,7 @@ class SapphireWalletSDK {
       // configure: this.configure.bind(this),
       addToWhitelist: this.addToWhitelist.bind(this),
       removeFromWhitelist: this.removeFromWhitelist.bind(this),
-      // isConfigured: this.isConfigured.bind(this),
+      isConfiguredWalletSigAuth: this.isConfiguredWalletSigAuth.bind(this), // isConfigured in WalletSignatureAuthenticator contract
       isWhitelisted: this.isWhitelisted.bind(this),
       getWhitelist: this.getWhitelist.bind(this),
       // domainSeparator: this.domainSeparator.bind(this),
@@ -901,7 +901,6 @@ class SapphireWalletSDK {
 
       // Parse WhitelistRemoved event
       const eventData = parseWhitelistRemovedEvent(receipt, walletSigAuth);
-      console.log("[removeFromWhitelist] Event data:", eventData);
       
       if (!eventData) {
         throw new Error('WhitelistRemoved event not found in transaction receipt');
@@ -918,6 +917,28 @@ class SapphireWalletSDK {
       return result;
     } catch (error) {
       throw new Error(`Failed to remove from whitelist: ${error.message}`);
+    }
+  }
+
+  /**
+   * Check if a wallet is configured (via walletSignatureAuthenticator contract)
+   * 
+   * @param {Object} options - Is configured options
+   * @param {String} options.address - KeyVault address of the wallet
+   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
+   */
+  async isConfiguredWalletSigAuth(options = {}) {
+    const { address } = options;
+    if (!address || typeof address !== 'string') {
+      throw new Error(' address is required');
+    }
+
+    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
+    try {
+      const isConfigured = await walletSigAuth.isConfigured(address);
+      return isConfigured;
+    } catch (error) {
+      throw new Error(`Failed to check if wallet is configured: ${error.message}`);
     }
   }
 
