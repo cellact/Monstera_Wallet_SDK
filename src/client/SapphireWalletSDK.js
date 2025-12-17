@@ -81,6 +81,7 @@ class SapphireWalletSDK {
 
       // KeyVault functions
       getStorageAddr: this.getStorageAddr.bind(this),
+      getAuthenticatorKeyVault: this.getAuthenticatorKeyVault.bind(this), // authenticator in keyVault contract
       // initialize: this.initialize.bind(this),
       getKeyVaultImplementation: this.getKeyVaultImplementation.bind(this), // implementation in keyVault contract
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
@@ -1110,6 +1111,30 @@ class SapphireWalletSDK {
       return storageAddr;
     } catch (error) {
       throw new Error(`Failed to get storage address: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get the authenticator contract address (from keyVault contract)
+   * 
+   * @param {Object} options - Get authenticator options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<String>} Authenticator address
+   */
+  async getAuthenticatorKeyVault(options = {}) {
+    const { keyVaultAddress } = options;
+    
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    try {
+      const authenticator = await keyVault.authenticator();
+      return authenticator;
+    }
+    catch (error) {
+      throw new Error(`Failed to get authenticator address: ${error.message}`);
     }
   }
 

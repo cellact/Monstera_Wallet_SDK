@@ -55,6 +55,16 @@ async function main() {
     process.exit(1);
   }
 
+  // ============ STEP 2: Get authenticator contract address ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 2: Get authenticator contract address");
+  console.log("=".repeat(70));
+
+  const authenticatorAddr = await sdk.wallets.getAuthenticatorKeyVault({
+    keyVaultAddress: keyVaultAddr
+  });
+  console.log(`   Authenticator: ${authenticatorAddr}`);
+
   
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(70));
@@ -63,6 +73,7 @@ async function main() {
   console.log(`   Wallet: ${WALLET_ADDRESS}`);
   console.log(`   KeyVault: ${keyVaultAddr}`);
   console.log(`   Storage: ${storageAddr}`);
+  console.log(`   Authenticator: ${authenticatorAddr}`);
   console.log("=".repeat(70));
 }
 
