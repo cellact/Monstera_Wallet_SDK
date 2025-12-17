@@ -89,10 +89,10 @@ class SapphireWalletSDK {
       // changeAuthenticatorKeyVault: this.changeAuthenticatorKeyVault.bind(this), // changeAuthenticator in keyVault contract
       getAccountAddressKeyVault: this.getAccountAddressKeyVault.bind(this), // getAccountAddress in keyVault contract
       getAccountAddressesKeyVault: this.getAccountAddressesKeyVault.bind(this), // getAccountAddresses in keyVault contract
-      // signTransactionKeyVault: this.signTransactionKeyVault.bind(this), // signTransaction in keyVault contract
+      signTransactionKeyVault: this.signTransactionKeyVault.bind(this), // signTransaction in keyVault contract
       signKeyVault: this.signKeyVault.bind(this), // sign in keyVault contract
       signMessageKeyVault: this.signMessageKeyVault.bind(this), // signMessage in keyVault contract
-      // executeWithAuth: this.executeWithAuth.bind(this),
+      executeWithAuth: this.executeWithAuth.bind(this),
     };
   }
 
@@ -1305,6 +1305,74 @@ class SapphireWalletSDK {
   }
 
   /**
+   * Sign a transaction (from keyVault contract)
+   * 
+   * @param {Object} options - Sign transaction options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Auth proof (bytes)
+   * @param {Number} options.index - Account index (uint32)
+   * @param {Number} options.nonce - Nonce (uint256)
+   * @param {Number} options.gasPrice - Gas price (uint256)
+   * @param {Number} options.gasLimit - Gas limit (uint256)
+   * @param {String} options.to - To address (address)
+   * @param {Number} options.value - Value (uint256)
+   * @param {Bytes} options.txData - Transaction data (bytes)
+   * @param {Number} options.chainId - Chain ID (uint256)
+   * @returns {Promise<Bytes>} Signed transaction (bytes)
+   */
+  async signTransactionKeyVault(options = {}) {
+    const { keyVaultAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+  
+    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
+      throw new Error('Index is required and must be a non-negative integer');
+    }
+
+    if (nonce === undefined || nonce === null || typeof nonce !== 'number' || nonce < 0 || !Number.isInteger(nonce)) {
+      throw new Error('Nonce is required and must be a non-negative integer');
+    }
+
+    if (!gasPrice) {
+      throw new Error('Gas price is required and must be a non-negative integer');
+    }
+
+    if (!gasLimit) {
+    }
+
+    if (!to || typeof to !== 'string') {
+      throw new Error('To address is required and must be a string');
+    }
+
+    if (value === undefined || value === null || typeof value !== 'number' || value < 0 || !Number.isInteger(value)) {
+      throw new Error('Value is required and must be a non-negative integer');
+    }
+
+    if (!txData) {
+      throw new Error('Transaction data is required');
+    }
+
+    if (chainId === undefined || chainId === null || typeof chainId !== 'number' || chainId < 0 || !Number.isInteger(chainId)) {
+      throw new Error('Chain ID is required and must be a non-negative integer');
+    }
+
+    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+
+    try {
+      const signedTransaction = await keyVault.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId);
+      return signedTransaction;
+    }
+    catch (error) {
+      throw new Error(`Failed to sign transaction: ${error.message}`);
+    }
+  }
+
+  /**
    * Sign a 32-byte hash (from keyVault contract)
    * 
    * @param {Object} options - Sign hash options
@@ -1381,6 +1449,40 @@ class SapphireWalletSDK {
     }
     catch (error) {
       throw new Error(`Failed to sign message: ${error.message}`);
+    }
+  }
+
+  /**
+   * Execute a function with an auth proof (from keyVault contract)
+   * 
+   * @param {Object} options - Execute function options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Auth proof (bytes)
+   * @param {Bytes} options.implCall - Implementation call (bytes)
+   * @returns {Promise<Bytes>} Execute function result (bytes)
+   */
+  async executeWithAuth(options = {}) {
+    const { keyVaultAddress, authProof, implCall } = options;
+
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+    if (!authProof) {
+      throw new Error('Auth proof is required');
+    }
+  
+    if (!implCall) {
+      throw new Error('Implementation call is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+
+    try {
+      const result = await keyVault.executeWithAuth(authProof, implCall);
+      return result;
+    }
+    catch (error) {
+      throw new Error(`Failed to execute function: ${error.message}`);
     }
   }
 }
