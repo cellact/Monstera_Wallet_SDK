@@ -1091,10 +1091,17 @@ class SapphireWalletSDK {
   /**
    * Get the keyVaultImplementation contract address (from keyVault contract)
    * 
+   * @param {Object} options - Get keyVaultImplementation options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @returns {Promise<String>} KeyVaultImplementation address
    */
-  async getKeyVaultImplementation() {
-    const keyVault = getKeyVaultContract(this.readProvider, this.addresses.keyVault);
+  async getKeyVaultImplementation(options = {}) {
+    const { keyVaultAddress } = options;
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
+    }
+
+    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
 
     try {
     const keyVaultImplAddr = await keyVault.implementation();
