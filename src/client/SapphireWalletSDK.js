@@ -39,6 +39,12 @@ class SapphireWalletSDK {
     // Namespace for wallet operations
     this.wallets = {
       // WalletFactory functions
+      getAdmin: this.getAdmin.bind(this), // Admin function
+      getBeaconAddr: this.getBeaconAddr.bind(this),
+      // getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this),
+      // getWallets: this.getWallets.bind(this), // wallets in walletFactory contract
+      getWalletKeyVault: this.getWalletKeyVault.bind(this),
+      // getWalletStorage: this.getWalletStorage.bind(this),
       createWallet: this.createWallet.bind(this),
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
@@ -46,21 +52,22 @@ class SapphireWalletSDK {
       getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this),
       upgradeLogic: this.upgradeLogic.bind(this), // Admin function
       transferAdmin: this.transferAdmin.bind(this), // Admin function
-      getAdmin: this.getAdmin.bind(this), // Admin function
-      getWalletKeyVault: this.getWalletKeyVault.bind(this),
-      getBeaconAddr: this.getBeaconAddr.bind(this),
-
+      
       // WalletLogic functions
+      // getKeyvaultAddr: this.getKeyvaultAddr.bind(this),
       isInitialized: this.isInitialized.bind(this),
-      getKeyVault: this.getKeyVault.bind(this),
-      getAuthenticator: this.getAuthenticator.bind(this),
+      // initialize: this.initialize.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
       getAccountAddresses: this.getAccountAddresses.bind(this),
+      getKeyVault: this.getKeyVault.bind(this),
+      getAuthenticator: this.getAuthenticator.bind(this),
       signTransaction: this.signTransaction.bind(this),
-      signMessage: this.signMessage.bind(this),
       sign: this.sign.bind(this),
+      signMessage: this.signMessage.bind(this),
       // changeAuthenticator: this.changeAuthenticator.bind(this), // not fully implemented yet (needs to be tested)
       upgradeKeyVault: this.upgradeKeyVault.bind(this),
+
+      // SDK function - no contract call 
       createAuthProof: this.createAuthProof.bind(this),
 
       // WalletSignatureAuthenticator functions
