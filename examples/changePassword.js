@@ -35,13 +35,19 @@ async function main() {
   }
   console.log("Changing password for wallet:", WALLET_ADDRESS);
 
- // ============ Step 1: Check if wallet is configured ============
- console.log("\n" + "=".repeat(60));
- console.log("Step 1: Check if wallet is configured");
- console.log("=".repeat(60));
+  // ============ Step 1: Check if wallet is configured ============
+  console.log("\n" + "=".repeat(60));
+  console.log("Step 1: Check if wallet is configured");
+  console.log("=".repeat(60));
+
+  // Get KeyVault info
+  const keyVault = await sdk.wallets.getKeyVault({
+    walletAddress: WALLET_ADDRESS
+  });
+  console.log("KeyVault:", keyVault);
 
   const isConfigured = await sdk.wallets.isConfigured({
-    walletAddress: WALLET_ADDRESS
+    walletAddress: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");
   if (!isConfigured) {
@@ -52,52 +58,52 @@ async function main() {
   // Prepare auth proof
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
- // ============ Step 2: Change password ============
- console.log("\n" + "=".repeat(60));
- console.log("Step 1: Change password");
- console.log("=".repeat(60));
+  // ============ Step 2: Change password ============
+  console.log("\n" + "=".repeat(60));
+  console.log("Step 2: Change password");
+  console.log("=".repeat(60));
 
   // Prepare new password hash
   const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes(NEW_PASSWORD));
 
   const result = await sdk.wallets.changePassword({
-    walletAddress: WALLET_ADDRESS,
+    address: keyVault,
     currentPassword: authProof,
     newPasswordHash: newPasswordHash
   });
   console.log("   Transaction:", result.transactionHash);
-  console.log("   Wallet Address:", result.walletAddress);
+  console.log("   Wallet Address (KeyVault address):", result.walletAddress);
   console.log("   Gas Used:", result.gasUsed);
   console.log("   Block Number:", result.blockNumber);
   console.log("=".repeat(60));
 
   // ============ Step 3: Verify Wallet Still Works ============
   console.log("\n" + "=".repeat(60));
-  console.log("Step 2: Verify wallet can be used with new password");
+  console.log("Step 3: Verify wallet can be used with new password");
   console.log("=".repeat(60));
 
   // Prepare auth proof
   const newAuthProof = ethers.toUtf8Bytes(NEW_PASSWORD);
 
   // Sign a message
-  console.log("\n2. Signing a message...");
+  console.log("Signing a message...");
   const message = "Hello from TheWallet!";
   try {
-    const result = await sdk.wallets.signMessage({
-      walletAddress: WALLET_ADDRESS,
+    const signature = await sdk.wallets.signMessage({
+      walletAddress: keyVault,
       authProof: newAuthProof,
       index: 0,
       message: ethers.toUtf8Bytes(message)
     });
     console.log(`   Message: "${message}"`);
-    console.log(`   Signature: ${result.signature.slice(0, 40)}...`);
+    console.log(`   Signature: ${signature}`);
 
     // Verify
     const expectedAddr = await sdk.wallets.getAccountAddress({
       walletAddress: WALLET_ADDRESS,
       index: 0
     });
-    const recovered = ethers.verifyMessage(message, result.signature);
+    const recovered = ethers.verifyMessage(message, signature);
     const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
     console.log(`   Recovered: ${recovered}`);
     console.log(`   ${match ? "✅ Signature valid!" : "❌ Signature invalid!"}`);

@@ -76,7 +76,7 @@ class SapphireWalletSDK {
       // PasswordAuthenticator functions
       // verify: this.verify.bind(this),
       // configure: this.configure.bind(this),
-      // changePassword: this.changePassword.bind(this), // not fully implemented yet (needs to be tested)
+      changePassword: this.changePassword.bind(this),
       isConfigured: this.isConfigured.bind(this),
 
       // KeyVault functions
@@ -955,15 +955,15 @@ class SapphireWalletSDK {
    * Change the password of a wallet
    * 
    * @param {Object} options - Change password options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.address - KeyVault address of the wallet
    * @param {Bytes} options.currentPassword - raw password bytes (utf8 encoded string)
    * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
    * @returns {Promise<Object>} Change password result
    */
   async changePassword(options = {}) {
-    const { walletAddress, currentPassword, newPasswordHash } = options;
+    const { address, currentPassword, newPasswordHash } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
+    if (!address || typeof address !== 'string') {
       throw new Error('Wallet address is required');
     }
 
@@ -978,14 +978,13 @@ class SapphireWalletSDK {
     const passwordAuth = getPasswordAuthenticatorContract(this.writeSigner, this.addresses.passwordAuth);
 
     try {
-      const tx = await passwordAuth.changePassword(walletAddress, currentPassword, newPasswordHash);
+      const tx = await passwordAuth.changePassword(address, currentPassword, newPasswordHash);
 
       // Wait for transaction
       const receipt = await tx.wait();
 
       // Parse PasswordChanged event
       const eventData = parsePasswordChangedEvent(receipt, passwordAuth);
-      console.log("[changePassword] Event data:", eventData);
       
       if (!eventData) {
         throw new Error('PasswordChanged event not found in transaction receipt');
