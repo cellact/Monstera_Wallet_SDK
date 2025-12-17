@@ -1,0 +1,68 @@
+/**
+ * Test WalletFactory methods
+ * 
+ * Run: node examples/walletLogicMethods.js
+ * 
+ * Tests:
+ * 1. Get keyVault contract address for a wallet.
+ * 
+ * Required env vars:
+ *   WALLET_ADDRESS=0x... (address of the wallet to get the keyVault contract address for)
+ *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
+ */
+
+require('dotenv').config();
+const { SapphireWalletSDK } = require('../src/index-new');
+
+// Test wallet address
+const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS;
+
+async function main() {
+  console.log("=".repeat(70));
+  console.log("WalletFactory - Full Test Suite");
+  console.log("=".repeat(70));
+
+  // Initialize SDK
+  const sdk = SapphireWalletSDK.fromConfig({
+    network: 'testnet', // or 'mainnet'
+    signerOrProvider: process.env.SIGNER_PRIVATE_KEY
+  });
+
+  console.log("\n📋 Configuration:");
+  console.log(`   Network: ${sdk.network}`);
+
+  // ============ STEP 1: Get keyVault contract address for a wallet. ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 1: Get keyVault contract address for a wallet.");
+  console.log("=".repeat(70));
+
+  try {
+    // Get total number of wallets created
+    const result = await sdk.wallets.getKeyvaultAddr({
+      walletAddress: WALLET_ADDRESS
+    });
+
+    console.log(`   ✅ KeyVault contract address: ${result}`);
+
+  } catch (error) {
+    console.error(`   ❌ FAILED to get keyVault contract address for a wallet: ${error.message}`);
+    if (error.stack) {
+      console.error(`   Stack: ${error.stack}`);
+    }
+    process.exit(1);
+  }
+
+  
+}
+
+// Run example
+main()
+  .then(() => {
+    console.log("\n✅ Test suite completed successfully!");
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error("\n❌ Test suite failed:");
+    console.error(error);
+    process.exit(1);
+  });

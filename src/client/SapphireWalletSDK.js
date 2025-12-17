@@ -54,8 +54,8 @@ class SapphireWalletSDK {
       transferAdmin: this.transferAdmin.bind(this), // Admin function
       
       // WalletLogic functions
-      // getKeyvaultAddr: this.getKeyvaultAddr.bind(this),
-      isInitialized: this.isInitialized.bind(this),
+      getKeyvaultAddr: this.getKeyvaultAddr.bind(this), // state variable in walletLogic contract
+      isInitialized: this.isInitialized.bind(this), // state variable in walletLogic contract
       // initialize: this.initialize.bind(this),
       getAccountAddress: this.getAccountAddress.bind(this),
       getAccountAddresses: this.getAccountAddresses.bind(this),
@@ -849,6 +849,30 @@ class SapphireWalletSDK {
     const authProof = await createAuthProof(signer, chainId, authenticator, deadline, keyVault);
 
     return authProof;
+  }
+
+  /**
+   * Get the keyVault contract address for a wallet (from wallet logic)
+   * 
+   * @param {Object} options - KeyVault options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} KeyVault contract address
+   */
+  async getKeyvaultAddr(options = {}) {
+    const { walletAddress } = options;
+
+    if (!walletAddress || typeof walletAddress !== 'string') {
+      throw new Error('Wallet address is required');
+    }
+
+    const walletLogic = getWalletLogicContract(this.readProvider, walletAddress);
+
+    try {
+      const keyVaultAddr = await walletLogic.keyVault();
+      return keyVaultAddr;
+    } catch (error) {
+      throw new Error(`Failed to get key vault address: ${error.message}`);
+    }
   }
 
   /**
