@@ -5,6 +5,7 @@
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x...
  *   TEST_PASSWORD=mysecretpassword123
+ *   HOOK_ADDRESS=0x...
  * 
  * This creates:
  *   - WalletStorage (holds private keys, locked to KeyVault)
@@ -19,6 +20,7 @@ const { ethers, Wallet } = require('ethers');
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.TEST_PASSWORD;
+const HOOK_ADDRESS = process.env.HOOK_ADDRESS || ""; // your hook contract address; hook Contract implementing IWalletCreationHook (or address(0) to skip)
 
 const sdk = SapphireWalletSDK.fromConfig({
   network: 'testnet',
@@ -35,13 +37,18 @@ async function main() {
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
 
+  // Prepare hook data (data for the hook)
+  console.log("\n2. Preparing hook data...");
+  const hookData = ethers.toUtf8Bytes("some data");
+  console.log("   Hook data:", hookData.slice(0, 20) + "...");
+
   // Create wallet
   console.log("\n3. Creating wallet stack...");
   console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
   const result = await sdk.wallets.createWalletWithHook({
     authenticator: sdk.addresses.passwordAuth,
     authConfig: passwordHash,
-    hook: hookAddress,
+    hook: HOOK_ADDRESS,
     hookData: hookData
   });
   console.log("   Transaction:", result.transactionHash);

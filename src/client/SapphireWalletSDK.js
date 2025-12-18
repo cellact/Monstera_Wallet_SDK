@@ -48,7 +48,7 @@ class SapphireWalletSDK {
       createWallet: this.createWallet.bind(this),
       // createWalletWithHook: this.createWalletWithHook.bind(this), // make private - not yet callable 
       createWalletCore: this.createWalletCore.bind(this),
-      // createWalletWithCustomLogic: this.createWalletWithCustomLogic.bind(this),
+      createWalletWithCustomLogic: this.createWalletWithCustomLogic.bind(this),
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
       implementation: this.implementation.bind(this),
@@ -130,12 +130,12 @@ class SapphireWalletSDK {
    *      3. WalletLogic proxy (orchestration, admin-upgradeable)
    * 
    * @param {Object} options - Wallet creation options
-   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
    * @param {String} options.authenticator - Authenticator contract address (optional, dafaults to PasswordAuthenticator)
+   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWallet(options = {}) {
-    const { authConfig, authenticator = this.addresses.passwordAuth } = options;
+    const { authenticator = this.addresses.passwordAuth, authConfig } = options;
 
     // TODO: check that passwordHash is correct type (bytes)
     if (!authConfig) {
@@ -199,6 +199,7 @@ class SapphireWalletSDK {
    *      3. WalletLogic proxy (orchestration, admin-upgradeable)
    * 
    * The hook is called after the wallet is created.
+   * The hook contract must implement IWalletCreationHook interface.
    * 
    * @param {Object} options - Wallet creation options
    * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
@@ -312,6 +313,90 @@ class SapphireWalletSDK {
         authConfig // bytes authConfig
       );
       
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse WalletCreated event
+      const eventData = parseWalletCreatedEvent(receipt, factory);
+      
+      if (!eventData) {
+        throw new Error('WalletCreated event not found in transaction receipt');
+      }
+
+      // TODO: hash the mnemonic and return it hashed? 
+      
+      // Build result
+      const result = {
+        success: true,
+        wallet: eventData.wallet,
+        mnemonic: mnemonic,
+        authenticator: eventData.authenticator,
+        keyVault: eventData.keyVault,
+        storage: eventData.storage,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+      
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to create wallet: ${error.message}`);
+    }
+  }
+
+  /**
+   * Create a new HD wallet with a custom logic contract
+   * 
+   * Deploys minimal wallet stack:
+   *      1. WalletStorage (holds keys, locked to KeyVault)
+   *      2. KeyVault (KeyVault address is the wallet address)
+   * 
+   * Deploys a minimal proxy (clone) of the customLogicImpl.
+   * Unlike default BeaconProxy wallets:
+   * - Custom logic wallets are NOT affected by admin beacon upgrades
+   * - Each wallet gets its own independent clone
+   * 
+   * @param {Object} options - Wallet creation options
+   * @param {String} options.authenticator - Authenticator contract address (optional, dafaults to PasswordAuthenticator)
+   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
+   * @param {String} options.customLogicImpl - Custom logic implementation contract address (must implement IWalletLogic)
+   * @param {Bytes} options.logicData - Initialization data for your custom logic
+   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   */
+  async createWalletWithCustomLogic(options = {}) {
+    const { authenticator = this.addresses.passwordAuth, authConfig, customLogicImpl, logicData } = options;
+
+    if (!authConfig) {
+      throw new Error('Auth config is required');
+    }
+    
+    if (!customLogicImpl) {
+      throw new Error('Custom logic implementation address is required');
+    }
+    
+    if (!logicData) {
+      throw new Error('Logic data is required');
+    }
+
+    // Off-chain: Generate mnemonic
+    const mnemonic = generateMnemonic();
+    
+    // Off-chain: Derive seed from mnemonic
+    const seed = deriveSeed(mnemonic);
+    
+    // On-chain: Get factory contract with wrapped signer
+    const factory = getWalletFactoryContract(this.writeSigner, this.addresses.factory);
+
+    // On-chain: Call createWalletWithCustomLogic
+    try {
+      const tx = await factory.createWalletWithCustomLogic(
+        seed, // bytes seed
+        authenticator, // address authenticator
+        authConfig, // bytes authConfig
+        customLogicImpl, // address customLogicImpl
+        logicData // bytes logicData
+      );
+
       // Wait for transaction
       const receipt = await tx.wait();
 
