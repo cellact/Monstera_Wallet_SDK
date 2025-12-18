@@ -53,7 +53,7 @@ class SapphireWalletSDK {
       isWallet: this.isWallet.bind(this),
       getWalletLogicImplAddr: this.getWalletLogicImplAddr.bind(this),
       // getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this), // no longer implemented in factory contract
-      upgradeLogic: this.upgradeLogic.bind(this), // Admin function
+      upgradeWalletLogicImplAddr: this.upgradeWalletLogicImplAddr.bind(this), // Admin function
       transferAdmin: this.transferAdmin.bind(this), // Admin function
       
       // WalletLogic functions
@@ -496,14 +496,16 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Upgrade the logic of a wallet (Admin function)
+   * Upgrade the WalletLogic implementation for all wallets (Admin function)
+   * 
+   * This upgrades the orchestration layer, not the key security.
    * 
    * @param {Object} options - Upgrade logic options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
    * @param {String} options.newLogicAddress - New walletLogic contract address
    * @returns {Promise<Object>} Upgrade logic result
    */
-  async upgradeLogic(options = {}) {
+  async upgradeWalletLogicImplAddr(options = {}) {
     const { newLogicAddress } = options;
 
     if (!newLogicAddress || typeof newLogicAddress !== 'string') {
@@ -528,7 +530,7 @@ class SapphireWalletSDK {
       const result = {
         success: true,
         oldImpl: eventData.oldImpl,
-        newLogic: eventData.newLogic,
+        newImpl: eventData.newImpl,
         transactionHash: receipt.hash,
         blockNumber: receipt.blockNumber,
         gasUsed: receipt.gasUsed.toString()

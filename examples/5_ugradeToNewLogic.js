@@ -1,6 +1,8 @@
 /**
  * Step 5: Upgrade WalletLogic for all existing wallets (ADMIN ONLY)
  * 
+ * Run: node examples/5_ugradeToNewLogic.js
+ * 
  * This demonstrates ADMIN-controlled upgrades:
  * - Deploys new WalletLogic contract (needs to be done eslewhere first and get the address)
  * - Updates the beacon (all wallets use new logic instantly)
@@ -9,15 +11,14 @@
  * 
  * Note: This does NOT upgrade KeyVault (that's user-controlled)
  * 
- * Run: node examples/5_ugradeToNewLogic.js
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers } = require("ethers");
 
 // ============ CONFIGURATION ============
-const TEST_WALLET = process.env.TEST_WALLET_ADDRESS || ""; // Optional: to verify upgrade
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || ""; // Optional: to verify upgrade
 const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS || "";
 const NEW_LOGIC_ADDRESS = process.env.NEW_LOGIC_ADDRESS || "";
 
@@ -58,12 +59,12 @@ async function main() {
   console.log("STEP 2: Upgrade Beacon (affects all wallets)");
   console.log("=".repeat(70));
 
-  const result = await sdk.wallets.upgradeLogic({
+  const result = await sdk.wallets.upgradeWalletLogicImplAddr({
     newLogicAddress: NEW_LOGIC_ADDRESS
   });
   console.log(`   Transaction: ${result.transactionHash}`);
   console.log(`   Old Implementation: ${result.oldImpl}`);
-  console.log(`   New Implementation: ${result.newLogic}`);
+  console.log(`   New Implementation: ${result.newImpl}`);
   console.log("   ✅ Upgrade complete!");
 
   // Verify
@@ -71,7 +72,7 @@ async function main() {
   console.log(`   Verified: ${currentImpl}`);
 
   // ============ STEP 3: Verify Wallet Still Works ============
-  if (TEST_WALLET) {
+  if (WALLET_ADDRESS) {
     console.log("\n" + "=".repeat(70));
     console.log("STEP 3: Verify Existing Wallet Works");
     console.log("=".repeat(70));
@@ -79,14 +80,14 @@ async function main() {
     try {
       // Get KeyVault (should still work)
       const keyVault = await sdk.wallets.getKeyVault({
-        walletAddress: TEST_WALLET
+        walletAddress: WALLET_ADDRESS
       });
-      console.log(`   Wallet: ${TEST_WALLET}`);
+      console.log(`   Wallet: ${WALLET_ADDRESS}`);
       console.log(`   KeyVault: ${keyVault} (unchanged)`);
       
       // Test public function
       const addr = await sdk.wallets.getAccountAddress({
-        walletAddress: TEST_WALLET,
+        walletAddress: WALLET_ADDRESS,
         index: 0
       });
       console.log(`   Account 0: ${addr}`);
@@ -107,7 +108,7 @@ async function main() {
   ─────────────────
   ✅ WalletLogic (orchestration layer)
      Old: ${result.oldImpl}
-     New: ${result.newLogic}
+     New: ${result.newImpl}
   
   What was NOT touched:
   ────────────────────

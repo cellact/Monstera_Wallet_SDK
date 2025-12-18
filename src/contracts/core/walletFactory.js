@@ -513,7 +513,7 @@ function parseBeaconUpgradedEvent(receipt, walletFactoryContract) {
 
     return {
       oldImpl: parsedEvent.args?.oldImpl,
-      newLogic: parsedEvent.args?.newLogic,
+      newImpl: parsedEvent.args?.newImpl,
     };
   } catch (error) {
     // Failed to parse event
