@@ -16,7 +16,7 @@
  * 
  */
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index-new');
+const { SapphireWalletSDK } = require('../src/index');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";

@@ -6,7 +6,7 @@
  */
 
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index-new');
+const { SapphireWalletSDK } = require('../src/index');
 
 async function networkSwitchingExample() {
   console.log('=== Network Switching Example ===\n');

@@ -14,7 +14,7 @@
  *   - Post-creation hook (called after wallet is created)
  */
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index-new');
+const { SapphireWalletSDK } = require('../src/index');
 const { ethers } = require('ethers');
 
 // ============ CONFIGURATION ============

@@ -15,7 +15,7 @@
  */
 
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index-new');
+const { SapphireWalletSDK } = require('../src/index');
 const { ethers, Wallet } = require('ethers');
 
 // ============ CONFIGURATION ============
