@@ -10,7 +10,7 @@ const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../contracts/core/walletFactory');
 const { getWalletLogicContract, parse_AuthenticatorChangedEvent } = require('../contracts/core/walletLogic');
-const { getWalletSignatureAuthenticatorContract, parseAddressRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
+const { getWalletSignatureAuthenticatorContract, parseAddressAddedEvent, parseAddressRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
 const { getKeyVaultContract, parseImplementationUpgradedEvent, parseAuthenticatorChangedEvent } = require('../contracts/core/keyVault');
 const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../contracts/authenticators/PasswordAuthenticator');
@@ -1203,19 +1203,22 @@ class SapphireWalletSDK {
       // Wait for transaction
       const receipt = await tx.wait();
 
-      // TODO: Parse AddressAdded event
-      // const eventData = parseAddressAddedEvent(receipt, walletSigAuth);
+      // Parse AddressAdded event
+      const eventData = parseAddressAddedEvent(receipt, walletSigAuth);
       
-      // if (!eventData) {
-      //   throw new Error('AddressAdded event not found in transaction receipt');
-      // }
+      if (!eventData) {
+        throw new Error('AddressAdded event not found in transaction receipt');
+      }
 
-      // const result = {
-      //   success: true,
-      //   wallet: eventData.wallet,
-      //   added: eventData.added,
-      
-      return receipt;
+      const result = {
+        success: true,
+        wallet: eventData.wallet,
+        added: eventData.added,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+      return result;
     } catch (error) {
       throw new Error(`Failed to add to whitelist: ${error.message}`);
     }

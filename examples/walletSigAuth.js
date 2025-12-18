@@ -61,8 +61,8 @@ async function main() {
 
   // Create wallet
   const result = await sdk.wallets.createWallet({
+    authenticator: sdk.addresses.walletSignatureAuth,
     authConfig: authConfig,
-    authenticator: sdk.addresses.walletSignatureAuth
   });
   
   console.log(`   Wallet: ${result.wallet}`);

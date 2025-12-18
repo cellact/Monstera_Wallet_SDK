@@ -392,6 +392,68 @@ function getWalletSignatureAuthenticatorContract(signerOrProvider, walletSignatu
     return new ethers.Contract(walletSignatureAuthenticatorAddress, WALLET_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
+
+/**
+ * Parse AddressAdded event from transaction receipt
+ * 
+ * @param {Object} receipt - Transaction receipt
+ * @param {Object} walletSignatureAuthenticatorContract - Wallet signature authenticator contract instance
+ * @returns {Object|null} Parsed event data or null if not found
+ */
+function parseAddressAddedEvent(receipt, walletSignatureAuthenticatorContract) {
+    if (!receipt || !receipt.logs) {
+        return null;
+    }
+
+    const iface = walletSignatureAuthenticatorContract.interface;
+
+    // Find the AddressAdded event
+    const addressAddedEvent = receipt.logs.find((log) => {
+        try {
+            const parsed = iface.parseLog(log);
+            return parsed?.name === 'AddressAdded';
+        } catch {
+            return false;
+        }
+    });
+
+    if (!addressAddedEvent) {
+        // Debug: log all events to see what we're getting
+        console.log('[parseAddressAddedEvent] Total logs:', receipt.logs?.length);
+        if (receipt.logs && receipt.logs.length > 0) {
+            console.log('[parseAddressAddedEvent] Trying to parse logs...');
+            receipt.logs.forEach((log, i) => {
+                try {
+                    const parsed = iface.parseLog(log);
+                    console.log(`[parseAddressAddedEvent] Log ${i}:`, parsed?.name || 'unknown');
+                } catch (e) {
+                    console.log(`[parseAddressAddedEvent] Log ${i}: failed to parse (not from walletSignatureAuthenticator)`);
+                }
+            });
+        }
+        return null;
+    } else {
+        console.log('[parseAddressAddedEvent] AddressAdded event found');
+    }
+
+    // Parse the event
+    try {
+        const parsedEvent = iface.parseLog(addressAddedEvent);
+        if (!parsedEvent || parsedEvent.name !== 'AddressAdded') {
+            return null;
+        }
+        return {
+            wallet: parsedEvent.args?.wallet,
+            added: parsedEvent.args?.added,
+        };
+    } catch (error) {
+        // Failed to parse event
+        console.error('[parseAddressAddedEvent] Error parsing event:', error.message);
+        return null;
+    }
+}
+
+
 /**
  * Parse AddressRemoved event from transaction receipt
  * 
@@ -456,5 +518,6 @@ function parseAddressRemovedEvent(receipt, walletSignatureAuthenticatorContract)
 module.exports = {
     WALLET_SIGNATURE_AUTHENTICATOR_ABI,
     getWalletSignatureAuthenticatorContract,
+    parseAddressAddedEvent,
     parseAddressRemovedEvent
 };

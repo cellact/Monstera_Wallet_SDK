@@ -1,13 +1,13 @@
 /**
- * Step 4: Test WalletSignatureAuthenticator
+ * Step 3: Test WalletSignatureAuthenticator
  * 
  * Run: node examples/3_useWalletSigAuth.js
  * 
  * Tests:
- * 1. Deploy WalletSignatureAuthenticator
- * 2. Create wallet with whitelist of allowed signers
- * 3. Try access with NOT allowed account → fail
- * 4. Try access with allowed account #1 → success
+ * 1. Create wallet with whitelist of allowed signers
+ * 2. Try access with NOT allowed account → fail
+ * 3. Try access with allowed account #1 → success
+ * 4. Try access with allowed account #2 → success
  * 5. Add new account to whitelist
  * 6. Try with newly allowed account → success
  * 
@@ -19,7 +19,7 @@
 
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers, HDNodeWallet, Wallet } = require('ethers');
+const { ethers, Wallet } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
@@ -66,42 +66,14 @@ async function main() {
 
   // Create wallet
   const result = await sdk.wallets.createWallet({
+    authenticator: sdk.addresses.walletSignatureAuth,
     authConfig: authConfig,
-    authenticator: sdk.addresses.walletSignatureAuth
   });
   
   console.log(`   Wallet: ${result.wallet}`);
   console.log(`   KeyVault: ${result.keyVault}`);
 
-//   // Get wallet and KeyVault contracts
-//   const wallet = await ethers.getContractAt("WalletLogic", walletAddress);
-//   const keyVault = await ethers.getContractAt("KeyVault", keyVaultAddress);
-  
-//   // Get chain ID for EIP-712
-//   const chainId = (await provider.getNetwork()).chainId;
-
-//   // Helper to create EIP-712 auth proof
-//   async function createAuthProof(signer: Wallet | HDNodeWallet, deadline: number): Promise<string> {
-//     const domain = {
-//       name: "WalletSignatureAuthenticator",
-//       version: "1",
-//       chainId: chainId,
-//       verifyingContract: walletSigAuthAddress
-//     };
-//     const types = {
-//       WalletAuth: [
-//         { name: "wallet", type: "address" },
-//         { name: "deadline", type: "uint256" }
-//       ]
-//     };
-//     // Note: For KeyVault auth, the "wallet" in the signature is the KeyVault address
-//     const value = { wallet: keyVaultAddress, deadline };
-    
-//     const signature = await signer.signTypedData(domain, types, value);
-//     return ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "bytes"], [deadline, signature]);
-//   }
-
-  const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+  // const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
   // ============ STEP 2: Try NOT Allowed → Should Fail ============
   console.log("\n" + "=".repeat(70));
@@ -209,7 +181,10 @@ async function main() {
       authProof: authProof,
       newAddress: notAllowedSigner.address
     });
-    console.log(`   ✅ Added ${notAllowedSigner.address.slice(0, 10)}... to whitelist`);
+    console.log(`   ✅ Added ${addResult.added} to whitelist for wallet ${addResult.wallet}`);
+    console.log(`   Transaction hash: ${addResult.transactionHash}`);
+    console.log(`   Block number: ${addResult.blockNumber}`);
+    console.log(`   Gas used: ${addResult.gasUsed}`);
 
     // Verify whitelist
     const isNowWhitelisted = await sdk.wallets.isWhitelisted({
@@ -238,6 +213,7 @@ async function main() {
       index: 0,
       message: ethers.toUtf8Bytes("I'm now allowed!")
     });
+    console.log(`   Signature: ${sig.slice(0, 40)}...`);
     console.log(`   ✅ signMessage succeeded!`);
     console.log(`   🎉 Previously denied account now has access!`);
   } catch (error) {
