@@ -49,10 +49,10 @@ class SapphireWalletSDK {
       // createWalletWithHook: this.createWalletWithHook.bind(this), // make private - not yet callable 
       createWalletCore: this.createWalletCore.bind(this),
       createWalletWithCustomLogic: this.createWalletWithCustomLogic.bind(this),
-      walletCount: this.walletCount.bind(this),
+      // walletCount: this.walletCount.bind(this), // no longer implemented in factory contract
       isWallet: this.isWallet.bind(this),
-      implementation: this.implementation.bind(this),
-      getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this),
+      getWalletLogicImplAddr: this.getWalletLogicImplAddr.bind(this),
+      // getDefaultKeyVaultImpl: this.getDefaultKeyVaultImpl.bind(this), // no longer implemented in factory contract
       upgradeLogic: this.upgradeLogic.bind(this), // Admin function
       transferAdmin: this.transferAdmin.bind(this), // Admin function
       
@@ -428,21 +428,21 @@ class SapphireWalletSDK {
     }
   }
 
-  /**
-   * Get the number of wallets created
-   * 
-   * @returns {Promise<Number>} Number of wallets created
-   */
-  async walletCount() {
-    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
+  // /**
+  //  * Get the number of wallets created
+  //  * 
+  //  * @returns {Promise<Number>} Number of wallets created
+  //  */
+  // async walletCount() {
+  //   const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
 
-    try {
-      const count = await factory.walletCount();
-      return count;
-    } catch (error) {
-      throw new Error(`Failed to get wallet count: ${error.message}`);
-    }
-  }
+  //   try {
+  //     const count = await factory.walletCount();
+  //     return count;
+  //   } catch (error) {
+  //     throw new Error(`Failed to get wallet count: ${error.message}`);
+  //   }
+  // }
 
   /**
    * Check if an address is a wallet created by this factory
@@ -469,11 +469,11 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Get current WalletLogic implementation
+   * Get current WalletLogic implementation (current walletLogic contract address)
    * 
    * @returns {Promise<String>} Current WalletLogic implementation
    */
-  async implementation() {
+  async getWalletLogicImplAddr() {
     const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
 
     try {

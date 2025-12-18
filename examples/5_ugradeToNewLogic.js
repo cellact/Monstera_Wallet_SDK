@@ -43,7 +43,7 @@ async function main() {
   console.log("   ✅ Confirmed: You are the admin");
 
   // Check current implementation
-  const oldImpl = await sdk.wallets.implementation();
+  const oldImpl = await sdk.wallets.getWalletLogicImplAddr();
   console.log("\nCurrent WalletLogic:", oldImpl);
 
   // ============ STEP 1: Deploy New WalletLogic ============
@@ -67,7 +67,7 @@ async function main() {
   console.log("   ✅ Upgrade complete!");
 
   // Verify
-  const currentImpl = await sdk.wallets.implementation();
+  const currentImpl = await sdk.wallets.getWalletLogicImplAddr();
   console.log(`   Verified: ${currentImpl}`);
 
   // ============ STEP 3: Verify Wallet Still Works ============
