@@ -1375,10 +1375,10 @@ class SapphireWalletSDK {
    * @returns {Promise<Object>} Change password result
    */
   async changePassword(options = {}) {
-    const { address, currentPassword, newPasswordHash } = options;
+    const { keyVaultAddress, currentPassword, newPasswordHash } = options;
 
-    if (!address || typeof address !== 'string') {
-      throw new Error('Wallet address is required');
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
     }
 
     if (!currentPassword) {
@@ -1392,7 +1392,7 @@ class SapphireWalletSDK {
     const passwordAuth = getPasswordAuthenticatorContract(this.writeSigner, this.addresses.passwordAuth);
 
     try {
-      const tx = await passwordAuth.changePassword(address, currentPassword, newPasswordHash);
+      const tx = await passwordAuth.changePassword(keyVaultAddress, currentPassword, newPasswordHash);
 
       // Wait for transaction
       const receipt = await tx.wait();
@@ -1422,20 +1422,20 @@ class SapphireWalletSDK {
    * Check if a wallet is configured (via passwordAuthenticator contract)
    * 
    * @param {Object} options - Check if wallet is configured options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
    */
   async isConfigured(options = {}) {
-    const { walletAddress } = options;
+    const { keyVaultAddress } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
-      throw new Error('Wallet address is required');
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
+      throw new Error('KeyVault address is required');
     }
 
     const passwordAuth = getPasswordAuthenticatorContract(this.readProvider, this.addresses.passwordAuth);
 
     try {
-      const isConfigured = await passwordAuth.isConfigured(walletAddress);
+      const isConfigured = await passwordAuth.isConfigured(keyVaultAddress);
       return isConfigured;
     } catch (error) {
       throw new Error(`Failed to check if wallet is configured: ${error.message}`);

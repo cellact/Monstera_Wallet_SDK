@@ -6,16 +6,18 @@
  * This demonstrates that the password can be changed!
  * 
  * Env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (required)
  *   WALLET_ADDRESS=0x... (required)
  *   PASSWORD=password123 (required)
- *   SIGNER_PRIVATE_KEY=0x... (required)
+ *   NEW_PASSWORD=password456 (required)
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers } = require('ethers');
 
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
+// ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
 const PASSWORD = process.env.TEST_PASSWORD || "";
 const NEW_PASSWORD = process.env.NEW_PASSWORD || "";
 
@@ -47,7 +49,7 @@ async function main() {
   console.log("KeyVault:", keyVault);
 
   const isConfigured = await sdk.wallets.isConfigured({
-    walletAddress: keyVault
+    keyVaultAddress: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");
   if (!isConfigured) {
@@ -67,7 +69,7 @@ async function main() {
   const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes(NEW_PASSWORD));
 
   const result = await sdk.wallets.changePassword({
-    address: keyVault,
+    keyVaultAddress: keyVault,
     currentPassword: authProof,
     newPasswordHash: newPasswordHash
   });
