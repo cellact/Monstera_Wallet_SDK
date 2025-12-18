@@ -46,7 +46,7 @@ async function main() {
   console.log("=".repeat(60));
   
   // Get KeyVault info
-  const keyVault = await sdk.wallets.getKeyVault({
+  const keyVault = await sdk.logic.getKeyVault({
     walletAddress: WALLET_ADDRESS
   });
   const oldAuthenticator = await sdk.wallets.getAuthenticatorKeyVault({

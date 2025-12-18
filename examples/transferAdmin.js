@@ -69,14 +69,14 @@ async function main() {
 
     try {
       // Get KeyVault (should still work)
-      const keyVault = await sdk.wallets.getKeyVault({
+      const keyVault = await sdk.logic.getKeyVault({
         walletAddress: WALLET_ADDRESS
       });
       console.log(`   Wallet: ${WALLET_ADDRESS}`);
       console.log(`   KeyVault: ${keyVault} (unchanged)`);
       
       // Test public function
-      const addr = await sdk.wallets.getAccountAddress({
+      const addr = await sdk.logic.getAccountAddress({
         walletAddress: WALLET_ADDRESS,
         index: 0
       });

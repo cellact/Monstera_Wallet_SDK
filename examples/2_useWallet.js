@@ -39,10 +39,10 @@ async function main() {
   }
 
   // Show architecture info
-  const keyVaultAddr = await sdk.wallets.getKeyVault({ 
+  const keyVaultAddr = await sdk.logic.getKeyVault({ 
     walletAddress: WALLET_ADDRESS 
   });
-  const authAddr = await sdk.wallets.getAuthenticator({ 
+  const authAddr = await sdk.logic.getAuthenticator({ 
     walletAddress: WALLET_ADDRESS 
   });
   console.log("\nWallet Stack:");
@@ -60,7 +60,7 @@ async function main() {
 
   console.log("\n1. Getting account addresses...");
   for (let i = 0; i < 5; i++) {
-    const addr = await sdk.wallets.getAccountAddress({
+    const addr = await sdk.logic.getAccountAddress({
       walletAddress: WALLET_ADDRESS,
       index: i
     });
@@ -73,7 +73,7 @@ async function main() {
     const mnemonic = Mnemonic.fromPhrase(MNEMONIC);
     for (let i = 0; i < 3; i++) {
       const ethersWallet = HDNodeWallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/${i}`);
-      const onChainAddr = await sdk.wallets.getAccountAddress({
+      const onChainAddr = await sdk.logic.getAccountAddress({
         walletAddress: WALLET_ADDRESS,
         index: i
       });
@@ -93,21 +93,23 @@ async function main() {
   console.log("\n3. Signing a message...");
   const message = "Hello from TheWallet!";
   try {
-    const result = await sdk.wallets.signMessage({
+    const result = await sdk.logic.signMessage({
       walletAddress: WALLET_ADDRESS,
       authProof: authProof,
       index: 0,
       message: ethers.toUtf8Bytes(message)
     });
     console.log(`   Message: "${message}"`);
-    console.log(`   Signature: ${result.signature.slice(0, 40)}...`);
+    // console.log(`   Signature: ${result.signature.slice(0, 40)}...`);
+    console.log(`   Signature: ${result}`);
 
     // Verify
-    const expectedAddr = await sdk.wallets.getAccountAddress({
+    const expectedAddr = await sdk.logic.getAccountAddress({
       walletAddress: WALLET_ADDRESS,
       index: 0
     });
-    const recovered = ethers.verifyMessage(message, result.signature);
+    // const recovered = ethers.verifyMessage(message, result.signature);
+    const recovered = ethers.verifyMessage(message, result);
     const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
     console.log(`   Recovered: ${recovered}`);
     console.log(`   ${match ? "✅ Signature valid!" : "❌ Signature invalid!"}`);
@@ -119,20 +121,21 @@ async function main() {
   console.log("\n4. Signing a raw hash...");
   const hash = ethers.keccak256(ethers.toUtf8Bytes("Some data"));
   try {
-    const result = await sdk.wallets.sign({
+    const result = await sdk.logic.sign({
       walletAddress: WALLET_ADDRESS,
       authProof: authProof,
       index: 0,
       hash: hash
     });
     console.log(`   Hash: ${hash.slice(0, 20)}...`);
-    console.log(`   Signature: ${result.signature.slice(0, 40)}...`);
+    // console.log(`   Signature: ${result.signature.slice(0, 40)}...`);
+    console.log(`   Signature: ${result}`);
 
-    const expectedAddr = await sdk.wallets.getAccountAddress({
+    const expectedAddr = await sdk.logic.getAccountAddress({
       walletAddress: WALLET_ADDRESS,
       index: 0
     });
-    const recovered = ethers.recoverAddress(hash, result.signature);
+    const recovered = ethers.recoverAddress(hash, result);
     const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
     console.log(`   ${match ? "✅ Signature valid!" : "❌ Signature invalid!"}`);
   } catch (error) {
@@ -147,7 +150,7 @@ async function main() {
   console.log("\n5. Trying with wrong password...");
   const wrongAuthProof = ethers.toUtf8Bytes("wrongpassword");
   try {
-    await sdk.wallets.signMessage({
+    await sdk.logic.signMessage({
       walletAddress: WALLET_ADDRESS,
       authProof: wrongAuthProof,
       index: 0,

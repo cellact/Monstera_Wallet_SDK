@@ -87,7 +87,7 @@ async function main() {
     
     // Sign a message
     const message = "Hello from WalletSigAuth test!";
-    const sig = await sdk.wallets.signMessage({
+    const sig = await sdk.logic.signMessage({
       walletAddress: result.wallet,
       authProof: authProof,
       index: 0,
@@ -96,7 +96,7 @@ async function main() {
     console.log(`   ✅ signMessage succeeded!`);
     
     // Verify signature
-    const accountAddr = await sdk.wallets.getAccountAddress({
+    const accountAddr = await sdk.logic.getAccountAddress({
       walletAddress: result.wallet,
       index: 0
     });
@@ -120,7 +120,7 @@ async function main() {
     });
     
     const hash = ethers.keccak256(ethers.toUtf8Bytes("test data"));
-    const sig = await sdk.wallets.sign({
+    const sig = await sdk.logic.sign({
       walletAddress: result.wallet,
       authProof: authProof,
       index: 0,
@@ -173,7 +173,7 @@ async function main() {
       signer: allowed2Signer,
       keyVault: result.keyVault
     });
-    const sig = await sdk.wallets.signMessage({
+    const sig = await sdk.logic.signMessage({
       walletAddress: result.wallet,
       authProof: authProof,
       index: 0,

@@ -31,15 +31,15 @@ async function main() {
   }
   
   // Get KeyVault info
-  const keyVault = await sdk.wallets.getKeyVault({
+  const keyVault = await sdk.logic.getKeyVault({
     walletAddress: WALLET_ADDRESS
   });
-  const authenticator = await sdk.wallets.getAuthenticator({
+  const authenticator = await sdk.logic.getAuthenticator({
     walletAddress: WALLET_ADDRESS
   });
   
   // Get account address
-  const addr = await sdk.wallets.getAccountAddress({
+  const addr = await sdk.logic.getAccountAddress({
     walletAddress: WALLET_ADDRESS,
     index: INDEX
   });

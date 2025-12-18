@@ -46,10 +46,10 @@ async function main() {
   console.log("=".repeat(60));
   
   // Get KeyVault info
-  const keyVault = await sdk.wallets.getKeyVault({
+  const keyVault = await sdk.logic.getKeyVault({
     walletAddress: WALLET_ADDRESS
   });
-  const oldAuthenticator = await sdk.wallets.getAuthenticator({
+  const oldAuthenticator = await sdk.logic.getAuthenticator({
     walletAddress: WALLET_ADDRESS
   });
   
@@ -59,7 +59,7 @@ async function main() {
   console.log(`      └── Auth:   ${oldAuthenticator}`);
 
   // check if wallet is initilized 
-  const isInitialized = await sdk.wallets.isInitialized({
+  const isInitialized = await sdk.logic.isInitialized({
     walletAddress: WALLET_ADDRESS
   });
   console.log("   Is Initialized:", isInitialized ? "✅ Yes" : "❌ No");
@@ -81,7 +81,7 @@ async function main() {
   console.log("STEP 2: Change Authenticator");
   console.log("=".repeat(60));
 
-  const result = await sdk.wallets.changeAuthenticator({
+  const result = await sdk.logic.changeAuthenticator({
     walletAddress: WALLET_ADDRESS,
     authProof: authProof,
     newAuthenticatorAddress: NEW_AUTHENTICATOR_ADDRESS,
@@ -99,7 +99,7 @@ async function main() {
   console.log("STEP 3: Change Authenticator is successful");
   console.log("=".repeat(60));
 
-  const currentAuthenticator = await sdk.wallets.getAuthenticator({
+  const currentAuthenticator = await sdk.logic.getAuthenticator({
     walletAddress: WALLET_ADDRESS
   });
   console.log("   Current Auth:", currentAuthenticator);
