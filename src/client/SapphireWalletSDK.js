@@ -1467,7 +1467,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Get the authenticator contract address (from keyVault contract)
+   * Get the authenticator contract address for a wallet (from keyVault contract)
    * 
    * @param {Object} options - Get authenticator options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -1491,7 +1491,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Get the KeyVaultImplementation contract address (from keyVault contract)
+   * Get the current KeyVaultImplementation contract address (from keyVault contract)
    * 
    * @param {Object} options - Get implementation options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -1516,7 +1516,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Check if a keyVault is initialized (from keyVault contract)
+   * Check if a given keyVault is initialized (from keyVault contract)
    * 
    * @param {Object} options - Check if keyVault is initialized options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -1696,9 +1696,11 @@ class SapphireWalletSDK {
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
       throw new Error('KeyVault address is required');
     }
+
     if (fromIndex === undefined || fromIndex === null || typeof fromIndex !== 'number' || fromIndex < 0 || !Number.isInteger(fromIndex)) {
       throw new Error('From index is required and must be a non-negative integer');
     }
+
     if (count === undefined || count === null || typeof count !== 'number' || count < 0 || !Number.isInteger(count)) {
       throw new Error('Count is required and must be a non-negative integer');
     }
@@ -1715,7 +1717,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Sign a transaction (from keyVault contract)
+   * Sign a transaction (from keyVault contract) (authenticated function)
    * 
    * @param {Object} options - Sign transaction options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -1783,7 +1785,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Sign a 32-byte hash (from keyVault contract)
+   * Sign a 32-byte hash (from keyVault contract) (authenticated function)
    * 
    * @param {Object} options - Sign hash options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -1823,7 +1825,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Sign an EIP-191 message (from keyVault contract)
+   * Sign an EIP-191 message (from keyVault contract) (authenticated function)
    * 
    * @param {Object} options - Sign message options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -1863,7 +1865,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Execute a function with an auth proof (from keyVault contract)
+   * Execute a function with an auth proof (from keyVault contract) (authenticated function)
    * 
    * @param {Object} options - Execute function options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
