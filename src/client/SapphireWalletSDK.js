@@ -544,7 +544,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Transfer admin ownership to a new address (Admin function)
+   * Transfer admin ownership role to a new address (Admin function)
    * 
    * @param {Object} options - Transfer admin options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)

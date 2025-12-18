@@ -1,18 +1,25 @@
 /**
  * Transfer admin ownership to a new address (ADMIN ONLY)
  * 
+ * Run: node examples/transferAdmin.js
+ * 
  * This demonstrates ADMIN-controlled upgrades:
  * - Transfers admin ownership to a new address
+ * - Verifies the new admin can access the wallet
  * 
- * Run: node examples/transferAdmin.js
+ * Env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (required)
+ *   WALLET_ADDRESS=0x... (required)
+ *   ADMIN_ADDRESS=0x... (required)
+ *   NEW_ADMIN_ADDRESS=0x... (required)
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers } = require("ethers");
 
 // ============ CONFIGURATION ============
-const TEST_WALLET = process.env.TEST_WALLET_ADDRESS || ""; // Optional: to verify upgrade
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
 const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS || "";
 const NEW_ADMIN_ADDRESS = process.env.NEW_ADMIN_ADDRESS || "";
 
@@ -54,7 +61,7 @@ async function main() {
   console.log(`   Verified: ${currentAdmin}`);
 
   // ============ STEP 2: Verify Wallet Still Works ============
-  if (TEST_WALLET) {
+  if (WALLET_ADDRESS) {
     console.log("\n" + "=".repeat(70));
     console.log("STEP 2: Verify Existing Wallet Works");
     console.log("=".repeat(70));
@@ -62,14 +69,14 @@ async function main() {
     try {
       // Get KeyVault (should still work)
       const keyVault = await sdk.wallets.getKeyVault({
-        walletAddress: TEST_WALLET
+        walletAddress: WALLET_ADDRESS
       });
-      console.log(`   Wallet: ${TEST_WALLET}`);
+      console.log(`   Wallet: ${WALLET_ADDRESS}`);
       console.log(`   KeyVault: ${keyVault} (unchanged)`);
       
       // Test public function
       const addr = await sdk.wallets.getAccountAddress({
-        walletAddress: TEST_WALLET,
+        walletAddress: WALLET_ADDRESS,
         index: 0
       });
       console.log(`   Account 0: ${addr}`);
