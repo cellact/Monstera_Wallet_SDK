@@ -5,16 +5,19 @@
  * 
  * Tests:
  * 1. Get keyVault contract address for a wallet.
+ * 2. Initialize a wallet logic contract (with new key vault).
  * 
  * Required env vars:
- *   WALLET_ADDRESS=0x... (address of the wallet to get the keyVault contract address for)
  *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
+ *   WALLET_ADDRESS=0x... (address of the wallet to check)
+ *   NEW_KEYVAULT_ADDRESS=0x... (address of the new key vault to use)
  */
 
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 
-// Test wallet address
+// ============ CONFIGURATION ============
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS;
 const NEW_KEYVAULT_ADDRESS = process.env.NEW_KEYVAULT_ADDRESS;
 
@@ -26,7 +29,7 @@ async function main() {
   // Initialize SDK
   const sdk = SapphireWalletSDK.fromConfig({
     network: 'testnet', // or 'mainnet'
-    signerOrProvider: process.env.SIGNER_PRIVATE_KEY
+    signerOrProvider: SIGNER_PRIVATE_KEY
   });
 
   console.log("\n📋 Configuration:");

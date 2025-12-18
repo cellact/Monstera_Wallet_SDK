@@ -1121,6 +1121,7 @@ class SapphireWalletSDK {
    */
   async isInitialized(options = {}) {
     const { walletAddress } = options;
+
     if (!walletAddress || typeof walletAddress !== 'string') {
       throw new Error('Wallet address is required');
     }
@@ -1136,7 +1137,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Initialize a wallet logic contract (via walletLogic contract)
+   * Initialize a wallet logic with a new keyVault (via walletLogic contract)
    * 
    * @param {Object} options - Initialize wallet logic options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
