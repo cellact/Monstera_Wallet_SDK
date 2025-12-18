@@ -29,13 +29,11 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    wallet: '0x76a80aF9eba04529fCedd823e9712a79B98D5D1A',             // Set after deployment (should not be there)
     factory: '0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a',            // Set after deployment
     passwordAuth: '0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7',       // Set after deployment
     walletSignatureAuth: '0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a' // Set after deployment 
   },
   mainnet: {
-    wallet: null,
     factory: null,
     passwordAuth: null,
     walletSignatureAuth: null
@@ -135,9 +133,8 @@ function createSdkConfig(options) {
     addresses
   });
 
-  // Validate required addresses based on what operations will be performed
-  // For now, factory is required for createWallet
-  validateAddresses(networkConfig.addresses, ['factory']);
+  // Validate required addresses
+  validateAddresses(networkConfig.addresses, ['factory', 'passwordAuth', 'walletSignatureAuth']);
 
   return {
     ...networkConfig,
