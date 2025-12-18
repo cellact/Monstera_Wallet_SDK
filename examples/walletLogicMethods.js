@@ -3,14 +3,15 @@
  * 
  * Run: node examples/walletLogicMethods.js
  * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   NEW_KEYVAULT_ADDRESS=0x... (your new key vault address)
+ * 
  * Tests:
  * 1. Get keyVault contract address for a wallet.
  * 2. Initialize a wallet logic contract (with new key vault).
  * 
- * Required env vars:
- *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
- *   WALLET_ADDRESS=0x... (address of the wallet to check)
- *   NEW_KEYVAULT_ADDRESS=0x... (address of the new key vault to use)
  */
 
 require('dotenv').config();
@@ -41,7 +42,7 @@ async function main() {
   console.log("=".repeat(70));
 
   try {
-    // Get total number of wallets created
+    // Get keyVault contract address for a wallet
     const result = await sdk.wallets.getKeyvaultAddr({
       walletAddress: WALLET_ADDRESS
     });

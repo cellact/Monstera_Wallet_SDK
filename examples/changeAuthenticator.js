@@ -1,17 +1,19 @@
 /**
  * Change the authenticator of a wallet
+ * 
  * Run: node examples/changeAuthenticator.js
+ * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   TEST_PASSWORD=mysecretpassword123
+ *   NEW_AUTHENTICATOR_ADDRESS=0x... (your new authenticator address)
  * 
  * Tests:
  * 1. Get the current authenticator
  * 2. Change the authenticator to a new one
  * 3. Verify the new authenticator is used
  * 
- * Env vars:
- *   WALLET_ADDRESS=0x... (required)
- *   PASSWORD=password123 (required)
- *   NEW_AUTHENTICATOR_ADDRESS=0x... (required)
- *   SIGNER_PRIVATE_KEY=0x... (required)
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');

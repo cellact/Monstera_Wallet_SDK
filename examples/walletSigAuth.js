@@ -3,20 +3,20 @@
  * 
  * Run: node examples/walletSigAuth.js
  * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   ALLOWED_1_KEY=0x... (your private key for the first allowed address)
+ *   ALLOWED_2_KEY=0x... (your private key for the second allowed address)
+ * 
  * Tests:
  * 1. create a wallet with a whitelist
  * 2. check if a wallet is configured
  * 3. get the EIP-712 domain seperator 
- * 
- * Required env vars:
- *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
- *   ALLOWED_1_KEY=0x... (private key for first allowed address)
- *   ALLOWED_2_KEY=0x... (private key for second allowed address)
  */
 
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers, HDNodeWallet, Wallet } = require('ethers');
+const { ethers, Wallet } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";

@@ -1,16 +1,17 @@
 /**
  * Step 6.2: Get Account Addresses for Funding
  * 
+ * Run: node examples/6.2_getAccounts.js
+ * 
  * Shows the first 3 account addresses so you can fund them on Amoy.
  * 
  * Required env vars:
- *   WALLET_ADDRESS - Sapphire wallet address
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x... (your wallet address)
  * 
- * Run: node examples/6.2_getAccounts.js
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers } = require("ethers");
 
 // ============ CONFIGURATION ============
 const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";

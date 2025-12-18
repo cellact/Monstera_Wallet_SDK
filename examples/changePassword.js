@@ -5,11 +5,11 @@
  * 
  * This demonstrates that the password can be changed!
  * 
- * Env vars:
- *   SIGNER_PRIVATE_KEY=0x... (required)
- *   WALLET_ADDRESS=0x... (required)
- *   PASSWORD=password123 (required)
- *   NEW_PASSWORD=password456 (required)
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   TEST_PASSWORD=mysecretpassword123
+ *   NEW_PASSWORD=mynewpassword123
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');

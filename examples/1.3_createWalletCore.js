@@ -1,5 +1,6 @@
 /**
  * Step 1.3: Create a HD wallet core (no logic wrapper)
+ * 
  * Run: node examples/1.3_createWalletCore.js
  * 
  * Required env vars:
@@ -12,7 +13,7 @@
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers, Wallet } = require('ethers');
+const { ethers } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;

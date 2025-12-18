@@ -1,10 +1,12 @@
 /**
  * Step 1.4: Create a HD wallet with a custom logic contract
+ * 
  * Run: node examples/1.4_createWalletCustom.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x...
  *   TEST_PASSWORD=mysecretpassword123
+ *   CUSTOM_LOGIC_IMPL=0x... (your custom wallet logic implementation contract address)
  * 
  * This creates:
  *   - WalletStorage (holds private keys, locked to KeyVault)
@@ -13,7 +15,7 @@
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers, Wallet } = require('ethers');
+const { ethers } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;

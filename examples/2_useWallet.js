@@ -4,9 +4,9 @@
  * Run: node examples/2_useWallet.js
  * 
  * Required env vars:
- *   WALLET_ADDRESS=0x...
- *   PASSWORD=yourpassword
- *   SIGNER_PRIVATE_KEY=0x...
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x...
+ *   TEST_PASSWORD=mysecretpassword123
  * 
  * Optional (for verification):
  *   MNEMONIC="word1 word2 ..."

@@ -1,9 +1,10 @@
 /**
  * Step 4: Get an account address from the wallet
+ * 
  * Run: node examples/4_getAddress.js
  * 
  * Env vars:
- *   WALLET_ADDRESS=0x... (required)
+ *   TEST_WALLET_ADDRESS=0x... (required)
  *   INDEX=0 (optional, defaults to 0)
  *   SIGNER_PRIVATE_KEY=0x... (required)
  */

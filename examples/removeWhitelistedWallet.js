@@ -3,18 +3,23 @@
  * 
  * Run: node examples/removeWhitelistedWallet.js
  * 
- * Tests:
- * 1. Remove a wallet from the whitelist
- * 
  * Required env vars:
- *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
- *   ALLOWED_1_KEY=0x... (private key for first allowed address)
- *   ALLOWED_2_KEY=0x... (private key for second allowed address)
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   ALLOWED_1_KEY=0x... (your private key for the first allowed address)
+ *   ALLOWED_2_KEY=0x... (your private key for the second allowed address)
+ * 
+ * Tests:
+ * 1. Create a wallet with a whitelist
+ * 2. Try with allowed account #1 → should succeed
+ * 3. Try with allowed account #2 → should succeed
+ * 2. Remove previously allowed account #2 from the whitelist
+ * 5. Try with removed account #2 → should fail
+ * 
  */
 
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers, HDNodeWallet, Wallet } = require('ethers');
+const { ethers, Wallet } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";

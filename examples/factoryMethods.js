@@ -3,15 +3,16 @@
  * 
  * Run: node examples/factoryMethods.js
  * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ * 
  * Tests:
  * 1. Check if an address is a wallet created by this factory
  * 2. Get current WalletLogic implementation.
  * 3. Get beacon address.
  * 4. Get storage contract address for a wallet.
  * 
- * Required env vars:
- *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
- *   WALLET_ADDRESS=0x... (address of the wallet to check)
  */
 
 require('dotenv').config();

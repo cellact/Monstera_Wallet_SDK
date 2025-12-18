@@ -9,12 +9,17 @@
  * - Keys in WalletStorage remain untouched
  * - KeyVault (auth layer) remains untouched
  * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   ADMIN_ADDRESS=0x... (your admin address)
+ *   NEW_LOGIC_ADDRESS=0x... (your new wallet logic implementation contract address)
+ * 
  * Note: This does NOT upgrade KeyVault (that's user-controlled)
  * 
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers } = require("ethers");
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;

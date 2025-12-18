@@ -5,17 +5,18 @@
  * 
  * This demonstrates that KeyVaultImplementation IS upgradeable!
  * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   TEST_PASSWORD=mysecretpassword123
+ *   NEW_KEYVAULT_IMPL_ADDRESS=0x... (your new keyVault implementation address)
+ * 
  * Tests:
  * 1. Get the current keyVault implementation
  * 2. Deploy a new keyVault implementation (this is not implemented here)
  * 3. Upgrade the keyVault implementation to a new one
  * 4. Verify the new keyVaultImplementation contract is used
  * 
- * Env vars:
- *   WALLET_ADDRESS=0x... (required)
- *   PASSWORD=password123 (required)
- *   NEW_KEYVAULT_IMPL_ADDRESS=0x... (required)
- *   SIGNER_PRIVATE_KEY=0x... (required)
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');

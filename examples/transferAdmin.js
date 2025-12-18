@@ -3,19 +3,20 @@
  * 
  * Run: node examples/transferAdmin.js
  * 
- * This demonstrates ADMIN-controlled upgrades:
- * - Transfers admin ownership to a new address
- * - Verifies the new admin can access the wallet
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   ADMIN_ADDRESS=0x... (your admin address)
+ *   NEW_ADMIN_ADDRESS=0x... (your new admin address)
  * 
- * Env vars:
- *   SIGNER_PRIVATE_KEY=0x... (required)
- *   WALLET_ADDRESS=0x... (required)
- *   ADMIN_ADDRESS=0x... (required)
- *   NEW_ADMIN_ADDRESS=0x... (required)
+ * Tests:
+ * 1. Verify caller is admin
+ * 2. Transfer admin ownership to a new address
+ * 3. Verify the new admin can access the wallet
+ * 
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
-const { ethers } = require("ethers");
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
