@@ -15,6 +15,27 @@ const WALLET_FACTORY_ABI = [
   },
   {
     "inputs": [],
+    "name": "FailedDeployment",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "balance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
+      }
+    ],
+    "name": "InsufficientBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidAddress",
     "type": "error"
   },
@@ -129,29 +150,120 @@ const WALLET_FACTORY_ABI = [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "defaultKeyVaultImpl",
-    "outputs": [
+    "inputs": [
       {
-        "internalType": "contract KeyVaultImplementation",
-        "name": "",
+        "internalType": "bytes",
+        "name": "seed",
+        "type": "bytes"
+      },
+      {
+        "internalType": "address",
+        "name": "authenticator",
         "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "authConfig",
+        "type": "bytes"
       }
     ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getDefaultKeyVaultImpl",
+    "name": "createWalletCore",
     "outputs": [
       {
         "internalType": "address",
-        "name": "",
+        "name": "keyVault",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "storage_",
         "type": "address"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "seed",
+        "type": "bytes"
+      },
+      {
+        "internalType": "address",
+        "name": "authenticator",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "authConfig",
+        "type": "bytes"
+      },
+      {
+        "internalType": "address",
+        "name": "customLogicImpl",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "logicData",
+        "type": "bytes"
+      }
+    ],
+    "name": "createWalletWithCustomLogic",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "keyVault",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "seed",
+        "type": "bytes"
+      },
+      {
+        "internalType": "address",
+        "name": "authenticator",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "authConfig",
+        "type": "bytes"
+      },
+      {
+        "internalType": "address",
+        "name": "hook",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "hookData",
+        "type": "bytes"
+      }
+    ],
+    "name": "createWalletWithHook",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "wallet",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -210,19 +322,6 @@ const WALLET_FACTORY_ABI = [
     "name": "upgradeLogic",
     "outputs": [],
     "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "walletCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
     "type": "function"
   },
   {

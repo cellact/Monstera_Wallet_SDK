@@ -41,11 +41,11 @@ class SapphireWalletSDK {
       // WalletFactory functions
       getAdmin: this.getAdmin.bind(this), // state variable in walletFactory contract
       getBeaconAddr: this.getBeaconAddr.bind(this), // state variable in walletFactory contract
-      getDefaultKeyVaultImplAddr: this.getDefaultKeyVaultImplAddr.bind(this), // state variable in walletFactory contract
+      // getDefaultKeyVaultImplAddr: this.getDefaultKeyVaultImplAddr.bind(this), // state variable in walletFactory contract - no longer in factory contract 
       // getWallets: this.getWallets.bind(this), // wallets in walletFactory contract 
       getWalletKeyVault: this.getWalletKeyVault.bind(this), // state variable in walletFactory contract
       getWalletStorage: this.getWalletStorage.bind(this), // state variable in walletFactory contract
-      createWallet: this.createWallet.bind(this), // needs adjustment 
+      createWallet: this.createWallet.bind(this),
       // createWalletWithHook: this.createWalletWithHook.bind(this),
       // createWalletCore: this.createWalletCore.bind(this),
       // createWalletWithCustomLogic: this.createWalletWithCustomLogic.bind(this),
@@ -122,10 +122,15 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Create a new wallet
+   * Create a new HD Wallet
+   * 
+   * Deploys complete wallet stack:
+   *      1. WalletStorage (holds keys, locked to KeyVault)
+   *      2. KeyVault (auth + signing, user-upgradeable)
+   *      4. WalletLogic proxy (orchestration, admin-upgradeable)
    * 
    * @param {Object} options - Wallet creation options
-   * @param {Bytes} options.authConfig - Authentication configuration (bytes)
+   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
    * @param {String} options.authenticator - Authenticator contract address (optional, dafaults to PasswordAuthenticator)
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
@@ -136,16 +141,6 @@ class SapphireWalletSDK {
     if (!authConfig) {
       throw new Error('Auth config is required');
     }
-
-    // TODO: check in a mapping if authConfig is valid (either password hash or whitelist)
-
-    // if (!this.addresses.factory) {
-    //   throw new Error('Factory address is required. Set it in config.addresses.factory');
-    // }
-
-    // if (!authenticator) {
-    //   throw new Error('Authenticator address is required. Set it in config.addresses.passwordAuth');
-    // }
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -183,7 +178,7 @@ class SapphireWalletSDK {
         mnemonic: mnemonic,
         authenticator: eventData.authenticator,
         keyVault: eventData.keyVault,
-        storage: eventData.storage, // Storage contract address
+        storage: eventData.storage,
         transactionHash: receipt.hash,
         blockNumber: receipt.blockNumber,
         gasUsed: receipt.gasUsed.toString()
