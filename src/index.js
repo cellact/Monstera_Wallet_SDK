@@ -4,7 +4,7 @@
  * Main exports for the new SDK structure
  */
 
-const Monstera = require('./client/Monstera');
+const Monstera = require('./client/SapphireWalletSDK');
 
 // Export config utilities
 const { NETWORKS, createSdkConfig } = require('./config/networks');

@@ -35,7 +35,7 @@ async function main() {
   console.log("=".repeat(70));
 
   // Verify caller is admin
-  const oldAdmin = await sdk.wallets.getAdmin();
+  const oldAdmin = await sdk.factory.getAdmin();
   console.log(`   Admin: ${oldAdmin}`);
   if (oldAdmin.toLowerCase() !== ADMIN_ADDRESS.toLowerCase()) {
     console.error(`   ERROR: You are not the admin!`);
@@ -50,7 +50,7 @@ async function main() {
   console.log("STEP 1: Transfer Admin Ownership");
   console.log("=".repeat(70));
 
-  const result = await sdk.wallets.transferAdmin({
+  const result = await sdk.factory.transferAdmin({
     newAdminAddress: NEW_ADMIN_ADDRESS
   });
   console.log(`   Transaction: ${result.transactionHash}`);
@@ -58,7 +58,7 @@ async function main() {
   console.log("   ✅ Admin transfer complete!");
 
   // Verify 
-  const currentAdmin = await sdk.wallets.getAdmin();
+  const currentAdmin = await sdk.factory.getAdmin();
   console.log(`   Verified: ${currentAdmin}`);
 
   // ============ STEP 2: Verify Wallet Still Works ============

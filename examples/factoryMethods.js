@@ -42,7 +42,7 @@ async function main() {
 
   try {
     // Check if an address is a wallet created by this factory
-    const result = await sdk.wallets.isWallet({
+    const result = await sdk.factory.isWallet({
         walletAddress:WALLET_ADDRESS
     });
 
@@ -63,7 +63,7 @@ async function main() {
 
   try {
     // Get current WalletLogic contract address
-    const result = await sdk.wallets.getWalletLogicImplAddr();
+    const result = await sdk.factory.getWalletLogicImplAddr();
 
     console.log(`   ✅ Current WalletLogic implementation: ${result}`);
     
@@ -82,7 +82,7 @@ async function main() {
 
   try {
     // Get beacon address
-    const result = await sdk.wallets.getBeaconAddr();
+    const result = await sdk.factory.getBeaconAddr();
 
     console.log(`   ✅ Beacon address: ${result}`);
 
@@ -101,7 +101,7 @@ async function main() {
 
   try {
     // Get default storage implementation address
-    const result = await sdk.wallets.getWalletStorage({
+    const result = await sdk.factory.getWalletStorage({
       walletAddress: WALLET_ADDRESS
     });
     console.log(`   ✅ Storage contract address: ${result}`);

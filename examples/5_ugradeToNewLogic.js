@@ -38,7 +38,7 @@ async function main() {
   console.log("=".repeat(70));
 
   // Verify caller is admin
-  const admin = await sdk.wallets.getAdmin();
+  const admin = await sdk.factory.getAdmin();
   console.log(`   Admin: ${admin}`);
   if (admin.toLowerCase() !== ADMIN_ADDRESS.toLowerCase()) {
     console.error(`   ERROR: You are not the admin!`);
@@ -49,7 +49,7 @@ async function main() {
   console.log("   ✅ Confirmed: You are the admin");
 
   // Check current implementation
-  const oldImpl = await sdk.wallets.getWalletLogicImplAddr();
+  const oldImpl = await sdk.factory.getWalletLogicImplAddr();
   console.log("\nCurrent WalletLogic:", oldImpl);
 
   // ============ STEP 1: Deploy New WalletLogic ============
@@ -64,7 +64,7 @@ async function main() {
   console.log("STEP 2: Upgrade Beacon (affects all wallets)");
   console.log("=".repeat(70));
 
-  const result = await sdk.wallets.upgradeWalletLogicImplAddr({
+  const result = await sdk.factory.upgradeWalletLogicImplAddr({
     newLogicAddress: NEW_LOGIC_ADDRESS
   });
   console.log(`   Transaction: ${result.transactionHash}`);
@@ -73,7 +73,7 @@ async function main() {
   console.log("   ✅ Upgrade complete!");
 
   // Verify
-  const currentImpl = await sdk.wallets.getWalletLogicImplAddr();
+  const currentImpl = await sdk.factory.getWalletLogicImplAddr();
   console.log(`   Verified: ${currentImpl}`);
 
   // ============ STEP 3: Verify Wallet Still Works ============
