@@ -20,7 +20,8 @@ const { ethers } = require('ethers');
 const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const PASSWORD = process.env.TEST_PASSWORD || "";
-const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0x579DAE1e43Aed272580AF19DD2D6a77A4a953338";
+const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0x9bf630Fa31bb2Bdd1c1720bf7AcF324281e6156E";
+// const NEW_AUTHENTICATOR_ADDRESS = "0x579DAE1e43Aed272580AF19DD2D6a77A4a953338"; // old authenticator address
 
 const sdk = SapphireWalletSDK.fromConfig({
   network: 'testnet',
@@ -50,29 +51,23 @@ async function main() {
     walletAddress: WALLET_ADDRESS
   });
   
-//   // Get account address
-//   const addr = await sdk.wallets.getAccountAddress({
-//     walletAddress: WALLET_ADDRESS,
-//     index: INDEX
-//   });
-  
   console.log("\nWallet Stack:");
   console.log(`  Wallet (proxy): ${WALLET_ADDRESS}`);
   console.log(`  └── KeyVault:   ${keyVault}`);
   console.log(`      └── Auth:   ${oldAuthenticator}`);
 
+  // check if wallet is initilized 
+  const isInitialized = await sdk.wallets.isInitialized({
+    walletAddress: WALLET_ADDRESS
+  });
+  console.log("   Is Initialized:", isInitialized ? "✅ Yes" : "❌ No");
+  if (!isInitialized) {
+    console.error("❌ ERROR: Wallet is not initialized");
+    process.exit(1);
+  }
+
   // Prepare auth proof
   const authProof = ethers.toUtf8Bytes(PASSWORD);
-  // try {
-  //   authProof = await sdk.wallets.createAuthProof({
-  //     authenticateFor: WALLET_ADDRESS,
-  //     signer: sdk.writeSigner, // signer is the account that is changing the authenticator
-  //     keyVault: keyVault
-  //   });
-  // } catch (error) {
-  //   console.log(`   ❌ FAILED to create auth proof: ${error.message}`);
-  //   process.exit(1);
-  // }
 
   // Prepare new auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");

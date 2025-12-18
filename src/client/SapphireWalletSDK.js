@@ -9,7 +9,7 @@ const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../contracts/core/walletFactory');
-const { getWalletLogicContract } = require('../contracts/core/walletLogic');
+const { getWalletLogicContract, parse_AuthenticatorChangedEvent } = require('../contracts/core/walletLogic');
 const { getWalletSignatureAuthenticatorContract, parseWhitelistRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
 const { getKeyVaultContract, parseImplementationUpgradedEvent, parseAuthenticatorChangedEvent } = require('../contracts/core/keyVault');
@@ -45,7 +45,10 @@ class SapphireWalletSDK {
       // getWallets: this.getWallets.bind(this), // wallets in walletFactory contract 
       getWalletKeyVault: this.getWalletKeyVault.bind(this), // state variable in walletFactory contract
       getWalletStorage: this.getWalletStorage.bind(this), // state variable in walletFactory contract
-      createWallet: this.createWallet.bind(this),
+      createWallet: this.createWallet.bind(this), // needs adjustment 
+      // createWalletWithHook: this.createWalletWithHook.bind(this),
+      // createWalletCore: this.createWalletCore.bind(this),
+      // createWalletWithCustomLogic: this.createWalletWithCustomLogic.bind(this),
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
       implementation: this.implementation.bind(this),
@@ -64,7 +67,7 @@ class SapphireWalletSDK {
       signTransaction: this.signTransaction.bind(this),
       sign: this.sign.bind(this),
       signMessage: this.signMessage.bind(this),
-      // changeAuthenticator: this.changeAuthenticator.bind(this), // not fully implemented yet (needs to be tested)
+      changeAuthenticator: this.changeAuthenticator.bind(this), // needs to be tested
       upgradeKeyVault: this.upgradeKeyVault.bind(this),
 
       // SDK function - no contract call 
@@ -739,7 +742,7 @@ class SapphireWalletSDK {
       console.log("   Transaction receipt:", receipt);
 
       // Parse AuthenticatorChanged event
-      const eventData = parseAuthenticatorChangedEvent(receipt, walletLogic);
+      const eventData = parse_AuthenticatorChangedEvent(receipt, walletLogic);
       
       if (!eventData) {
         throw new Error('AuthenticatorChanged event not found in transaction receipt');
