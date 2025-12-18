@@ -47,7 +47,7 @@ class SapphireWalletSDK {
       getWalletStorage: this.getWalletStorage.bind(this), // state variable in walletFactory contract
       createWallet: this.createWallet.bind(this),
       // createWalletWithHook: this.createWalletWithHook.bind(this), // make private - not yet callable 
-      // createWalletCore: this.createWalletCore.bind(this),
+      createWalletCore: this.createWalletCore.bind(this),
       // createWalletWithCustomLogic: this.createWalletWithCustomLogic.bind(this),
       walletCount: this.walletCount.bind(this),
       isWallet: this.isWallet.bind(this),
@@ -127,7 +127,7 @@ class SapphireWalletSDK {
    * Deploys complete wallet stack:
    *      1. WalletStorage (holds keys, locked to KeyVault)
    *      2. KeyVault (auth + signing, user-upgradeable)
-   *      4. WalletLogic proxy (orchestration, admin-upgradeable)
+   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
    * 
    * @param {Object} options - Wallet creation options
    * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
@@ -190,14 +190,13 @@ class SapphireWalletSDK {
     }
   }
 
-
   /**
    * Create a new HD wallet with a post-creation hook
    * 
    * Deploys complete wallet stack:
    *      1. WalletStorage (holds keys, locked to KeyVault)
    *      2. KeyVault (auth + signing, user-upgradeable)
-   *      4. WalletLogic proxy (orchestration, admin-upgradeable)
+   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
    * 
    * The hook is called after the wallet is created.
    * 
@@ -240,6 +239,77 @@ class SapphireWalletSDK {
         authConfig, // bytes authConfig
         hook, // address hook
         hookData // bytes hookData
+      );
+      
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse WalletCreated event
+      const eventData = parseWalletCreatedEvent(receipt, factory);
+      
+      if (!eventData) {
+        throw new Error('WalletCreated event not found in transaction receipt');
+      }
+
+      // TODO: hash the mnemonic and return it hashed? 
+      
+      // Build result
+      const result = {
+        success: true,
+        wallet: eventData.wallet,
+        mnemonic: mnemonic,
+        authenticator: eventData.authenticator,
+        keyVault: eventData.keyVault,
+        storage: eventData.storage,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+      
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to create wallet: ${error.message}`);
+    }
+  }
+
+   /**
+   * Create a new HD Wallet 
+   * 
+   * Deploys core wallet stack only:
+   *      1. WalletStorage (holds keys, locked to KeyVault)
+   *      2. KeyVault (KeyVault address is the wallet address)
+   * 
+   * Use this when you want to interact with KeyVault directly,
+   * or when deploying your own custom logic contract separately.
+   * 
+   * @param {Object} options - Wallet creation options
+   * @param {String} options.authenticator - Authenticator contract address (optional, dafaults to PasswordAuthenticator)
+   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
+   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   */
+   async createWalletCore(options = {}) {
+    const { authenticator = this.addresses.passwordAuth, authConfig } = options;
+
+    // TODO: check that passwordHash is correct type (bytes)
+    if (!authConfig) {
+      throw new Error('Auth config is required');
+    }
+
+    // Off-chain: Generate mnemonic
+    const mnemonic = generateMnemonic();
+    
+    // Off-chain: Derive seed from mnemonic
+    const seed = deriveSeed(mnemonic);
+    
+    // On-chain: Get factory contract with wrapped signer
+    const factory = getWalletFactoryContract(this.writeSigner, this.addresses.factory);
+    
+    // On-chain: Call createWallet
+    try {
+      const tx = await factory.createWalletCore(
+        seed, // bytes seed
+        authenticator, // address authenticator
+        authConfig // bytes authConfig
       );
       
       // Wait for transaction
