@@ -1,0 +1,32 @@
+# Development files
+node_modules/
+.env
+.env.local
+*.log
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Testing
+coverage/
+.nyc_output/
+*.test.js
+
+# Build artifacts (if you add a build step later)
+dist/
+build/
+
+# Documentation (optional - you might want to include docs/)
+# docs/
+
+# Examples (optional - you currently include examples in files field)
+# examples/
+
+.cursorrules

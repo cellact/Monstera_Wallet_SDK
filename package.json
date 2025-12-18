@@ -20,12 +20,7 @@
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint src/**/*.js",
-    "example:create": "node examples/create-wallet.js",
-    "example:get-address": "node examples/get-wallet.js",
-    "example:get-info": "node examples/get-info.js",
-    "example:contracts": "node examples/contract-methods.js",
-    "example:template": "node examples/script-template.js"
+    "lint": "eslint src/**/*.js"
   },
   "keywords": [
     "wallet",
@@ -40,7 +35,7 @@
     "arnacon"
   ],
   "author": "Arnacon",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "engines": {
     "node": ">=14.0.0"
   },

@@ -233,7 +233,15 @@ src/
 
 ## License
 
-MIT
+This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
+
+This means:
+- ✅ You can use, modify, and distribute this software
+- ✅ You must share the source code when distributing
+- ✅ Any modifications must also be licensed under GPL-3.0
+- ❌ You cannot incorporate this into proprietary software without sharing source
+
+See the [LICENSE](LICENSE) file for the full text.
 
 ## Support
 
