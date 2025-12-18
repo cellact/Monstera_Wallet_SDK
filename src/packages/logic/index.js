@@ -7,4 +7,3 @@
 const WalletLogicClient = require('./WalletLogicClient');
 
 module.exports = WalletLogicClient;
-
