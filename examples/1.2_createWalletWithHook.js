@@ -1,22 +1,24 @@
 /**
- * Step 1: Create a wallet using the factory
- * Run: node examples/createWallet.js
+ * Step 1.2: Create a new HD wallet with a post-creation hook
+ * Run: node examples/1.2_createWalletWithHook.js
  * 
  * Required env vars:
- *   export SIGNER_PRIVATE_KEY=0x...
+ *   SIGNER_PRIVATE_KEY=0x...
+ *   TEST_PASSWORD=mysecretpassword123
  * 
  * This creates:
  *   - WalletStorage (holds private keys, locked to KeyVault)
  *   - KeyVault (auth + signing, user-upgradeable)
  *   - Wallet (BeaconProxy to WalletLogic, admin-upgradeable)
+ *   - Post-creation hook (called after wallet is created)
  */
 require('dotenv').config();
 const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers, Wallet } = require('ethers');
 
 // ============ CONFIGURATION ============
-const PASSWORD = process.env.PASSWORD || "mysecretpassword123";
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const PASSWORD = process.env.TEST_PASSWORD;
 
 const sdk = SapphireWalletSDK.fromConfig({
   network: 'testnet',
@@ -25,7 +27,7 @@ const sdk = SapphireWalletSDK.fromConfig({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step 1: Create a Wallet");
+  console.log("Step 1: Create a HD Wallet");
   console.log("=".repeat(60));
 
   // Prepare auth config (password hash for PasswordAuthenticator)
@@ -36,9 +38,11 @@ async function main() {
   // Create wallet
   console.log("\n3. Creating wallet stack...");
   console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
-  const result = await sdk.wallets.createWallet({
+  const result = await sdk.wallets.createWalletWithHook({
+    authenticator: sdk.addresses.passwordAuth,
     authConfig: passwordHash,
-    authenticator: sdk.addresses.passwordAuth
+    hook: hookAddress,
+    hookData: hookData
   });
   console.log("   Transaction:", result.transactionHash);
 
@@ -49,6 +53,7 @@ async function main() {
   console.log(`WALLET_ADDRESS=${result.wallet}`);
   console.log(`KEYVAULT_ADDRESS=${result.keyVault}`);
   console.log(`STORAGE_ADDRESS=${result.storage}`);
+  console.log(`AUTHENTICATOR_ADDRESS=${result.authenticator}`);
   console.log(`PASSWORD="${PASSWORD}"`);
   
   console.log("\n" + "=".repeat(60));

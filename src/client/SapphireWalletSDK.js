@@ -46,7 +46,7 @@ class SapphireWalletSDK {
       getWalletKeyVault: this.getWalletKeyVault.bind(this), // state variable in walletFactory contract
       getWalletStorage: this.getWalletStorage.bind(this), // state variable in walletFactory contract
       createWallet: this.createWallet.bind(this),
-      // createWalletWithHook: this.createWalletWithHook.bind(this),
+      // createWalletWithHook: this.createWalletWithHook.bind(this), // make private - not yet callable 
       // createWalletCore: this.createWalletCore.bind(this),
       // createWalletWithCustomLogic: this.createWalletWithCustomLogic.bind(this),
       walletCount: this.walletCount.bind(this),
@@ -157,6 +157,89 @@ class SapphireWalletSDK {
         seed, // bytes seed
         authenticator, // address authenticator
         authConfig // bytes authConfig
+      );
+      
+      // Wait for transaction
+      const receipt = await tx.wait();
+
+      // Parse WalletCreated event
+      const eventData = parseWalletCreatedEvent(receipt, factory);
+      
+      if (!eventData) {
+        throw new Error('WalletCreated event not found in transaction receipt');
+      }
+
+      // TODO: hash the mnemonic and return it hashed? 
+      
+      // Build result
+      const result = {
+        success: true,
+        wallet: eventData.wallet,
+        mnemonic: mnemonic,
+        authenticator: eventData.authenticator,
+        keyVault: eventData.keyVault,
+        storage: eventData.storage,
+        transactionHash: receipt.hash,
+        blockNumber: receipt.blockNumber,
+        gasUsed: receipt.gasUsed.toString()
+      };
+      
+      return result;
+    } catch (error) {
+      throw new Error(`Failed to create wallet: ${error.message}`);
+    }
+  }
+
+
+  /**
+   * Create a new HD wallet with a post-creation hook
+   * 
+   * Deploys complete wallet stack:
+   *      1. WalletStorage (holds keys, locked to KeyVault)
+   *      2. KeyVault (auth + signing, user-upgradeable)
+   *      4. WalletLogic proxy (orchestration, admin-upgradeable)
+   * 
+   * The hook is called after the wallet is created.
+   * 
+   * @param {Object} options - Wallet creation options
+   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
+   * @param {String} options.authenticator - Authenticator contract address (optional, dafaults to PasswordAuthenticator)
+   * @param {String} options.hook - Hook contract address
+   * @param {Bytes} options.hookData - Data for the hook
+   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   */
+  async createWalletWithHook(options = {}) {
+    const { authenticator = this.addresses.passwordAuth, authConfig, hook, hookData } = options;
+
+    if (!authConfig) {
+      throw new Error('Auth config is required');
+    }
+
+    if (!hook) {
+      throw new Error('Hook address is required');
+    }
+
+    if (!hookData) {
+      throw new Error('Hook data is required');
+    }
+
+    // Off-chain: Generate mnemonic
+    const mnemonic = generateMnemonic();
+    
+    // Off-chain: Derive seed from mnemonic
+    const seed = deriveSeed(mnemonic);
+    
+    // On-chain: Get factory contract with wrapped signer
+    const factory = getWalletFactoryContract(this.writeSigner, this.addresses.factory);
+    
+    // On-chain: Call createWallet
+    try {
+      const tx = await factory.createWalletWithHook(
+        seed, // bytes seed
+        authenticator, // address authenticator
+        authConfig, // bytes authConfig
+        hook, // address hook
+        hookData // bytes hookData
       );
       
       // Wait for transaction
