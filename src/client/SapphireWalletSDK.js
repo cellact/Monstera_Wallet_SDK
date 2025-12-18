@@ -7,11 +7,11 @@
 
 const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
-const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
+const { generateMnemonic, deriveSeed, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../contracts/core/walletFactory');
 const { getWalletLogicContract, parse_AuthenticatorChangedEvent } = require('../contracts/core/walletLogic');
 const { getWalletSignatureAuthenticatorContract, parseAddressAddedEvent, parseAddressRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
-const { ethers, Wallet, HDNodeWallet } = require('ethers');
+const { Wallet, HDNodeWallet } = require('ethers');
 const { getKeyVaultContract, parseImplementationUpgradedEvent, parseAuthenticatorChangedEvent } = require('../contracts/core/keyVault');
 const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../contracts/authenticators/PasswordAuthenticator');
 
@@ -1051,10 +1051,21 @@ class SapphireWalletSDK {
     }
   }
 
+  /**
+   * Create an auth proof for a wallet
+   * 
+   * @param {Object} options - Create auth proof options
+   * @param {String} options.authenticateFor - Wallet address to authenticate for
+   * @param {Object} options.signer - Signer (Wallet or HDNodeWallet) trying to authenticate
+   * @param {String} options.keyVault - KeyVault address of the wallet trying to authenticate
+   * @param {String} options.authenticator - Wallet signature authenticator contract address (optional, defaults to the one in the config)
+   * @param {Number} options.deadline - Deadline for the auth proof (optional, defaults to 1h from now)
+   * @param {String} options.chainId - Chain ID (optional, defaults to the one in the config)
+   * @returns {Promise<String>} Auth proof (bytes)
+   */
   async createAuthProof(options = {}) {
-    // const { authenticateFor, signer, authenticator, deadline } = options;
     const { authenticateFor, signer, keyVault } = options;
-    let { authenticator, deadline } = options;
+    let { authenticator, deadline, chainId } = options;
 
     if (!authenticateFor || typeof authenticateFor !== 'string') {
       throw new Error('Authenticate for is required and must be a string');
@@ -1081,8 +1092,12 @@ class SapphireWalletSDK {
       deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
     }
 
-    // get chainId from config
-    const chainId = this.chainId;
+    if (chainId && (typeof chainId !== 'string')) {
+      throw new Error('Chain ID must be a string');
+    } else if (!chainId) {
+      // if no chainId provided, default to the one in the config
+      chainId = this.chainId;
+    }
 
     const authProof = await createAuthProof(signer, chainId, authenticator, deadline, keyVault);
 
