@@ -1,7 +1,7 @@
 /**
- * Sapphire Wallet SDK
+ * Monstera Wallet SDK
  * 
- * Main SDK class for interacting with Oasis Sapphire wallet contracts.
+ * Main SDK class for interacting with Monstera wallet contracts.
  * Provides clean API for read and write operations.
  */
 
@@ -16,12 +16,12 @@ const { getKeyVaultContract, parseImplementationUpgradedEvent, parseAuthenticato
 const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../contracts/authenticators/PasswordAuthenticator');
 
 /**
- * Sapphire Wallet SDK
+ * Monstera Wallet SDK
  * 
  * Main entry point for wallet operations on Oasis Sapphire.
  * 
  */
-class SapphireWalletSDK {
+class Monstera {
   constructor(config) {
     this.config = config;
     this.network = config.network;
@@ -114,11 +114,11 @@ class SapphireWalletSDK {
    * @param {String} [options.rpcUrl] - Custom RPC URL (optional)
    * @param {Object} [options.addresses] - Contract addresses
    * @param {String|Object} options.signerOrProvider - Signer or provider
-   * @returns {SapphireWalletSDK} SDK instance
+   * @returns {Monstera} SDK instance
    */
   static fromConfig(options) {
     const config = createSdkConfig(options);
-    return new SapphireWalletSDK(config);
+    return new Monstera(config);
   }
 
   /**
@@ -1917,5 +1917,5 @@ class SapphireWalletSDK {
   }
 }
 
-module.exports = SapphireWalletSDK;
+module.exports = Monstera;
 

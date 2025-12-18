@@ -24,16 +24,19 @@ const NETWORKS = {
 };
 
 /**
- * Default contract addresses (can be overridden)
- * These should be set after deployment
+ * Hardcoded contract addresses for Monstera SDK
+ * These addresses are built into the SDK - users don't need to provide them.
+ * 
+ * To update addresses, modify this file and publish a new SDK version.
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    factory: '0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a',            // Set after deployment
-    passwordAuth: '0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7',       // Set after deployment
-    walletSignatureAuth: '0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a' // Set after deployment 
+    factory: '0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a',
+    passwordAuth: '0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7',
+    walletSignatureAuth: '0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a'
   },
   mainnet: {
+    // TODO: Set mainnet addresses when deployed
     factory: null,
     passwordAuth: null,
     walletSignatureAuth: null

@@ -14,7 +14,7 @@
  *   - Post-creation hook (called after wallet is created)
  */
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index');
+const { Monstera } = require('../src/index');
 const { ethers } = require('ethers');
 
 // ============ CONFIGURATION ============
@@ -22,7 +22,7 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.TEST_PASSWORD;
 const HOOK_ADDRESS = process.env.HOOK_ADDRESS || ""; // your hook contract address; hook Contract implementing IWalletCreationHook (or address(0) to skip)
 
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: 'testnet',
   signerOrProvider: SIGNER_PRIVATE_KEY
 });

@@ -6,14 +6,14 @@
  */
 
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index');
+const { Monstera } = require('../src/index');
 
 async function networkSwitchingExample() {
   console.log('=== Network Switching Example ===\n');
 
   // Example 1: Testnet configuration
   console.log('1. Creating testnet SDK instance...');
-  const testnetSdk = SapphireWalletSDK.fromConfig({
+  const testnetSdk = Monstera.fromConfig({
     network: 'testnet',
     addresses: {
       factory: process.env.FACTORY_CONTRACT_ADDRESS_TESTNET,
@@ -29,7 +29,7 @@ async function networkSwitchingExample() {
 
   // Example 2: Mainnet configuration
   console.log('2. Creating mainnet SDK instance...');
-  const mainnetSdk = SapphireWalletSDK.fromConfig({
+  const mainnetSdk = Monstera.fromConfig({
     network: 'mainnet',
     addresses: {
       factory: process.env.FACTORY_CONTRACT_ADDRESS_MAINNET,
@@ -45,7 +45,7 @@ async function networkSwitchingExample() {
 
   // Example 3: Custom RPC URL (for local development or custom endpoints)
   console.log('3. Creating SDK with custom RPC URL...');
-  const customSdk = SapphireWalletSDK.fromConfig({
+  const customSdk = Monstera.fromConfig({
     network: 'testnet',
     rpcUrl: 'https://custom-rpc-endpoint.com', // Override default RPC
     addresses: {

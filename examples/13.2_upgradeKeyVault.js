@@ -19,7 +19,7 @@
  * 
  */
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index');
+const { Monstera } = require('../src/index');
 const { ethers } = require('ethers');
 
 const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
@@ -27,7 +27,7 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const PASSWORD = process.env.TEST_PASSWORD || "";
 const NEW_KEYVAULT_IMPL_ADDRESS = process.env.NEW_KEYVAULT_IMPL_ADDRESS || "";
 
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: 'testnet',
   signerOrProvider: SIGNER_PRIVATE_KEY
 });

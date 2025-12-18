@@ -1,10 +1,10 @@
 /**
- * Sapphire Wallet SDK - New Architecture
+ * Monstera SDK - Main Entry Point
  * 
  * Main exports for the new SDK structure
  */
 
-const SapphireWalletSDK = require('./client/SapphireWalletSDK');
+const Monstera = require('./client/Monstera');
 
 // Export config utilities
 const { NETWORKS, createSdkConfig } = require('./config/networks');
@@ -34,7 +34,7 @@ const {
 
 module.exports = {
   // Main SDK class
-  SapphireWalletSDK,
+  Monstera,
   
   // Config utilities
   NETWORKS,

@@ -9,13 +9,13 @@
  *   SIGNER_PRIVATE_KEY=0x... (required)
  */
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index');
+const { Monstera } = require('../src/index');
 
 const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
 const INDEX = parseInt(process.env.INDEX || "0");
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: 'testnet',
   signerOrProvider: SIGNER_PRIVATE_KEY
 });

@@ -1,35 +1,49 @@
-# Sapphire Wallet SDK
+# Monstera SDK
 
-A TypeScript/JavaScript SDK for interacting with wallet smart contracts on Oasis Sapphire. Provides a clean API for creating and managing wallets with encrypted transaction support.
+[![npm version](https://img.shields.io/npm/v/@monstera/sdk.svg)](https://www.npmjs.com/package/@monstera/sdk)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
+A JavaScript SDK for interacting with wallet smart contracts on Oasis Sapphire. Monstera provides a clean, type-safe API for creating and managing wallets with built-in support for encrypted transactions via Sapphire's confidential computing.
 
 ## Features
 
-- ✅ **One-line network switching** between `sapphire-testnet` and `sapphire-mainnet`
-- ✅ **Single config** defining RPC + chain + contract addresses
-- ✅ **Clean API surface**: read methods (public queries) and write methods (encrypted transactions via Sapphire wrapper)
-- ✅ **First-class support** for `createWallet()` via `WalletFactory.createWallet()`
-- ✅ **Modular architecture** with separation of concerns
+- 🔐 **Encrypted Transactions** - Automatic Sapphire wrapper integration for confidential transactions
+- 🌐 **Network Support** - Built-in support for Sapphire testnet and mainnet
+- 🔑 **Wallet Management** - Create, manage, and interact with smart contract wallets
+- 🔒 **Multiple Authenticators** - Support for password and wallet signature authentication
+- 📦 **Modular Architecture** - Clean separation of concerns with extensible design
+- ⚡ **Easy Integration** - Simple API with comprehensive error handling
 
 ## Installation
 
 ```bash
-npm install @arnacon/wallet-sdk
+npm install @monstera/sdk
+```
+
+### Peer Dependencies
+
+Monstera requires either `ethers` or `web3` as a peer dependency:
+
+```bash
+# Using ethers (recommended)
+npm install ethers
+
+# Or using web3
+npm install web3
 ```
 
 ## Quick Start
 
-### Basic Usage
+### Simple Usage (Recommended)
+
+Contract addresses are **hardcoded** - no configuration needed! Just install and use:
 
 ```javascript
-const { SapphireWalletSDK } = require('@arnacon/wallet-sdk');
+const { Monstera } = require('@monstera/sdk');
 
-// Create SDK instance
-const sdk = SapphireWalletSDK.fromConfig({
+// Create SDK instance for testnet
+const sdk = Monstera.fromConfig({
   network: 'testnet', // or 'mainnet'
-  addresses: {
-    factory: '0x...', // Factory contract address
-    passwordAuth: '0x...' // Password authenticator address
-  },
   signerOrProvider: '0x...' // Private key or Signer instance
 });
 
@@ -39,23 +53,24 @@ const result = await sdk.wallets.createWallet({
 });
 
 console.log('Wallet Address:', result.wallet);
-console.log('Transaction:', result.transactionHash);
+console.log('Transaction Hash:', result.transactionHash);
+console.log('Block Number:', result.blockNumber);
 ```
 
 ### Network Switching
 
 ```javascript
-// Testnet
-const testnetSdk = SapphireWalletSDK.fromConfig({
+const { Monstera } = require('@monstera/sdk');
+
+// Testnet configuration
+const testnetSdk = Monstera.fromConfig({
   network: 'testnet',
-  addresses: { /* testnet addresses */ },
   signerOrProvider: privateKey
 });
 
-// Mainnet
-const mainnetSdk = SapphireWalletSDK.fromConfig({
+// Mainnet configuration
+const mainnetSdk = Monstera.fromConfig({
   network: 'mainnet',
-  addresses: { /* mainnet addresses */ },
   signerOrProvider: privateKey
 });
 ```
@@ -79,13 +94,77 @@ The SDK is organized into modular components:
 - **Write operations**: Automatically use Sapphire-wrapped signer for encrypted transactions
 - **Network switching**: Single config parameter (`'testnet'` or `'mainnet'`)
 
+## Configuration
+
+### Network Presets
+
+The SDK includes presets for both networks:
+
+- **Testnet**: Chain ID `23295`, RPC `https://testnet.sapphire.oasis.dev`
+- **Mainnet**: Chain ID `23294`, RPC `https://sapphire.oasis.io`
+
+### Address Overrides
+
+You can override default addresses when creating the SDK:
+
+```javascript
+const sdk = Monstera.fromConfig({
+  network: 'testnet',
+  signerOrProvider: privateKey
+});
+```
+
+### Custom RPC URLs
+
+Override the default RPC URL:
+
+```javascript
+const sdk = Monstera.fromConfig({
+  network: 'testnet',
+  rpcUrl: 'https://custom-rpc-endpoint.com',
+  addresses: { /* ... */ },
+  signerOrProvider: privateKey
+});
+```
+
+## Examples
+
+The SDK includes comprehensive examples in the `/examples` directory:
+
+- **`1_createHDWallet.js`** - Create a hierarchical deterministic wallet
+- **`1.2_createWalletWithHook.js`** - Create wallet with initialization hook
+- **`1.3_createWalletCore.js`** - Create wallet core functionality
+- **`1.4_createWalletCustom.js`** - Create wallet with custom logic
+- **`2_useWallet.js`** - Basic wallet usage examples
+- **`3_useWalletSigAuth.js`** - Wallet signature authentication
+- **`network-switching.js`** - Switch between testnet and mainnet
+- **`walletLogicMethods.js`** - Wallet logic contract methods
+- **`keyVaultMethods.js`** - Key vault operations
+- **`factoryMethods.js`** - Factory contract methods
+
+### Running Examples
+
+```bash
+# Set up environment variables
+export SIGNER_PRIVATE_KEY=0x...
+export TEST_PASSWORD=your-secure-password
+
+# Run an example
+node examples/1_createHDWallet.js
+```
+
+## Documentation
+
+- [createWallet() Method](./docs/createWallet.md) - Detailed documentation for wallet creation
+- [Network Switching Guide](./docs/network-switching.md) - How to switch between networks
+
 ## API Reference
 
-### SapphireWalletSDK
+### Monstera
 
 Main SDK class for wallet operations.
 
-#### `SapphireWalletSDK.fromConfig(options)`
+#### `Monstera.fromConfig(options)`
 
 Create an SDK instance from configuration.
 
@@ -97,9 +176,7 @@ Create an SDK instance from configuration.
 - `signerOrProvider` (required): Private key string, Signer, or Provider instance
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
 
-**Returns:** `SapphireWalletSDK` instance
-
-### Wallet Operations
+**Returns:** `Monstera` instance
 
 #### `sdk.wallets.createWallet(options)`
 
@@ -123,62 +200,44 @@ Create a new wallet.
 }
 ```
 
-**Example:**
-```javascript
-const result = await sdk.wallets.createWallet({
-  password: 'my-password',
-  returnMnemonic: false
-});
-```
+### Exports
 
-## Configuration
-
-### Network Presets
-
-The SDK includes presets for both networks:
-
-- **Testnet**: Chain ID `23295`, RPC `https://testnet.sapphire.oasis.io`
-- **Mainnet**: Chain ID `23294`, RPC `https://sapphire.oasis.io`
-
-### Address Overrides
-
-You can override default addresses when creating the SDK:
+The SDK exports the following:
 
 ```javascript
-const sdk = SapphireWalletSDK.fromConfig({
-  network: 'testnet',
-  addresses: {
-    factory: '0x...', // Your deployed factory address
-    passwordAuth: '0x...' // Your deployed password auth address
-  },
-  signerOrProvider: privateKey
-});
+const {
+  // Main SDK class
+  Monstera,
+  
+  // Configuration
+  NETWORKS,
+  createSdkConfig,
+  
+  // Providers
+  getReadProvider,
+  getWriteSigner,
+  
+  // Crypto utilities
+  generateMnemonic,
+  deriveSeed,
+  hashPassword,
+  
+  // Contract utilities
+  getWalletFactoryContract,
+  getWalletLogicContract,
+  getWalletSignatureAuthenticatorContract,
+  getKeyVaultContract,
+  getPasswordAuthenticatorContract,
+  
+  // Error classes
+  WalletError,
+  ContractError,
+  ValidationError,
+  ConfigurationError,
+  NetworkError,
+  TransactionError
+} = require('@monstera/sdk');
 ```
-
-### Custom RPC URLs
-
-Override the default RPC URL:
-
-```javascript
-const sdk = SapphireWalletSDK.fromConfig({
-  network: 'testnet',
-  rpcUrl: 'https://custom-rpc-endpoint.com',
-  addresses: { /* ... */ },
-  signerOrProvider: privateKey
-});
-```
-
-## Examples
-
-See the `/examples` directory for complete examples:
-
-- `createWallet-new.js` - Create wallet example
-- `network-switching.js` - Network switching examples
-
-## Documentation
-
-- [createWallet() Method](./docs/createWallet.md) - Detailed documentation for wallet creation
-- [Network Switching Guide](./docs/network-switching.md) - How to switch between networks
 
 ## Security Considerations
 
@@ -243,7 +302,23 @@ This means:
 
 See the [LICENSE](LICENSE) file for the full text.
 
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
 ## Support
 
-For issues and questions, please open an issue on GitHub.
+- 📖 [Documentation](./docs/)
+- 🐛 [Report Issues](https://github.com/Ariana0699/Wallet_SDK_JavaScript/issues)
+- 💬 [Discussions](https://github.com/Ariana0699/Wallet_SDK_JavaScript/discussions)
+
+## Changelog
+
+See [CHANGELOG.md](./CHANGELOG.md) for a list of changes and version history.
+
+## Acknowledgments
+
+- Built for [Oasis Sapphire](https://docs.oasis.io/dapp/sapphire/)
+- Uses [ethers.js](https://docs.ethers.io/) for blockchain interactions
+- Powered by [Sapphire Confidential Computing](https://docs.oasis.io/dapp/sapphire/)
 

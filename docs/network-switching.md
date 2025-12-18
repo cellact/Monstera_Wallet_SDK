@@ -25,9 +25,9 @@ The Sapphire Wallet SDK supports easy switching between Oasis Sapphire testnet a
 ### Creating SDK Instance for Testnet
 
 ```javascript
-const { SapphireWalletSDK } = require('@arnacon/wallet-sdk');
+const { Monstera } = require('@arnacon/wallet-sdk');
 
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: 'testnet',
   addresses: {
     factory: '0x...', // Testnet factory address
@@ -40,7 +40,7 @@ const sdk = SapphireWalletSDK.fromConfig({
 ### Creating SDK Instance for Mainnet
 
 ```javascript
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: 'mainnet',
   addresses: {
     factory: '0x...', // Mainnet factory address
@@ -69,7 +69,7 @@ const sdk = SapphireWalletSDK.fromConfig({
 You can override the default RPC URL for any network:
 
 ```javascript
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: 'testnet',
   rpcUrl: 'https://custom-rpc-endpoint.com', // Custom RPC
   addresses: {
@@ -89,7 +89,7 @@ require('dotenv').config();
 
 const network = process.env.NETWORK || 'testnet'; // 'testnet' or 'mainnet'
 
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: network,
   addresses: {
     factory: process.env[`FACTORY_ADDRESS_${network.toUpperCase()}`],
@@ -125,14 +125,14 @@ Each SDK instance is configured for a specific network. To switch networks, crea
 
 ```javascript
 // Testnet instance
-const testnetSdk = SapphireWalletSDK.fromConfig({
+const testnetSdk = Monstera.fromConfig({
   network: 'testnet',
   addresses: { /* testnet addresses */ },
   signerOrProvider: privateKey
 });
 
 // Mainnet instance
-const mainnetSdk = SapphireWalletSDK.fromConfig({
+const mainnetSdk = Monstera.fromConfig({
   network: 'mainnet',
   addresses: { /* mainnet addresses */ },
   signerOrProvider: privateKey
@@ -161,7 +161,7 @@ function createSdkForNetwork(network) {
     }
   };
 
-  return SapphireWalletSDK.fromConfig({
+  return Monstera.fromConfig({
     network,
     addresses: addresses[network],
     signerOrProvider: process.env.SIGNER_PRIVATE_KEY
@@ -178,7 +178,7 @@ The SDK validates that required contract addresses are provided:
 
 ```javascript
 try {
-  const sdk = SapphireWalletSDK.fromConfig({
+  const sdk = Monstera.fromConfig({
     network: 'testnet',
     addresses: {
       // Missing factory address
@@ -195,7 +195,7 @@ try {
 You can access network information from the SDK instance:
 
 ```javascript
-const sdk = SapphireWalletSDK.fromConfig({ /* config */ });
+const sdk = Monstera.fromConfig({ /* config */ });
 
 console.log('Network:', sdk.network);        // 'sapphire-testnet' or 'sapphire-mainnet'
 console.log('Chain ID:', sdk.chainId);       // 23295 (testnet) or 23294 (mainnet)

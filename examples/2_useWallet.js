@@ -13,7 +13,7 @@
  */
 
 require('dotenv').config();
-const { SapphireWalletSDK } = require('../src/index');
+const { Monstera } = require('../src/index');
 const { ethers, HDNodeWallet, Mnemonic } = require('ethers');
 
 // ============ CONFIGURATION ============
@@ -22,7 +22,7 @@ const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
 const PASSWORD = process.env.TEST_PASSWORD || "";
 const MNEMONIC = process.env.TEST_MNEMONIC || "";
 
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: 'testnet',
   signerOrProvider: SIGNER_PRIVATE_KEY
 });

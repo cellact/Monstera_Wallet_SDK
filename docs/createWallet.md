@@ -78,9 +78,9 @@ await sdk.wallets.createWallet({
 ### Basic Usage
 
 ```javascript
-const { SapphireWalletSDK } = require('@arnacon/wallet-sdk');
+const { Monstera } = require('@arnacon/wallet-sdk');
 
-const sdk = SapphireWalletSDK.fromConfig({
+const sdk = Monstera.fromConfig({
   network: 'testnet',
   addresses: {
     factory: '0x...',
