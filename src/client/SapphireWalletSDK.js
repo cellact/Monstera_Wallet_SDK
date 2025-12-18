@@ -10,7 +10,7 @@ const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { generateMnemonic, deriveSeed, hashPassword, createAuthProof } = require('../crypto/wallet');
 const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../contracts/core/walletFactory');
 const { getWalletLogicContract, parse_AuthenticatorChangedEvent } = require('../contracts/core/walletLogic');
-const { getWalletSignatureAuthenticatorContract, parseWhitelistRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
+const { getWalletSignatureAuthenticatorContract, parseAddressRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
 const { getKeyVaultContract, parseImplementationUpgradedEvent, parseAuthenticatorChangedEvent } = require('../contracts/core/keyVault');
 const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../contracts/authenticators/PasswordAuthenticator');
@@ -697,7 +697,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Get the authenticator address
+   * Get the current authenticator address for a wallet
    * 
    * @param {Object} options - Authenticator options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -721,7 +721,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Get account address from wallet
+   * Get account address at an index from wallet
    * 
    * @param {Object} options - Account address options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -786,7 +786,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Sign a raw transaction with an account's private key
+   * Sign a raw transaction with an account's private key (authenticated function)
    * 
    * @param {Object} options - Sign transaction options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -903,7 +903,7 @@ class SapphireWalletSDK {
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
    * @param {Number} options.index - Account index
-   * @param {Bytes} options.hash - Hash to sign
+   * @param {Bytes32} options.hash - Hash to sign
    * @returns {Promise<String>} Signed message
    */
   async sign(options = {}) {
@@ -996,8 +996,6 @@ class SapphireWalletSDK {
     } catch (error) {
       throw new Error(`Failed to change authenticator: ${error.message}`);
     }
-    
-    
   }
 
   /**
@@ -1010,12 +1008,15 @@ class SapphireWalletSDK {
    */
   async upgradeKeyVault(options = {}) {
     const { walletAddress, authProof, newImplAddr } = options;
+
     if (!walletAddress || typeof walletAddress !== 'string') {
       throw new Error('Wallet address is required');
     }
+
     if (!authProof) {
       throw new Error('Auth proof is required');
     }
+
     if (!newImplAddr || typeof newImplAddr !== 'string') {
       throw new Error('New key vault address is required');
     }
@@ -1198,7 +1199,21 @@ class SapphireWalletSDK {
 
     try {
       const tx = await walletSigAuth.addToWhitelist(keyVaultAddress, authProof, newAddress);
+
+      // Wait for transaction
       const receipt = await tx.wait();
+
+      // TODO: Parse AddressAdded event
+      // const eventData = parseAddressAddedEvent(receipt, walletSigAuth);
+      
+      // if (!eventData) {
+      //   throw new Error('AddressAdded event not found in transaction receipt');
+      // }
+
+      // const result = {
+      //   success: true,
+      //   wallet: eventData.wallet,
+      //   added: eventData.added,
       
       return receipt;
     } catch (error) {
@@ -1238,8 +1253,8 @@ class SapphireWalletSDK {
       // Wait for transaction
       const receipt = await tx.wait();
 
-      // Parse WhitelistRemoved event
-      const eventData = parseWhitelistRemovedEvent(receipt, walletSigAuth);
+      // Parse AddressRemoved event
+      const eventData = parseAddressRemovedEvent(receipt, walletSigAuth);
       
       if (!eventData) {
         throw new Error('WhitelistRemoved event not found in transaction receipt');
@@ -1263,18 +1278,18 @@ class SapphireWalletSDK {
    * Check if a wallet is configured (via walletSignatureAuthenticator contract)
    * 
    * @param {Object} options - Is configured options
-   * @param {String} options.address - KeyVault address of the wallet
+   * @param {String} options.keyVaultAddress - KeyVault address of the wallet
    * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
    */
   async isConfiguredWalletSigAuth(options = {}) {
-    const { address } = options;
-    if (!address || typeof address !== 'string') {
+    const { keyVaultAddress } = options;
+    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
       throw new Error(' address is required');
     }
 
     const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
     try {
-      const isConfigured = await walletSigAuth.isConfigured(address);
+      const isConfigured = await walletSigAuth.isConfigured(keyVaultAddress);
       return isConfigured;
     } catch (error) {
       throw new Error(`Failed to check if wallet is configured: ${error.message}`);
@@ -1282,7 +1297,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Check if an address is whitelisted
+   * Check if an address is whitelisted for a wallet
    * 
    * @param {Object} options - Is whitelisted options
    * @param {String} options.keyVaultAddress - Key vault address 
@@ -1311,7 +1326,7 @@ class SapphireWalletSDK {
   }
 
   /**
-   * Get the whitelist for a wallet
+   * Get all whitelisted addresses for a wallet
    * 
    * @param {Object} options - Get whitelist options
    * @param {String} options.keyVaultAddress - Key vault address 

@@ -1,14 +1,15 @@
 /**
  * Step 2: Use the wallet (get addresses, sign messages)
+ * 
  * Run: node examples/2_useWallet.js
  * 
  * Required env vars:
- *   export WALLET_ADDRESS=0x...
- *   export PASSWORD=yourpassword
- *   export SIGNER_PRIVATE_KEY=0x...
+ *   WALLET_ADDRESS=0x...
+ *   PASSWORD=yourpassword
+ *   SIGNER_PRIVATE_KEY=0x...
  * 
  * Optional (for verification):
- *   export MNEMONIC="word1 word2 ..."
+ *   MNEMONIC="word1 word2 ..."
  */
 
 require('dotenv').config();
@@ -16,10 +17,10 @@ const { SapphireWalletSDK } = require('../src/index-new');
 const { ethers, HDNodeWallet, Mnemonic } = require('ethers');
 
 // ============ CONFIGURATION ============
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
 const PASSWORD = process.env.TEST_PASSWORD || "";
 const MNEMONIC = process.env.TEST_MNEMONIC || "";
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 
 const sdk = SapphireWalletSDK.fromConfig({
   network: 'testnet',

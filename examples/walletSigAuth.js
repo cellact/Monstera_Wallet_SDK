@@ -74,7 +74,7 @@ async function main() {
   console.log("=".repeat(70));
 
   const isConfigured = await sdk.wallets.isConfiguredWalletSigAuth({
-    address: result.keyVault
+    keyVaultAddress: result.keyVault
   });
   console.log(`   ✅ isConfigured: ${isConfigured ? "✅ Yes" : "❌ No"}`);
   if (!isConfigured) {
