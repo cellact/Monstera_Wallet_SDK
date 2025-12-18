@@ -96,7 +96,7 @@ class SapphireWalletSDK {
       isInitializedKeyVault: this.isInitializedKeyVault.bind(this), // initialized in keyVault contract; state variable in keyVault contract
       // initilizeKeyVault: this.initilizeKeyVault.bind(this), // initialize in keyVault contract - do we need this in the SDK?
       upgradeKeyVaultImpl: this.upgradeKeyVaultImpl.bind(this), // upgradeImplementation in keyVault contract
-      // changeAuthenticatorKeyVault: this.changeAuthenticatorKeyVault.bind(this), // changeAuthenticator in keyVault contract
+      changeAuthenticatorKeyVault: this.changeAuthenticatorKeyVault.bind(this), // changeAuthenticator in keyVault contract
       getAccountAddressKeyVault: this.getAccountAddressKeyVault.bind(this), // getAccountAddress in keyVault contract
       getAccountAddressesKeyVault: this.getAccountAddressesKeyVault.bind(this), // getAccountAddresses in keyVault contract
       signTransactionKeyVault: this.signTransactionKeyVault.bind(this), // signTransaction in keyVault contract
@@ -1363,8 +1363,8 @@ class SapphireWalletSDK {
       throw new Error('Auth proof is required');
     }
 
-    if (!newAuthenticatorAddr || typeof newAuthenticatorAddr !== 'string') {
-      throw new Error('New authenticator address is required');
+    if (!newAuthenticatorAddr) {
+      throw new Error('New authenticator address is required.');
     }
 
     if (!newAuthConfig) {
