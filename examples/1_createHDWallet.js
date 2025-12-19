@@ -29,6 +29,10 @@ async function main() {
   console.log("Step 1: Create a HD Wallet");
   console.log("=".repeat(60));
 
+  // Access network info if needed 
+  const networks = Monstera.NETWORKS;
+  console.log(`   Networks: ${JSON.stringify(networks, null, 2)}`);
+
   // Prepare auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
