@@ -5,11 +5,7 @@
   "main": "src/index.js",
   "type": "commonjs",
   "exports": {
-    ".": {
-      "require": "./src/index.js",
-      "import": "./src/index.js",
-      "default": "./src/index.js"
-    }
+    ".": "./src/index.js"
   },
   "files": [
     "src",
