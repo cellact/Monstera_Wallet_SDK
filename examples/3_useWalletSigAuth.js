@@ -176,7 +176,7 @@ async function main() {
       signer: allowed1Signer,
       keyVault: result.keyVault
     });
-    const addResult = await sdk.wallets.addToWhitelist({
+    const addResult = await sdk.auth.walletSignature.addToWhitelist({
       keyVaultAddress: result.keyVault,
       authProof: authProof,
       newAddress: notAllowedSigner.address
@@ -187,7 +187,7 @@ async function main() {
     console.log(`   Gas used: ${addResult.gasUsed}`);
 
     // Verify whitelist
-    const isNowWhitelisted = await sdk.wallets.isWhitelisted({
+    const isNowWhitelisted = await sdk.auth.walletSignature.isWhitelisted({
       keyVaultAddress: result.keyVault,
       addressToCheck: notAllowedSigner.address
     });
@@ -229,7 +229,7 @@ async function main() {
   console.log(`   KeyVault: ${result.keyVault}`);
   console.log(`   Mnemonic: ${result.mnemonic}`);
   console.log("\n   Current Whitelist:");
-  const currentWhitelist = await sdk.wallets.getWhitelist({
+  const currentWhitelist = await sdk.auth.walletSignature.getWhitelist({
     keyVaultAddress: result.keyVault
   });
   currentWhitelist.forEach((addr, i) => {

@@ -8,13 +8,11 @@
 const { createSdkConfig } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { createAuthProof } = require('../crypto/wallet');
-const { getWalletSignatureAuthenticatorContract, parseAddressAddedEvent, parseAddressRemovedEvent } = require('../contracts/authenticators/WalletSignatureAuthenticator');
 const { Wallet, HDNodeWallet } = require('ethers');
-// KeyVault methods moved to KeyVaultClient
-const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../contracts/authenticators/PasswordAuthenticator');
 const WalletFactoryClient = require('../packages/factory');
 const WalletLogicClient = require('../packages/logic');
 const KeyVaultClient = require('../packages/keyVault');
+const { AuthenticatorClient } = require('../packages/auth');
 const { getWalletFactoryContract } = require('../contracts/core/walletFactory');
 
 /**
@@ -47,26 +45,13 @@ class Monstera {
     // Initialize key vault client
     this.keyVault = new KeyVaultClient(this.readProvider, this.writeSigner, config);
 
+    // Initialize authenticator client registry (manages all authenticator clients)
+    this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, config);
+
     // Namespace for wallet operations
     this.wallets = {
       // SDK function - no contract call 
       createAuthProof: this.createAuthProof.bind(this),
-
-      // WalletSignatureAuthenticator functions
-      // verify: this.verify.bind(this),
-      // configure: this.configure.bind(this),
-      addToWhitelist: this.addToWhitelist.bind(this),
-      removeFromWhitelist: this.removeFromWhitelist.bind(this),
-      isConfiguredWalletSigAuth: this.isConfiguredWalletSigAuth.bind(this), // isConfigured in WalletSignatureAuthenticator contract
-      isWhitelisted: this.isWhitelisted.bind(this),
-      getWhitelist: this.getWhitelist.bind(this),
-      getDomainSeparator: this.getDomainSeparator.bind(this),
-
-      // PasswordAuthenticator functions
-      // verify: this.verify.bind(this),
-      // configure: this.configure.bind(this),
-      changePassword: this.changePassword.bind(this),
-      isConfigured: this.isConfigured.bind(this),
     };
   }
 
@@ -214,282 +199,7 @@ class Monstera {
     return authProof;
   }
 
-  /**
-   * Add a new address to the whitelist
-   * 
-   * @param {Object} options - Add to whitelist options
-   * @param {String} options.keyVaultAddress - Key vault address 
-   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
-   * @param {String} options.newAddress - New address to add to the whitelist
-   * @returns {Promise<Object>} Transaction receipt
-   */
-  async addToWhitelist(options = {}) {
-    const { keyVaultAddress, authProof, newAddress } = options;
-
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
-
-    // TODO: check that authProof is correct type (bytes)
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-
-    if (!newAddress || typeof newAddress !== 'string') {
-      throw new Error('New address is required');
-    }
-
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.writeSigner, this.addresses.walletSignatureAuth);
-
-    try {
-      const tx = await walletSigAuth.addToWhitelist(keyVaultAddress, authProof, newAddress);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse AddressAdded event
-      const eventData = parseAddressAddedEvent(receipt, walletSigAuth);
-      
-      if (!eventData) {
-        throw new Error('AddressAdded event not found in transaction receipt');
-      }
-
-      const result = {
-        success: true,
-        wallet: eventData.wallet,
-        added: eventData.added,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
-      return result;
-    } catch (error) {
-      throw new Error(`Failed to add to whitelist: ${error.message}`);
-    }
-  }
-
-  /**
-   * Remove an address from the whitelist
-   * 
-   * @param {Object} options - Remove from whitelist options
-   * @param {String} options.keyVaultAddress - Key vault address 
-   * @param {Bytes} options.authProof - raw password bytes (utf8 encoded string)
-   * @param {String} options.addressToRemove - Address to remove from the whitelist
-   * @returns {Promise<Object>} Transaction receipt
-   */
-  async removeFromWhitelist(options = {}) {
-    const { keyVaultAddress, authProof, addressToRemove } = options;
-
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
-  
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-
-    if (!addressToRemove || typeof addressToRemove !== 'string') {
-      throw new Error('Address is required');
-    }
-
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.writeSigner, this.addresses.walletSignatureAuth);
-
-    try {
-      const tx = await walletSigAuth.removeFromWhitelist(keyVaultAddress, authProof, addressToRemove);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse AddressRemoved event
-      const eventData = parseAddressRemovedEvent(receipt, walletSigAuth);
-      
-      if (!eventData) {
-        throw new Error('WhitelistRemoved event not found in transaction receipt');
-      }
-
-      const result = {
-        success: true,
-        wallet: eventData.wallet,
-        removed: eventData.removed,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
-      return result;
-    } catch (error) {
-      throw new Error(`Failed to remove from whitelist: ${error.message}`);
-    }
-  }
-
-  /**
-   * Check if a wallet is configured (via walletSignatureAuthenticator contract)
-   * 
-   * @param {Object} options - Is configured options
-   * @param {String} options.keyVaultAddress - KeyVault address of the wallet
-   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
-   */
-  async isConfiguredWalletSigAuth(options = {}) {
-    const { keyVaultAddress } = options;
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error(' address is required');
-    }
-
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
-    try {
-      const isConfigured = await walletSigAuth.isConfigured(keyVaultAddress);
-      return isConfigured;
-    } catch (error) {
-      throw new Error(`Failed to check if wallet is configured: ${error.message}`);
-    }
-  }
-
-  /**
-   * Check if an address is whitelisted for a wallet
-   * 
-   * @param {Object} options - Is whitelisted options
-   * @param {String} options.keyVaultAddress - Key vault address 
-   * @param {String} options.addressToCheck - Address to check if it is whitelisted
-   * @returns {Promise<Boolean>} True if address is whitelisted, false otherwise
-   */
-  async isWhitelisted(options = {}) {
-    const { keyVaultAddress, addressToCheck } = options;
-
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
-
-    if (!addressToCheck || typeof addressToCheck !== 'string') {
-      throw new Error('Address to check is required');
-    }
-
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
-
-    try {
-      const isWhitelisted = await walletSigAuth.isWhitelisted(keyVaultAddress, addressToCheck);
-      return isWhitelisted;
-    } catch (error) {
-      throw new Error(`Failed to check if address is whitelisted: ${error.message}`);
-    }
-  }
-
-  /**
-   * Get all whitelisted addresses for a wallet
-   * 
-   * @param {Object} options - Get whitelist options
-   * @param {String} options.keyVaultAddress - Key vault address 
-   * @returns {Promise<Array<String>>} Whitelist addresses
-   */
-  async getWhitelist(options = {}) {
-    const { keyVaultAddress } = options;
-
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
-    
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
-
-    try {
-      const whitelist = await walletSigAuth.getWhitelist(keyVaultAddress);
-      return whitelist;
-    } catch (error) {
-      throw new Error(`Failed to get whitelist: ${error.message}`);
-    }
-  }
-
-  /**
-   * Get the EIP-712 domain seperator
-   * 
-   * @returns {Promise<Bytes32>} EIP-712 domain seperator
-   */
-  async getDomainSeparator() {
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
-
-    try {
-      const domainSeparator = await walletSigAuth.domainSeparator();
-      return domainSeparator;
-    } catch (error) {
-      throw new Error(`Failed to get domain separator: ${error.message}`);
-    }
-  }
-
-  /**
-   * Change the password of a wallet
-   * 
-   * @param {Object} options - Change password options
-   * @param {String} options.address - KeyVault address of the wallet
-   * @param {Bytes} options.currentPassword - raw password bytes (utf8 encoded string)
-   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
-   * @returns {Promise<Object>} Change password result
-   */
-  async changePassword(options = {}) {
-    const { keyVaultAddress, currentPassword, newPasswordHash } = options;
-
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
-
-    if (!currentPassword) {
-      throw new Error('Current password is required');
-    }
-
-    if (!newPasswordHash) {
-      throw new Error('New password hash is required');
-    }
-
-    const passwordAuth = getPasswordAuthenticatorContract(this.writeSigner, this.addresses.passwordAuth);
-
-    try {
-      const tx = await passwordAuth.changePassword(keyVaultAddress, currentPassword, newPasswordHash);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse PasswordChanged event
-      const eventData = parsePasswordChangedEvent(receipt, passwordAuth);
-      
-      if (!eventData) {
-        throw new Error('PasswordChanged event not found in transaction receipt');
-      }
-
-      const result = {
-        success: true,
-        walletAddress: eventData.wallet,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
-
-      return result;
-    } catch (error) {
-      throw new Error(`Failed to change password: ${error.message}`);
-    }
-  }
-
-  /**
-   * Check if a wallet is configured (via passwordAuthenticator contract)
-   * 
-   * @param {Object} options - Check if wallet is configured options
-   * @param {String} options.keyVaultAddress - KeyVault contract address 
-   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
-   */
-  async isConfigured(options = {}) {
-    const { keyVaultAddress } = options;
-
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
-
-    const passwordAuth = getPasswordAuthenticatorContract(this.readProvider, this.addresses.passwordAuth);
-
-    try {
-      const isConfigured = await passwordAuth.isConfigured(keyVaultAddress);
-      return isConfigured;
-    } catch (error) {
-      throw new Error(`Failed to check if wallet is configured: ${error.message}`);
-    }
-  }
-
-  // KeyVault methods moved to KeyVaultClient
+  // Authenticator methods moved to authenticator clients
 }
 
 module.exports = Monstera;
