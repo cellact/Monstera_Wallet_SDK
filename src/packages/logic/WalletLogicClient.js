@@ -17,7 +17,7 @@ class WalletLogicClient {
   }
 
   /**
-   * Get the keyVault contract address for a wallet (from wallet logic)
+   * Get the keyVault contract address for a wallet 
    * 
    * @param {Object} options - KeyVault options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -201,7 +201,7 @@ class WalletLogicClient {
   }
 
   /**
-   * Sign EIP-191 personal message with an account's private key
+   * Sign EIP-191 personal message with an account's private key (authenticated function)
    * 
    * @param {Object} options - Sign message options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -241,7 +241,7 @@ class WalletLogicClient {
   }
 
   /**
-   * Sign a 32-byte hash with an account's private key
+   * Sign a 32-byte hash with an account's private key (authenticated function)
    * 
    * @param {Object} options - Sign hash options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -281,7 +281,7 @@ class WalletLogicClient {
   }
 
   /**
-   * Change the authenticator (User-only) (via walletLogic contract)
+   * Change the authenticator (authenticated function)
    * 
    * @param {Object} options - Change authenticator options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -343,14 +343,14 @@ class WalletLogicClient {
   }
 
   /**
-   * Upgrade the keyVaultImplementation (via walletLogic contract) (User-only)
+   * Upgrade the keyVaultImplementation (authenticated function)
    * 
    * @param {Object} options - Upgrade keyVault implementation options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
    * @param {String} options.newImplAddr - New keyVault contract address
-   * @returns {Promise<Object>} Upgrade keyVault result
+   * @returns {Promise<Object>} Upgrade keyVaultImplementation result
    */
-  async upgradeKeyVault(options = {}) {
+  async upgradeKeyVaultImpl(options = {}) {
     const { walletAddress, authProof, newImplAddr } = options;
 
     if (!walletAddress || typeof walletAddress !== 'string') {
@@ -396,7 +396,7 @@ class WalletLogicClient {
   }
 
   /**
-   * Get the keyVault contract address for a wallet (from wallet logic)
+   * Get the keyVault contract address for a wallet
    * 
    * @param {Object} options - KeyVault options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -420,7 +420,7 @@ class WalletLogicClient {
   }
 
   /**
-   * Check if a wallet is initialized (via walletLogic contract)
+   * Check if a wallet is initialized
    * 
    * @param {Object} options - Is initialized options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -444,14 +444,14 @@ class WalletLogicClient {
   }
 
   /**
-   * Initialize a wallet logic with a new keyVault (via walletLogic contract)
+   * Initialize a wallet logic with a new keyVault 
    * 
    * @param {Object} options - Initialize wallet logic options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
    * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @returns {Promise<Object>} Initialize wallet logic result
    */
-  async initializeWalletLogic(options = {}) {
+  async initialize(options = {}) {
     const { walletAddress, keyVaultAddress } = options;
 
     if (!walletAddress || typeof walletAddress !== 'string') {

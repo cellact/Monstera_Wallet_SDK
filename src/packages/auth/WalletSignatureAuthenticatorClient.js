@@ -125,7 +125,7 @@ class WalletSignatureAuthenticatorClient {
   }
 
   /**
-   * Check if a wallet is configured (via walletSignatureAuthenticator contract)
+   * Check if a wallet is configured
    * 
    * @param {Object} options - Is configured options
    * @param {String} options.keyVaultAddress - KeyVault address of the wallet

@@ -100,8 +100,8 @@ async function main() {
   console.log("=".repeat(70));
 
   try {
-    // Get default storage implementation address
-    const result = await sdk.factory.getWalletStorage({
+    // Get storage contract address for a wallet
+    const result = await sdk.factory.getStorageAddr({
       walletAddress: WALLET_ADDRESS
     });
     console.log(`   ✅ Storage contract address: ${result}`);

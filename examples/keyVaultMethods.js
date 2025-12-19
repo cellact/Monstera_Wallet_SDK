@@ -82,7 +82,7 @@ async function main() {
   console.log("STEP 2: Get authenticator contract address");
   console.log("=".repeat(70));
 
-  const authenticatorAddr = await sdk.keyVault.getAuthenticatorKeyVault({
+  const authenticatorAddr = await sdk.keyVault.getAuthenticator({
     keyVaultAddress: keyVaultAddr
   });
   console.log(`   Authenticator: ${authenticatorAddr}`);
@@ -110,7 +110,7 @@ async function main() {
   console.log("STEP 4: Check if a keyVault is initialized");
   console.log("=".repeat(70));
 
-  const isInitialized = await sdk.keyVault.isInitializedKeyVault({
+  const isInitialized = await sdk.keyVault.isInitialized({
     keyVaultAddress: keyVaultAddr
   });
   console.log(`   isInitialized: ${isInitialized ? "✅ Yes" : "❌ No"}`);
@@ -124,7 +124,7 @@ async function main() {
   console.log("STEP 5: Get the account address (index 0) from the keyVault contract");
   console.log("=".repeat(70));
 
-  const accountAddress = await sdk.keyVault.getAccountAddressKeyVault({
+  const accountAddress = await sdk.keyVault.getAccountAddress({
     keyVaultAddress: keyVaultAddr,
     index: 0
   });
@@ -139,7 +139,7 @@ async function main() {
   console.log("STEP 6: Get multiple account addresses (indexes 0-4) from the keyVault contract");
   console.log("=".repeat(70));
 
-  const accountAddresses = await sdk.keyVault.getAccountAddressesKeyVault({
+  const accountAddresses = await sdk.keyVault.getAccountAddresses({
     keyVaultAddress: keyVaultAddr,
     fromIndex: 0,
     count: 5
@@ -238,7 +238,7 @@ async function main() {
   console.log(`   Gas Price: ${ethers.formatUnits(gasPrice, "gwei")} gwei`);
 
   console.log("   Requesting signature from Sapphire...");
-  const signedTransaction = await sdk.keyVault.signTransactionKeyVault({
+  const signedTransaction = await sdk.keyVault.signTransaction({
     keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
@@ -273,7 +273,7 @@ async function main() {
 
   const hash = ethers.keccak256(ethers.toUtf8Bytes("Hello from TheWallet!"));
 
-  const signedHash = await sdk.keyVault.signKeyVault({
+  const signedHash = await sdk.keyVault.sign({
     keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: 0,
@@ -292,7 +292,7 @@ async function main() {
 
   const message = "Hello from TheWallet!";
 
-  const signature = await sdk.keyVault.signMessageKeyVault({
+  const signature = await sdk.keyVault.signMessage({
     keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: 0,

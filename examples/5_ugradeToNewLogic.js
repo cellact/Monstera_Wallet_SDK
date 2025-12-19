@@ -121,7 +121,6 @@ async function main() {
   ✅ WalletStorage (immutable keys)
   ✅ Authenticators (per-wallet)
   
-  All ${await sdk.wallets.walletCount()} wallets now use the new logic!
   `);
   console.log("=".repeat(70));
 }

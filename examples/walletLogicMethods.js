@@ -64,7 +64,7 @@ async function main() {
 
   try {
     // Initialize a wallet logic contract
-    const result = await sdk.logic.initializeWalletLogic({
+    const result = await sdk.logic.initialize({
       walletAddress: WALLET_ADDRESS,
       keyVaultAddress: NEW_KEYVAULT_ADDRESS
     });

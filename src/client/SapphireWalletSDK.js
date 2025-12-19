@@ -13,7 +13,6 @@ const WalletFactoryClient = require('../packages/factory');
 const WalletLogicClient = require('../packages/logic');
 const KeyVaultClient = require('../packages/keyVault');
 const { AuthenticatorClient } = require('../packages/auth');
-const { getWalletFactoryContract } = require('../contracts/core/walletFactory');
 
 /**
  * Monstera Wallet SDK
@@ -50,7 +49,6 @@ class Monstera {
 
     // Namespace for wallet operations
     this.wallets = {
-      // SDK function - no contract call 
       createAuthProof: this.createAuthProof.bind(this),
     };
   }
@@ -68,82 +66,6 @@ class Monstera {
   static fromConfig(options) {
     const config = createSdkConfig(options);
     return new Monstera(config);
-  }
-
-  /**
-   * Get the keyVault contract address for a wallet (from wallet factory)
-   * 
-   * @param {Object} options - KeyVault options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} KeyVault contract address
-   */
-  async getWalletKeyVault(options = {}) {
-    const { walletAddress } = options;
-    if (!walletAddress || typeof walletAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
-
-    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
-
-    try {
-      const keyVaultAddr = await factory.walletKeyVault(walletAddress);
-      return keyVaultAddr;
-    } catch (error) {
-      throw new Error(`Failed to get wallet key vault address: ${error.message}`);
-    }
-  }
-
-  // /**
-  //  * Get the storage contract address for a wallet (from wallet factory)
-  //  * 
-  //  * @param {Object} options - Storage options
-  //  * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-  //  * @returns {Promise<String>} Storage contract address
-  //  */
-  // async getWalletStorage(options = {}) {
-  //   const { walletAddress } = options;
-  //   if (!walletAddress || typeof walletAddress !== 'string') {
-  //     throw new Error('Wallet address is required');
-  //   }
-
-  //   const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
-
-  //   try {
-  //     const storageAddr = await factory.walletStorage(walletAddress);
-  //     return storageAddr;
-  //   } catch (error) {
-  //     throw new Error(`Failed to get wallet storage address: ${error.message}`);
-  //   }
-  // }
-
-  // /**
-  //  * Get the beacon address for a wallet (from wallet factory)
-  //  * 
-  //  * The beacon controlling WalletLogic upgrades
-  //  * 
-  //  * @returns {Promise<String>} Beacon address
-  //  */
-  // async getBeaconAddr() {
-
-  //   const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
-
-  //   try {
-  //     const beaconAddr = await factory.beacon();
-  //     return beaconAddr;
-  //   } catch (error) {
-  //     throw new Error(`Failed to get beacon address: ${error.message}`);
-  //   }
-  // }
-
-  async getDefaultKeyVaultImplAddr() {
-    const factory = getWalletFactoryContract(this.readProvider, this.addresses.factory);
-
-    try {
-      const defaultKeyVaultImpl = await factory.getDefaultKeyVaultImpl();
-      return defaultKeyVaultImpl;
-    } catch (error) {
-      throw new Error(`Failed to get default key vault implementation: ${error.message}`);
-    }
   }
 
   /**
@@ -199,7 +121,6 @@ class Monstera {
     return authProof;
   }
 
-  // Authenticator methods moved to authenticator clients
 }
 
 module.exports = Monstera;

@@ -15,8 +15,10 @@ class KeyVaultClient {
     this.addresses = config.addresses;
   }
 
+  // TODO: add initialize method
+
   /**
-   * Get the storage contract address holding the keys (from keyVault contract)
+   * Get the storage contract address holding the keys
    * 
    * @param {Object} options - Get storage address options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -40,13 +42,13 @@ class KeyVaultClient {
   }
 
   /**
-   * Get the authenticator contract address for a wallet (from keyVault contract)
+   * Get the authenticator contract address for a wallet 
    * 
    * @param {Object} options - Get authenticator options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @returns {Promise<String>} Authenticator address
    */
-  async getAuthenticatorKeyVault(options = {}) {
+  async getAuthenticator(options = {}) {
     const { keyVaultAddress } = options;
 
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
@@ -64,7 +66,7 @@ class KeyVaultClient {
   }
 
   /**
-   * Get the current KeyVaultImplementation contract address (from keyVault contract)
+   * Get the current KeyVaultImplementation contract address
    * 
    * @param {Object} options - Get implementation options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -89,13 +91,13 @@ class KeyVaultClient {
   }
 
   /**
-   * Check if a given keyVault is initialized (from keyVault contract)
+   * Check if a given keyVault is initialized 
    * 
    * @param {Object} options - Check if keyVault is initialized options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @returns {Promise<Boolean>} True if keyVault is initialized, false otherwise
    */
-  async isInitializedKeyVault(options = {}) {
+  async isInitialized(options = {}) {
     const { keyVaultAddress } = options;
 
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
@@ -113,7 +115,7 @@ class KeyVaultClient {
   }
 
   /**
-   * Upgrade the keyVaultImplementation contract address (via keyVault contract) (User-only)
+   * Upgrade the keyVaultImplementation contract address (authenticated function)
    * 
    * @param {Object} options - Upgrade keyVaultImplementation options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -166,7 +168,7 @@ class KeyVaultClient {
   }
 
   /**
-   * Change the authenticator (via keyVault contract) (User-only)
+   * Change the authenticator (Authenticated function)
    * 
    * @param {Object} options - Change authenticator options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -175,7 +177,7 @@ class KeyVaultClient {
    * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
    * @returns {Promise<Object>} Change authenticator result
    */
-  async changeAuthenticatorKeyVault(options = {}) {
+  async changeAuthenticator(options = {}) {
     const { keyVaultAddress, authProof, newAuthenticatorAddr, newAuthConfig } = options;
 
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
@@ -224,14 +226,14 @@ class KeyVaultClient {
   }
 
   /**
-   * Get one of a wallet's account addresses for a given index (from keyVault contract)
+   * Get one of a wallet's account addresses for a given index
    * 
    * @param {Object} options - Get account address options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @param {Number} options.index - Account index (uint32)
    * @returns {Promise<String>} Account address
    */
-  async getAccountAddressKeyVault(options = {}) {
+  async getAccountAddress(options = {}) {
     const { keyVaultAddress, index } = options;
 
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
@@ -254,7 +256,7 @@ class KeyVaultClient {
   }
 
   /**
-   * Get multiple account addresses from a wallet for a given range of indexes (from keyVault contract)
+   * Get multiple account addresses from a wallet for a given range of indexes
    * 
    * @param {Object} options - Get account addresses options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -262,7 +264,7 @@ class KeyVaultClient {
    * @param {Number} options.count - Count (uint32)
    * @returns {Promise<Array<String>>} Array of account addresses
    */
-  async getAccountAddressesKeyVault(options = {}) {
+  async getAccountAddresses(options = {}) {
     const { keyVaultAddress, fromIndex, count } = options;
 
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
@@ -289,7 +291,7 @@ class KeyVaultClient {
   }
 
   /**
-   * Sign a transaction (from keyVault contract) (authenticated function)
+   * Sign a transaction (authenticated function)
    * 
    * @param {Object} options - Sign transaction options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -304,7 +306,7 @@ class KeyVaultClient {
    * @param {Number} options.chainId - Chain ID (uint256)
    * @returns {Promise<Bytes>} Signed transaction (bytes)
    */
-  async signTransactionKeyVault(options = {}) {
+  async signTransaction(options = {}) {
     const { keyVaultAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId } = options;
 
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
@@ -358,7 +360,7 @@ class KeyVaultClient {
   }
 
   /**
-   * Sign a 32-byte hash (from keyVault contract) (authenticated function)
+   * Sign a 32-byte hash (authenticated function)
    * 
    * @param {Object} options - Sign hash options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -367,7 +369,7 @@ class KeyVaultClient {
    * @param {Bytes32} options.hash - Hash to sign (bytes32)
    * @returns {Promise<Bytes>} Signed hash (bytes)
    */
-  async signKeyVault(options = {}) {
+  async sign(options = {}) {
     const { keyVaultAddress, authProof, index, hash } = options;
 
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
@@ -398,7 +400,7 @@ class KeyVaultClient {
   }
 
   /**
-   * Sign an EIP-191 message (from keyVault contract) (authenticated function)
+   * Sign an EIP-191 message (authenticated function)
    * 
    * @param {Object} options - Sign message options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
@@ -407,7 +409,7 @@ class KeyVaultClient {
    * @param {Bytes} options.message - Message to sign (bytes)
    * @returns {Promise<Bytes>} Signed message (bytes)
    */
-  async signMessageKeyVault(options = {}) {
+  async signMessage(options = {}) {
     const { keyVaultAddress, authProof, index, message } = options;
 
     if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
@@ -438,7 +440,7 @@ class KeyVaultClient {
   }
 
   /**
-   * Execute a function with an auth proof (from keyVault contract) (authenticated function)
+   * Execute a function with an auth proof (authenticated function)
    * 
    * @param {Object} options - Execute function options
    * @param {String} options.keyVaultAddress - KeyVault contract address 

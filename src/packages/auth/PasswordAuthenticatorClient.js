@@ -71,7 +71,7 @@ class PasswordAuthenticatorClient {
   }
 
   /**
-   * Check if a wallet is configured (via passwordAuthenticator contract)
+   * Check if a wallet is configured
    * 
    * @param {Object} options - Check if wallet is configured options
    * @param {String} options.keyVaultAddress - KeyVault contract address 

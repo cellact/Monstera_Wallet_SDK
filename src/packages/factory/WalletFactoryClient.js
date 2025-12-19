@@ -437,7 +437,7 @@ class WalletFactoryClient {
   }
 
   /**
-   * Get the admin address (for wallet factory)
+   * Get the admin address
    * 
    * @returns {Promise<String>} Admin address
    */
@@ -453,7 +453,7 @@ class WalletFactoryClient {
   }
 
   /**
-   * Get the keyVault contract address for a wallet (from wallet factory)
+   * Get the keyVault contract address for a wallet
    * 
    * @param {Object} options - KeyVault options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
@@ -461,6 +461,7 @@ class WalletFactoryClient {
    */
   async getWalletKeyVault(options = {}) {
     const { walletAddress } = options;
+
     if (!walletAddress || typeof walletAddress !== 'string') {
       throw new Error('Wallet address is required');
     }
@@ -476,14 +477,15 @@ class WalletFactoryClient {
   }
 
   /**
-   * Get the storage contract address for a wallet (from wallet factory)
+   * Get the storage contract address for a wallet
    * 
    * @param {Object} options - Storage options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
    * @returns {Promise<String>} Storage contract address
    */
-  async getWalletStorage(options = {}) {
+  async getStorageAddr(options = {}) {
     const { walletAddress } = options;
+
     if (!walletAddress || typeof walletAddress !== 'string') {
       throw new Error('Wallet address is required');
     }
@@ -499,7 +501,7 @@ class WalletFactoryClient {
   }
 
   /**
-   * Get the beacon address for a wallet (from wallet factory)
+   * Get the beacon address for a wallet 
    * 
    * The beacon controlling WalletLogic upgrades
    * 
