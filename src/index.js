@@ -1,67 +1,15 @@
 /**
  * Monstera SDK - Main Entry Point
  * 
- * Main exports for the new SDK structure
+ * Single point of entry for the SDK.
+ * The Monstera class is exported as the default export.
  */
 
 const Monstera = require('./client/SapphireWalletSDK');
 
-// Export config utilities
-const { NETWORKS, createSdkConfig } = require('./config/networks');
+// Export Monstera as the default export (main entry point)
+module.exports = Monstera;
 
-// Export provider utilities
-const { getReadProvider, getWriteSigner } = require('./provider/sapphire');
-
-// Export crypto utilities
-const { generateMnemonic, deriveSeed, hashPassword } = require('./crypto/wallet');
-
-// Export contract utilities
-const { getWalletFactoryContract } = require('./contracts/core/walletFactory');
-const { getWalletLogicContract } = require('./contracts/core/walletLogic');
-const { getWalletSignatureAuthenticatorContract } = require('./contracts/authenticators/WalletSignatureAuthenticator');
-const { getKeyVaultContract } = require('./contracts/core/keyVault');
-const { getPasswordAuthenticatorContract } = require('./contracts/authenticators/PasswordAuthenticator');
-
-// Export errors (existing)
-const {
-  WalletError,
-  ContractError,
-  ValidationError,
-  ConfigurationError,
-  NetworkError,
-  TransactionError
-} = require('./errors/WalletError');
-
-module.exports = {
-  // Main SDK class
-  Monstera,
-  
-  // Config utilities
-  NETWORKS,
-  createSdkConfig,
-  
-  // Provider utilities
-  getReadProvider,
-  getWriteSigner,
-  
-  // Crypto utilities
-  generateMnemonic,
-  deriveSeed,
-  hashPassword,
-  
-  // Contract utilities
-  getWalletFactoryContract,
-  getWalletLogicContract,
-  getWalletSignatureAuthenticatorContract,
-  getKeyVaultContract,
-  getPasswordAuthenticatorContract,
-  
-  // Errors
-  WalletError,
-  ContractError,
-  ValidationError,
-  ConfigurationError,
-  NetworkError,
-  TransactionError
-};
+// Also export as named export for flexibility
+module.exports.Monstera = Monstera;
 

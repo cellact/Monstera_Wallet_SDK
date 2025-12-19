@@ -5,7 +5,7 @@
  * Provides clean API for read and write operations.
  */
 
-const { createSdkConfig } = require('../config/networks');
+const { createSdkConfig, NETWORKS } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { createAuthProof } = require('../crypto/wallet');
 const { Wallet, HDNodeWallet } = require('ethers');
@@ -66,6 +66,15 @@ class Monstera {
   static fromConfig(options) {
     const config = createSdkConfig(options);
     return new Monstera(config);
+  }
+
+  /**
+   * Network presets for testnet and mainnet
+   * @static
+   * @readonly
+   */
+  static get NETWORKS() {
+    return NETWORKS;
   }
 
   /**
