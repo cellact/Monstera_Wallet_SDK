@@ -5,16 +5,14 @@
  * Handles wallet creation and factory administration.
  */
 
+const BaseContractClient = require('../../internal/BaseContractClient');
 const { getWalletFactoryContract } = require('../../contracts/core/walletFactory');
-const { parseEventFromReceipt, WalletFactoryEvents } = require('../../events');
+const { WalletFactoryEvents } = require('../../events');
 const { generateMnemonic, deriveSeed } = require('../../crypto/wallet');
 
-class WalletFactoryClient {
+class WalletFactoryClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
-    this.readProvider = readProvider;
-    this.writeSigner = writeSigner;
-    this.config = config;
-    this.addresses = config.addresses;
+    super(readProvider, writeSigner, config);
     this.contractAddress = config.addresses.factory;
   }
 
@@ -34,9 +32,7 @@ class WalletFactoryClient {
   async createWallet(options = {}) {
     const { authenticator = this.addresses.passwordAuth, authConfig } = options;
 
-    if (!authConfig) {
-      throw new Error('Auth config is required');
-    }
+    this.requireBytes(authConfig, 'authConfig');
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -44,47 +40,25 @@ class WalletFactoryClient {
     // Off-chain: Derive seed from mnemonic
     const seed = deriveSeed(mnemonic);
     
-    // On-chain: Get factory contract with wrapped signer
-    const factory = getWalletFactoryContract(this.writeSigner, this.contractAddress);
+    // On-chain: Get factory contract
+    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
     
     // On-chain: Call createWallet
     try {
-      const tx = await factory.createWallet(
-        seed, // bytes seed
-        authenticator, // address authenticator
-        authConfig // bytes authConfig
+      const result = await this.sendTx(
+        () => factory.createWallet(seed, authenticator, authConfig),
+        {
+          parseEvents: [{
+            eventDef: WalletFactoryEvents.WalletCreated,
+            contract: factory
+          }],
+          extraData: { mnemonic }
+        }
       );
-      
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse WalletCreated event
-      const eventData = parseEventFromReceipt(
-        WalletFactoryEvents.WalletCreated,
-        receipt, 
-        factory
-      );
-      
-      if (!eventData) {
-        throw new Error('WalletCreated event not found in transaction receipt');
-      }
-      
-      // Build result
-      const result = {
-        success: true,
-        wallet: eventData.wallet,
-        mnemonic: mnemonic,
-        authenticator: eventData.authenticator,
-        keyVault: eventData.keyVault,
-        storage: eventData.storage,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
       
       return result;
     } catch (error) {
-      throw new Error(`Failed to create wallet: ${error.message}`);
+      throw this.wrapError('create wallet', error);
     }
   }
 
@@ -109,17 +83,9 @@ class WalletFactoryClient {
   async createWalletWithHook(options = {}) {
     const { authenticator = this.addresses.passwordAuth, authConfig, hook, hookData } = options;
 
-    if (!authConfig) {
-      throw new Error('Auth config is required');
-    }
-
-    if (!hook) {
-      throw new Error('Hook address is required');
-    }
-
-    if (!hookData) {
-      throw new Error('Hook data is required');
-    }
+    this.requireBytes(authConfig, 'authConfig');
+    this.requireAddress(hook, 'hook');
+    this.requireBytes(hookData, 'hookData');
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -127,49 +93,25 @@ class WalletFactoryClient {
     // Off-chain: Derive seed from mnemonic
     const seed = deriveSeed(mnemonic);
     
-    // On-chain: Get factory contract with wrapped signer
-    const factory = getWalletFactoryContract(this.writeSigner, this.contractAddress);
+    // On-chain: Get factory contract
+    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
     
     // On-chain: Call createWalletWithHook
     try {
-      const tx = await factory.createWalletWithHook(
-        seed, // bytes seed
-        authenticator, // address authenticator
-        authConfig, // bytes authConfig
-        hook, // address hook
-        hookData // bytes hookData
+      const result = await this.sendTx(
+        () => factory.createWalletWithHook(seed, authenticator, authConfig, hook, hookData),
+        {
+          parseEvents: [{
+            eventDef: WalletFactoryEvents.WalletCreated,
+            contract: factory
+          }],
+          extraData: { mnemonic }
+        }
       );
-      
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse WalletCreated event
-      const eventData = parseEventFromReceipt(
-        WalletFactoryEvents.WalletCreated,
-        receipt, 
-        factory
-      );
-
-      if (!eventData) {
-        throw new Error('WalletCreated event not found in transaction receipt');
-      }
-      
-      // Build result
-      const result = {
-        success: true,
-        wallet: eventData.wallet,
-        mnemonic: mnemonic,
-        authenticator: eventData.authenticator,
-        keyVault: eventData.keyVault,
-        storage: eventData.storage,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
       
       return result;
     } catch (error) {
-      throw new Error(`Failed to create wallet: ${error.message}`);
+      throw this.wrapError('create wallet with hook', error);
     }
   }
 
@@ -191,9 +133,7 @@ class WalletFactoryClient {
   async createWalletCore(options = {}) {
     const { authenticator = this.addresses.passwordAuth, authConfig } = options;
 
-    if (!authConfig) {
-      throw new Error('Auth config is required');
-    }
+    this.requireBytes(authConfig, 'authConfig');
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -201,47 +141,25 @@ class WalletFactoryClient {
     // Off-chain: Derive seed from mnemonic
     const seed = deriveSeed(mnemonic);
     
-    // On-chain: Get factory contract with wrapped signer
-    const factory = getWalletFactoryContract(this.writeSigner, this.contractAddress);
+    // On-chain: Get factory contract
+    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
     
     // On-chain: Call createWalletCore
     try {
-      const tx = await factory.createWalletCore(
-        seed, // bytes seed
-        authenticator, // address authenticator
-        authConfig // bytes authConfig
+      const result = await this.sendTx(
+        () => factory.createWalletCore(seed, authenticator, authConfig),
+        {
+          parseEvents: [{
+            eventDef: WalletFactoryEvents.WalletCreated,
+            contract: factory
+          }],
+          extraData: { mnemonic }
+        }
       );
-      
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse WalletCreated event
-      const eventData = parseEventFromReceipt(
-        WalletFactoryEvents.WalletCreated,
-        receipt, 
-        factory
-      );
-
-      if (!eventData) {
-        throw new Error('WalletCreated event not found in transaction receipt');
-      }
-      
-      // Build result
-      const result = {
-        success: true,
-        wallet: eventData.wallet,
-        mnemonic: mnemonic,
-        authenticator: eventData.authenticator,
-        keyVault: eventData.keyVault,
-        storage: eventData.storage,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
       
       return result;
     } catch (error) {
-      throw new Error(`Failed to create wallet: ${error.message}`);
+      throw this.wrapError('create wallet core', error);
     }
   }
 
@@ -267,17 +185,9 @@ class WalletFactoryClient {
   async createWalletWithCustomLogic(options = {}) {
     const { authenticator = this.addresses.passwordAuth, authConfig, customLogicImpl, logicData } = options;
 
-    if (!authConfig) {
-      throw new Error('Auth config is required');
-    }
-    
-    if (!customLogicImpl) {
-      throw new Error('Custom logic implementation address is required');
-    }
-    
-    if (!logicData) {
-      throw new Error('Logic data is required');
-    }
+    this.requireBytes(authConfig, 'authConfig');
+    this.requireAddress(customLogicImpl, 'customLogicImpl');
+    this.requireBytes(logicData, 'logicData');
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -285,49 +195,25 @@ class WalletFactoryClient {
     // Off-chain: Derive seed from mnemonic
     const seed = deriveSeed(mnemonic);
     
-    // On-chain: Get factory contract with wrapped signer
-    const factory = getWalletFactoryContract(this.writeSigner, this.contractAddress);
+    // On-chain: Get factory contract
+    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
 
     // On-chain: Call createWalletWithCustomLogic
     try {
-      const tx = await factory.createWalletWithCustomLogic(
-        seed, // bytes seed
-        authenticator, // address authenticator
-        authConfig, // bytes authConfig
-        customLogicImpl, // address customLogicImpl
-        logicData // bytes logicData
+      const result = await this.sendTx(
+        () => factory.createWalletWithCustomLogic(seed, authenticator, authConfig, customLogicImpl, logicData),
+        {
+          parseEvents: [{
+            eventDef: WalletFactoryEvents.WalletCreated,
+            contract: factory
+          }],
+          extraData: { mnemonic }
+        }
       );
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse WalletCreated event
-      const eventData = parseEventFromReceipt(
-        WalletFactoryEvents.WalletCreated,
-        receipt, 
-        factory
-      );
-
-      if (!eventData) {
-        throw new Error('WalletCreated event not found in transaction receipt');
-      }
-      
-      // Build result
-      const result = {
-        success: true,
-        wallet: eventData.wallet,
-        mnemonic: mnemonic,
-        authenticator: eventData.authenticator,
-        keyVault: eventData.keyVault,
-        storage: eventData.storage,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
       
       return result;
     } catch (error) {
-      throw new Error(`Failed to create wallet: ${error.message}`);
+      throw this.wrapError('create wallet with custom logic', error);
     }
   }
 
@@ -341,17 +227,15 @@ class WalletFactoryClient {
   async isWallet(options = {}) {
     const { walletAddress } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
+    this.requireAddress(walletAddress, 'walletAddress');
 
-    const factory = getWalletFactoryContract(this.readProvider, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
     try {
       const isWallet = await factory.isWallet(walletAddress);
       return isWallet;
     } catch (error) {
-      throw new Error(`Failed to check if address is a wallet created by this factory: ${error.message}`);
+      throw this.wrapError('check if address is wallet', error, { walletAddress });
     }
   }
 
@@ -361,13 +245,13 @@ class WalletFactoryClient {
    * @returns {Promise<String>} Current WalletLogic implementation
    */
   async getWalletLogicImplAddr() {
-    const factory = getWalletFactoryContract(this.readProvider, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
     try {
       const implementation = await factory.implementation();
       return implementation;
     } catch (error) {
-      throw new Error(`Failed to get current WalletLogic implementation: ${error.message}`);
+      throw this.wrapError('get wallet logic implementation', error);
     }
   }
 
@@ -383,41 +267,24 @@ class WalletFactoryClient {
   async upgradeWalletLogicImplAddr(options = {}) {
     const { newLogicAddress } = options;
 
-    if (!newLogicAddress || typeof newLogicAddress !== 'string') {
-      throw new Error('New logic address is required');
-    }
+    this.requireAddress(newLogicAddress, 'newLogicAddress');
 
-    const factory = getWalletFactoryContract(this.writeSigner, this.contractAddress);
+    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
 
     try {
-      const tx = await factory.upgradeLogic(newLogicAddress);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse BeaconUpgraded event
-      const eventData = parseEventFromReceipt(
-        WalletFactoryEvents.BeaconUpgraded,
-        receipt, 
-        factory
+      const result = await this.sendTx(
+        () => factory.upgradeLogic(newLogicAddress),
+        {
+          parseEvents: [{
+            eventDef: WalletFactoryEvents.BeaconUpgraded,
+            contract: factory
+          }]
+        }
       );
-      
-      if (!eventData) {
-        throw new Error('BeaconUpgraded event not found in transaction receipt');
-      }
-
-      const result = {
-        success: true,
-        oldImpl: eventData.oldImpl,
-        newImpl: eventData.newImpl,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to upgrade logic: ${error.message}`);
+      throw this.wrapError('upgrade wallet logic', error, { newLogicAddress });
     }
   }
 
@@ -431,29 +298,22 @@ class WalletFactoryClient {
   async transferAdmin(options = {}) {
     const { newAdminAddress } = options;
 
-    if (!newAdminAddress || typeof newAdminAddress !== 'string') {
-      throw new Error('New admin address is required');
-    }
+    this.requireAddress(newAdminAddress, 'newAdminAddress');
 
-    const factory = getWalletFactoryContract(this.writeSigner, this.contractAddress);
+    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
 
     try {
-      const tx = await factory.transferAdmin(newAdminAddress);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      const result = {
-        success: true,
-        newAdmin: newAdminAddress,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
+      const result = await this.sendTx(
+        () => factory.transferAdmin(newAdminAddress),
+        {
+          parseEvents: [],
+          extraData: { newAdmin: newAdminAddress }
+        }
+      );
       
       return result;
     } catch (error) {
-      throw new Error(`Failed to transfer admin: ${error.message}`);
+      throw this.wrapError('transfer admin', error, { newAdminAddress });
     }
   }
 
@@ -463,13 +323,13 @@ class WalletFactoryClient {
    * @returns {Promise<String>} Admin address
    */
   async getAdmin() {
-    const factory = getWalletFactoryContract(this.readProvider, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
     try {
       const admin = await factory.admin();
       return admin;
     } catch (error) {
-      throw new Error(`Failed to get admin address: ${error.message}`);
+      throw this.wrapError('get admin', error);
     }
   }
 
@@ -483,17 +343,15 @@ class WalletFactoryClient {
   async getWalletKeyVault(options = {}) {
     const { walletAddress } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
+    this.requireAddress(walletAddress, 'walletAddress');
 
-    const factory = getWalletFactoryContract(this.readProvider, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
     try {
       const keyVaultAddr = await factory.walletKeyVault(walletAddress);
       return keyVaultAddr;
     } catch (error) {
-      throw new Error(`Failed to get wallet key vault address: ${error.message}`);
+      throw this.wrapError('get wallet key vault', error, { walletAddress });
     }
   }
 
@@ -507,17 +365,15 @@ class WalletFactoryClient {
   async getStorageAddr(options = {}) {
     const { walletAddress } = options;
 
-    if (!walletAddress || typeof walletAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
+    this.requireAddress(walletAddress, 'walletAddress');
 
-    const factory = getWalletFactoryContract(this.readProvider, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
     try {
       const storageAddr = await factory.walletStorage(walletAddress);
       return storageAddr;
     } catch (error) {
-      throw new Error(`Failed to get wallet storage address: ${error.message}`);
+      throw this.wrapError('get storage address', error, { walletAddress });
     }
   }
 
@@ -529,13 +385,13 @@ class WalletFactoryClient {
    * @returns {Promise<String>} Beacon address
    */
   async getBeaconAddr() {
-    const factory = getWalletFactoryContract(this.readProvider, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
     try {
       const beaconAddr = await factory.beacon();
       return beaconAddr;
     } catch (error) {
-      throw new Error(`Failed to get beacon address: ${error.message}`);
+      throw this.wrapError('get beacon address', error);
     }
   }
 }
