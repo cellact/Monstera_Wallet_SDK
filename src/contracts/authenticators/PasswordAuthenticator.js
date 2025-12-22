@@ -152,67 +152,8 @@ function getPasswordAuthenticatorContract(signerOrProvider, passwordAuthenticato
     return new ethers.Contract(passwordAuthenticatorAddress, PASSWORD_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
-/**
- * Parse PasswordChanged event
- * 
- * @param {Object} receipt - Transaction receipt
- * @param {Object} passwordAuthContract - Password authenticator contract instance
- * @returns {Object|null} Parsed event data or null if not found
- */
-function parsePasswordChangedEvent(receipt, passwordAuthContract) {
-    if (!receipt || !receipt.logs) {
-        return null;
-    }
-
-    const iface = passwordAuthContract.interface;
-
-    const passwordChangedEvent = receipt.logs.find((log) => {
-      try {
-        const parsed = iface.parseLog(log);
-        return parsed?.name === 'PasswordChanged';
-      } catch {
-        return false;
-      }
-    });
-
-    if (!passwordChangedEvent) {
-        // Debug: log all events to see what we're getting
-        console.log('[parsePasswordChangedEvent] Total logs:', receipt.logs?.length);
-        if (receipt.logs && receipt.logs.length > 0) {
-          console.log('[parsePasswordChangedEvent] Trying to parse logs...');
-          receipt.logs.forEach((log, i) => {
-            try {
-              const parsed = iface.parseLog(log);
-              console.log(`[parsePasswordChangedEvent] Log ${i}:`, parsed?.name || 'unknown');
-            } catch (e) {
-              console.log(`[parsePasswordChangedEvent] Log ${i}: failed to parse (not from passwordAuth)`);
-            }
-          });
-        }
-        return null;
-    }
-
-    // Parse the event
-    try {
-      const parsedEvent = iface.parseLog(passwordChangedEvent);
-      if (!parsedEvent || parsedEvent.name !== 'PasswordChanged') {
-        return null;
-      }
-
-      return {
-        wallet: parsedEvent.args?.wallet,
-      };
-    } catch (error) {
-      // Failed to parse event
-      console.error('[parsePasswordChangedEvent] Error parsing event:', error.message);
-      return null;
-    }
-}
-
 module.exports = {
     PASSWORD_AUTHENTICATOR_ABI,
     getPasswordAuthenticatorContract,
-    parsePasswordChangedEvent
 };
-  
   

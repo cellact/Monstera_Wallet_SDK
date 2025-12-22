@@ -5,7 +5,8 @@
  * Handles wallet creation and factory administration.
  */
 
-const { getWalletFactoryContract, parseWalletCreatedEvent, parseBeaconUpgradedEvent } = require('../../contracts/core/walletFactory');
+const { getWalletFactoryContract } = require('../../contracts/core/walletFactory');
+const { parseEventFromReceipt, WalletFactoryEvents } = require('../../events');
 const { generateMnemonic, deriveSeed } = require('../../crypto/wallet');
 
 class WalletFactoryClient {
@@ -58,7 +59,11 @@ class WalletFactoryClient {
       const receipt = await tx.wait();
 
       // Parse WalletCreated event
-      const eventData = parseWalletCreatedEvent(receipt, factory);
+      const eventData = parseEventFromReceipt(
+        WalletFactoryEvents.WalletCreated,
+        receipt, 
+        factory
+      );
       
       if (!eventData) {
         throw new Error('WalletCreated event not found in transaction receipt');
@@ -139,8 +144,12 @@ class WalletFactoryClient {
       const receipt = await tx.wait();
 
       // Parse WalletCreated event
-      const eventData = parseWalletCreatedEvent(receipt, factory);
-      
+      const eventData = parseEventFromReceipt(
+        WalletFactoryEvents.WalletCreated,
+        receipt, 
+        factory
+      );
+
       if (!eventData) {
         throw new Error('WalletCreated event not found in transaction receipt');
       }
@@ -207,8 +216,12 @@ class WalletFactoryClient {
       const receipt = await tx.wait();
 
       // Parse WalletCreated event
-      const eventData = parseWalletCreatedEvent(receipt, factory);
-      
+      const eventData = parseEventFromReceipt(
+        WalletFactoryEvents.WalletCreated,
+        receipt, 
+        factory
+      );
+
       if (!eventData) {
         throw new Error('WalletCreated event not found in transaction receipt');
       }
@@ -289,8 +302,12 @@ class WalletFactoryClient {
       const receipt = await tx.wait();
 
       // Parse WalletCreated event
-      const eventData = parseWalletCreatedEvent(receipt, factory);
-      
+      const eventData = parseEventFromReceipt(
+        WalletFactoryEvents.WalletCreated,
+        receipt, 
+        factory
+      );
+
       if (!eventData) {
         throw new Error('WalletCreated event not found in transaction receipt');
       }
@@ -379,7 +396,11 @@ class WalletFactoryClient {
       const receipt = await tx.wait();
 
       // Parse BeaconUpgraded event
-      const eventData = parseBeaconUpgradedEvent(receipt, factory);
+      const eventData = parseEventFromReceipt(
+        WalletFactoryEvents.BeaconUpgraded,
+        receipt, 
+        factory
+      );
       
       if (!eventData) {
         throw new Error('BeaconUpgraded event not found in transaction receipt');

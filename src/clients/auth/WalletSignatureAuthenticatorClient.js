@@ -5,7 +5,8 @@
  * Handles wallet signature authentication, whitelist management, and configuration.
  */
 
-const { getWalletSignatureAuthenticatorContract, parseAddressAddedEvent, parseAddressRemovedEvent } = require('../../contracts/authenticators/WalletSignatureAuthenticator');
+const { getWalletSignatureAuthenticatorContract } = require('../../contracts/authenticators/WalletSignatureAuthenticator');
+const { parseEventFromReceipt, WalletSignatureAuthenticatorEvents } = require('../../events');
 
 class WalletSignatureAuthenticatorClient {
   constructor(readProvider, writeSigner, config) {
@@ -51,8 +52,12 @@ class WalletSignatureAuthenticatorClient {
       const receipt = await tx.wait();
 
       // Parse AddressAdded event
-      const eventData = parseAddressAddedEvent(receipt, walletSigAuth);
-      
+      const eventData = parseEventFromReceipt(
+        WalletSignatureAuthenticatorEvents.AddressAdded,
+        receipt, 
+        walletSigAuth
+      );
+
       if (!eventData) {
         throw new Error('AddressAdded event not found in transaction receipt');
       }
@@ -104,7 +109,11 @@ class WalletSignatureAuthenticatorClient {
       const receipt = await tx.wait();
 
       // Parse AddressRemoved event
-      const eventData = parseAddressRemovedEvent(receipt, walletSigAuth);
+      const eventData = parseEventFromReceipt(
+        WalletSignatureAuthenticatorEvents.AddressRemoved,
+        receipt, 
+        walletSigAuth
+      );
       
       if (!eventData) {
         throw new Error('WhitelistRemoved event not found in transaction receipt');

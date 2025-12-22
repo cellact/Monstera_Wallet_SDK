@@ -5,7 +5,8 @@
  * Handles key vault operations, signing, and account management.
  */
 
-const { getKeyVaultContract, parseImplementationUpgradedEvent, parseAuthenticatorChangedEvent } = require('../../contracts/core/keyVault');
+const { getKeyVaultContract } = require('../../contracts/core/keyVault');
+const { parseEventFromReceipt, KeyVaultEvents } = require('../../events');
 
 class KeyVaultClient {
   constructor(readProvider, writeSigner, config) {
@@ -146,8 +147,12 @@ class KeyVaultClient {
       const receipt = await tx.wait();
 
       // Parse ImplementationUpgraded event
-      const eventData = parseImplementationUpgradedEvent(receipt, keyVault);
-      
+      const eventData = parseEventFromReceipt(
+        KeyVaultEvents.ImplementationUpgraded,
+        receipt, 
+        keyVault
+      );
+
       if (!eventData) {
         throw new Error('ImplementationUpgraded event not found in transaction receipt');
       }
@@ -205,7 +210,11 @@ class KeyVaultClient {
       const receipt = await tx.wait();
 
       // Parse AuthenticatorChanged event
-      const eventData = parseAuthenticatorChangedEvent(receipt, keyVault);
+      const eventData = parseEventFromReceipt(
+        KeyVaultEvents.AuthenticatorChanged,
+        receipt, 
+        keyVault
+      );
 
       if (!eventData) {
         throw new Error('AuthenticatorChanged event not found in transaction receipt');

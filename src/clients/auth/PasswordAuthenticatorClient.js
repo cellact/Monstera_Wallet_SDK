@@ -5,7 +5,8 @@
  * Handles password-based authentication and configuration.
  */
 
-const { getPasswordAuthenticatorContract, parsePasswordChangedEvent } = require('../../contracts/authenticators/PasswordAuthenticator');
+const { getPasswordAuthenticatorContract } = require('../../contracts/authenticators/PasswordAuthenticator');
+const { parseEventFromReceipt, PasswordAuthenticatorEvents } = require('../../events');
 
 class PasswordAuthenticatorClient {
   constructor(readProvider, writeSigner, config) {
@@ -50,8 +51,12 @@ class PasswordAuthenticatorClient {
       const receipt = await tx.wait();
 
       // Parse PasswordChanged event
-      const eventData = parsePasswordChangedEvent(receipt, passwordAuth);
-      
+      const eventData = parseEventFromReceipt(
+        PasswordAuthenticatorEvents.PasswordChanged,
+        receipt, 
+        passwordAuth
+      );
+
       if (!eventData) {
         throw new Error('PasswordChanged event not found in transaction receipt');
       }
