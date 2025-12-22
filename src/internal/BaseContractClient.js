@@ -4,11 +4,23 @@
  * Base class for all contract clients providing common functionality:
  * - Contract instance management (read/write)
  * - Transaction sending with event parsing
- * - Input validation helpers
  * - Error wrapping
+ * 
+ * Validation helpers are available via delegation to assert.js
  */
 
 const { parseEventFromReceipt } = require('../events');
+const {
+  requireAddress,
+  requireBytes,
+  requireBytesLike,
+  requireString,
+  requireNumber,
+  requireNonNegativeInteger,
+  requirePositiveInteger,
+  requireHex,
+  requireOneOf
+} = require('./assert');
 
 class BaseContractClient {
   /**
@@ -97,53 +109,55 @@ class BaseContractClient {
 
   /**
    * Require an address value
+   * Delegates to assert.js
    * 
    * @param {String} value - Value to validate
    * @param {String} name - Parameter name for error message
    * @throws {Error} If value is not a valid address string
    */
   requireAddress(value, name = 'address') {
-    if (!value || typeof value !== 'string') {
-      throw new Error(`${name} is required and must be a string`);
-    }
-    // Basic address validation (0x followed by 40 hex characters)
-    if (!/^0x[a-fA-F0-9]{40}$/.test(value)) {
-      throw new Error(`${name} must be a valid Ethereum address`);
-    }
+    return requireAddress(value, name);
   }
 
   /**
    * Require a bytes value
+   * Delegates to assert.js
    * 
    * @param {*} value - Value to validate
    * @param {String} name - Parameter name for error message
    * @throws {Error} If value is not provided
    */
   requireBytes(value, name = 'bytes') {
-    if (value === undefined || value === null) {
-      throw new Error(`${name} is required`);
-    }
-    // Bytes can be string (hex) or Uint8Array
-    if (typeof value !== 'string' && !(value instanceof Uint8Array)) {
-      throw new Error(`${name} must be a string (hex) or Uint8Array`);
-    }
+    return requireBytes(value, name);
+  }
+
+  /**
+   * Require a bytes-like value
+   * Delegates to assert.js
+   * 
+   * @param {*} value - Value to validate
+   * @param {String} name - Parameter name for error message
+   * @throws {Error} If value is not bytes-like
+   */
+  requireBytesLike(value, name = 'bytes') {
+    return requireBytesLike(value, name);
   }
 
   /**
    * Require a string value
+   * Delegates to assert.js
    * 
    * @param {String} value - Value to validate
    * @param {String} name - Parameter name for error message
    * @throws {Error} If value is not a string
    */
   requireString(value, name = 'string') {
-    if (!value || typeof value !== 'string') {
-      throw new Error(`${name} is required and must be a string`);
-    }
+    return requireString(value, name);
   }
 
   /**
    * Require a number value
+   * Delegates to assert.js
    * 
    * @param {Number} value - Value to validate
    * @param {String} name - Parameter name for error message
@@ -154,45 +168,56 @@ class BaseContractClient {
    * @throws {Error} If value is not a valid number
    */
   requireNumber(value, name = 'number', options = {}) {
-    const { allowZero = true, allowNegative = false, requireInteger = false } = options;
-
-    if (value === undefined || value === null || typeof value !== 'number') {
-      throw new Error(`${name} is required and must be a number`);
-    }
-
-    if (!allowZero && value === 0) {
-      throw new Error(`${name} must be non-zero`);
-    }
-
-    if (!allowNegative && value < 0) {
-      throw new Error(`${name} must be non-negative`);
-    }
-
-    if (requireInteger && !Number.isInteger(value)) {
-      throw new Error(`${name} must be an integer`);
-    }
+    return requireNumber(value, name, options);
   }
 
   /**
    * Require a non-negative integer
+   * Delegates to assert.js
    * 
    * @param {Number} value - Value to validate
    * @param {String} name - Parameter name for error message
    * @throws {Error} If value is not a non-negative integer
    */
   requireNonNegativeInteger(value, name = 'number') {
-    this.requireNumber(value, name, { allowZero: true, allowNegative: false, requireInteger: true });
+    return requireNonNegativeInteger(value, name);
   }
 
   /**
    * Require a positive integer
+   * Delegates to assert.js
    * 
    * @param {Number} value - Value to validate
    * @param {String} name - Parameter name for error message
    * @throws {Error} If value is not a positive integer
    */
   requirePositiveInteger(value, name = 'number') {
-    this.requireNumber(value, name, { allowZero: false, allowNegative: false, requireInteger: true });
+    return requirePositiveInteger(value, name);
+  }
+
+  /**
+   * Require a hex string value
+   * Delegates to assert.js
+   * 
+   * @param {String} value - Value to validate
+   * @param {String} name - Parameter name for error message
+   * @throws {Error} If value is not a hex string
+   */
+  requireHex(value, name = 'hex') {
+    return requireHex(value, name);
+  }
+
+  /**
+   * Require value to be one of allowed values
+   * Delegates to assert.js
+   * 
+   * @param {*} value - Value to validate
+   * @param {Array} allowedValues - Array of allowed values
+   * @param {String} name - Parameter name for error message
+   * @throws {Error} If value is not one of allowed values
+   */
+  requireOneOf(value, allowedValues, name = 'value') {
+    return requireOneOf(value, allowedValues, name);
   }
 
   /**

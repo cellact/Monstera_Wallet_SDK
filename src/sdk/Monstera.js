@@ -13,6 +13,7 @@ const WalletFactoryClient = require('../clients/factory');
 const WalletLogicClient = require('../clients/logic');
 const KeyVaultClient = require('../clients/keyVault');
 const { AuthenticatorClient } = require('../clients/auth');
+const { requireAddress, requireString } = require('../internal/assert');
 
 /**
  * Monstera Wallet SDK
@@ -93,34 +94,39 @@ class Monstera {
     const { authenticateFor, signer, keyVault } = options;
     let { authenticator, deadline, chainId } = options;
 
-    if (!authenticateFor || typeof authenticateFor !== 'string') {
-      throw new Error('Authenticate for is required and must be a string');
-    }
+    // Validate required parameters
+    requireAddress(authenticateFor, 'authenticateFor');
+    requireAddress(keyVault, 'keyVault');
 
     if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
       throw new Error('Signer must be a Wallet or HDNodeWallet');
     }
 
-    if (!keyVault || typeof keyVault !== 'string') {
-      throw new Error('Key vault is required and must be a string');
-    }
-
     // if no authenticator contract address provided use default from config
     if (!authenticator || typeof authenticator !== 'string') {
       authenticator = this.addresses.walletSignatureAuth;
+    } else {
+      requireAddress(authenticator, 'authenticator');
     }
 
     // if deadline is provided, check if it is a number and in the future
-    if (deadline && (typeof deadline !== 'number' || deadline < Date.now())) {
-      throw new Error('Deadline must be a number and in the future');
-    } else if (!deadline) {
+    // Deadline is in seconds (Unix timestamp)
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    if (deadline !== undefined && deadline !== null) {
+      if (typeof deadline !== 'number') {
+        throw new Error('Deadline must be a number (Unix timestamp in seconds)');
+      }
+      if (deadline < nowInSeconds) {
+        throw new Error('Deadline must be in the future');
+      }
+    } else {
       // if no deadline provided, default to 1 hour from now
-      deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+      deadline = nowInSeconds + 3600; // 1 hour from now
     }
 
-    if (chainId && (typeof chainId !== 'string')) {
-      throw new Error('Chain ID must be a string');
-    } else if (!chainId) {
+    if (chainId !== undefined && chainId !== null) {
+      requireString(chainId, 'chainId');
+    } else {
       // if no chainId provided, default to the one in the config
       chainId = this.chainId;
     }
