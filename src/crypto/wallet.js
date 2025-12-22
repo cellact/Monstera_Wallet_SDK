@@ -6,6 +6,7 @@
 
 const crypto = require('crypto');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
+const { requireAddress, requireString } = require('../internal/assert');
 
 /**
  * Generate a new mnemonic phrase
@@ -116,6 +117,29 @@ function createWalletFromMnemonic(mnemonic, path = "m/44'/60'/0'/0/0") {
  * @returns {String} Auth proof (bytes)
  */
 async function createAuthProof(signer, chainId, authenticator, deadline, keyVaultAddress) {
+  
+  // Validate signer
+  if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
+    throw new Error('Signer must be a Wallet or HDNodeWallet');
+  }
+
+  // Validate chainId (can be string or number)
+  if (typeof chainId !== 'string' && typeof chainId !== 'number') {
+    throw new Error('chainId must be a string or number');
+  }
+
+  // Validate addresses
+  requireAddress(authenticator, 'authenticator');
+  requireAddress(keyVaultAddress, 'keyVaultAddress');
+
+  // Validate deadline (must be number, Unix timestamp in seconds) and in the future
+  if (typeof deadline !== 'number' || !Number.isInteger(deadline)) {
+    throw new Error('Deadline must be an integer (Unix timestamp in seconds)');
+  }
+  if (deadline < Date.now() / 1000) {
+    throw new Error('Deadline must be in the future');
+  }
+  
   // build EIP-712 domain
   const domain = {
     name: "WalletSignatureAuthenticator",

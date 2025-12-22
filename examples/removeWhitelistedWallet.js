@@ -80,7 +80,6 @@ async function main() {
 
   try {
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: allowed1Signer,
       keyVault: result.keyVault
     });
@@ -114,7 +113,6 @@ async function main() {
 
   try {
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: allowed2Signer,
       keyVault: result.keyVault
     });
@@ -140,7 +138,6 @@ async function main() {
   try {
     // Use allowed1 to remove allowed2 from the whitelist
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: allowed1Signer,
       keyVault: result.keyVault
     });
@@ -169,7 +166,6 @@ async function main() {
 
   try {
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: allowed2Signer,
       keyVault: result.keyVault
     });

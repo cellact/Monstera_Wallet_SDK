@@ -90,7 +90,6 @@ async function main() {
     
     // Authenticated function should fail
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: notAllowedSigner,
       keyVault: result.keyVault
     });
@@ -112,7 +111,6 @@ async function main() {
 
   try {
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: allowed1Signer,
       keyVault: result.keyVault
     });
@@ -146,7 +144,6 @@ async function main() {
 
   try {
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: allowed2Signer,
       keyVault: result.keyVault
     });
@@ -172,7 +169,6 @@ async function main() {
   try {
     // Use allowed1 to add the notAllowed signer
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: allowed1Signer,
       keyVault: result.keyVault
     });
@@ -203,7 +199,6 @@ async function main() {
 
   try {
     const authProof = await sdk.wallets.createAuthProof({
-      authenticateFor: result.wallet,
       signer: notAllowedSigner,
       keyVault: result.keyVault
     });

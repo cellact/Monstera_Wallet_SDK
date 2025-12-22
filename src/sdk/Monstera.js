@@ -8,12 +8,10 @@
 const { createSdkConfig, NETWORKS } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { createAuthProof } = require('../crypto/wallet');
-const { Wallet, HDNodeWallet } = require('ethers');
 const WalletFactoryClient = require('../clients/factory');
 const WalletLogicClient = require('../clients/logic');
 const KeyVaultClient = require('../clients/keyVault');
 const { AuthenticatorClient } = require('../clients/auth');
-const { requireAddress, requireString } = require('../internal/assert');
 
 /**
  * Monstera Wallet SDK
@@ -82,7 +80,6 @@ class Monstera {
    * Create an auth proof for a wallet
    * 
    * @param {Object} options - Create auth proof options
-   * @param {String} options.authenticateFor - Wallet address to authenticate for
    * @param {Object} options.signer - Signer (Wallet or HDNodeWallet) trying to authenticate
    * @param {String} options.keyVault - KeyVault address of the wallet trying to authenticate
    * @param {String} options.authenticator - Wallet signature authenticator contract address (optional, defaults to the one in the config)
@@ -91,43 +88,22 @@ class Monstera {
    * @returns {Promise<String>} Auth proof (bytes)
    */
   async createAuthProof(options = {}) {
-    const { authenticateFor, signer, keyVault } = options;
+    const { signer, keyVault } = options;
     let { authenticator, deadline, chainId } = options;
 
-    // Validate required parameters
-    requireAddress(authenticateFor, 'authenticateFor');
-    requireAddress(keyVault, 'keyVault');
-
-    if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
-      throw new Error('Signer must be a Wallet or HDNodeWallet');
-    }
-
-    // if no authenticator contract address provided use default from config
-    if (!authenticator || typeof authenticator !== 'string') {
+    // Set default authenticator if not provided
+    if (!authenticator) {
       authenticator = this.addresses.walletSignatureAuth;
-    } else {
-      requireAddress(authenticator, 'authenticator');
     }
 
-    // if deadline is provided, check if it is a number and in the future
-    // Deadline is in seconds (Unix timestamp)
-    const nowInSeconds = Math.floor(Date.now() / 1000);
-    if (deadline !== undefined && deadline !== null) {
-      if (typeof deadline !== 'number') {
-        throw new Error('Deadline must be a number (Unix timestamp in seconds)');
-      }
-      if (deadline < nowInSeconds) {
-        throw new Error('Deadline must be in the future');
-      }
-    } else {
-      // if no deadline provided, default to 1 hour from now
+    // Set deadline default if not provided
+    if (!deadline) {
+      const nowInSeconds = Math.floor(Date.now() / 1000);
       deadline = nowInSeconds + 3600; // 1 hour from now
     }
 
-    if (chainId !== undefined && chainId !== null) {
-      requireString(chainId, 'chainId');
-    } else {
-      // if no chainId provided, default to the one in the config
+    // Set chainId default if not provided
+    if (!chainId) {
       chainId = this.chainId;
     }
 
