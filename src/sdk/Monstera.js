@@ -6,7 +6,7 @@
  */
 
 const { createSdkConfig, NETWORKS } = require('../config/networks');
-const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
+const { getReadProvider, getWriteSigner } = require('../providers/sapphire');
 const { createAuthProof } = require('../crypto/wallet');
 const WalletFactoryClient = require('../clients/factory');
 const WalletLogicClient = require('../clients/logic');
