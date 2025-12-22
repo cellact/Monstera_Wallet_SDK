@@ -9,10 +9,10 @@ const { createSdkConfig, NETWORKS } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../provider/sapphire');
 const { createAuthProof } = require('../crypto/wallet');
 const { Wallet, HDNodeWallet } = require('ethers');
-const WalletFactoryClient = require('../packages/factory');
-const WalletLogicClient = require('../packages/logic');
-const KeyVaultClient = require('../packages/keyVault');
-const { AuthenticatorClient } = require('../packages/auth');
+const WalletFactoryClient = require('../clients/factory');
+const WalletLogicClient = require('../clients/logic');
+const KeyVaultClient = require('../clients/keyVault');
+const { AuthenticatorClient } = require('../clients/auth');
 
 /**
  * Monstera Wallet SDK
