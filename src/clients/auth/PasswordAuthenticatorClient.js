@@ -5,15 +5,13 @@
  * Handles password-based authentication and configuration.
  */
 
+const BaseContractClient = require('../../internal/BaseContractClient');
 const { getPasswordAuthenticatorContract } = require('../../contracts/authenticators/PasswordAuthenticator');
-const { parseEventFromReceipt, PasswordAuthenticatorEvents } = require('../../events');
+const { PasswordAuthenticatorEvents } = require('../../events');
 
-class PasswordAuthenticatorClient {
+class PasswordAuthenticatorClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
-    this.readProvider = readProvider;
-    this.writeSigner = writeSigner;
-    this.config = config;
-    this.addresses = config.addresses;
+    super(readProvider, writeSigner, config);
   }
 
   // TODO: add configure method and verify method
@@ -30,48 +28,32 @@ class PasswordAuthenticatorClient {
   async changePassword(options = {}) {
     const { keyVaultAddress, currentPassword, newPasswordHash } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(currentPassword, 'currentPassword');
+    this.requireBytes(newPasswordHash, 'newPasswordHash');
 
-    if (!currentPassword) {
-      throw new Error('Current password is required');
-    }
-
-    if (!newPasswordHash) {
-      throw new Error('New password hash is required');
-    }
-
-    const passwordAuth = getPasswordAuthenticatorContract(this.writeSigner, this.addresses.passwordAuth);
+    const passwordAuth = this.contract('write', getPasswordAuthenticatorContract, this.addresses.passwordAuth);
 
     try {
-      const tx = await passwordAuth.changePassword(keyVaultAddress, currentPassword, newPasswordHash);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse PasswordChanged event
-      const eventData = parseEventFromReceipt(
-        PasswordAuthenticatorEvents.PasswordChanged,
-        receipt, 
-        passwordAuth
+      const result = await this.sendTx(
+        () => passwordAuth.changePassword(keyVaultAddress, currentPassword, newPasswordHash),
+        {
+          parseEvents: [{
+            eventDef: PasswordAuthenticatorEvents.PasswordChanged,
+            contract: passwordAuth
+          }]
+        }
       );
-
-      if (!eventData) {
-        throw new Error('PasswordChanged event not found in transaction receipt');
+      
+      // Map wallet to walletAddress for consistency with original API
+      if (result.wallet) {
+        result.walletAddress = result.wallet;
+        delete result.wallet; // Remove wallet field to match original API
       }
-
-      const result = {
-        success: true,
-        walletAddress: eventData.wallet,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to change password: ${error.message}`);
+      throw this.wrapError('change password', error, { keyVaultAddress });
     }
   }
 
@@ -85,17 +67,15 @@ class PasswordAuthenticatorClient {
   async isConfigured(options = {}) {
     const { keyVaultAddress } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const passwordAuth = getPasswordAuthenticatorContract(this.readProvider, this.addresses.passwordAuth);
+    const passwordAuth = this.contract('read', getPasswordAuthenticatorContract, this.addresses.passwordAuth);
 
     try {
       const isConfigured = await passwordAuth.isConfigured(keyVaultAddress);
       return isConfigured;
     } catch (error) {
-      throw new Error(`Failed to check if wallet is configured: ${error.message}`);
+      throw this.wrapError('check if wallet is configured', error, { keyVaultAddress });
     }
   }
 }

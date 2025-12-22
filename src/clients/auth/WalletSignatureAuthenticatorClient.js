@@ -5,15 +5,13 @@
  * Handles wallet signature authentication, whitelist management, and configuration.
  */
 
+const BaseContractClient = require('../../internal/BaseContractClient');
 const { getWalletSignatureAuthenticatorContract } = require('../../contracts/authenticators/WalletSignatureAuthenticator');
-const { parseEventFromReceipt, WalletSignatureAuthenticatorEvents } = require('../../events');
+const { WalletSignatureAuthenticatorEvents } = require('../../events');
 
-class WalletSignatureAuthenticatorClient {
+class WalletSignatureAuthenticatorClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
-    this.readProvider = readProvider;
-    this.writeSigner = writeSigner;
-    this.config = config;
-    this.addresses = config.addresses;
+    super(readProvider, writeSigner, config);
   }
 
   // TODO: add configure method and verify method
@@ -30,49 +28,26 @@ class WalletSignatureAuthenticatorClient {
   async addToWhitelist(options = {}) {
     const { keyVaultAddress, authProof, newAddress } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(authProof, 'authProof');
+    this.requireAddress(newAddress, 'newAddress');
 
-    // TODO: check that authProof is correct type (bytes)
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-
-    if (!newAddress || typeof newAddress !== 'string') {
-      throw new Error('New address is required');
-    }
-
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.writeSigner, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('write', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 
     try {
-      const tx = await walletSigAuth.addToWhitelist(keyVaultAddress, authProof, newAddress);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse AddressAdded event
-      const eventData = parseEventFromReceipt(
-        WalletSignatureAuthenticatorEvents.AddressAdded,
-        receipt, 
-        walletSigAuth
+      const result = await this.sendTx(
+        () => walletSigAuth.addToWhitelist(keyVaultAddress, authProof, newAddress),
+        {
+          parseEvents: [{
+            eventDef: WalletSignatureAuthenticatorEvents.AddressAdded,
+            contract: walletSigAuth
+          }]
+        }
       );
 
-      if (!eventData) {
-        throw new Error('AddressAdded event not found in transaction receipt');
-      }
-
-      const result = {
-        success: true,
-        wallet: eventData.wallet,
-        added: eventData.added,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
       return result;
     } catch (error) {
-      throw new Error(`Failed to add to whitelist: ${error.message}`);
+      throw this.wrapError('add to whitelist', error, { keyVaultAddress, newAddress });
     }
   }
 
@@ -88,48 +63,26 @@ class WalletSignatureAuthenticatorClient {
   async removeFromWhitelist(options = {}) {
     const { keyVaultAddress, authProof, addressToRemove } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
-  
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(authProof, 'authProof');
+    this.requireAddress(addressToRemove, 'addressToRemove');
 
-    if (!addressToRemove || typeof addressToRemove !== 'string') {
-      throw new Error('Address is required');
-    }
-
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.writeSigner, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('write', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 
     try {
-      const tx = await walletSigAuth.removeFromWhitelist(keyVaultAddress, authProof, addressToRemove);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse AddressRemoved event
-      const eventData = parseEventFromReceipt(
-        WalletSignatureAuthenticatorEvents.AddressRemoved,
-        receipt, 
-        walletSigAuth
+      const result = await this.sendTx(
+        () => walletSigAuth.removeFromWhitelist(keyVaultAddress, authProof, addressToRemove),
+        {
+          parseEvents: [{
+            eventDef: WalletSignatureAuthenticatorEvents.AddressRemoved,
+            contract: walletSigAuth
+          }]
+        }
       );
-      
-      if (!eventData) {
-        throw new Error('WhitelistRemoved event not found in transaction receipt');
-      }
 
-      const result = {
-        success: true,
-        wallet: eventData.wallet,
-        removed: eventData.removed,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
       return result;
     } catch (error) {
-      throw new Error(`Failed to remove from whitelist: ${error.message}`);
+      throw this.wrapError('remove from whitelist', error, { keyVaultAddress, addressToRemove });
     }
   }
 
@@ -143,17 +96,15 @@ class WalletSignatureAuthenticatorClient {
   async isConfigured(options = {}) {
     const { keyVaultAddress } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
     
     try {
       const isConfigured = await walletSigAuth.isConfigured(keyVaultAddress);
       return isConfigured;
     } catch (error) {
-      throw new Error(`Failed to check if wallet is configured: ${error.message}`);
+      throw this.wrapError('check if wallet is configured', error, { keyVaultAddress });
     }
   }
 
@@ -168,21 +119,16 @@ class WalletSignatureAuthenticatorClient {
   async isWhitelisted(options = {}) {
     const { keyVaultAddress, addressToCheck } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireAddress(addressToCheck, 'addressToCheck');
 
-    if (!addressToCheck || typeof addressToCheck !== 'string') {
-      throw new Error('Address to check is required');
-    }
-
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 
     try {
       const isWhitelisted = await walletSigAuth.isWhitelisted(keyVaultAddress, addressToCheck);
       return isWhitelisted;
     } catch (error) {
-      throw new Error(`Failed to check if address is whitelisted: ${error.message}`);
+      throw this.wrapError('check if address is whitelisted', error, { keyVaultAddress, addressToCheck });
     }
   }
 
@@ -196,17 +142,15 @@ class WalletSignatureAuthenticatorClient {
   async getWhitelist(options = {}) {
     const { keyVaultAddress } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('Wallet address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
     
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 
     try {
       const whitelist = await walletSigAuth.getWhitelist(keyVaultAddress);
       return whitelist;
     } catch (error) {
-      throw new Error(`Failed to get whitelist: ${error.message}`);
+      throw this.wrapError('get whitelist', error, { keyVaultAddress });
     }
   }
 
@@ -216,13 +160,13 @@ class WalletSignatureAuthenticatorClient {
    * @returns {Promise<Bytes32>} EIP-712 domain separator
    */
   async getDomainSeparator() {
-    const walletSigAuth = getWalletSignatureAuthenticatorContract(this.readProvider, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 
     try {
       const domainSeparator = await walletSigAuth.domainSeparator();
       return domainSeparator;
     } catch (error) {
-      throw new Error(`Failed to get domain separator: ${error.message}`);
+      throw this.wrapError('get domain separator', error);
     }
   }
 }
