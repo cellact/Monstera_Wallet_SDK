@@ -5,8 +5,10 @@
  * Handles wallet operations, signing, and account management.
  */
 
-const { getWalletLogicContract, parse_AuthenticatorChangedEvent } = require('../../contracts/core/walletLogic');
-const { parseImplementationUpgradedEvent } = require('../../contracts/core/keyVault');
+// const { getWalletLogicContract, parse_AuthenticatorChangedEvent, parseImplementationUpgradedEvent } = require('../../contracts/core/walletLogic');
+
+const { getWalletLogicContract } = require('../../contracts/core/walletLogic');
+const { parseEventFromReceipt, KeyVaultEvents } = require('../../events');
 
 class WalletLogicClient {
   constructor(readProvider, writeSigner, config) {
@@ -321,7 +323,12 @@ class WalletLogicClient {
       console.log("   Transaction receipt:", receipt);
 
       // Parse AuthenticatorChanged event
-      const eventData = parse_AuthenticatorChangedEvent(receipt, walletLogic);
+      // const eventData = parse_AuthenticatorChangedEvent(receipt, walletLogic);
+      const eventData = parseEventFromReceipt(
+        KeyVaultEvents.AuthenticatorChanged, // Is actually a KeyVault contract event
+        receipt, 
+        walletLogic
+      );
       
       if (!eventData) {
         throw new Error('AuthenticatorChanged event not found in transaction receipt');
@@ -374,7 +381,12 @@ class WalletLogicClient {
       const receipt = await tx.wait();
 
       // Parse ImplementationUpgraded event
-      const eventData = parseImplementationUpgradedEvent(receipt, walletLogic);
+      // const eventData = parseImplementationUpgradedEvent(receipt, walletLogic);
+      const eventData = parseEventFromReceipt(
+        KeyVaultEvents.ImplementationUpgraded, // Is actually a KeyVault contract event
+        receipt, 
+        walletLogic
+      );
       
       if (!eventData) {
         throw new Error('ImplementationUpgraded event not found in transaction receipt');
@@ -383,7 +395,7 @@ class WalletLogicClient {
       const result = {
         success: true,
         oldImpl: eventData.oldImpl,
-        newImplAddr: eventData.newImplementation,
+        newImplAddr: eventData.newImpl,
         transactionHash: receipt.hash,
         blockNumber: receipt.blockNumber,
         gasUsed: receipt.gasUsed.toString()
