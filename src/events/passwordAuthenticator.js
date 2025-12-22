@@ -1,13 +1,16 @@
 /**
- * PasswordChanged Event Definition
+ * PasswordAuthenticator Events
  * 
- * Emitted when a wallet password is changed
+ * All event definitions for the PasswordAuthenticator contract
  */
+
 module.exports = {
+  PasswordChanged: {
     eventName: 'PasswordChanged',
     fieldMapping: {
-        wallet: 'wallet'
+      wallet: 'wallet'
     },
     description: 'Emitted when a wallet password is changed'
+  }
 };
 

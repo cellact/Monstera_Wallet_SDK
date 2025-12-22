@@ -63,7 +63,7 @@ class Monstera {
    * @returns {Monstera} SDK instance
    */
   static fromConfig(options) {
-    const config = createSdkConfig(options);
+    const config = createSdkConfig(options); // TODO: verify chainId matches the Sapphire preset; or just allow testnet and mainnet + SignerOrProvider
     return new Monstera(config);
   }
 
