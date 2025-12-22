@@ -8,6 +8,7 @@
 const BaseContractClient = require('../../internal/BaseContractClient');
 const { getPasswordAuthenticatorContract } = require('../../contracts/authenticators/PasswordAuthenticator');
 const { PasswordAuthenticatorEvents } = require('../../events');
+const { requireAddress, requireBytes } = require('../../internal/assert');
 
 class PasswordAuthenticatorClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
@@ -28,9 +29,9 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   async changePassword(options = {}) {
     const { keyVaultAddress, currentPassword, newPasswordHash } = options;
 
-    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
-    this.requireBytes(currentPassword, 'currentPassword');
-    this.requireBytes(newPasswordHash, 'newPasswordHash');
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireBytes(currentPassword, 'currentPassword');
+    requireBytes(newPasswordHash, 'newPasswordHash');
 
     const passwordAuth = this.contract('write', getPasswordAuthenticatorContract, this.addresses.passwordAuth);
 
@@ -67,7 +68,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddress } = options;
 
-    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const passwordAuth = this.contract('read', getPasswordAuthenticatorContract, this.addresses.passwordAuth);
 

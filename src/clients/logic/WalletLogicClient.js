@@ -8,6 +8,7 @@
 const BaseContractClient = require('../../internal/BaseContractClient');
 const { getWalletLogicContract } = require('../../contracts/core/walletLogic');
 const { KeyVaultEvents } = require('../../events');
+const { requireAddress, requireBytes, requireNonNegativeInteger } = require('../../internal/assert');
 
 class WalletLogicClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
@@ -24,7 +25,7 @@ class WalletLogicClient extends BaseContractClient {
   async getKeyVault(options = {}) {
     const { walletAddress } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
+    requireAddress(walletAddress, 'walletAddress');
 
     const logic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -46,7 +47,7 @@ class WalletLogicClient extends BaseContractClient {
   async getAuthenticator(options = {}) {
     const { walletAddress } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
+    requireAddress(walletAddress, 'walletAddress');
 
     const logic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -69,8 +70,8 @@ class WalletLogicClient extends BaseContractClient {
   async getAccountAddress(options = {}) {
     const { walletAddress, index } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
-    this.requireNonNegativeInteger(index, 'index');
+    requireAddress(walletAddress, 'walletAddress');
+    requireNonNegativeInteger(index, 'index');
 
     const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -94,9 +95,9 @@ class WalletLogicClient extends BaseContractClient {
   async getAccountAddresses(options = {}) {
     const { walletAddress, fromIndex, count } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
-    this.requireNonNegativeInteger(fromIndex, 'fromIndex');
-    this.requireNonNegativeInteger(count, 'count');
+    requireAddress(walletAddress, 'walletAddress');
+    requireNonNegativeInteger(fromIndex, 'fromIndex');
+    requireNonNegativeInteger(count, 'count');
     
     const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -128,16 +129,16 @@ class WalletLogicClient extends BaseContractClient {
   async signTransaction(options = {}) {
     const { walletAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
-    this.requireBytes(authProof, 'authProof');
-    this.requireNonNegativeInteger(index, 'index');
-    this.requireNonNegativeInteger(nonce, 'nonce');
-    this.requireNonNegativeInteger(gasPrice, 'gasPrice');
-    this.requireNonNegativeInteger(gasLimit, 'gasLimit');
-    this.requireAddress(to, 'to');
-    this.requireNonNegativeInteger(value, 'value');
-    this.requireString(data, 'data');
-    this.requireNonNegativeInteger(chainId, 'chainId');
+    requireAddress(walletAddress, 'walletAddress');
+    requireBytes(authProof, 'authProof');
+    requireNonNegativeInteger(index, 'index');
+    requireNonNegativeInteger(nonce, 'nonce');
+    requireNonNegativeInteger(gasPrice, 'gasPrice');
+    requireNonNegativeInteger(gasLimit, 'gasLimit');
+    requireAddress(to, 'to');
+    requireNonNegativeInteger(value, 'value');
+    requireString(data, 'data');
+    requireNonNegativeInteger(chainId, 'chainId');
 
     const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -162,10 +163,10 @@ class WalletLogicClient extends BaseContractClient {
   async signMessage(options = {}) {
     const { walletAddress, authProof, index, message } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
-    this.requireBytes(authProof, 'authProof');
-    this.requireNonNegativeInteger(index, 'index');
-    this.requireBytes(message, 'message');
+    requireAddress(walletAddress, 'walletAddress');
+    requireBytes(authProof, 'authProof');
+    requireNonNegativeInteger(index, 'index');
+    requireBytes(message, 'message');
 
     const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -190,10 +191,10 @@ class WalletLogicClient extends BaseContractClient {
   async sign(options = {}) {
     const { walletAddress, authProof, index, hash } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
-    this.requireBytes(authProof, 'authProof');
-    this.requireNonNegativeInteger(index, 'index');
-    this.requireBytes(hash, 'hash');
+    requireAddress(walletAddress, 'walletAddress');
+    requireBytes(authProof, 'authProof');
+    requireNonNegativeInteger(index, 'index');
+    requireBytes(hash, 'hash');
 
     const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -218,10 +219,10 @@ class WalletLogicClient extends BaseContractClient {
   async changeAuthenticator(options = {}) {
     const { walletAddress, authProof, newAuthenticatorAddress, newAuthConfig } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
-    this.requireBytes(authProof, 'authProof');
-    this.requireAddress(newAuthenticatorAddress, 'newAuthenticatorAddress');
-    this.requireBytes(newAuthConfig, 'newAuthConfig');
+    requireAddress(walletAddress, 'walletAddress');
+    requireBytes(authProof, 'authProof');
+    requireAddress(newAuthenticatorAddress, 'newAuthenticatorAddress');
+    requireBytes(newAuthConfig, 'newAuthConfig');
 
     const walletLogic = this.contract('write', getWalletLogicContract, walletAddress);
 
@@ -253,9 +254,9 @@ class WalletLogicClient extends BaseContractClient {
   async upgradeKeyVaultImpl(options = {}) {
     const { walletAddress, authProof, newImplAddr } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
-    this.requireBytes(authProof, 'authProof');
-    this.requireAddress(newImplAddr, 'newImplAddr');
+    requireAddress(walletAddress, 'walletAddress');
+    requireBytes(authProof, 'authProof');
+    requireAddress(newImplAddr, 'newImplAddr');
 
     const walletLogic = this.contract('write', getWalletLogicContract, walletAddress);
 
@@ -287,7 +288,7 @@ class WalletLogicClient extends BaseContractClient {
   async getKeyvaultAddr(options = {}) {
     const { walletAddress } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
+    requireAddress(walletAddress, 'walletAddress');
 
     const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -309,7 +310,7 @@ class WalletLogicClient extends BaseContractClient {
   async isInitialized(options = {}) {
     const { walletAddress } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
+    requireAddress(walletAddress, 'walletAddress');
 
     const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
 
@@ -332,8 +333,8 @@ class WalletLogicClient extends BaseContractClient {
   async initialize(options = {}) {
     const { walletAddress, keyVaultAddress } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
-    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireAddress(walletAddress, 'walletAddress');
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const walletLogic = this.contract('write', getWalletLogicContract, walletAddress);
   

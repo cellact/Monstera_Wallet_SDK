@@ -8,6 +8,7 @@
 const BaseContractClient = require('../../internal/BaseContractClient');
 const { getWalletSignatureAuthenticatorContract } = require('../../contracts/authenticators/WalletSignatureAuthenticator');
 const { WalletSignatureAuthenticatorEvents } = require('../../events');
+const { requireAddress, requireBytes } = require('../../internal/assert');
 
 class WalletSignatureAuthenticatorClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
@@ -28,9 +29,9 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async addToWhitelist(options = {}) {
     const { keyVaultAddress, authProof, newAddress } = options;
 
-    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
-    this.requireBytes(authProof, 'authProof');
-    this.requireAddress(newAddress, 'newAddress');
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireBytes(authProof, 'authProof');
+    requireAddress(newAddress, 'newAddress');
 
     const walletSigAuth = this.contract('write', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 
@@ -63,9 +64,9 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async removeFromWhitelist(options = {}) {
     const { keyVaultAddress, authProof, addressToRemove } = options;
 
-    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
-    this.requireBytes(authProof, 'authProof');
-    this.requireAddress(addressToRemove, 'addressToRemove');
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireBytes(authProof, 'authProof');
+    requireAddress(addressToRemove, 'addressToRemove');
 
     const walletSigAuth = this.contract('write', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 
@@ -96,7 +97,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddress } = options;
 
-    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
     
@@ -119,8 +120,8 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async isWhitelisted(options = {}) {
     const { keyVaultAddress, addressToCheck } = options;
 
-    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
-    this.requireAddress(addressToCheck, 'addressToCheck');
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireAddress(addressToCheck, 'addressToCheck');
 
     const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 
@@ -142,7 +143,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async getWhitelist(options = {}) {
     const { keyVaultAddress } = options;
 
-    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
     
     const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
 

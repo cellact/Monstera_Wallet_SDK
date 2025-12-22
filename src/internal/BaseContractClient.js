@@ -10,17 +10,6 @@
  */
 
 const { parseEventFromReceipt } = require('../events');
-const {
-  requireAddress,
-  requireBytes,
-  requireBytesLike,
-  requireString,
-  requireNumber,
-  requireNonNegativeInteger,
-  requirePositiveInteger,
-  requireHex,
-  requireOneOf
-} = require('./assert');
 
 class BaseContractClient {
   /**
@@ -105,119 +94,6 @@ class BaseContractClient {
     } catch (error) {
       throw error;
     }
-  }
-
-  /**
-   * Require an address value
-   * Delegates to assert.js
-   * 
-   * @param {String} value - Value to validate
-   * @param {String} name - Parameter name for error message
-   * @throws {Error} If value is not a valid address string
-   */
-  requireAddress(value, name = 'address') {
-    return requireAddress(value, name);
-  }
-
-  /**
-   * Require a bytes value
-   * Delegates to assert.js
-   * 
-   * @param {*} value - Value to validate
-   * @param {String} name - Parameter name for error message
-   * @throws {Error} If value is not provided
-   */
-  requireBytes(value, name = 'bytes') {
-    return requireBytes(value, name);
-  }
-
-  /**
-   * Require a bytes-like value
-   * Delegates to assert.js
-   * 
-   * @param {*} value - Value to validate
-   * @param {String} name - Parameter name for error message
-   * @throws {Error} If value is not bytes-like
-   */
-  requireBytesLike(value, name = 'bytes') {
-    return requireBytesLike(value, name);
-  }
-
-  /**
-   * Require a string value
-   * Delegates to assert.js
-   * 
-   * @param {String} value - Value to validate
-   * @param {String} name - Parameter name for error message
-   * @throws {Error} If value is not a string
-   */
-  requireString(value, name = 'string') {
-    return requireString(value, name);
-  }
-
-  /**
-   * Require a number value
-   * Delegates to assert.js
-   * 
-   * @param {Number} value - Value to validate
-   * @param {String} name - Parameter name for error message
-   * @param {Object} options - Validation options
-   * @param {Boolean} [options.allowZero=true] - Allow zero
-   * @param {Boolean} [options.allowNegative=false] - Allow negative numbers
-   * @param {Boolean} [options.requireInteger=false] - Require integer
-   * @throws {Error} If value is not a valid number
-   */
-  requireNumber(value, name = 'number', options = {}) {
-    return requireNumber(value, name, options);
-  }
-
-  /**
-   * Require a non-negative integer
-   * Delegates to assert.js
-   * 
-   * @param {Number} value - Value to validate
-   * @param {String} name - Parameter name for error message
-   * @throws {Error} If value is not a non-negative integer
-   */
-  requireNonNegativeInteger(value, name = 'number') {
-    return requireNonNegativeInteger(value, name);
-  }
-
-  /**
-   * Require a positive integer
-   * Delegates to assert.js
-   * 
-   * @param {Number} value - Value to validate
-   * @param {String} name - Parameter name for error message
-   * @throws {Error} If value is not a positive integer
-   */
-  requirePositiveInteger(value, name = 'number') {
-    return requirePositiveInteger(value, name);
-  }
-
-  /**
-   * Require a hex string value
-   * Delegates to assert.js
-   * 
-   * @param {String} value - Value to validate
-   * @param {String} name - Parameter name for error message
-   * @throws {Error} If value is not a hex string
-   */
-  requireHex(value, name = 'hex') {
-    return requireHex(value, name);
-  }
-
-  /**
-   * Require value to be one of allowed values
-   * Delegates to assert.js
-   * 
-   * @param {*} value - Value to validate
-   * @param {Array} allowedValues - Array of allowed values
-   * @param {String} name - Parameter name for error message
-   * @throws {Error} If value is not one of allowed values
-   */
-  requireOneOf(value, allowedValues, name = 'value') {
-    return requireOneOf(value, allowedValues, name);
   }
 
   /**

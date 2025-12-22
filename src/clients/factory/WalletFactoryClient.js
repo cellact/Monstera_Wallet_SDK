@@ -9,6 +9,7 @@ const BaseContractClient = require('../../internal/BaseContractClient');
 const { getWalletFactoryContract } = require('../../contracts/core/walletFactory');
 const { WalletFactoryEvents } = require('../../events');
 const { generateMnemonic, deriveSeed } = require('../../crypto/wallet');
+const { requireBytes, requireAddress } = require('../../internal/assert');
 
 class WalletFactoryClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
@@ -32,7 +33,7 @@ class WalletFactoryClient extends BaseContractClient {
   async createWallet(options = {}) {
     const { authenticator = this.addresses.passwordAuth, authConfig } = options;
 
-    this.requireBytes(authConfig, 'authConfig');
+    requireBytes(authConfig, 'authConfig');
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -83,9 +84,9 @@ class WalletFactoryClient extends BaseContractClient {
   async createWalletWithHook(options = {}) {
     const { authenticator = this.addresses.passwordAuth, authConfig, hook, hookData } = options;
 
-    this.requireBytes(authConfig, 'authConfig');
-    this.requireAddress(hook, 'hook');
-    this.requireBytes(hookData, 'hookData');
+    requireBytes(authConfig, 'authConfig');
+    requireAddress(hook, 'hook');
+    requireBytes(hookData, 'hookData');
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -133,7 +134,7 @@ class WalletFactoryClient extends BaseContractClient {
   async createWalletCore(options = {}) {
     const { authenticator = this.addresses.passwordAuth, authConfig } = options;
 
-    this.requireBytes(authConfig, 'authConfig');
+    requireBytes(authConfig, 'authConfig');
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -185,9 +186,9 @@ class WalletFactoryClient extends BaseContractClient {
   async createWalletWithCustomLogic(options = {}) {
     const { authenticator = this.addresses.passwordAuth, authConfig, customLogicImpl, logicData } = options;
 
-    this.requireBytes(authConfig, 'authConfig');
-    this.requireAddress(customLogicImpl, 'customLogicImpl');
-    this.requireBytes(logicData, 'logicData');
+    requireBytes(authConfig, 'authConfig');
+    requireAddress(customLogicImpl, 'customLogicImpl');
+    requireBytes(logicData, 'logicData');
 
     // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
@@ -227,7 +228,7 @@ class WalletFactoryClient extends BaseContractClient {
   async isWallet(options = {}) {
     const { walletAddress } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
+    requireAddress(walletAddress, 'walletAddress');
 
     const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
@@ -267,7 +268,7 @@ class WalletFactoryClient extends BaseContractClient {
   async upgradeWalletLogicImplAddr(options = {}) {
     const { newLogicAddress } = options;
 
-    this.requireAddress(newLogicAddress, 'newLogicAddress');
+    requireAddress(newLogicAddress, 'newLogicAddress');
 
     const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
 
@@ -298,7 +299,7 @@ class WalletFactoryClient extends BaseContractClient {
   async transferAdmin(options = {}) {
     const { newAdminAddress } = options;
 
-    this.requireAddress(newAdminAddress, 'newAdminAddress');
+    requireAddress(newAdminAddress, 'newAdminAddress');
 
     const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
 
@@ -343,7 +344,7 @@ class WalletFactoryClient extends BaseContractClient {
   async getWalletKeyVault(options = {}) {
     const { walletAddress } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
+    requireAddress(walletAddress, 'walletAddress');
 
     const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
@@ -365,7 +366,7 @@ class WalletFactoryClient extends BaseContractClient {
   async getStorageAddr(options = {}) {
     const { walletAddress } = options;
 
-    this.requireAddress(walletAddress, 'walletAddress');
+    requireAddress(walletAddress, 'walletAddress');
 
     const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
 
