@@ -5,15 +5,13 @@
  * Handles key vault operations, signing, and account management.
  */
 
+const BaseContractClient = require('../../internal/BaseContractClient');
 const { getKeyVaultContract } = require('../../contracts/core/keyVault');
-const { parseEventFromReceipt, KeyVaultEvents } = require('../../events');
+const { KeyVaultEvents } = require('../../events');
 
-class KeyVaultClient {
+class KeyVaultClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
-    this.readProvider = readProvider;
-    this.writeSigner = writeSigner;
-    this.config = config;
-    this.addresses = config.addresses;
+    super(readProvider, writeSigner, config);
   }
 
   // TODO: add initialize method
@@ -28,17 +26,15 @@ class KeyVaultClient {
   async getStorageAddr(options = {}) {
     const { keyVaultAddress } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
 
     try {
       const storageAddr = await keyVault.storage_();
       return storageAddr;
     } catch (error) {
-      throw new Error(`Failed to get storage address: ${error.message}`);
+      throw this.wrapError('get storage address', error, { keyVaultAddress });
     }
   }
 
@@ -52,17 +48,15 @@ class KeyVaultClient {
   async getAuthenticator(options = {}) {
     const { keyVaultAddress } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
     try {
       const authenticatorAddr = await keyVault.authenticator();
       return authenticatorAddr;
     }
     catch (error) {
-      throw new Error(`Failed to get authenticator address: ${error.message}`);
+      throw this.wrapError('get authenticator', error, { keyVaultAddress });
     }
   }
 
@@ -76,18 +70,16 @@ class KeyVaultClient {
   async getKeyVaultImplAddr(options = {}) {
     const { keyVaultAddress } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
 
     try {
       const keyVaultImplAddr = await keyVault.implementation();
       return keyVaultImplAddr;
     }
     catch (error) {
-      throw new Error(`Failed to get implementation address: ${error.message}`);
+      throw this.wrapError('get key vault implementation', error, { keyVaultAddress });
     }
   }
 
@@ -101,17 +93,15 @@ class KeyVaultClient {
   async isInitialized(options = {}) {
     const { keyVaultAddress } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
     try {
       const isInitialized = await keyVault.initialized();
       return isInitialized;
     }
     catch (error) {
-      throw new Error(`Failed to check if key vault is initialized: ${error.message}`);
+      throw this.wrapError('check if key vault is initialized', error, { keyVaultAddress });
     }
   }
 
@@ -127,48 +117,26 @@ class KeyVaultClient {
   async upgradeKeyVaultImpl(options = {}) {
     const { keyVaultAddress, authProof, newImplAddr } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(authProof, 'authProof');
+    this.requireAddress(newImplAddr, 'newImplAddr');
 
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-    if (!newImplAddr || typeof newImplAddr !== 'string') {
-      throw new Error('New key vault implementation address is required');
-    }
-
-    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
 
     try {
-      const tx = await keyVault.upgradeImplementation(authProof, newImplAddr);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse ImplementationUpgraded event
-      const eventData = parseEventFromReceipt(
-        KeyVaultEvents.ImplementationUpgraded,
-        receipt, 
-        keyVault
+      const result = await this.sendTx(
+        () => keyVault.upgradeImplementation(authProof, newImplAddr),
+        {
+          parseEvents: [{
+            eventDef: KeyVaultEvents.ImplementationUpgraded,
+            contract: keyVault
+          }]
+        }
       );
-
-      if (!eventData) {
-        throw new Error('ImplementationUpgraded event not found in transaction receipt');
-      }
-
-      const result = {
-        success: true,
-        oldImpl: eventData.oldImpl,
-        newImpl: eventData.newImpl,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
 
       return result;
     } catch (error) {
-      throw new Error(`Failed to upgrade key vault implementation: ${error.message}`);
+      throw this.wrapError('upgrade key vault implementation', error, { keyVaultAddress, newImplAddr });
     }
   }
 
@@ -185,52 +153,27 @@ class KeyVaultClient {
   async changeAuthenticator(options = {}) {
     const { keyVaultAddress, authProof, newAuthenticatorAddr, newAuthConfig } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(authProof, 'authProof');
+    this.requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
+    this.requireBytes(newAuthConfig, 'newAuthConfig');
 
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-
-    if (!newAuthenticatorAddr) {
-      throw new Error('New authenticator address is required.');
-    }
-
-    if (!newAuthConfig) {
-      throw new Error('New auth config is required');
-    }
-
-    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
 
     try {
-      const tx = await keyVault.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig);
-
-      // Wait for transaction
-      const receipt = await tx.wait();
-
-      // Parse AuthenticatorChanged event
-      const eventData = parseEventFromReceipt(
-        KeyVaultEvents.AuthenticatorChanged,
-        receipt, 
-        keyVault
+      const result = await this.sendTx(
+        () => keyVault.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig),
+        {
+          parseEvents: [{
+            eventDef: KeyVaultEvents.AuthenticatorChanged,
+            contract: keyVault
+          }]
+        }
       );
 
-      if (!eventData) {
-        throw new Error('AuthenticatorChanged event not found in transaction receipt');
-      }
-      const result = {
-        success: true,
-        oldAuth: eventData.oldAuth,
-        newAuth: eventData.newAuth,
-        transactionHash: receipt.hash,
-        blockNumber: receipt.blockNumber,
-        gasUsed: receipt.gasUsed.toString()
-      };
       return result;
-
     } catch (error) {
-      throw new Error(`Failed to change authenticator in key vault: ${error.message}`);
+      throw this.wrapError('change authenticator', error, { keyVaultAddress });
     }
   }
 
@@ -245,22 +188,17 @@ class KeyVaultClient {
   async getAccountAddress(options = {}) {
     const { keyVaultAddress, index } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireNonNegativeInteger(index, 'index');
 
-    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
-      throw new Error('Index is required and must be a non-negative integer');
-    }
-
-    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
 
     try {
       const accountAddress = await keyVault.getAccountAddress(index);
       return accountAddress;
     }
     catch (error) {
-      throw new Error(`Failed to get account address: ${error.message}`);
+      throw this.wrapError('get account address', error, { keyVaultAddress, index });
     }
   }
 
@@ -276,26 +214,18 @@ class KeyVaultClient {
   async getAccountAddresses(options = {}) {
     const { keyVaultAddress, fromIndex, count } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireNonNegativeInteger(fromIndex, 'fromIndex');
+    this.requireNonNegativeInteger(count, 'count');
 
-    if (fromIndex === undefined || fromIndex === null || typeof fromIndex !== 'number' || fromIndex < 0 || !Number.isInteger(fromIndex)) {
-      throw new Error('From index is required and must be a non-negative integer');
-    }
-
-    if (count === undefined || count === null || typeof count !== 'number' || count < 0 || !Number.isInteger(count)) {
-      throw new Error('Count is required and must be a non-negative integer');
-    }
-
-    const keyVault = getKeyVaultContract(this.readProvider, keyVaultAddress);
+    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
     
     try {
       const accountAddresses = await keyVault.getAccountAddresses(fromIndex, count);
       return accountAddresses;
     }
     catch (error) {
-      throw new Error(`Failed to get account addresses: ${error.message}`);
+      throw this.wrapError('get account addresses', error, { keyVaultAddress, fromIndex, count });
     }
   }
 
@@ -318,53 +248,25 @@ class KeyVaultClient {
   async signTransaction(options = {}) {
     const { keyVaultAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-  
-    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
-      throw new Error('Index is required and must be a non-negative integer');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(authProof, 'authProof');
+    this.requireNonNegativeInteger(index, 'index');
+    this.requireNonNegativeInteger(nonce, 'nonce');
+    this.requireNonNegativeInteger(gasPrice, 'gasPrice');
+    this.requireNonNegativeInteger(gasLimit, 'gasLimit');
+    this.requireAddress(to, 'to');
+    this.requireNonNegativeInteger(value, 'value');
+    this.requireBytes(txData, 'txData');
+    this.requireNonNegativeInteger(chainId, 'chainId');
 
-    if (nonce === undefined || nonce === null || typeof nonce !== 'number' || nonce < 0 || !Number.isInteger(nonce)) {
-      throw new Error('Nonce is required and must be a non-negative integer');
-    }
-
-    if (!gasPrice) {
-      throw new Error('Gas price is required and must be a non-negative integer');
-    }
-
-    if (!gasLimit) {
-      throw new Error('Gas limit is required and must be a non-negative integer');
-    }
-
-    if (!to || typeof to !== 'string') {
-      throw new Error('To address is required and must be a string');
-    }
-
-    if (value === undefined || value === null || typeof value !== 'number' || value < 0 || !Number.isInteger(value)) {
-      throw new Error('Value is required and must be a non-negative integer');
-    }
-
-    if (!txData) {
-      throw new Error('Transaction data is required');
-    }
-
-    if (chainId === undefined || chainId === null || typeof chainId !== 'number' || chainId < 0 || !Number.isInteger(chainId)) {
-      throw new Error('Chain ID is required and must be a non-negative integer');
-    }
-
-    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
 
     try {
       const signedTransaction = await keyVault.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId);
       return signedTransaction;
     }
     catch (error) {
-      throw new Error(`Failed to sign transaction: ${error.message}`);
+      throw this.wrapError('sign transaction', error, { keyVaultAddress, index });
     }
   }
 
@@ -381,30 +283,19 @@ class KeyVaultClient {
   async sign(options = {}) {
     const { keyVaultAddress, authProof, index, hash } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(authProof, 'authProof');
+    this.requireNonNegativeInteger(index, 'index');
+    this.requireBytes(hash, 'hash');
 
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-  
-    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
-      throw new Error('Index is required and must be a non-negative integer');
-    }
-
-    if (!hash) {
-      throw new Error('Hash is required');
-    }
-
-    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
 
     try {
       const signedHash = await keyVault.sign(authProof, index, hash);
       return signedHash;
     }
     catch (error) {
-      throw new Error(`Failed to sign hash: ${error.message}`);
+      throw this.wrapError('sign hash', error, { keyVaultAddress, index });
     }
   }
 
@@ -421,30 +312,19 @@ class KeyVaultClient {
   async signMessage(options = {}) {
     const { keyVaultAddress, authProof, index, message } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(authProof, 'authProof');
+    this.requireNonNegativeInteger(index, 'index');
+    this.requireBytes(message, 'message');
 
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-    
-    if (index === undefined || index === null || typeof index !== 'number' || index < 0 || !Number.isInteger(index)) {
-      throw new Error('Index is required and must be a non-negative integer');
-    }
-
-    if (!message) {
-      throw new Error('Message is required');
-    }
-
-    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
 
     try {
       const signedMessage = await keyVault.signMessage(authProof, index, message);
       return signedMessage;
     }
     catch (error) {
-      throw new Error(`Failed to sign message: ${error.message}`);
+      throw this.wrapError('sign message', error, { keyVaultAddress, index });
     }
   }
 
@@ -460,25 +340,18 @@ class KeyVaultClient {
   async executeWithAuth(options = {}) {
     const { keyVaultAddress, authProof, implCall } = options;
 
-    if (!keyVaultAddress || typeof keyVaultAddress !== 'string') {
-      throw new Error('KeyVault address is required');
-    }
-    if (!authProof) {
-      throw new Error('Auth proof is required');
-    }
-  
-    if (!implCall) {
-      throw new Error('Implementation call is required');
-    }
+    this.requireAddress(keyVaultAddress, 'keyVaultAddress');
+    this.requireBytes(authProof, 'authProof');
+    this.requireBytes(implCall, 'implCall');
 
-    const keyVault = getKeyVaultContract(this.writeSigner, keyVaultAddress);
+    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
 
     try {
       const result = await keyVault.executeWithAuth(authProof, implCall);
       return result;
     }
     catch (error) {
-      throw new Error(`Failed to execute function: ${error.message}`);
+      throw this.wrapError('execute with auth', error, { keyVaultAddress });
     }
   }
 }
