@@ -10,6 +10,15 @@
  * 
  * Optional (for verification):
  *   MNEMONIC="word1 word2 ..."
+ * 
+ * Tests:
+ * 1. Get keyVault contract address for a wallet.
+ * 2. Get authenticator contract address for a wallet.
+ * 3. Get account addresses
+ * 4. Verify against ethers.js
+ * 5. Sign a message
+ * 6. Sign a hash
+ * 7. Wrong password test
  */
 
 require('dotenv').config();
