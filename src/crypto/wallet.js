@@ -136,7 +136,8 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
   if (typeof deadline !== 'number' || !Number.isInteger(deadline)) {
     throw new Error('Deadline must be an integer (Unix timestamp in seconds)');
   }
-  if (deadline < Date.now() / 1000) {
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  if (deadline < nowInSeconds) {
     throw new Error('Deadline must be in the future');
   }
   
