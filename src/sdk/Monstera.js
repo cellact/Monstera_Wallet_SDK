@@ -72,7 +72,7 @@ class Monstera {
    * @static
    * @readonly
    */
-  static get NETWORKS() {
+  static get networks() {
     return NETWORKS;
   }
 

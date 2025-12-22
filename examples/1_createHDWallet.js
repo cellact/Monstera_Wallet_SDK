@@ -30,7 +30,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // Access network info if needed 
-  const networks = Monstera.NETWORKS;
+  const networks = Monstera.networks;
   console.log(`   Networks: ${JSON.stringify(networks, null, 2)}`);
 
   // Prepare auth config (password hash for PasswordAuthenticator)
