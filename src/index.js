@@ -5,7 +5,7 @@
  * The Monstera class is exported as the default export.
  */
 
-const Monstera = require('./client/SapphireWalletSDK');
+const Monstera = require('./sdk/Monstera');
 
 // Export Monstera as the default export (main entry point)
 module.exports = Monstera;
