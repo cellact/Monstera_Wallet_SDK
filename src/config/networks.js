@@ -141,8 +141,8 @@ function resolveBaseConfig(options) {
 module.exports = {
   NETWORKS,
   DEFAULT_ADDRESSES,
-  validateNetworkConfig,
-  validateAddresses,
+  validateNetworkConfig, // TODO: consider removing the export as only used internally
+  validateAddresses, // TODO: consider removing the export as only used internally
   resolveBaseConfig
 };
 
