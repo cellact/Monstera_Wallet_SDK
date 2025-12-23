@@ -48,10 +48,6 @@ class Monstera {
     // Initialize authenticator client registry (manages all authenticator clients)
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, config);
 
-    // Namespace for wallet operations
-    this.wallets = {
-      createAuthProof: this.createAuthProof.bind(this),
-    };
   }
 
   /**

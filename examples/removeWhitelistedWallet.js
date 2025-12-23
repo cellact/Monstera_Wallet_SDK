@@ -79,7 +79,7 @@ async function main() {
   console.log("=".repeat(70));
 
   try {
-    const authProof = await sdk.wallets.createAuthProof({
+    const authProof = await sdk.createAuthProof({
       signer: allowed1Signer,
       keyVault: result.keyVault
     });
@@ -112,7 +112,7 @@ async function main() {
   console.log("=".repeat(70));
 
   try {
-    const authProof = await sdk.wallets.createAuthProof({
+    const authProof = await sdk.createAuthProof({
       signer: allowed2Signer,
       keyVault: result.keyVault
     });
@@ -137,7 +137,7 @@ async function main() {
 
   try {
     // Use allowed1 to remove allowed2 from the whitelist
-    const authProof = await sdk.wallets.createAuthProof({
+    const authProof = await sdk.createAuthProof({
       signer: allowed1Signer,
       keyVault: result.keyVault
     });
@@ -165,7 +165,7 @@ async function main() {
   console.log("=".repeat(70));
 
   try {
-    const authProof = await sdk.wallets.createAuthProof({
+    const authProof = await sdk.createAuthProof({
       signer: allowed2Signer,
       keyVault: result.keyVault
     });
