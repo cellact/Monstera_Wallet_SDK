@@ -29,7 +29,6 @@ class BaseContractClient {
     this.readProvider = readProvider;
     this.writeSigner = writeSigner;
     this.config = config;
-    this.addresses = config.addresses;
   }
 
   /**

@@ -33,7 +33,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(newAddress, 'newAddress');
 
-    const walletSigAuth = this.contract('write', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('write', getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     try {
       const result = await this.sendTx(
@@ -68,7 +68,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(addressToRemove, 'addressToRemove');
 
-    const walletSigAuth = this.contract('write', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('write', getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     try {
       const result = await this.sendTx(
@@ -99,7 +99,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
 
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
     
     try {
       const isConfigured = await walletSigAuth.isConfigured(keyVaultAddress);
@@ -123,7 +123,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireAddress(addressToCheck, 'addressToCheck');
 
-    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     try {
       const isWhitelisted = await walletSigAuth.isWhitelisted(keyVaultAddress, addressToCheck);
@@ -145,7 +145,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
 
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     
-    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     try {
       const whitelist = await walletSigAuth.getWhitelist(keyVaultAddress);
@@ -161,7 +161,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * @returns {Promise<Bytes32>} EIP-712 domain separator
    */
   async getDomainSeparator() {
-    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.addresses.walletSignatureAuth);
+    const walletSigAuth = this.contract('read', getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     try {
       const domainSeparator = await walletSigAuth.domainSeparator();

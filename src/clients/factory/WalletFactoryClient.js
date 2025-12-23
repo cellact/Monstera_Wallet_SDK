@@ -14,7 +14,6 @@ const { requireBytes, requireAddress } = require('../../internal/assert');
 class WalletFactoryClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
-    this.contractAddress = config.addresses.factory;
   }
 
   /**
@@ -31,7 +30,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWallet(options = {}) {
-    const { authenticator = this.addresses.passwordAuth, authConfig } = options;
+    const { authenticator = this.config.addresses.passwordAuth, authConfig } = options;
 
     requireBytes(authConfig, 'authConfig');
 
@@ -42,7 +41,7 @@ class WalletFactoryClient extends BaseContractClient {
     const seed = deriveSeed(mnemonic);
     
     // On-chain: Get factory contract
-    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
     
     // On-chain: Call createWallet
     try {
@@ -82,7 +81,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWalletWithHook(options = {}) {
-    const { authenticator = this.addresses.passwordAuth, authConfig, hook, hookData } = options;
+    const { authenticator = this.config.addresses.passwordAuth, authConfig, hook, hookData } = options;
 
     requireBytes(authConfig, 'authConfig');
     requireAddress(hook, 'hook');
@@ -95,7 +94,7 @@ class WalletFactoryClient extends BaseContractClient {
     const seed = deriveSeed(mnemonic);
     
     // On-chain: Get factory contract
-    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
     
     // On-chain: Call createWalletWithHook
     try {
@@ -132,7 +131,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWalletCore(options = {}) {
-    const { authenticator = this.addresses.passwordAuth, authConfig } = options;
+    const { authenticator = this.config.addresses.passwordAuth, authConfig } = options;
 
     requireBytes(authConfig, 'authConfig');
 
@@ -143,7 +142,7 @@ class WalletFactoryClient extends BaseContractClient {
     const seed = deriveSeed(mnemonic);
     
     // On-chain: Get factory contract
-    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
     
     // On-chain: Call createWalletCore
     try {
@@ -184,7 +183,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWalletWithCustomLogic(options = {}) {
-    const { authenticator = this.addresses.passwordAuth, authConfig, customLogicImpl, logicData } = options;
+    const { authenticator = this.config.addresses.passwordAuth, authConfig, customLogicImpl, logicData } = options;
 
     requireBytes(authConfig, 'authConfig');
     requireAddress(customLogicImpl, 'customLogicImpl');
@@ -197,7 +196,7 @@ class WalletFactoryClient extends BaseContractClient {
     const seed = deriveSeed(mnemonic);
     
     // On-chain: Get factory contract
-    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
 
     // On-chain: Call createWalletWithCustomLogic
     try {
@@ -230,7 +229,7 @@ class WalletFactoryClient extends BaseContractClient {
 
     requireAddress(walletAddress, 'walletAddress');
 
-    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const isWallet = await factory.isWallet(walletAddress);
@@ -246,7 +245,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<String>} Current WalletLogic implementation
    */
   async getWalletLogicImplAddr() {
-    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const implementation = await factory.implementation();
@@ -270,7 +269,7 @@ class WalletFactoryClient extends BaseContractClient {
 
     requireAddress(newLogicAddress, 'newLogicAddress');
 
-    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const result = await this.sendTx(
@@ -301,7 +300,7 @@ class WalletFactoryClient extends BaseContractClient {
 
     requireAddress(newAdminAddress, 'newAdminAddress');
 
-    const factory = this.contract('write', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const result = await this.sendTx(
@@ -324,7 +323,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<String>} Admin address
    */
   async getAdmin() {
-    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const admin = await factory.admin();
@@ -346,7 +345,7 @@ class WalletFactoryClient extends BaseContractClient {
 
     requireAddress(walletAddress, 'walletAddress');
 
-    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const keyVaultAddr = await factory.walletKeyVault(walletAddress);
@@ -368,7 +367,7 @@ class WalletFactoryClient extends BaseContractClient {
 
     requireAddress(walletAddress, 'walletAddress');
 
-    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const storageAddr = await factory.walletStorage(walletAddress);
@@ -386,7 +385,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<String>} Beacon address
    */
   async getBeaconAddr() {
-    const factory = this.contract('read', getWalletFactoryContract, this.contractAddress);
+    const factory = this.contract('read', getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const beaconAddr = await factory.beacon();
