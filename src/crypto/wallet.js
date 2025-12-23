@@ -67,47 +67,6 @@ function hashPassword(password) {
 }
 
 /**
- * Encode auth config for contract call
- * 
- * @param {String} authenticatorAddress - Address of the authenticator contract
- * @param {String} authConfig - Auth configuration (e.g., password hash)
- * @returns {String} Encoded auth config
- */
-function encodeAuthConfig(authenticatorAddress, authConfig) {
-  // For password auth, authConfig is the password hash
-  // The contract expects: (address authenticator, bytes authConfig)
-  // We'll return the authConfig as-is (it's already a hex string)
-  
-  if (!authenticatorAddress || !/^0x[a-fA-F0-9]{40}$/.test(authenticatorAddress)) {
-    throw new ValidationError('Invalid authenticator address', 'authenticatorAddress', authenticatorAddress);
-  }
-  
-  if (!authConfig || typeof authConfig !== 'string') {
-    throw new ValidationError('Auth config must be a string (hex encoded)', 'authConfig', authConfig);
-  }
-  
-  // Return the auth config as bytes (will be encoded by ethers)
-  return authConfig;
-}
-
-/**
- * Create wallet from mnemonic (for testing/verification)
- * 
- * @param {String} mnemonic - BIP39 mnemonic phrase
- * @param {String} [path="m/44'/60'/0'/0/0"] - HD wallet derivation path
- * @returns {Object} Wallet with address and private key
- */
-function createWalletFromMnemonic(mnemonic, path = "m/44'/60'/0'/0/0") {
-  const wallet = ethers.HDNodeWallet.fromPhrase(mnemonic, path);
-  
-  return {
-    address: wallet.address,
-    privateKey: wallet.privateKey,
-    publicKey: wallet.publicKey
-  };
-}
-
-/**
  * Create auth proof (EIP-712 authentication proof)
  * 
  * @param {Object} signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
@@ -168,8 +127,6 @@ module.exports = {
   generateMnemonic,
   deriveSeed,
   hashPassword,
-  encodeAuthConfig,
-  createWalletFromMnemonic,
   createAuthProof
 };
 

@@ -95,41 +95,10 @@ function getWriteSigner(signerOrProvider, rpcUrl) {
   return getWrappedSigner(signer);
 }
 
-/**
- * Get provider/signer based on operation type
- * 
- * @param {String} operation - 'read' or 'write'
- * @param {String|Object} signerOrProvider - Signer or provider
- * @param {String} rpcUrl - RPC URL
- * @returns {Object} Provider (for read) or wrapped Signer (for write)
- */
-function getProviderForOperation(operation, signerOrProvider, rpcUrl) {
-  if (operation === 'read') {
-    // For reads, we can use a plain provider
-    if (typeof signerOrProvider === 'string') {
-      return getReadProvider(rpcUrl);
-    } else if (signerOrProvider && typeof signerOrProvider.getBlockNumber === 'function') {
-      return signerOrProvider;
-    } else {
-      return getReadProvider(rpcUrl);
-    }
-  } else if (operation === 'write') {
-    // For writes, we need a wrapped signer
-    return getWriteSigner(signerOrProvider, rpcUrl);
-  } else {
-    throw new ValidationError(
-      `Invalid operation: ${operation}. Must be 'read' or 'write'`,
-      'operation',
-      operation
-    );
-  }
-}
-
 module.exports = {
   createProvider,
   getWrappedSigner,
   getReadProvider,
   getWriteSigner,
-  getProviderForOperation
 };
 
