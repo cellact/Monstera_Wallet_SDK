@@ -6,7 +6,7 @@
  */
 
 const { resolveBaseConfig, DEFAULT_ADDRESSES, NETWORKS } = require('../config/networks');
-const { getReadProvider, getWriteSigner } = require('../providers/sapphire');
+const { createProvider, createWriteSigner } = require('../providers/sapphire');
 const { createAuthProof } = require('../crypto/wallet');
 const WalletFactoryClient = require('../clients/factory');
 const WalletLogicClient = require('../clients/logic');
@@ -29,10 +29,10 @@ class Monstera {
     this.config = config;
     
     // Initialize read provider (for read operations)
-    this.readProvider = config.provider ?? getReadProvider(config.rpcUrl);
+    this.readProvider = config.provider ?? createProvider(config.rpcUrl);
     
     // Initialize write signer (for write operations with Sapphire wrapper)
-    this.writeSigner = config.signer ? getWriteSigner(config.signer, config.rpcUrl) : null;
+    this.writeSigner = config.signer ? createWriteSigner(config.signer, config.rpcUrl) : null;
 
     // Wire domain clients
     this.factory = new WalletFactoryClient(this.readProvider, this.writeSigner, config);

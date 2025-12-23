@@ -24,12 +24,12 @@ function createProvider(rpcUrl) {
 }
 
 /**
- * Get a wrapped signer for Sapphire encrypted transactions
+ * Wrap signer for Sapphire encrypted transactions
  * 
  * @param {Object} signer - Ethers signer instance
  * @returns {Object} Wrapped signer with Sapphire encryption
  */
-function getWrappedSigner(signer) {
+function wrapSigner(signer) {
   try {
     const { wrapEthersSigner } = require('@oasisprotocol/sapphire-ethers-v6');
     return wrapEthersSigner(signer);
@@ -42,63 +42,43 @@ function getWrappedSigner(signer) {
 }
 
 /**
- * Get provider for read operations (no wrapper needed)
+ * Create signer for write operations (with Sapphire wrapper)
  * 
- * @param {String} rpcUrl - RPC URL
- * @returns {Object} Ethers provider
- */
-function getReadProvider(rpcUrl) {
-  return createProvider(rpcUrl);
-}
-
-/**
- * Get signer for write operations (with Sapphire wrapper)
- * 
- * @param {String|Object} signerOrProvider - Private key string or Signer/Provider instance
- * @param {String} rpcUrl - RPC URL (required if signerOrProvider is a private key)
+ * @param {String|Object} signer - Private key string or Signer instance
+ * @param {String} rpcUrl - RPC URL (required if signer is a private key)
  * @returns {Object} Wrapped signer for encrypted transactions
  */
-function getWriteSigner(signerOrProvider, rpcUrl) {
+function createWriteSigner(providedSigner, rpcUrl) {
   const { ethers } = require('ethers');
   
   let signer;
   
   // If it's a string, treat it as a private key
-  if (typeof signerOrProvider === 'string') {
+  if (typeof providedSigner === 'string') {
     if (!rpcUrl) {
       throw new ConfigError('RPC URL is required when providing private key as string', 'rpcUrl');
     }
     const provider = createProvider(rpcUrl);
-    signer = new ethers.Wallet(signerOrProvider, provider);
+    signer = new ethers.Wallet(providedSigner, provider);
   } 
   // If it's already a Signer
-  else if (signerOrProvider && typeof signerOrProvider.signMessage === 'function') {
-    signer = signerOrProvider;
-  }
-  // If it's a Provider, create a wallet (this requires a private key)
-  else if (signerOrProvider && typeof signerOrProvider.getBlockNumber === 'function') {
-    throw new ValidationError(
-      'Provider provided but Signer is required for write operations. Provide a private key or Signer instance.',
-      'signerOrProvider',
-      signerOrProvider
-    );
+  else if (providedSigner && typeof providedSigner.signMessage === 'function') {
+    signer = providedSigner;
   }
   else {
     throw new ValidationError(
-      'Invalid signerOrProvider. Must be a private key string, Signer, or Provider instance.',
-      'signerOrProvider',
-      signerOrProvider
+      'Invalid signer. Must be a private key string, or a Signer instance.',
+      'providedSigner',
+      providedSigner
     );
   }
 
   // Wrap with Sapphire for encrypted transactions
-  return getWrappedSigner(signer);
+  return wrapSigner(signer);
 }
 
 module.exports = {
   createProvider,
-  getWrappedSigner,
-  getReadProvider,
-  getWriteSigner,
+  wrapSigner,
+  createWriteSigner,
 };
-
