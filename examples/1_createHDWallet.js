@@ -33,6 +33,10 @@ async function main() {
   const networks = Monstera.networks;
   console.log(`   Networks: ${JSON.stringify(networks, null, 2)}`);
 
+  // Access contract addresses if needed
+  const contractAddresses = Monstera.contractAddresses;
+  console.log(`   Contract addresses: ${JSON.stringify(contractAddresses, null, 2)}`);
+
   // Prepare auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
