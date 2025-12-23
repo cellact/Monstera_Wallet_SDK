@@ -23,31 +23,18 @@ const { ValidationError } = require('../errors');
 class Monstera {
   constructor(config) {
     this.config = config;
-    this.network = config.network;
-    this.chainId = config.chainId;
-    this.rpcUrl = config.rpcUrl;
-    this.addresses = config.addresses;
-    this.signer = config.signer ?? null;
-    this.provider = config.provider ?? null;
     
     // Initialize read provider (for read operations)
-    this.readProvider = this.provider ?? getReadProvider(this.rpcUrl);
+    this.readProvider = config.provider ?? getReadProvider(config.rpcUrl);
     
-    // Initialize write signer (for write operations with Sapphire wrapper) - Only create write signer if signer exists
-    this.writeSigner = this.signer ? getWriteSigner(this.signer, this.rpcUrl) : null;
+    // Initialize write signer (for write operations with Sapphire wrapper)
+    this.writeSigner = config.signer ? getWriteSigner(config.signer, config.rpcUrl) : null;
 
     // Wire domain clients
     this.factory = new WalletFactoryClient(this.readProvider, this.writeSigner, config);
-
-    // Initialize logic client
     this.logic = new WalletLogicClient(this.readProvider, this.writeSigner, config);
-
-    // Initialize key vault client
     this.keyVault = new KeyVaultClient(this.readProvider, this.writeSigner, config);
-
-    // Initialize authenticator client registry (manages all authenticator clients)
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, config);
-
   }
 
   /**
@@ -128,6 +115,13 @@ class Monstera {
     return NETWORKS;
   }
 
+  // Convenience getters - no duplication, just accessors to config
+  get network() { return this.config.network; }
+  get chainId() { return this.config.chainId; }
+  get rpcUrl() { return this.config.rpcUrl; }
+  get addresses() { return this.config.addresses; }
+  get provider() { return this.config.provider; }
+
   /**
    * Create an auth proof for a wallet
    * 
@@ -145,7 +139,7 @@ class Monstera {
 
     // Set default authenticator if not provided
     if (!authenticator) {
-      authenticator = this.addresses.walletSignatureAuth;
+      authenticator = this.config.addresses.walletSignatureAuth;
     }
 
     // Set deadline default if not provided
@@ -156,7 +150,7 @@ class Monstera {
 
     // Set chainId default if not provided
     if (!chainId) {
-      chainId = this.chainId;
+      chainId = this.config.chainId;
     }
 
     const authProof = await createAuthProof(signer, chainId, authenticator, deadline, keyVault);

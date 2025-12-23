@@ -29,13 +29,17 @@ async function main() {
   console.log("Step 1: Create a HD Wallet");
   console.log("=".repeat(60));
 
-  // Access network info if needed 
+  // Access network info (static method, returns the networks for all networks)
   const networks = Monstera.networks;
   console.log(`   Networks: ${JSON.stringify(networks, null, 2)}`);
 
-  // Access contract addresses if needed
+  // Access contract addresses (static method, returns the addresses for all networks)
   const contractAddresses = Monstera.contractAddresses;
   console.log(`   Contract addresses: ${JSON.stringify(contractAddresses, null, 2)}`);
+
+  // Access contract addresses for the SDK instance (returns only the addresses for the current network)
+  const contractAddresses1 = sdk.addresses;
+  console.log(`   Contract addresses 1: ${JSON.stringify(contractAddresses1, null, 2)}`);
 
   // Prepare auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");
