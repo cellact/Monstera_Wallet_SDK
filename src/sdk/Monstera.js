@@ -110,6 +110,15 @@ class Monstera {
   // ============================================================================
 
   /**
+   * Version of the SDK
+   * @static
+   * @readonly
+   */
+  static get version() {
+    return require('../../package.json').version;
+  }
+  
+  /**
    * Network presets for testnet and mainnet
    * @static
    * @readonly
