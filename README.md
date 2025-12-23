@@ -40,39 +40,61 @@ Contract addresses are **hardcoded** - no configuration needed! Just install and
 
 ```javascript
 const { Monstera } = require('@monstera/sdk');
+const { ethers } = require('ethers');
 
-// Create SDK instance for testnet
-const sdk = Monstera.fromConfig({
+// Create SDK instance for testnet (with signer for write operations)
+const sdk = Monstera.connect({
   network: 'testnet', // or 'mainnet'
-  signerOrProvider: '0x...' // Private key or Signer instance
+  signer: 'your_private_key' // Private key string or ethers Signer instance
 });
 
-// Create a wallet
-const result = await sdk.wallets.createWallet({
-  password: 'my-secure-password'
-});
+async function createWallet() {
+  
+  // Prepare auth config (password hash for PasswordAuthenticator)
+  const password = 'my-secure-password'; // Replace with your password
+  const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
 
-console.log('Wallet Address:', result.wallet);
-console.log('Transaction Hash:', result.transactionHash);
-console.log('Block Number:', result.blockNumber);
+  // Create a wallet
+  const result = await sdk.factory.createWallet({
+    authConfig: passwordHash
+    // authenticator is optional - defaults to PasswordAuthenticator
+  });
+
+  return result;
+}
+
+createWallet();
 ```
 
 ### Network Switching
 
 ```javascript
 const { Monstera } = require('@monstera/sdk');
+const { ethers } = require('ethers');
 
-// Testnet configuration
-const testnetSdk = Monstera.fromConfig({
+// Testnet configuration (with signer for write operations)
+const testnetSdk = Monstera.connect({
   network: 'testnet',
-  signerOrProvider: privateKey
+  signer: 'your_private_key' // Private key string or ethers Signer instance
 });
 
 // Mainnet configuration
-const mainnetSdk = Monstera.fromConfig({
+const mainnetSdk = Monstera.connect({
   network: 'mainnet',
-  signerOrProvider: privateKey
+  signer: 'your_private_key' // Private key string or ethers Signer instance
 });
+
+// Read-only instance (no signer, read operations only)
+const readonlySdk = Monstera.readonly({
+  network: 'testnet'
+  // provider is optional - will use default RPC if not provided
+});
+
+// Access network information
+console.log('Network:', testnetSdk.network); // 'sapphire-testnet'
+console.log('Chain ID:', testnetSdk.chainId); // 23295
+console.log('RPC URL:', testnetSdk.rpcUrl);
+console.log('Addresses:', testnetSdk.addresses);
 ```
 
 ## Architecture
@@ -82,11 +104,14 @@ The SDK is organized into modular components:
 ### Modules
 
 - **`config/`**: Network presets, address validation, and SDK configuration
-- **`provider/`**: Ethers provider creation and Sapphire wrapper integration
-- **`crypto/`**: Mnemonic generation, seed derivation, and auth config encoding
-- **`contracts/`**: Typed contract getters (factory, wallet, storage, authenticators)
-- **`client/`**: Main SDK class exposing read/write methods
-- **`errors/`**: Consistent error types
+- **`providers/`**: Ethers provider creation and Sapphire wrapper integration
+- **`crypto/`**: Mnemonic generation, seed derivation, and password hashing
+- **`contracts/`**: Contract ABIs and typed contract getters
+- **`clients/`**: Domain clients (factory, logic, keyVault, auth)
+- **`events/`**: Event definitions and receipt parsing
+- **`errors/`**: Consistent error types with stable error codes
+- **`internal/`**: Internal utilities (BaseContractClient, validation helpers)
+- **`sdk/`**: Main SDK class (Monstera)
 
 ### API Design
 
@@ -100,30 +125,57 @@ The SDK is organized into modular components:
 
 The SDK includes presets for both networks:
 
-- **Testnet**: Chain ID `23295`, RPC `https://testnet.sapphire.oasis.dev`
-- **Mainnet**: Chain ID `23294`, RPC `https://sapphire.oasis.io`
+- **Testnet**: 
+  - Name: `sapphire-testnet`
+  - Chain ID: `23295` (0x5aff)
+  - RPC URL: `https://testnet.sapphire.oasis.dev`
+  - Explorer: `https://testnet.explorer.sapphire.oasis.io`
+
+- **Mainnet**: 
+  - Name: `sapphire-mainnet`
+  - Chain ID: `23294` (0x5afe)
+  - RPC URL: `https://sapphire.oasis.io`
+  - Explorer: `https://explorer.sapphire.oasis.io`
 
 ### Address Overrides
 
-You can override default addresses when creating the SDK:
+You can override default contract addresses when creating the SDK:
 
 ```javascript
-const sdk = Monstera.fromConfig({
+const sdk = Monstera.connect({
   network: 'testnet',
-  signerOrProvider: privateKey
+  signer: 'your_private_key', // Private key string or ethers Signer instance
+  addresses: {
+    factory: '0x...',               // Override factory address
+    passwordAuth: '0x...',          // Override password authenticator
+    walletSignatureAuth: '0x...'    // Override wallet signature authenticator
+  }
 });
 ```
+
+**Note:** You can override individual addresses or all of them. Addresses not provided will use the defaults for the selected network.
 
 ### Custom RPC URLs
 
 Override the default RPC URL:
 
 ```javascript
-const sdk = Monstera.fromConfig({
+const sdk = Monstera.connect({
   network: 'testnet',
   rpcUrl: 'https://custom-rpc-endpoint.com',
-  addresses: { /* ... */ },
-  signerOrProvider: privateKey
+  signer: 'your_private_key' // Private key string or ethers Signer instance
+});
+
+// Or with address overrides
+const sdkWithOverrides = Monstera.connect({
+  network: 'testnet',
+  rpcUrl: 'https://custom-rpc-endpoint.com',
+  addresses: {
+    factory: '0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a',
+    passwordAuth: '0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7',
+    walletSignatureAuth: '0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a'
+  },
+  signer: 'your_private_key' // Private key string or ethers Signer instance
 });
 ```
 
@@ -147,7 +199,6 @@ The SDK includes comprehensive examples in the `/examples` directory:
 ```bash
 # Set up environment variables
 export SIGNER_PRIVATE_KEY=0x...
-export TEST_PASSWORD=your-secure-password
 
 # Run an example
 node examples/1_createHDWallet.js
@@ -164,40 +215,76 @@ node examples/1_createHDWallet.js
 
 Main SDK class for wallet operations.
 
-#### `Monstera.fromConfig(options)`
+#### `Monstera.connect(options)`
 
-Create an SDK instance from configuration.
+Create an SDK instance with write capabilities (requires signer).
 
 **Parameters:**
 - `network` (required): `'testnet'` or `'mainnet'`
-- `addresses` (required): Object with contract addresses
-  - `factory`: Factory contract address
-  - `passwordAuth`: Password authenticator address
-- `signerOrProvider` (required): Private key string, Signer, or Provider instance
+- `signer` (required): Private key string (0x-prefixed hex) or ethers Signer instance
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
+- `addresses` (optional): Object with contract addresses to override defaults
 
-**Returns:** `Monstera` instance
+**Returns:** `Monstera` instance with write capabilities
 
-#### `sdk.wallets.createWallet(options)`
+#### `Monstera.readonly(options)`
+
+Create a read-only SDK instance (no signer required).
+
+**Parameters:**
+- `network` (required): `'testnet'` or `'mainnet'`
+- `provider` (optional): ethers Provider instance (uses default RPC if not provided)
+- `rpcUrl` (optional): Custom RPC URL (overrides default)
+- `addresses` (optional): Object with contract addresses to override defaults
+
+**Returns:** `Monstera` instance (read-only)
+
+#### `sdk.factory.createWallet(options)`
 
 Create a new wallet.
 
 **Parameters:**
-- `password` (required): User password
-- `mnemonic` (optional): BIP39 mnemonic (auto-generated if not provided)
-- `returnMnemonic` (optional): Whether to return mnemonic in result (default: `false`)
+- `authConfig` (required): Authentication configuration (e.g., password hash as hex string)
+- `authenticator` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
 **Returns:**
 ```javascript
 {
   success: boolean,
   wallet: string,           // Wallet address
-  authenticator: string,     // Authenticator address
-  transactionHash: string,   // Transaction hash
-  blockNumber: number,       // Block number
+  keyVault: string,         // KeyVault address
+  storage: string,          // Storage address
+  authenticator: string,    // Authenticator address
+  transactionHash: string,  // Transaction hash
+  blockNumber: number,      // Block number
   gasUsed: string,          // Gas used
-  mnemonic?: string         // Only if returnMnemonic: true
+  mnemonic: string          // Generated mnemonic (save securely!)
 }
+```
+
+#### SDK Clients
+
+The SDK provides access to domain-specific clients:
+
+```javascript
+// Factory client - wallet creation and factory administration
+await sdk.factory.createWallet({ authConfig });
+await sdk.factory.isWallet({ walletAddress });
+await sdk.factory.getAdmin();
+
+// Logic client - wallet operations and account management
+await sdk.logic.getKeyVault({ walletAddress });
+await sdk.logic.getAuthenticator({ walletAddress });
+await sdk.logic.getAccountAddress({ walletAddress, index });
+
+// KeyVault client - key vault operations and signing
+await sdk.keyVault.getStorageAddr({ keyVaultAddress });
+await sdk.keyVault.getAuthenticator({ keyVaultAddress });
+await sdk.keyVault.signTransaction({ keyVaultAddress, ... });
+
+// Auth client - authenticator management
+const passwordAuth = sdk.auth.getClient('password');
+const walletSigAuth = sdk.auth.getClient('walletSignature');
 ```
 
 ### Exports
@@ -206,66 +293,61 @@ The SDK exports the following:
 
 ```javascript
 const {
-  // Main SDK class
+  // Main SDK class (default export)
   Monstera,
-  
-  // Configuration
-  NETWORKS,
-  createSdkConfig,
-  
-  // Providers
-  getReadProvider,
-  getWriteSigner,
-  
-  // Crypto utilities
-  generateMnemonic,
-  deriveSeed,
-  hashPassword,
-  
-  // Contract utilities
-  getWalletFactoryContract,
-  getWalletLogicContract,
-  getWalletSignatureAuthenticatorContract,
-  getKeyVaultContract,
-  getPasswordAuthenticatorContract,
   
   // Error classes
   WalletError,
-  ContractError,
   ValidationError,
-  ConfigurationError,
+  ConfigError,
   NetworkError,
-  TransactionError
+  ContractRevertError,
+  EventNotFoundError,
+  PermissionError,
+  SapphireRequiredError,
+  WriteRequiresSignerError
 } = require('@monstera/sdk');
+
+// Access network presets and addresses via static properties
+const networks = Monstera.networks;
+const defaultAddresses = Monstera.defaultAddresses;
+const requiredAddresses = Monstera.requiredAddresses;
 ```
 
 ## Security Considerations
 
 1. **Never expose private keys** in client-side code or logs
-2. **Store mnemonics securely** - they're not returned by default
+2. **Store mnemonics securely** 
 3. **Use testnet for development** - only use mainnet for production
 4. **Validate contract addresses** before use
 5. **Use environment variables** for sensitive configuration
 
 ## Error Handling
 
-The SDK uses consistent error types:
+The SDK uses consistent error types with stable error codes:
 
 - `WalletError` - Base error class
-- `ContractError` - Contract-related errors
-- `ValidationError` - Input validation errors
-- `ConfigurationError` - Configuration errors
-- `NetworkError` - Network/RPC errors
-- `TransactionError` - Transaction errors
+- `ValidationError` - Invalid input parameters (code: `INVALID_ARGUMENT`)
+- `ConfigError` - Missing or invalid configuration (code: `MISSING_CONFIG`)
+- `NetworkError` - Network/RPC communication failures (code: `RPC_ERROR`)
+- `ContractRevertError` - Transaction reverted on-chain (code: `TX_REVERTED`)
+- `EventNotFoundError` - Expected event missing from receipt (code: `EVENT_NOT_FOUND`)
+- `PermissionError` - Insufficient permissions/role (code: `PERMISSION_DENIED`)
+- `SapphireRequiredError` - Operation requires Sapphire signer (code: `SAPPHIRE_REQUIRED`)
+- `WriteRequiresSignerError` - Write operation requires signer (code: `WRITE_REQUIRES_SIGNER`)
 
 ```javascript
 try {
-  await sdk.wallets.createWallet({ password: '...' });
+  await sdk.factory.createWallet({ authConfig: passwordHash });
 } catch (error) {
   if (error instanceof ValidationError) {
     console.error('Validation error:', error.message);
-  } else if (error instanceof TransactionError) {
-    console.error('Transaction failed:', error.transactionHash);
+    console.error('Parameter:', error.context.parameter);
+  } else if (error instanceof ContractRevertError) {
+    console.error('Transaction reverted:', error.message);
+    console.error('Transaction hash:', error.context.transactionHash);
+  } else if (error.code === 'RPC_ERROR') {
+    console.error('Network error:', error.message);
   }
 }
 ```
@@ -277,11 +359,14 @@ try {
 ```
 src/
   config/        # Network configuration
-  provider/      # Provider and Sapphire wrapper
+  providers/     # Provider and Sapphire wrapper
   crypto/        # Cryptographic utilities
-  contracts/     # Contract interfaces
-  client/        # Main SDK class
+  contracts/     # Contract interfaces and ABIs
+  clients/       # Domain clients (factory, logic, keyVault, auth)
+  events/        # Event definitions and parsing
   errors/        # Error types
+  internal/      # Internal utilities (BaseContractClient, assert)
+  sdk/           # Main SDK class (Monstera)
 ```
 
 ### Requirements
