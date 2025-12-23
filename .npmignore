@@ -23,7 +23,7 @@ coverage/
 dist/
 build/
 
-# Examples (optional - you currently include examples in files field)
-# examples/
+# Examples (optional)
+examples/
 
 .cursorrules
