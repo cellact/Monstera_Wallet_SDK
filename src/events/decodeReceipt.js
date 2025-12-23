@@ -4,6 +4,8 @@
  * Generic event parsing logic for transaction receipts
  */
 
+const { ValidationError } = require('../errors');
+
 /**
  * Generic event parser
  * 
@@ -65,7 +67,11 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
  */
 function parseEventFromReceipt(eventDef, receipt, contract) {
   if (!eventDef || !eventDef.eventName || !eventDef.fieldMapping) {
-    throw new Error('Invalid event definition. Must have eventName and fieldMapping properties.');
+    throw new ValidationError(
+      'Invalid event definition. Must have eventName and fieldMapping properties.',
+      'eventDef',
+      eventDef
+    );
   }
 
   return parseEvent(receipt, contract, eventDef.eventName, eventDef.fieldMapping);

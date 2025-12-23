@@ -10,6 +10,14 @@
  */
 
 const { parseEventFromReceipt } = require('../events');
+const {
+  WalletError,
+  ValidationError,
+  NetworkError,
+  ContractRevertError,
+  EventNotFoundError,
+  WriteRequiresSignerError
+} = require('../errors');
 
 class BaseContractClient {
   /**
@@ -39,14 +47,16 @@ class BaseContractClient {
     
     if (mode === 'write') {
       if (!this.writeSigner) {
-        throw new Error(
-          'This SDK instance is read-only. Use Monstera.connect({ signer, ... }) to perform write operations.'
-        );
+        throw new WriteRequiresSignerError('write operation');
       }
       return contractGetter(this.writeSigner, contractAddress);
     }
 
-    throw new Error(`Invalid contract mode: ${mode}. Must be 'read' or 'write'`);
+    throw new ValidationError(
+      `Invalid contract mode: ${mode}. Must be 'read' or 'write'`,
+      'mode',
+      mode
+    );
   }
 
   /**
@@ -62,9 +72,7 @@ class BaseContractClient {
   async sendTx(txFn, options = {}) {
 
     if (!this.writeSigner) {
-      throw new Error(
-        "This SDK instance is read-only. Use Monstera.connect({ signer, ... }) to perform write operations."
-      );
+      throw new WriteRequiresSignerError('send transaction');
     }
 
     const { parseEvents = [], requireEvents = true, extraData = {} } = options;
@@ -84,7 +92,7 @@ class BaseContractClient {
           const eventData = parseEventFromReceipt(eventDef, receipt, contract);
           
           if (requireEvents && !eventData) {
-            throw new Error(`${eventName} event not found in transaction receipt`);
+            throw new EventNotFoundError(eventName, receipt.hash);
           }
           
           // Spread event data directly into result (matching existing pattern)
@@ -106,25 +114,63 @@ class BaseContractClient {
 
       return result;
     } catch (error) {
-      throw error;
+      // Re-throw WalletError as-is
+      if (error instanceof WalletError) {
+        throw error;
+      }
+      // Wrap other errors
+      throw this.wrapError('send transaction', error, { transactionHash: error.transactionHash });
     }
   }
 
   /**
    * Wrap an error with method name and context
    * 
+   * Intelligently categorizes errors and returns appropriate WalletError type.
+   * 
    * @param {String} methodName - Name of the method that threw the error
    * @param {Error} err - Original error
    * @param {Object} context - Additional context (optional)
-   * @returns {Error} Wrapped error with descriptive message
+   * @returns {WalletError} Wrapped error with descriptive message
    */
   wrapError(methodName, err, context = {}) {
-    const contextStr = Object.keys(context).length > 0 
-      ? ` (${Object.entries(context).map(([k, v]) => `${k}: ${v}`).join(', ')})`
-      : '';
+    // If already a WalletError, just add context
+    if (err instanceof WalletError) {
+      Object.assign(err.context, { methodName, ...context });
+      return err;
+    }
     
     const message = err.message || String(err);
-    return new Error(`Failed to ${methodName}${contextStr}: ${message}`);
+    
+    // Detect error types from ethers/contract errors
+    // Ethers error codes: https://docs.ethers.org/v6/api/providers/#errors
+    const errorCode = err.code || err.error?.code;
+    
+    if (errorCode === 'CALL_EXCEPTION' || errorCode === 'UNPREDICTABLE_GAS_LIMIT') {
+      // Contract revert
+      return new ContractRevertError(
+        `Transaction reverted: ${message}`,
+        context.transactionHash || err.transactionHash,
+        context.receipt || err.receipt
+      );
+    }
+    
+    if (errorCode === 'NETWORK_ERROR' || errorCode === 'TIMEOUT' || errorCode === 'SERVER_ERROR' || 
+        errorCode === 'UNKNOWN_ERROR' || err.name === 'NetworkError') {
+      // Network/RPC error
+      return new NetworkError(
+        `Network error: ${message}`,
+        this.config?.rpcUrl,
+        err
+      );
+    }
+    
+    // Generic WalletError with method context
+    return new WalletError(
+      `Failed to ${methodName}: ${message}`,
+      'UNKNOWN_ERROR',
+      { methodName, ...context, originalError: message, originalCode: errorCode }
+    );
   }
 }
 

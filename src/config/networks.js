@@ -5,6 +5,8 @@
  * with default RPC URLs and contract addresses.
  */
 
+const { ConfigError, ValidationError } = require('../errors');
+
 /**
  * Network configuration presets
  */
@@ -55,18 +57,22 @@ const DEFAULT_ADDRESSES = {
  */
 function validateNetworkConfig(config) {
   if (!config || !config.network) {
-    throw new Error('Network configuration is required');
+    throw new ConfigError('Network configuration is required', 'network');
   }
 
   const { network, rpcUrl, addresses } = config;
 
   if (network !== 'testnet' && network !== 'mainnet') {
-    throw new Error(`Invalid network: ${network}. Must be 'testnet' or 'mainnet'`);
+    throw new ValidationError(
+      `Invalid network: ${network}. Must be 'testnet' or 'mainnet'`,
+      'network',
+      network
+    );
   }
 
   const networkConfig = NETWORKS[network];
   if (!networkConfig) {
-    throw new Error(`Network configuration not found for: ${network}`);
+    throw new ConfigError(`Network configuration not found for: ${network}`, 'network');
   }
 
   // Merge addresses with defaults
@@ -95,16 +101,17 @@ function validateAddresses(addresses, required = ['factory']) {
   const missing = required.filter(key => !addresses[key]);
   
   if (missing.length > 0) {
-    throw new Error(
+    throw new ConfigError(
       `Missing required contract addresses: ${missing.join(', ')}. ` +
-      `Please provide addresses in config or set defaults.`
+      `Please provide addresses in config or set defaults.`,
+      missing.join(', ')
     );
   }
 
   // Validate address format (basic check)
   for (const [key, address] of Object.entries(addresses)) {
     if (address && !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      throw new Error(`Invalid address format for ${key}: ${address}`);
+      throw new ValidationError(`Invalid address format for ${key}: ${address}`, key, address);
     }
   }
 }
@@ -121,7 +128,7 @@ function validateAddresses(addresses, required = ['factory']) {
 function resolveBaseConfig(options) {
   const { network, rpcUrl, addresses } = options || {};
 
-  if (!network) throw new Error('Network is required. Use "testnet" or "mainnet"');
+  if (!network) throw new ConfigError('Network is required. Use "testnet" or "mainnet"', 'network');
 
   const networkConfig = validateNetworkConfig({ network, rpcUrl, addresses });
 

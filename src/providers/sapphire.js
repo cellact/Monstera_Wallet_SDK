@@ -5,6 +5,8 @@
  * for encrypted transaction support.
  */
 
+const { ConfigError, ValidationError, NetworkError, SapphireRequiredError } = require('../errors');
+
 /**
  * Create a provider for the given RPC URL
  * 
@@ -15,7 +17,7 @@ function createProvider(rpcUrl) {
   const { ethers } = require('ethers');
   
   if (!rpcUrl) {
-    throw new Error('RPC URL is required');
+    throw new ConfigError('RPC URL is required', 'rpcUrl');
   }
 
   return new ethers.JsonRpcProvider(rpcUrl);
@@ -32,7 +34,7 @@ function getWrappedSigner(signer) {
     const { wrapEthersSigner } = require('@oasisprotocol/sapphire-ethers-v6');
     return wrapEthersSigner(signer);
   } catch (error) {
-    throw new Error(
+    throw new SapphireRequiredError(
       `Failed to wrap signer with Sapphire: ${error.message}. ` +
       `Make sure @oasisprotocol/sapphire-ethers-v6 is installed.`
     );
@@ -64,7 +66,7 @@ function getWriteSigner(signerOrProvider, rpcUrl) {
   // If it's a string, treat it as a private key
   if (typeof signerOrProvider === 'string') {
     if (!rpcUrl) {
-      throw new Error('RPC URL is required when providing private key as string');
+      throw new ConfigError('RPC URL is required when providing private key as string', 'rpcUrl');
     }
     const provider = createProvider(rpcUrl);
     signer = new ethers.Wallet(signerOrProvider, provider);
@@ -75,10 +77,18 @@ function getWriteSigner(signerOrProvider, rpcUrl) {
   }
   // If it's a Provider, create a wallet (this requires a private key)
   else if (signerOrProvider && typeof signerOrProvider.getBlockNumber === 'function') {
-    throw new Error('Provider provided but Signer is required for write operations. Provide a private key or Signer instance.');
+    throw new ValidationError(
+      'Provider provided but Signer is required for write operations. Provide a private key or Signer instance.',
+      'signerOrProvider',
+      signerOrProvider
+    );
   }
   else {
-    throw new Error('Invalid signerOrProvider. Must be a private key string, Signer, or Provider instance.');
+    throw new ValidationError(
+      'Invalid signerOrProvider. Must be a private key string, Signer, or Provider instance.',
+      'signerOrProvider',
+      signerOrProvider
+    );
   }
 
   // Wrap with Sapphire for encrypted transactions
@@ -107,7 +117,11 @@ function getProviderForOperation(operation, signerOrProvider, rpcUrl) {
     // For writes, we need a wrapped signer
     return getWriteSigner(signerOrProvider, rpcUrl);
   } else {
-    throw new Error(`Invalid operation: ${operation}. Must be 'read' or 'write'`);
+    throw new ValidationError(
+      `Invalid operation: ${operation}. Must be 'read' or 'write'`,
+      'operation',
+      operation
+    );
   }
 }
 

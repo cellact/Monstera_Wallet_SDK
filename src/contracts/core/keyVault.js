@@ -4,6 +4,8 @@
  * Typed contract getter for the KeyVault contract
  */
 
+const { ConfigError } = require('../../errors');
+
 // TODO: Find a way to get ABI dynamically to avoid hardcoding it
 /**
  * KeyVault contract ABI
@@ -400,7 +402,7 @@ function getKeyVaultContract(signerOrProvider, keyVaultAddress) {
     const { ethers } = require('ethers');
     
     if (!keyVaultAddress) {
-    throw new Error('Wallet logic address is required');
+      throw new ConfigError('KeyVault address is required', 'keyVaultAddress');
     }
     
     return new ethers.Contract(keyVaultAddress, KEYVAULT_ABI, signerOrProvider);

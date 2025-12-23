@@ -4,6 +4,8 @@
  * Typed contract getter for the PasswordAuthenticator contract
  */
 
+const { ConfigError } = require('../../errors');
+
 /**
  * Password authenticator contract ABI
  */
@@ -146,7 +148,7 @@ function getPasswordAuthenticatorContract(signerOrProvider, passwordAuthenticato
     const { ethers } = require('ethers');
 
     if (!passwordAuthenticatorAddress) {
-        throw new Error('Wallet logic address is required');
+        throw new ConfigError('Password authenticator address is required', 'passwordAuthenticatorAddress');
     }
 
     return new ethers.Contract(passwordAuthenticatorAddress, PASSWORD_AUTHENTICATOR_ABI, signerOrProvider);

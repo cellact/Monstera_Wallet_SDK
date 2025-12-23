@@ -12,6 +12,7 @@ const WalletFactoryClient = require('../clients/factory');
 const WalletLogicClient = require('../clients/logic');
 const KeyVaultClient = require('../clients/keyVault');
 const { AuthenticatorClient } = require('../clients/auth');
+const { ValidationError } = require('../errors');
 
 /**
  * Monstera Wallet SDK
@@ -70,7 +71,11 @@ class Monstera {
     const { signer } = options || {};
 
     if (!signer) {
-      throw new Error('signer is required for connect() (ethers Signer or private key string)');
+      throw new ValidationError(
+        'signer is required for connect() (ethers Signer or private key string)',
+        'signer',
+        signer
+      );
     }
   
     const base = resolveBaseConfig(options);

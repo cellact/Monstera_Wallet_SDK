@@ -7,6 +7,7 @@
 
 const WalletSignatureAuthenticatorClient = require('./WalletSignatureAuthenticatorClient');
 const PasswordAuthenticatorClient = require('./PasswordAuthenticatorClient');
+const { ValidationError } = require('../../errors');
 
 class AuthenticatorClient {
   constructor(readProvider, writeSigner, config) {
@@ -31,7 +32,11 @@ class AuthenticatorClient {
    */
   getClient(type) {
     if (!this[type]) {
-      throw new Error(`Authenticator client type '${type}' not found. Available types: ${Object.keys(this).join(', ')}`);
+      throw new ValidationError(
+        `Authenticator client type '${type}' not found. Available types: ${Object.keys(this).join(', ')}`,
+        'type',
+        type
+      );
     }
     return this[type];
   }

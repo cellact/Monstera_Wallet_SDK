@@ -7,6 +7,7 @@
 const crypto = require('crypto');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
 const { requireAddress, requireString } = require('../internal/assert');
+const { ValidationError, NetworkError } = require('../errors');
 
 /**
  * Generate a new mnemonic phrase
@@ -20,7 +21,7 @@ function generateMnemonic(strength = 128) {
   const wallet = ethers.Wallet.createRandom();
   
   if (!wallet.mnemonic) {
-    throw new Error('Failed to generate mnemonic from random wallet');
+    throw new NetworkError('Failed to generate mnemonic from random wallet');
   }
   
   return wallet.mnemonic.phrase;
@@ -58,7 +59,7 @@ function deriveSeed(mnemonic, password = '', iterations = 2048) {
  */
 function hashPassword(password) {
   if (!password || typeof password !== 'string') {
-    throw new Error('Password must be a non-empty string');
+    throw new ValidationError('Password must be a non-empty string', 'password', password);
   }
   
   // Use ethers to hash with keccak256
@@ -78,11 +79,11 @@ function encodeAuthConfig(authenticatorAddress, authConfig) {
   // We'll return the authConfig as-is (it's already a hex string)
   
   if (!authenticatorAddress || !/^0x[a-fA-F0-9]{40}$/.test(authenticatorAddress)) {
-    throw new Error('Invalid authenticator address');
+    throw new ValidationError('Invalid authenticator address', 'authenticatorAddress', authenticatorAddress);
   }
   
   if (!authConfig || typeof authConfig !== 'string') {
-    throw new Error('Auth config must be a string (hex encoded)');
+    throw new ValidationError('Auth config must be a string (hex encoded)', 'authConfig', authConfig);
   }
   
   // Return the auth config as bytes (will be encoded by ethers)
@@ -120,12 +121,12 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
   
   // Validate signer
   if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
-    throw new Error('Signer must be a Wallet or HDNodeWallet');
+    throw new ValidationError('Signer must be a Wallet or HDNodeWallet', 'signer', signer);
   }
 
   // Validate chainId (can be string or number)
   if (typeof chainId !== 'string' && typeof chainId !== 'number') {
-    throw new Error('chainId must be a string or number');
+    throw new ValidationError('chainId must be a string or number', 'chainId', chainId);
   }
 
   // Validate addresses
@@ -134,11 +135,11 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
 
   // Validate deadline (must be number, Unix timestamp in seconds) and in the future
   if (typeof deadline !== 'number' || !Number.isInteger(deadline)) {
-    throw new Error('Deadline must be an integer (Unix timestamp in seconds)');
+    throw new ValidationError('Deadline must be an integer (Unix timestamp in seconds)', 'deadline', deadline);
   }
   const nowInSeconds = Math.floor(Date.now() / 1000);
   if (deadline < nowInSeconds) {
-    throw new Error('Deadline must be in the future');
+    throw new ValidationError('Deadline must be in the future', 'deadline', deadline);
   }
   
   // build EIP-712 domain

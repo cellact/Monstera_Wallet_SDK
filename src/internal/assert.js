@@ -5,6 +5,8 @@
  * These throw errors on validation failure.
  */
 
+const { ValidationError } = require('../errors');
+
 /**
  * Check if a value is a valid Ethereum address
  * 
@@ -24,10 +26,10 @@ function isAddress(value) {
  */
 function requireAddress(value, name = 'address') {
   if (!value || typeof value !== 'string') {
-    throw new Error(`${name} is required and must be a string`);
+    throw new ValidationError(`${name} is required and must be a string`, name, value);
   }
   if (!isAddress(value)) {
-    throw new Error(`${name} must be a valid Ethereum address`);
+    throw new ValidationError(`${name} must be a valid Ethereum address`, name, value);
   }
 }
 
@@ -40,11 +42,11 @@ function requireAddress(value, name = 'address') {
  */
 function requireBytes(value, name = 'bytes') {
   if (value === undefined || value === null) {
-    throw new Error(`${name} is required`);
+    throw new ValidationError(`${name} is required`, name, value);
   }
   // Bytes can be string (hex) or Uint8Array
   if (typeof value !== 'string' && !(value instanceof Uint8Array)) {
-    throw new Error(`${name} must be a string (hex) or Uint8Array`);
+    throw new ValidationError(`${name} must be a string (hex) or Uint8Array`, name, value);
   }
 }
 
@@ -68,7 +70,7 @@ function requireBytesLike(value, name = 'bytes') {
  */
 function requireString(value, name = 'string') {
   if (!value || typeof value !== 'string') {
-    throw new Error(`${name} is required and must be a string`);
+    throw new ValidationError(`${name} is required and must be a string`, name, value);
   }
 }
 
@@ -87,19 +89,19 @@ function requireNumber(value, name = 'number', options = {}) {
   const { allowZero = true, allowNegative = false, requireInteger = false } = options;
 
   if (value === undefined || value === null || typeof value !== 'number') {
-    throw new Error(`${name} is required and must be a number`);
+    throw new ValidationError(`${name} is required and must be a number`, name, value);
   }
 
   if (!allowZero && value === 0) {
-    throw new Error(`${name} must be non-zero`);
+    throw new ValidationError(`${name} must be non-zero`, name, value);
   }
 
   if (!allowNegative && value < 0) {
-    throw new Error(`${name} must be non-negative`);
+    throw new ValidationError(`${name} must be non-negative`, name, value);
   }
 
   if (requireInteger && !Number.isInteger(value)) {
-    throw new Error(`${name} must be an integer`);
+    throw new ValidationError(`${name} must be an integer`, name, value);
   }
 }
 
@@ -134,10 +136,10 @@ function requirePositiveInteger(value, name = 'number') {
  */
 function requireHex(value, name = 'hex') {
   if (!value || typeof value !== 'string') {
-    throw new Error(`${name} is required and must be a string`);
+    throw new ValidationError(`${name} is required and must be a string`, name, value);
   }
   if (!/^0x[a-fA-F0-9]+$/i.test(value)) {
-    throw new Error(`${name} must be a valid hex string (0x...)`);
+    throw new ValidationError(`${name} must be a valid hex string (0x...)`, name, value);
   }
 }
 
@@ -151,10 +153,10 @@ function requireHex(value, name = 'hex') {
  */
 function requireOneOf(value, allowedValues, name = 'value') {
   if (!allowedValues || !Array.isArray(allowedValues) || allowedValues.length === 0) {
-    throw new Error('allowedValues must be a non-empty array');
+    throw new ValidationError('allowedValues must be a non-empty array', 'allowedValues', allowedValues);
   }
   if (!allowedValues.includes(value)) {
-    throw new Error(`${name} must be one of: ${allowedValues.join(', ')}`);
+    throw new ValidationError(`${name} must be one of: ${allowedValues.join(', ')}`, name, value);
   }
 }
 

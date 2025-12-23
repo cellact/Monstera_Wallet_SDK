@@ -4,6 +4,8 @@
  * Typed contract getter for the WalletSignatureAuthenticator contract
  */
 
+const { ConfigError } = require('../../errors');
+
 /**
  * Wallet signature authenticator contract ABI
  */
@@ -386,7 +388,7 @@ function getWalletSignatureAuthenticatorContract(signerOrProvider, walletSignatu
     const { ethers } = require('ethers');
 
     if (!walletSignatureAuthenticatorAddress) {
-        throw new Error('Wallet logic address is required');
+        throw new ConfigError('Wallet signature authenticator address is required', 'walletSignatureAuthenticatorAddress');
     }
 
     return new ethers.Contract(walletSignatureAuthenticatorAddress, WALLET_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
