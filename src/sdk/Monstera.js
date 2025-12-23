@@ -27,7 +27,9 @@ class Monstera {
   
   constructor(config) {
     this.config = config;
-    
+
+    this.version = Monstera.version;
+
     // Initialize read provider (for read operations)
     this.readProvider = config.provider ?? createProvider(config.rpcUrl);
     
