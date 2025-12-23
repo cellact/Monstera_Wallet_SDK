@@ -21,6 +21,10 @@ const { ValidationError } = require('../errors');
  * 
  */
 class Monstera {
+  // ============================================================================
+  // Constructor
+  // ============================================================================
+  
   constructor(config) {
     this.config = config;
     
@@ -36,6 +40,10 @@ class Monstera {
     this.keyVault = new KeyVaultClient(this.readProvider, this.writeSigner, config);
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, config);
   }
+
+  // ============================================================================
+  // Static methods
+  // ============================================================================
 
   /**
    * Connect to Monstera on a given network
@@ -97,6 +105,10 @@ class Monstera {
     });
   }
 
+  // ============================================================================
+  // Static Properties (Class-Level Constants)
+  // ============================================================================
+
   /**
    * Contract addresses for testnet and mainnet
    * @static
@@ -115,12 +127,43 @@ class Monstera {
     return NETWORKS;
   }
 
-  // Convenience getters - no duplication, just accessors to config
+  // ============================================================================
+  // Instance Properties (Convenience Getters)
+  // ============================================================================
+
+  /**
+   * Network name for the configured network
+   * @readonly
+   */
   get network() { return this.config.network; }
+
+  /**
+   * Chain ID for the configured network
+   * @readonly
+   */
   get chainId() { return this.config.chainId; }
+
+  /**
+   * RPC URL for the configured network
+   * @readonly
+   */
   get rpcUrl() { return this.config.rpcUrl; }
+
+  /**
+   * Contract addresses for the configured network
+   * @readonly
+   */
   get addresses() { return this.config.addresses; }
+
+  /**
+   * Provider instance (if provided)
+   * @readonly
+   */
   get provider() { return this.config.provider; }
+
+  // ============================================================================
+  // Instance Methods
+  // ============================================================================
 
   /**
    * Create an auth proof for a wallet
