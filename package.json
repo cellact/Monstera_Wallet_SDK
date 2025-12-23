@@ -1,5 +1,5 @@
 {
-  "name": "@monstera/sdk",
+  "name": "@monstera",
   "version": "1.0.0",
   "description": "Monstera SDK - JavaScript SDK for wallet operations through smart contract interactions. Create and manage wallets via smart contracts with a simple, idiomatic API.",
   "main": "src/index.js",

@@ -1,6 +1,6 @@
 # Monstera SDK
 
-[![npm version](https://img.shields.io/npm/v/@monstera/sdk.svg)](https://www.npmjs.com/package/@monstera/sdk)
+[![npm version](https://img.shields.io/npm/v/@monstera.svg)](https://www.npmjs.com/package/@monstera)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 A JavaScript SDK for interacting with wallet smart contracts on Oasis Sapphire. Monstera provides a clean, type-safe API for creating and managing wallets with built-in support for encrypted transactions via Sapphire's confidential computing.
@@ -17,7 +17,7 @@ A JavaScript SDK for interacting with wallet smart contracts on Oasis Sapphire. 
 ## Installation
 
 ```bash
-npm install @monstera/sdk
+npm install @monstera
 ```
 
 ### Peer Dependencies
@@ -39,7 +39,7 @@ npm install web3
 Contract addresses are **hardcoded** - no configuration needed! Just install and use:
 
 ```javascript
-const { Monstera } = require('@monstera/sdk');
+const { Monstera } = require('@monstera');
 const { ethers } = require('ethers');
 
 // Create SDK instance for testnet (with signer for write operations)
@@ -69,7 +69,7 @@ createWallet();
 ### Network Switching
 
 ```javascript
-const { Monstera } = require('@monstera/sdk');
+const { Monstera } = require('@monstera');
 const { ethers } = require('ethers');
 
 // Testnet configuration (with signer for write operations)
@@ -301,7 +301,7 @@ const {
   PermissionError,
   SapphireRequiredError,
   WriteRequiresSignerError
-} = require('@monstera/sdk');
+} = require('@monstera');
 
 // Access network presets and addresses via static properties
 const networks = Monstera.networks;
