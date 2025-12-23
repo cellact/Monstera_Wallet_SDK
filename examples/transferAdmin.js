@@ -24,9 +24,9 @@ const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
 const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS || "";
 const NEW_ADMIN_ADDRESS = process.env.NEW_ADMIN_ADDRESS || "";
 
-const sdk = Monstera.fromConfig({
+const sdk = Monstera.connect({
   network: 'testnet',
-  signerOrProvider: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY
 });
 
 async function main() {

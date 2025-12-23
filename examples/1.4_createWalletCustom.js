@@ -22,9 +22,9 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.TEST_PASSWORD;
 const CUSTOM_LOGIC_IMPL = process.env.CUSTOM_LOGIC_IMPL || ""; // your custom wallet logic implementationcontract address; (must implement IWalletLogic)
 
-const sdk = Monstera.fromConfig({
+const sdk = Monstera.connect({
   network: 'testnet',
-  signerOrProvider: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY
 });
 
 async function main() {

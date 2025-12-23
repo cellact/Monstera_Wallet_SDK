@@ -24,9 +24,9 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const PASSWORD = process.env.TEST_PASSWORD || "";
 const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0x9bf630Fa31bb2Bdd1c1720bf7AcF324281e6156E";
 
-const sdk = Monstera.fromConfig({
+const sdk = Monstera.connect({
   network: 'testnet',
-  signerOrProvider: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY
 });
 
 async function main() {

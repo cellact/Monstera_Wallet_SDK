@@ -5,13 +5,14 @@
  * Provides clean API for read and write operations.
  */
 
-const { createSdkConfig, NETWORKS } = require('../config/networks');
+const { resolveBaseConfig, NETWORKS } = require('../config/networks');
 const { getReadProvider, getWriteSigner } = require('../providers/sapphire');
 const { createAuthProof } = require('../crypto/wallet');
 const WalletFactoryClient = require('../clients/factory');
 const WalletLogicClient = require('../clients/logic');
 const KeyVaultClient = require('../clients/keyVault');
 const { AuthenticatorClient } = require('../clients/auth');
+// const Wallet = require('../wallet/Wallet');
 
 /**
  * Monstera Wallet SDK
@@ -26,13 +27,14 @@ class Monstera {
     this.chainId = config.chainId;
     this.rpcUrl = config.rpcUrl;
     this.addresses = config.addresses;
-    this.signerOrProvider = config.signerOrProvider;
+    this.signer = config.signer ?? null;
+    this.provider = config.provider ?? null;
     
     // Initialize read provider (for read operations)
-    this.readProvider = getReadProvider(this.rpcUrl);
+    this.readProvider = this.provider ?? getReadProvider(this.rpcUrl);
     
-    // Initialize write signer (for write operations with Sapphire wrapper)
-    this.writeSigner = getWriteSigner(this.signerOrProvider, this.rpcUrl);
+    // Initialize write signer (for write operations with Sapphire wrapper) - Only create write signer if signer exists
+    this.writeSigner = this.signer ? getWriteSigner(this.signer, this.rpcUrl) : null;
 
     // Wire domain clients
     this.factory = new WalletFactoryClient(this.readProvider, this.writeSigner, config);
@@ -52,20 +54,96 @@ class Monstera {
     };
   }
 
+  // /**
+  //  * Get a wallet instance for a specific wallet address
+  //  * 
+  //  * Returns a wallet instance with bound clients, so you don't have to
+  //  * pass wallet/keyVault addresses manually in each method call.
+  //  * 
+  //  * @param {String} walletAddress - Wallet proxy address
+  //  * @param {String} [keyVaultAddress] - KeyVault address (optional, will be fetched if not provided)
+  //  * @returns {Wallet} Wallet instance with bound clients
+  //  * 
+  //  * @example
+  //  * const sdk = Monstera.connect(...);
+  //  * const created = await sdk.factory.createWallet(...);
+  //  * const wallet = sdk.wallet(created.wallet);
+  //  * 
+  //  * // Now you can use bound methods without passing addresses:
+  //  * await wallet.keyVault.getStorageAddr();
+  //  * await wallet.logic.getAccountAddress({ index: 0 });
+  //  * await wallet.auth.createProof({ signer });
+  //  */
+  // wallet(walletAddress, keyVaultAddress) {
+  //   return new Wallet(
+  //     walletAddress,
+  //     keyVaultAddress,
+  //     {
+  //       logic: this.logic,
+  //       keyVault: this.keyVault,
+  //       auth: this.auth
+  //     },
+  //     this.config
+  //   );
+  // }
+
+
   /**
-   * Create SDK instance from configuration
+   * Connect to Monstera on a given network
    * 
-   * @param {Object} options - SDK configuration
+   * Creates and configures an SDK client. Signer is required for write operations.
+   * 
+   * @param {Object} options
    * @param {'testnet'|'mainnet'} options.network - Network to use
-   * @param {String} [options.rpcUrl] - Custom RPC URL (optional)
-   * @param {Object} [options.addresses] - Contract addresses
-   * @param {String|Object} options.signerOrProvider - Signer or provider
+   * @param {import('ethers').Signer | string} options.signer
+   *        A Signer. If you pass a private key string, it must be a 0x-prefixed hex key.
+   * @param {String} [options.rpcUrl] - Optional custom RPC URL (defaults to network preset).
+   * @param {Object} [options.addresses] - Optional contract address overrides.
    * @returns {Monstera} SDK instance
    */
-  static fromConfig(options) {
-    const config = createSdkConfig(options); // TODO: verify chainId matches the Sapphire preset; or just allow testnet and mainnet + SignerOrProvider
-    return new Monstera(config);
+  static connect(options) {
+    const { signer } = options || {};
+
+    if (!signer) {
+      throw new Error('signer is required for connect() (ethers Signer or private key string)');
+    }
+  
+    const base = resolveBaseConfig(options);
+  
+    return new Monstera({
+      ...base,
+      signer,      // write-capable identity
+      provider: null
+    });
   }
+  
+  /**
+   * Connect to Monstera on a given network
+   * 
+   * Creates and configures an SDK client. Provider supports read operations only.
+   * 
+   * @param {Object} options
+   * @param {'testnet'|'mainnet'} options.network - Network to use
+   * @param {import('ethers').Provider} options.provider - A Provider (optional)
+   * @param {String} [options.rpcUrl] - Optional custom RPC URL (defaults to network preset).
+   * @param {Object} [options.addresses] - Optional contract address overrides.
+   * @returns {Monstera} SDK instance
+   */
+  static readonly(options) {
+    const base = resolveBaseConfig(options);
+  
+    // Option A: allow passing provider explicitly
+    const provider = options?.provider ?? null;
+  
+    // If you want readonly to work with no provider passed, just rely on base.rpcUrl
+    // because your constructor already does getReadProvider(this.rpcUrl).
+    return new Monstera({
+      ...base,
+      provider,   // optional
+      signer: null
+    });
+  }
+  
 
   /**
    * Network presets for testnet and mainnet

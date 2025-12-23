@@ -31,9 +31,9 @@ const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
 const PASSWORD = process.env.TEST_PASSWORD || "";
 const MNEMONIC = process.env.TEST_MNEMONIC || "";
 
-const sdk = Monstera.fromConfig({
+const sdk = Monstera.connect({
   network: 'testnet',
-  signerOrProvider: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY
 });
 
 async function main() {

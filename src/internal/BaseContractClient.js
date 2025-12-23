@@ -35,11 +35,18 @@ class BaseContractClient {
   contract(mode, contractGetter, contractAddress) {
     if (mode === 'read') {
       return contractGetter(this.readProvider, contractAddress);
-    } else if (mode === 'write') {
+    } 
+    
+    if (mode === 'write') {
+      if (!this.writeSigner) {
+        throw new Error(
+          'This SDK instance is read-only. Use Monstera.connect({ signer, ... }) to perform write operations.'
+        );
+      }
       return contractGetter(this.writeSigner, contractAddress);
-    } else {
-      throw new Error(`Invalid contract mode: ${mode}. Must be 'read' or 'write'`);
     }
+
+    throw new Error(`Invalid contract mode: ${mode}. Must be 'read' or 'write'`);
   }
 
   /**
@@ -53,6 +60,13 @@ class BaseContractClient {
    * @returns {Promise<Object>} Transaction result with receipt and parsed events
    */
   async sendTx(txFn, options = {}) {
+
+    if (!this.writeSigner) {
+      throw new Error(
+        "This SDK instance is read-only. Use Monstera.connect({ signer, ... }) to perform write operations."
+      );
+    }
+
     const { parseEvents = [], requireEvents = true, extraData = {} } = options;
 
     try {

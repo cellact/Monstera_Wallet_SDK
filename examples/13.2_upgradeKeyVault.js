@@ -27,9 +27,9 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const PASSWORD = process.env.TEST_PASSWORD || "";
 const NEW_KEYVAULT_IMPL_ADDRESS = process.env.NEW_KEYVAULT_IMPL_ADDRESS || "";
 
-const sdk = Monstera.fromConfig({
+const sdk = Monstera.connect({
   network: 'testnet',
-  signerOrProvider: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY
 });
 
 async function main() {

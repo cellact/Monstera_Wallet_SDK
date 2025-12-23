@@ -110,46 +110,32 @@ function validateAddresses(addresses, required = ['factory']) {
 }
 
 /**
- * Create SDK configuration
+ * Resolve and validate SDK configuration.
  * 
- * @param {Object} options - Configuration options
- * @param {'testnet'|'mainnet'} options.network - Network to use
- * @param {String} [options.rpcUrl] - Custom RPC URL (optional)
- * @param {Object} [options.addresses] - Contract addresses (optional, overrides defaults)
- * @param {String|Object} options.signerOrProvider - Signer or provider for transactions
- * @returns {Object} Validated SDK configuration
+ * Internal helper: merges network presets + address defaults, validates required addresses,
+ * and returns a normalized config object used by the Monstera constructor.
+ * 
+ * @param {Object} options
+ * @throws {Error} If network or required addresses are invalid/missing.
  */
-function createSdkConfig(options) {
-  const { network, rpcUrl, addresses, signerOrProvider } = options;
+function resolveBaseConfig(options) {
+  const { network, rpcUrl, addresses } = options || {};
 
-  if (!network) {
-    throw new Error('Network is required. Use "testnet" or "mainnet"');
-  }
+  if (!network) throw new Error('Network is required. Use "testnet" or "mainnet"');
 
-  if (!signerOrProvider) {
-    throw new Error('signerOrProvider is required (ethers Signer or Provider)');
-  }
+  const networkConfig = validateNetworkConfig({ network, rpcUrl, addresses });
 
-  const networkConfig = validateNetworkConfig({
-    network,
-    rpcUrl,
-    addresses
-  });
-
-  // Validate required addresses
   validateAddresses(networkConfig.addresses, ['factory', 'passwordAuth', 'walletSignatureAuth']);
 
-  return {
-    ...networkConfig,
-    signerOrProvider
-  };
+  return networkConfig; // { network, chainId, rpcUrl, explorerUrl, addresses }
 }
+
 
 module.exports = {
   NETWORKS,
   DEFAULT_ADDRESSES,
   validateNetworkConfig,
   validateAddresses,
-  createSdkConfig
+  resolveBaseConfig
 };
 

@@ -25,9 +25,9 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY || "";
 const ALLOWED_2_KEY = process.env.ALLOWED_2_KEY || "";
 
-const sdk = Monstera.fromConfig({
+const sdk = Monstera.connect({
   network: 'testnet',
-  signerOrProvider: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY
 });
 
 async function main() {

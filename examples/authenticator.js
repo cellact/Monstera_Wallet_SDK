@@ -26,9 +26,9 @@ async function main() {
   console.log("=".repeat(70));
 
   // Initialize SDK
-  const sdk = Monstera.fromConfig({
+  const sdk = Monstera.connect({
     network: 'testnet', // or 'mainnet'
-    signerOrProvider: SIGNER_PRIVATE_KEY
+    signer: SIGNER_PRIVATE_KEY
   });
 
   console.log("\n📋 Configuration:");
