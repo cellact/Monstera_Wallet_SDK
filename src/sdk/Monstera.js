@@ -5,7 +5,7 @@
  * Provides clean API for read and write operations.
  */
 
-const { resolveBaseConfig, DEFAULT_ADDRESSES, NETWORKS } = require('../config/networks');
+const { resolveBaseConfig, NETWORKS, DEFAULT_ADDRESSES, REQUIRED_ADDRESSES } = require('../config/networks');
 const { createProvider, createWriteSigner } = require('../providers/sapphire');
 const { createAuthProof } = require('../crypto/wallet');
 const WalletFactoryClient = require('../clients/factory');
@@ -110,21 +110,30 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Contract addresses for testnet and mainnet
-   * @static
-   * @readonly
-   */
-  static get contractAddresses() {
-    return DEFAULT_ADDRESSES;
-  }
-
-  /**
    * Network presets for testnet and mainnet
    * @static
    * @readonly
    */
   static get networks() {
     return NETWORKS;
+  }
+
+  /**
+   * Default contract addresses for testnet and mainnet
+   * @static
+   * @readonly
+   */
+  static get defaultAddresses() {
+    return DEFAULT_ADDRESSES;
+  }
+
+  /**
+   * Required contract addresses for the SDK to function
+   * @static
+   * @readonly
+   */
+  static get requiredAddresses() {
+    return REQUIRED_ADDRESSES;
   }
 
   // ============================================================================

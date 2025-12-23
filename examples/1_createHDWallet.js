@@ -34,7 +34,7 @@ async function main() {
   console.log(`   Networks: ${JSON.stringify(networks, null, 2)}`);
 
   // Access contract addresses (static method, returns the addresses for all networks)
-  const contractAddresses = Monstera.contractAddresses;
+  const contractAddresses = Monstera.defaultAddresses;
   console.log(`   Contract addresses: ${JSON.stringify(contractAddresses, null, 2)}`);
 
   // Access contract addresses for the SDK instance (returns only the addresses for the current network)

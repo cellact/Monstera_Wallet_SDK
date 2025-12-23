@@ -28,8 +28,6 @@ const NETWORKS = {
 /**
  * Hardcoded contract addresses for Monstera SDK
  * These addresses are built into the SDK - users don't need to provide them.
- * 
- * To update addresses, modify this file and publish a new SDK version.
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
@@ -44,6 +42,12 @@ const DEFAULT_ADDRESSES = {
     walletSignatureAuth: null
   }
 };
+
+/**
+ * Required contract addresses for SDK initialization
+ * All of these must be present and valid for the SDK to function.
+ */
+const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth'];
 
 /**
  * Validate network configuration
@@ -97,7 +101,11 @@ function validateNetworkConfig(config) {
  * @param {Array<String>} required - List of required address keys
  * @throws {Error} If required addresses are missing
  */
-function validateAddresses(addresses, required = ['factory']) {
+function validateAddresses(addresses, required) {
+  if (!required || !Array.isArray(required) || required.length === 0) {
+    throw new ConfigError('Required addresses list must be a non-empty array', 'required');
+  }
+
   const missing = required.filter(key => !addresses[key]);
   
   if (missing.length > 0) {
@@ -132,7 +140,7 @@ function resolveBaseConfig(options) {
 
   const networkConfig = validateNetworkConfig({ network, rpcUrl, addresses });
 
-  validateAddresses(networkConfig.addresses, ['factory', 'passwordAuth', 'walletSignatureAuth']);
+  validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
 
   return networkConfig; // { network, chainId, rpcUrl, explorerUrl, addresses }
 }
@@ -141,8 +149,6 @@ function resolveBaseConfig(options) {
 module.exports = {
   NETWORKS,
   DEFAULT_ADDRESSES,
-  validateNetworkConfig, // TODO: consider removing the export as only used internally
-  validateAddresses, // TODO: consider removing the export as only used internally
+  REQUIRED_ADDRESSES,
   resolveBaseConfig
 };
-
