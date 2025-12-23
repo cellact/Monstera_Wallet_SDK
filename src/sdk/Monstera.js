@@ -12,7 +12,6 @@ const WalletFactoryClient = require('../clients/factory');
 const WalletLogicClient = require('../clients/logic');
 const KeyVaultClient = require('../clients/keyVault');
 const { AuthenticatorClient } = require('../clients/auth');
-// const Wallet = require('../wallet/Wallet');
 
 /**
  * Monstera Wallet SDK
@@ -53,40 +52,6 @@ class Monstera {
       createAuthProof: this.createAuthProof.bind(this),
     };
   }
-
-  // /**
-  //  * Get a wallet instance for a specific wallet address
-  //  * 
-  //  * Returns a wallet instance with bound clients, so you don't have to
-  //  * pass wallet/keyVault addresses manually in each method call.
-  //  * 
-  //  * @param {String} walletAddress - Wallet proxy address
-  //  * @param {String} [keyVaultAddress] - KeyVault address (optional, will be fetched if not provided)
-  //  * @returns {Wallet} Wallet instance with bound clients
-  //  * 
-  //  * @example
-  //  * const sdk = Monstera.connect(...);
-  //  * const created = await sdk.factory.createWallet(...);
-  //  * const wallet = sdk.wallet(created.wallet);
-  //  * 
-  //  * // Now you can use bound methods without passing addresses:
-  //  * await wallet.keyVault.getStorageAddr();
-  //  * await wallet.logic.getAccountAddress({ index: 0 });
-  //  * await wallet.auth.createProof({ signer });
-  //  */
-  // wallet(walletAddress, keyVaultAddress) {
-  //   return new Wallet(
-  //     walletAddress,
-  //     keyVaultAddress,
-  //     {
-  //       logic: this.logic,
-  //       keyVault: this.keyVault,
-  //       auth: this.auth
-  //     },
-  //     this.config
-  //   );
-  // }
-
 
   /**
    * Connect to Monstera on a given network
