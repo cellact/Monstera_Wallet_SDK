@@ -204,11 +204,6 @@ export SIGNER_PRIVATE_KEY=0x...
 node examples/1_createHDWallet.js
 ```
 
-## Documentation
-
-- [createWallet() Method](./docs/createWallet.md) - Detailed documentation for wallet creation
-- [Network Switching Guide](./docs/network-switching.md) - How to switch between networks
-
 ## API Reference
 
 ### Monstera

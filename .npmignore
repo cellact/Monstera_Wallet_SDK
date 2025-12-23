@@ -23,12 +23,7 @@ coverage/
 dist/
 build/
 
-# Documentation (optional - you might want to include docs/)
-# docs/
-
 # Examples (optional - you currently include examples in files field)
 # examples/
 
 .cursorrules
-
-SDK_ANALYSIS.md

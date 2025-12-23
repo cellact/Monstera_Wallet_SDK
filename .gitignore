@@ -83,9 +83,6 @@ tmp/
 temp/
 *.tmp
 
-SDK_ANALYSIS.md
 node_modules/
 
 .cursorrules
-
-monstera-sdk-*.tgz
