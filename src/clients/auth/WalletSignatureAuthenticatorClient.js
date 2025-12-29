@@ -46,7 +46,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('add to whitelist', error, { keyVaultAddress, newAddress });
+      throw this.wrapError('add to whitelist', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.walletSignatureAuth
+      });
     }
   }
 
@@ -79,7 +82,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('configure wallet signature authenticator', error, { keyVaultAddress });
+      throw this.wrapError('configure wallet signature authenticator', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.walletSignatureAuth
+      });
     }
   }
 
@@ -114,7 +120,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('remove from whitelist', error, { keyVaultAddress, addressToRemove });
+      throw this.wrapError('remove from whitelist', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.walletSignatureAuth
+      });
     }
   }
 
@@ -136,7 +145,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
       const isConfigured = await walletSigAuth.isConfigured(keyVaultAddress);
       return isConfigured;
     } catch (error) {
-      throw this.wrapError('check if wallet is configured', error, { keyVaultAddress });
+      throw this.wrapError('check if wallet is configured', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.walletSignatureAuth
+      });
     }
   }
 
@@ -160,7 +172,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
       const isWhitelisted = await walletSigAuth.isWhitelisted(keyVaultAddress, addressToCheck);
       return isWhitelisted;
     } catch (error) {
-      throw this.wrapError('check if address is whitelisted', error, { keyVaultAddress, addressToCheck });
+      throw this.wrapError('check if address is whitelisted', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.walletSignatureAuth
+      });
     }
   }
 
@@ -182,7 +197,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
       const whitelist = await walletSigAuth.getWhitelist(keyVaultAddress);
       return whitelist;
     } catch (error) {
-      throw this.wrapError('get whitelist', error, { keyVaultAddress });
+      throw this.wrapError('get whitelist', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.walletSignatureAuth
+      });
     }
   }
 
@@ -191,14 +209,17 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * 
    * @returns {Promise<Bytes32>} EIP-712 domain separator
    */
-  async getDomainSeparator() {
+  async getDomainSeparator(options = {}) {
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     try {
       const domainSeparator = await walletSigAuth.domainSeparator();
       return domainSeparator;
     } catch (error) {
-      throw this.wrapError('get domain separator', error);
+      throw this.wrapError('get domain separator', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.walletSignatureAuth
+      });
     }
   }
 
@@ -222,7 +243,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
       const isValid = await walletSigAuth.verify(keyVaultAddress, authProof);
       return isValid;
     } catch (error) {
-      throw this.wrapError('verify signature', error, { keyVaultAddress });
+      throw this.wrapError('verify signature', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.walletSignatureAuth
+      });
     }
   }
 }

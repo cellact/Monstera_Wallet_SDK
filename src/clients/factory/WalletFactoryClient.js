@@ -79,7 +79,11 @@ class WalletFactoryClient extends BaseContractClient {
       
       return result;
     } catch (error) {
-      throw this.wrapError('create wallet', error);
+      throw this.wrapError('create wallet', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory,
+        authenticator: authenticator || this.config.addresses.passwordAuth
+      });
     }
   }
 
@@ -135,7 +139,11 @@ class WalletFactoryClient extends BaseContractClient {
       
       return result;
     } catch (error) {
-      throw this.wrapError('create wallet with hook', error);
+      throw this.wrapError('create wallet with hook', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory,
+        authenticator: authenticator || this.config.addresses.passwordAuth
+      });
     }
   }
 
@@ -186,7 +194,11 @@ class WalletFactoryClient extends BaseContractClient {
       
       return result;
     } catch (error) {
-      throw this.wrapError('create wallet core', error);
+      throw this.wrapError('create wallet core', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory,
+        authenticator: authenticator || this.config.addresses.passwordAuth
+      });
     }
   }
 
@@ -243,7 +255,11 @@ class WalletFactoryClient extends BaseContractClient {
       
       return result;
     } catch (error) {
-      throw this.wrapError('create wallet with custom logic', error);
+      throw this.wrapError('create wallet with custom logic', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory,
+        authenticator: authenticator || this.config.addresses.passwordAuth
+      });
     }
   }
 
@@ -265,7 +281,10 @@ class WalletFactoryClient extends BaseContractClient {
       const isWallet = await factory.isWallet(walletAddress);
       return isWallet;
     } catch (error) {
-      throw this.wrapError('check if address is wallet', error, { walletAddress });
+      throw this.wrapError('check if address is wallet', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory
+      });
     }
   }
 
@@ -274,14 +293,17 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * @returns {Promise<String>} Current WalletLogic implementation
    */
-  async getWalletLogicImplAddr() {
+  async getWalletLogicImplAddr(options = {}) {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory); 
 
     try {
       const implementation = await factory.implementation();
       return implementation;
     } catch (error) {
-      throw this.wrapError('get wallet logic implementation', error);
+      throw this.wrapError('get wallet logic implementation', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory
+      });
     }
   }
 
@@ -314,7 +336,10 @@ class WalletFactoryClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('upgrade wallet logic', error, { newLogicAddress });
+      throw this.wrapError('upgrade wallet logic', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory
+      });
     }
   }
 
@@ -343,7 +368,10 @@ class WalletFactoryClient extends BaseContractClient {
       
       return result;
     } catch (error) {
-      throw this.wrapError('transfer admin', error, { newAdminAddress });
+      throw this.wrapError('transfer admin', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory
+      });
     }
   }
 
@@ -352,14 +380,17 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * @returns {Promise<String>} Admin address
    */
-  async getAdmin() {
+  async getAdmin(options = {}) {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const admin = await factory.admin();
       return admin;
     } catch (error) {
-      throw this.wrapError('get admin', error);
+      throw this.wrapError('get admin', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory
+      });
     }
   }
 
@@ -381,7 +412,10 @@ class WalletFactoryClient extends BaseContractClient {
       const keyVaultAddr = await factory.walletKeyVault(walletAddress);
       return keyVaultAddr;
     } catch (error) {
-      throw this.wrapError('get wallet key vault', error, { walletAddress });
+      throw this.wrapError('get wallet key vault', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory
+      });
     }
   }
 
@@ -403,7 +437,10 @@ class WalletFactoryClient extends BaseContractClient {
       const storageAddr = await factory.walletStorage(walletAddress);
       return storageAddr;
     } catch (error) {
-      throw this.wrapError('get storage address', error, { walletAddress });
+      throw this.wrapError('get storage address', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory
+      });
     }
   }
 
@@ -414,14 +451,17 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * @returns {Promise<String>} Beacon address
    */
-  async getBeaconAddr() {
+  async getBeaconAddr(options = {}) {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
     try {
       const beaconAddr = await factory.beacon();
       return beaconAddr;
     } catch (error) {
-      throw this.wrapError('get beacon address', error);
+      throw this.wrapError('get beacon address', error, {
+        ...options,
+        factoryAddress: this.config.addresses.factory
+      });
     }
   }
 }

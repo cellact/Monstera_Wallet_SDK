@@ -33,7 +33,7 @@ class KeyVaultClient extends BaseContractClient {
       const storageAddr = await keyVault.storage_();
       return storageAddr;
     } catch (error) {
-      throw this.wrapError('get storage address', error, { keyVaultAddress });
+      throw this.wrapError('get storage address', error, options);
     }
   }
 
@@ -55,7 +55,7 @@ class KeyVaultClient extends BaseContractClient {
       return authenticatorAddr;
     }
     catch (error) {
-      throw this.wrapError('get authenticator', error, { keyVaultAddress });
+      throw this.wrapError('get authenticator', error, options);
     }
   }
 
@@ -78,7 +78,7 @@ class KeyVaultClient extends BaseContractClient {
       return keyVaultImplAddr;
     }
     catch (error) {
-      throw this.wrapError('get key vault implementation', error, { keyVaultAddress });
+      throw this.wrapError('get key vault implementation', error, options);
     }
   }
 
@@ -100,7 +100,7 @@ class KeyVaultClient extends BaseContractClient {
       return isInitialized;
     }
     catch (error) {
-      throw this.wrapError('check if key vault is initialized', error, { keyVaultAddress });
+      throw this.wrapError('check if key vault is initialized', error, options);
     }
   }
 
@@ -135,7 +135,7 @@ class KeyVaultClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('upgrade key vault implementation', error, { keyVaultAddress, newImplAddr });
+      throw this.wrapError('upgrade key vault implementation', error, options);
     }
   }
 
@@ -172,7 +172,7 @@ class KeyVaultClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('change authenticator', error, { keyVaultAddress });
+      throw this.wrapError('change authenticator', error, options);
     }
   }
 
@@ -197,7 +197,7 @@ class KeyVaultClient extends BaseContractClient {
       return accountAddress;
     }
     catch (error) {
-      throw this.wrapError('get account address', error, { keyVaultAddress, index });
+      throw this.wrapError('get account address', error, options);
     }
   }
 
@@ -224,7 +224,7 @@ class KeyVaultClient extends BaseContractClient {
       return accountAddresses;
     }
     catch (error) {
-      throw this.wrapError('get account addresses', error, { keyVaultAddress, fromIndex, count });
+      throw this.wrapError('get account addresses', error, options);
     }
   }
 
@@ -265,7 +265,7 @@ class KeyVaultClient extends BaseContractClient {
       return signedTransaction;
     }
     catch (error) {
-      throw this.wrapError('sign transaction', error, { keyVaultAddress, index });
+      throw this.wrapError('sign transaction', error, options);
     }
   }
 
@@ -294,7 +294,7 @@ class KeyVaultClient extends BaseContractClient {
       return signedHash;
     }
     catch (error) {
-      throw this.wrapError('sign hash', error, { keyVaultAddress, index });
+      throw this.wrapError('sign hash', error, options);
     }
   }
 
@@ -323,7 +323,7 @@ class KeyVaultClient extends BaseContractClient {
       return signedMessage;
     }
     catch (error) {
-      throw this.wrapError('sign message', error, { keyVaultAddress, index });
+      throw this.wrapError('sign message', error, options);
     }
   }
 
@@ -350,7 +350,7 @@ class KeyVaultClient extends BaseContractClient {
       return result;
     }
     catch (error) {
-      throw this.wrapError('execute with auth', error, { keyVaultAddress });
+      throw this.wrapError('execute with auth', error, options);
     }
   }
 }

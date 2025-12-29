@@ -52,7 +52,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('change password', error, { keyVaultAddress });
+      throw this.wrapError('change password', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.passwordAuth
+      });
     }
   }
 
@@ -85,7 +88,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('configure password', error, { keyVaultAddress });
+      throw this.wrapError('configure password', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.passwordAuth
+      });
     }
   }
 
@@ -107,7 +113,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
       const isConfigured = await passwordAuth.isConfigured(keyVaultAddress);
       return isConfigured;
     } catch (error) {
-      throw this.wrapError('check if wallet is configured', error, { keyVaultAddress });
+      throw this.wrapError('check if wallet is configured', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.passwordAuth
+      });
     }
   }
 
@@ -131,7 +140,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
       const isValid = await passwordAuth.verify(keyVaultAddress, authProof);
       return isValid;
     } catch (error) {
-      throw this.wrapError('verify password', error, { keyVaultAddress });
+      throw this.wrapError('verify password', error, {
+        ...options,
+        authenticatorAddress: this.config.addresses.passwordAuth
+      });
     }
   }
 }

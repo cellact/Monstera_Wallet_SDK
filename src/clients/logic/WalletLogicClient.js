@@ -33,7 +33,7 @@ class WalletLogicClient extends BaseContractClient {
       const keyVaultAddr = await logic.getKeyVault();
       return keyVaultAddr;
     } catch (error) {
-      throw this.wrapError('get key vault', error, { walletAddress });
+      throw this.wrapError('get key vault', error, options);
     }
   }
 
@@ -55,7 +55,7 @@ class WalletLogicClient extends BaseContractClient {
       const authenticator = await logic.getAuthenticator();
       return authenticator;
     } catch (error) {
-      throw this.wrapError('get authenticator', error, { walletAddress });
+      throw this.wrapError('get authenticator', error, options);
     }
   }
 
@@ -79,7 +79,7 @@ class WalletLogicClient extends BaseContractClient {
       const accountAddress = await walletLogic.getAccountAddress(index);
       return accountAddress;
     } catch (error) {
-      throw this.wrapError('get account address', error, { walletAddress, index });
+      throw this.wrapError('get account address', error, options);
     }
   }
 
@@ -105,7 +105,7 @@ class WalletLogicClient extends BaseContractClient {
       const accountAddresses = await walletLogic.getAccountAddresses(fromIndex, count);
       return accountAddresses;
     } catch (error) {
-      throw this.wrapError('get account addresses', error, { walletAddress, fromIndex, count });
+      throw this.wrapError('get account addresses', error, options);
     }
   }
 
@@ -146,7 +146,7 @@ class WalletLogicClient extends BaseContractClient {
       const signature = await walletLogic.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId);
       return signature;
     } catch (error) {
-      throw this.wrapError('sign transaction', error, { walletAddress, index });
+      throw this.wrapError('sign transaction', error, options);
     }
   }
 
@@ -174,7 +174,7 @@ class WalletLogicClient extends BaseContractClient {
       const signature = await walletLogic.signMessage(authProof, index, message);
       return signature;
     } catch (error) {
-      throw this.wrapError('sign message', error, { walletAddress, index });
+      throw this.wrapError('sign message', error, options);
     }
   }
 
@@ -202,7 +202,7 @@ class WalletLogicClient extends BaseContractClient {
       const signature = await walletLogic.sign(authProof, index, hash);
       return signature;
     } catch (error) {
-      throw this.wrapError('sign hash', error, { walletAddress, index });
+      throw this.wrapError('sign hash', error, options);
     }
   }
 
@@ -239,7 +239,7 @@ class WalletLogicClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('change authenticator', error, { walletAddress });
+      throw this.wrapError('change authenticator', error, options);
     }
   }
 
@@ -274,7 +274,7 @@ class WalletLogicClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('upgrade key vault implementation', error, { walletAddress, newImplAddr });
+      throw this.wrapError('upgrade key vault implementation', error, options);
     }
   }
 
@@ -296,7 +296,7 @@ class WalletLogicClient extends BaseContractClient {
       const keyVaultAddr = await walletLogic.keyVault();
       return keyVaultAddr;
     } catch (error) {
-      throw this.wrapError('get key vault address', error, { walletAddress });
+      throw this.wrapError('get key vault address', error, options);
     }
   }
 
@@ -318,7 +318,7 @@ class WalletLogicClient extends BaseContractClient {
       const isInitialized = await walletLogic.initialized();
       return isInitialized;
     } catch (error) {
-      throw this.wrapError('check if wallet is initialized', error, { walletAddress });
+      throw this.wrapError('check if wallet is initialized', error, options);
     }
   }
 
@@ -348,7 +348,7 @@ class WalletLogicClient extends BaseContractClient {
 
       return result;
     } catch (error) {
-      throw this.wrapError('initialize wallet logic', error, { walletAddress, keyVaultAddress });
+      throw this.wrapError('initialize wallet logic', error, options);
     }
   }
 }
