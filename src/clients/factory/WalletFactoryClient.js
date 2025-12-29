@@ -17,6 +17,24 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
+   * Prepare wallet creation by generating mnemonic and deriving seed
+   * 
+   * @private
+   * @returns {Object} Object containing mnemonic and seed
+   * @returns {String} returns.mnemonic - Generated mnemonic phrase
+   * @returns {String} returns.seed - Derived seed from mnemonic
+   */
+  _prepareWalletCreation() {
+    // Off-chain: Generate mnemonic
+    const mnemonic = generateMnemonic();
+    
+    // Off-chain: Derive seed from mnemonic
+    const seed = deriveSeed(mnemonic);
+    
+    return { mnemonic, seed };
+  }
+
+  /**
    * Create a new HD Wallet
    * 
    * Deploys complete wallet stack:
@@ -34,11 +52,8 @@ class WalletFactoryClient extends BaseContractClient {
 
     requireBytes(authConfig, 'authConfig');
 
-    // Off-chain: Generate mnemonic
-    const mnemonic = generateMnemonic();
-    
-    // Off-chain: Derive seed from mnemonic
-    const seed = deriveSeed(mnemonic);
+    // Off-chain: Prepare wallet creation (mnemonic + seed)
+    const { mnemonic, seed } = this._prepareWalletCreation();
     
     // On-chain: Get factory contract
     const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
@@ -87,11 +102,8 @@ class WalletFactoryClient extends BaseContractClient {
     requireAddress(hook, 'hook');
     requireBytes(hookData, 'hookData');
 
-    // Off-chain: Generate mnemonic
-    const mnemonic = generateMnemonic();
-    
-    // Off-chain: Derive seed from mnemonic
-    const seed = deriveSeed(mnemonic);
+    // Off-chain: Prepare wallet creation (mnemonic + seed)
+    const { mnemonic, seed } = this._prepareWalletCreation();
     
     // On-chain: Get factory contract
     const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
@@ -135,11 +147,8 @@ class WalletFactoryClient extends BaseContractClient {
 
     requireBytes(authConfig, 'authConfig');
 
-    // Off-chain: Generate mnemonic
-    const mnemonic = generateMnemonic();
-    
-    // Off-chain: Derive seed from mnemonic
-    const seed = deriveSeed(mnemonic);
+    // Off-chain: Prepare wallet creation (mnemonic + seed)
+    const { mnemonic, seed } = this._prepareWalletCreation();
     
     // On-chain: Get factory contract
     const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
@@ -189,11 +198,8 @@ class WalletFactoryClient extends BaseContractClient {
     requireAddress(customLogicImpl, 'customLogicImpl');
     requireBytes(logicData, 'logicData');
 
-    // Off-chain: Generate mnemonic
-    const mnemonic = generateMnemonic();
-    
-    // Off-chain: Derive seed from mnemonic
-    const seed = deriveSeed(mnemonic);
+    // Off-chain: Prepare wallet creation (mnemonic + seed)
+    const { mnemonic, seed } = this._prepareWalletCreation();
     
     // On-chain: Get factory contract
     const factory = this.contract('write', getWalletFactoryContract, this.config.addresses.factory);
