@@ -318,7 +318,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
 
-    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const signedMessage = await keyVault.signMessage(authProof, index, message);
