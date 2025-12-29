@@ -4,14 +4,14 @@
  * Run: node examples/4_getAddress.js
  * 
  * Env vars:
- *   TEST_WALLET_ADDRESS=0x... (required)
+ *   WALLET_ADDRESS=0x... (required)
  *   INDEX=0 (optional, defaults to 0)
  *   SIGNER_PRIVATE_KEY=0x... (required)
  */
 require('dotenv').config();
 const { Monstera } = require('../src/index');
 
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const INDEX = parseInt(process.env.INDEX || "0");
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 

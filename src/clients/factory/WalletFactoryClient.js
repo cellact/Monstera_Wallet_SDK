@@ -5,7 +5,7 @@
  * Handles wallet creation and factory administration.
  */
 
-const BaseContractClient = require('../../internal/BaseContractClient');
+const BaseContractClient = require('../../base/BaseContractClient');
 const { getWalletFactoryContract } = require('../../contracts/core/walletFactory');
 const { WalletFactoryEvents } = require('../../events');
 const { generateMnemonic, deriveSeed } = require('../../crypto/wallet');

@@ -5,7 +5,7 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x...
- *   TEST_PASSWORD=mysecretpassword123
+ *   PASSWORD=mysecretpassword123
  *   CUSTOM_LOGIC_IMPL=0x... (your custom wallet logic implementation contract address)
  * 
  * This creates:
@@ -19,7 +19,7 @@ const { ethers } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
-const PASSWORD = process.env.TEST_PASSWORD;
+const PASSWORD = process.env.PASSWORD;
 const CUSTOM_LOGIC_IMPL = process.env.CUSTOM_LOGIC_IMPL || ""; // your custom wallet logic implementationcontract address; (must implement IWalletLogic)
 
 const sdk = Monstera.connect({

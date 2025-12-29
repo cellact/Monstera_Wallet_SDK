@@ -5,8 +5,8 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   TEST_WALLET_ADDRESS=0x... (your wallet address)
- *   TEST_PASSWORD=mysecretpassword123
+ *   WALLET_ADDRESS=0x... (your wallet address)
+ *   PASSWORD=mysecretpassword123
  *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology
  *   COUNTER_BYTECODE=0x... (your counter contract bytecode)
  * 
@@ -30,8 +30,8 @@ const { ethers } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
-const PASSWORD = process.env.TEST_PASSWORD || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
+const PASSWORD = process.env.PASSWORD || "";
 const ACCOUNT_INDEX = 0;
 const AMOY_RPC_URL = process.env.AMOY_RPC_URL || "https://rpc-amoy.polygon.technology";
 const AMOY_CHAIN_ID = 80002;

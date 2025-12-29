@@ -5,8 +5,8 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   TEST_WALLET_ADDRESS=0x...
- *   TEST_PASSWORD=mysecretpassword123
+ *   WALLET_ADDRESS=0x...
+ *   PASSWORD=mysecretpassword123
  * 
  * Optional (for verification):
  *   MNEMONIC="word1 word2 ..."
@@ -27,9 +27,9 @@ const { ethers, HDNodeWallet, Mnemonic } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
-const PASSWORD = process.env.TEST_PASSWORD || "";
-const MNEMONIC = process.env.TEST_MNEMONIC || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
+const PASSWORD = process.env.PASSWORD || "";
+const MNEMONIC = process.env.MNEMONIC || "";
 
 const sdk = Monstera.connect({
   network: 'testnet',

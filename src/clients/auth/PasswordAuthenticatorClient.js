@@ -5,7 +5,7 @@
  * Handles password-based authentication and configuration.
  */
 
-const BaseContractClient = require('../../internal/BaseContractClient');
+const BaseContractClient = require('../../base/BaseContractClient');
 const { getPasswordAuthenticatorContract } = require('../../contracts/authenticators/PasswordAuthenticator');
 const { PasswordAuthenticatorEvents } = require('../../events');
 const { requireAddress, requireBytes } = require('../../internal/assert');

@@ -5,7 +5,7 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   WALLET_ADDRESS=0x... (your wallet address)
  * 
  * Tests:
  * 1. Check if an address is a wallet created by this factory
@@ -19,7 +19,7 @@ require('dotenv').config();
 const { Monstera } = require('../src/index');
 
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS;
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 
 async function main() {
   console.log("=".repeat(70));

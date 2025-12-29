@@ -20,8 +20,8 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   TEST_WALLET_ADDRESS=0x... (your wallet address)
- *   TEST_PASSWORD=mysecretpassword123
+ *   WALLET_ADDRESS=0x... (your wallet address)
+ *   PASSWORD=mysecretpassword123
  *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology
  *   COUNTER_BYTECODE=0x... (your counter contract bytecode)
  * 
@@ -31,8 +31,8 @@ const { Monstera } = require('../src/index');
 const { ethers } = require("ethers");
 
 // ============ CONFIGURATION ============
-const SAPPHIRE_WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
-const PASSWORD = process.env.TEST_PASSWORD || "";
+const SAPPHIRE_WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
+const PASSWORD = process.env.PASSWORD || "";
 const ACCOUNT_INDEX = 0;
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const AMOY_RPC_URL = process.env.AMOY_RPC_URL || "https://rpc-amoy.polygon.technology";
@@ -52,7 +52,7 @@ async function main() {
 
   // Verify configuration
   if (!SAPPHIRE_WALLET_ADDRESS || !PASSWORD || !SIGNER_PRIVATE_KEY) {
-    console.error("ERROR: Set TEST_WALLET_ADDRESS, TEST_PASSWORD, and SIGNER_PRIVATE_KEY env vars");
+    console.error("ERROR: Set WALLET_ADDRESS, PASSWORD, and SIGNER_PRIVATE_KEY env vars");
     process.exit(1);
   }
 

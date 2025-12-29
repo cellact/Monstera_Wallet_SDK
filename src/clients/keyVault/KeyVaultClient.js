@@ -5,7 +5,7 @@
  * Handles key vault operations, signing, and account management.
  */
 
-const BaseContractClient = require('../../internal/BaseContractClient');
+const BaseContractClient = require('../../base/BaseContractClient');
 const { getKeyVaultContract } = require('../../contracts/core/keyVault');
 const { KeyVaultEvents } = require('../../events');
 const { requireAddress, requireBytes, requireNonNegativeInteger } = require('../../internal/assert');

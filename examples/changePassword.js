@@ -7,8 +7,8 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   TEST_WALLET_ADDRESS=0x... (your wallet address)
- *   TEST_PASSWORD=mysecretpassword123
+ *   WALLET_ADDRESS=0x... (your wallet address)
+ *   PASSWORD=mysecretpassword123
  *   NEW_PASSWORD=mynewpassword123
  */
 require('dotenv').config();
@@ -17,8 +17,8 @@ const { ethers } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
-const PASSWORD = process.env.TEST_PASSWORD || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
+const PASSWORD = process.env.PASSWORD || "";
 const NEW_PASSWORD = process.env.NEW_PASSWORD || "";
 
 const sdk = Monstera.connect({

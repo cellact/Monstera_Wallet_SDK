@@ -5,7 +5,7 @@
  * Handles wallet signature authentication, whitelist management, and configuration.
  */
 
-const BaseContractClient = require('../../internal/BaseContractClient');
+const BaseContractClient = require('../../base/BaseContractClient');
 const { getWalletSignatureAuthenticatorContract } = require('../../contracts/authenticators/WalletSignatureAuthenticator');
 const { WalletSignatureAuthenticatorEvents } = require('../../events');
 const { requireAddress, requireBytes } = require('../../internal/assert');

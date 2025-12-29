@@ -5,7 +5,7 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   WALLET_ADDRESS=0x... (your wallet address)
  *   NEW_KEYVAULT_ADDRESS=0x... (your new key vault address)
  * 
  * Tests:
@@ -19,7 +19,7 @@ const { Monstera } = require('../src/index');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS;
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 const NEW_KEYVAULT_ADDRESS = process.env.NEW_KEYVAULT_ADDRESS;
 
 async function main() {

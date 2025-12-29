@@ -5,7 +5,7 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x...
- *   TEST_PASSWORD=mysecretpassword123
+ *   PASSWORD=mysecretpassword123
  * 
  * This creates:
  *   - WalletStorage (holds private keys, locked to KeyVault)
@@ -17,7 +17,7 @@ const { ethers } = require('ethers');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
-const PASSWORD = process.env.TEST_PASSWORD;
+const PASSWORD = process.env.PASSWORD;
 
 const sdk = Monstera.connect({
   network: 'testnet',

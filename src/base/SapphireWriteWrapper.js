@@ -1,83 +1,58 @@
 /**
- * BaseContractClient
+ * SapphireWriteWrapper
  * 
- * Base class for all contract clients providing common functionality:
- * - Contract instance management (read/write)
- * - Transaction sending with event parsing
- * - Error wrapping
+ * Centralizes all write transaction execution logic.
+ * Ensures ALL writes go through the same path with:
+ * - Sapphire encryption (via pre-wrapped signer)
+ * - Consistent error translation
+ * - Event parsing
+ * - Normalized result format
  * 
- * Validation helpers are available via delegation to assert.js
+ * Note: The signer is already wrapped with Sapphire at creation time
+ * (via createWriteSigner in providers/sapphire.js). This wrapper focuses
+ * on execution, receipt handling, and result normalization.
  */
 
 const { parseEventFromReceipt } = require('../events');
 const {
   WalletError,
-  ValidationError,
   NetworkError,
   ContractRevertError,
   EventNotFoundError,
   WriteRequiresSignerError
 } = require('../errors');
 
-class BaseContractClient {
+class SapphireWriteWrapper {
   /**
-   * @param {Object} readProvider - Ethers provider for read operations
-   * @param {Object} writeSigner - Ethers signer for write operations
-   * @param {Object} config - Configuration object
-   */
-  constructor(readProvider, writeSigner, config) {
-    this.readProvider = readProvider;
-    this.writeSigner = writeSigner;
-    this.config = config;
-  }
-
-  /**
-   * Get contract instance for read or write operations
-   * 
-   * @param {'read'|'write'} mode - Operation mode
-   * @param {Function} contractGetter - Function to get contract (e.g., getWalletFactoryContract)
-   * @param {String} contractAddress - Contract address
-   * @returns {Object} Contract instance
-   */
-  contract(mode, contractGetter, contractAddress) {
-    if (mode === 'read') {
-      return contractGetter(this.readProvider, contractAddress);
-    } 
-    
-    if (mode === 'write') {
-      if (!this.writeSigner) {
-        throw new WriteRequiresSignerError('write operation');
-      }
-      return contractGetter(this.writeSigner, contractAddress);
-    }
-
-    throw new ValidationError(
-      `Invalid contract mode: ${mode}. Must be 'read' or 'write'`,
-      'mode',
-      mode
-    );
-  }
-
-  /**
-   * Send a transaction and optionally parse events
+   * Execute a write transaction through Sapphire-wrapped signer
    * 
    * @param {Function} txFn - Function that returns a transaction promise (e.g., () => contract.method(...))
-   * @param {Object} options - Transaction options
+   * @param {Object} options - Execution options
+   * @param {Object} options.writeSigner - The write signer (must be Sapphire-wrapped)
    * @param {Array<Object>} [options.parseEvents] - Array of event definitions to parse: [{ eventDef, contract }]
    * @param {Boolean} [options.requireEvents=true] - Whether to throw if events are not found
    * @param {Object} [options.extraData] - Additional data to include in result
+   * @param {String} [options.methodName] - Method name for error context
    * @returns {Promise<Object>} Transaction result with receipt and parsed events
    */
-  async sendTx(txFn, options = {}) {
+  static async execute(txFn, options = {}) {
+    const {
+      writeSigner,
+      parseEvents = [],
+      requireEvents = true,
+      extraData = {},
+      methodName = 'execute transaction'
+    } = options;
 
-    if (!this.writeSigner) {
-      throw new WriteRequiresSignerError('send transaction');
+    // Validate signer is provided
+    if (!writeSigner) {
+      throw new WriteRequiresSignerError('write transaction');
     }
-
-    const { parseEvents = [], requireEvents = true, extraData = {} } = options;
 
     try {
       // Execute transaction function
+      // Note: The contract instance passed to txFn should already be using
+      // a Sapphire-wrapped signer (created via createWriteSigner)
       const tx = await txFn();
       
       // Wait for transaction receipt
@@ -101,7 +76,7 @@ class BaseContractClient {
         }
       }
 
-      // Build result - spread event data directly into result object
+      // Build normalized result - spread event data directly into result object
       const result = {
         success: true,
         transactionHash: receipt.hash,
@@ -117,28 +92,22 @@ class BaseContractClient {
       if (error instanceof WalletError) {
         throw error;
       }
-      // Wrap other errors
-      throw this.wrapError('send transaction', error, { transactionHash: error.transactionHash });
+      
+      // Translate provider/contract errors to SDK errors
+      throw SapphireWriteWrapper._translateError(methodName, error);
     }
   }
 
   /**
-   * Wrap an error with method name and context
+   * Translate provider/contract errors to SDK errors
    * 
-   * Intelligently categorizes errors and returns appropriate WalletError type.
-   * 
+   * @private
    * @param {String} methodName - Name of the method that threw the error
    * @param {Error} err - Original error
    * @param {Object} context - Additional context (optional)
    * @returns {WalletError} Wrapped error with descriptive message
    */
-  wrapError(methodName, err, context = {}) {
-    // If already a WalletError, just add context
-    if (err instanceof WalletError) {
-      Object.assign(err.context, { methodName, ...context });
-      return err;
-    }
-    
+  static _translateError(methodName, err, context = {}) {
     const message = err.message || String(err);
     
     // Detect error types from ethers/contract errors
@@ -159,7 +128,7 @@ class BaseContractClient {
       // Network/RPC error
       return new NetworkError(
         `Network error: ${message}`,
-        this.config?.rpcUrl,
+        context.rpcUrl,
         err
       );
     }
@@ -173,4 +142,4 @@ class BaseContractClient {
   }
 }
 
-module.exports = BaseContractClient;
+module.exports = SapphireWriteWrapper;

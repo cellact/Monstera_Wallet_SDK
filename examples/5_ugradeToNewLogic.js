@@ -11,7 +11,7 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   TEST_WALLET_ADDRESS=0x... (your wallet address)
+ *   WALLET_ADDRESS=0x... (your wallet address)
  *   ADMIN_ADDRESS=0x... (your admin address)
  *   NEW_LOGIC_ADDRESS=0x... (your new wallet logic implementation contract address)
  * 
@@ -23,7 +23,7 @@ const { Monstera } = require('../src/index');
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || ""; // Optional: to verify upgrade
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS || ""; // Optional: to verify upgrade
 const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS || "";
 const NEW_LOGIC_ADDRESS = process.env.NEW_LOGIC_ADDRESS || "";
 

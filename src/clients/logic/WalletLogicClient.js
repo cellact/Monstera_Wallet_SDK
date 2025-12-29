@@ -5,7 +5,7 @@
  * Handles wallet operations, signing, and account management.
  */
 
-const BaseContractClient = require('../../internal/BaseContractClient');
+const BaseContractClient = require('../../base/BaseContractClient');
 const { getWalletLogicContract } = require('../../contracts/core/walletLogic');
 const { KeyVaultEvents } = require('../../events');
 const { requireAddress, requireBytes, requireNonNegativeInteger, requireString } = require('../../internal/assert');

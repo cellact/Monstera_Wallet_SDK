@@ -7,8 +7,8 @@
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   TEST_WALLET_ADDRESS=0x... (your wallet address)
- *   TEST_PASSWORD=mysecretpassword123
+ *   WALLET_ADDRESS=0x... (your wallet address)
+ *   PASSWORD=mysecretpassword123
  *   NEW_KEYVAULT_IMPL_ADDRESS=0x... (your new keyVault implementation address)
  * 
  * Tests:
@@ -22,9 +22,9 @@ require('dotenv').config();
 const { Monstera } = require('../src/index');
 const { ethers } = require('ethers');
 
-const WALLET_ADDRESS = process.env.TEST_WALLET_ADDRESS || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const PASSWORD = process.env.TEST_PASSWORD || "";
+const PASSWORD = process.env.PASSWORD || "";
 const NEW_KEYVAULT_IMPL_ADDRESS = process.env.NEW_KEYVAULT_IMPL_ADDRESS || "";
 
 const sdk = Monstera.connect({
