@@ -4,10 +4,15 @@
  * Handles mnemonic generation, seed derivation, and auth config encoding
  */
 
+// External libraries
 const crypto = require('crypto');
-const { ethers, Wallet, HDNodeWallet } = require('ethers');
+const { ethers, HDNodeWallet, Wallet } = require('ethers');
+
+// Internal utilities
 const { requireAddress } = require('../internal/assert');
-const { ValidationError, NetworkError, WalletError } = require('../errors');
+
+// Internal errors
+const { NetworkError, ValidationError, WalletError } = require('../errors');
 
 /**
  * Generate a new mnemonic phrase

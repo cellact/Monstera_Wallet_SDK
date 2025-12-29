@@ -5,11 +5,23 @@
  * Makes it easy to add new authenticator types without modifying the main SDK.
  */
 
-const WalletSignatureAuthenticatorClient = require('./WalletSignatureAuthenticatorClient');
+// Internal clients
 const PasswordAuthenticatorClient = require('./PasswordAuthenticatorClient');
+const WalletSignatureAuthenticatorClient = require('./WalletSignatureAuthenticatorClient');
+
+// Internal errors
 const { ValidationError } = require('../../errors');
 
 class AuthenticatorClient {
+  // ============================================================================
+  // Constructor
+  // ============================================================================
+  
+  /**
+   * @param {Object} readProvider - Ethers provider for read operations
+   * @param {Object} writeSigner - Ethers signer for write operations
+   * @param {Object} config - Configuration object
+   */
   constructor(readProvider, writeSigner, config) {
     this.readProvider = readProvider;
     this.writeSigner = writeSigner;
@@ -24,11 +36,16 @@ class AuthenticatorClient {
     this.password = new PasswordAuthenticatorClient(readProvider, writeSigner, config);
   }
 
+  // ============================================================================
+  // Instance Methods
+  // ============================================================================
+
   /**
    * Get a specific authenticator client by type
    * 
    * @param {String} type - Authenticator type ('walletSignature', 'password', etc.)
    * @returns {Object} Authenticator client instance
+   * @throws {ValidationError} If authenticator type is not found
    */
   getClient(type) {
     if (!this[type]) {

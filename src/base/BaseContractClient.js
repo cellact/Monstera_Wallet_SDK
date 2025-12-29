@@ -9,11 +9,20 @@
  * Validation helpers are available via delegation to assert.js
  */
 
-const { WriteRequiresSignerError, WalletError } = require('../errors');
+// Internal base classes
 const SapphireWriteWrapper = require('./SapphireWriteWrapper');
+
+// Internal utilities
 const { requireAddress } = require('../internal/assert');
 
+// Internal errors
+const { WalletError, WriteRequiresSignerError } = require('../errors');
+
 class BaseContractClient {
+  // ============================================================================
+  // Constructor
+  // ============================================================================
+  
   /**
    * @param {Object} readProvider - Ethers provider for read operations
    * @param {Object} writeSigner - Ethers signer for write operations
@@ -24,6 +33,10 @@ class BaseContractClient {
     this.writeSigner = writeSigner;
     this.config = config;
   }
+
+  // ============================================================================
+  // Contract Getters
+  // ============================================================================
 
   /**
    * Get contract instance for read operations
@@ -57,70 +70,9 @@ class BaseContractClient {
     return contractGetter(this.writeSigner, contractAddress);
   }
 
-  /**
-   * Build standardized error context from method parameters
-   * 
-   * Automatically includes relevant context for debugging:
-   * - All input parameters (filtered for sensitive data) 
-   * - Contract addresses and other context provided in options
-   * 
-   * @param {Object} options - Method options object (may include contract addresses, etc.)
-   * @returns {Object} Standardized context object
-   */
-  buildErrorContext(options = {}) {
-    const context = {};
-    
-    // Exclude sensitive parameters that should never appear in error context
-    const sensitiveParams = [
-      'authConfig', 'authProof', 'currentPassword', 'newPasswordHash',
-      'seed', 'mnemonic', 'hookData', 'logicData', 'txData', 'data',
-      'message', 'hash', 'privateKey', 'password'
-    ];
-    
-    // Include all parameters except sensitive ones
-    for (const key in options) {
-      if (options.hasOwnProperty(key) && !sensitiveParams.includes(key)) {
-        context[key] = options[key];
-      }
-    }
-    
-    // Include client name for better debugging
-    context.client = this.constructor.name;
-    
-    return context;
-  }
-
-  /**
-   * Wrap an error with method name and context
-   * 
-   * Delegates to SapphireWriteWrapper for consistent error translation.
-   * Supports both new pattern (options object) and legacy pattern (context object).
-   * 
-   * @param {String} methodName - Name of the method that threw the error
-   * @param {Error} err - Original error
-   * @param {Object} optionsOrContext - Method options object (for automatic context extraction) or context object (legacy)
-   * @returns {WalletError} Wrapped error with descriptive message
-   */
-  wrapError(methodName, err, optionsOrContext = {}) {
-    // Build standardized context from options/context
-    // Extract safe params and include any additional context provided
-    const context = this.buildErrorContext(optionsOrContext);
-    
-    // Add method name to context
-    context.methodName = methodName;
-    
-    // If already a WalletError, just add context
-    if (err instanceof WalletError) {
-      Object.assign(err.context, context);
-      return err;
-    }
-    
-    // Use SapphireWriteWrapper's error translation for consistency
-    return SapphireWriteWrapper._translateError(methodName, err, {
-      ...context,
-      rpcUrl: this.config?.rpcUrl
-    });
-  }
+  // ============================================================================
+  // Execute Helpers
+  // ============================================================================
 
   /**
    * Execute a read operation with automatic error handling
@@ -193,6 +145,75 @@ class BaseContractClient {
     } catch (error) {
       throw this.wrapError(methodName, error, errorContext);
     }
+  }
+
+  // ============================================================================
+  // Error Handling
+  // ============================================================================
+
+  /**
+   * Build standardized error context from method parameters
+   * 
+   * Automatically includes relevant context for debugging:
+   * - All input parameters (filtered for sensitive data) 
+   * - Contract addresses and other context provided in options
+   * 
+   * @param {Object} options - Method options object (may include contract addresses, etc.)
+   * @returns {Object} Standardized context object
+   */
+  buildErrorContext(options = {}) {
+    const context = {};
+    
+    // Exclude sensitive parameters that should never appear in error context
+    const sensitiveParams = [
+      'authConfig', 'authProof', 'currentPassword', 'newPasswordHash',
+      'seed', 'mnemonic', 'hookData', 'logicData', 'txData', 'data',
+      'message', 'hash', 'privateKey', 'password'
+    ];
+    
+    // Include all parameters except sensitive ones
+    for (const key in options) {
+      if (options.hasOwnProperty(key) && !sensitiveParams.includes(key)) {
+        context[key] = options[key];
+      }
+    }
+    
+    // Include client name for better debugging
+    context.client = this.constructor.name;
+    
+    return context;
+  }
+
+  /**
+   * Wrap an error with method name and context
+   * 
+   * Delegates to SapphireWriteWrapper for consistent error translation.
+   * Supports both new pattern (options object) and legacy pattern (context object).
+   * 
+   * @param {String} methodName - Name of the method that threw the error
+   * @param {Error} err - Original error
+   * @param {Object} optionsOrContext - Method options object (for automatic context extraction) or context object (legacy)
+   * @returns {WalletError} Wrapped error with descriptive message
+   */
+  wrapError(methodName, err, optionsOrContext = {}) {
+    // Build standardized context from options/context
+    // Extract safe params and include any additional context provided
+    const context = this.buildErrorContext(optionsOrContext);
+    
+    // Add method name to context
+    context.methodName = methodName;
+    
+    // If already a WalletError, just add context
+    if (err instanceof WalletError) {
+      Object.assign(err.context, context);
+      return err;
+    }
+    
+    // Use SapphireWriteWrapper's error translation for consistency
+    return SapphireWriteWrapper._translateError(methodName, err, {
+      ...context,
+      rpcUrl: this.config?.rpcUrl
+    });
   }
 
 }

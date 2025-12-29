@@ -5,13 +5,20 @@
  * Provides clean API for read and write operations.
  */
 
-const { resolveBaseConfig, NETWORKS, DEFAULT_ADDRESSES, REQUIRED_ADDRESSES } = require('../config/networks');
-const { createProvider, createWriteSigner } = require('../providers/sapphire');
-const { createAuthProof } = require('../crypto/wallet');
+// Internal config
+const { DEFAULT_ADDRESSES, NETWORKS, REQUIRED_ADDRESSES, resolveBaseConfig } = require('../config/networks');
+
+// Internal clients
 const WalletFactoryClient = require('../clients/factory');
 const WalletLogicClient = require('../clients/logic');
 const KeyVaultClient = require('../clients/keyVault');
 const { AuthenticatorClient } = require('../clients/auth');
+
+// Internal utilities
+const { createAuthProof } = require('../crypto/wallet');
+const { createProvider, createWriteSigner } = require('../providers/sapphire');
+
+// Internal errors
 const { ValidationError } = require('../errors');
 
 /**
