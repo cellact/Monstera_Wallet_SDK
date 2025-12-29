@@ -20,10 +20,6 @@ function generateMnemonic(strength = 128) {
   // ethers v6: Create random wallet and extract mnemonic
   const wallet = ethers.Wallet.createRandom();
   
-  if (!wallet.mnemonic) {
-    throw new NetworkError('Failed to generate mnemonic from random wallet');
-  }
-  
   return wallet.mnemonic.phrase;
 }
 
