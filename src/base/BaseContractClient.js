@@ -79,7 +79,7 @@ class BaseContractClient {
    * Build standardized error context from method parameters
    * 
    * Automatically includes relevant context for debugging:
-   * - All input parameters (filtered for sensitive data)
+   * - All input parameters (filtered for sensitive data) 
    * - Contract addresses and other context provided in options
    * 
    * @param {Object} options - Method options object (may include contract addresses, etc.)
@@ -88,18 +88,16 @@ class BaseContractClient {
   buildErrorContext(options = {}) {
     const context = {};
     
-    // Include relevant input parameters (exclude sensitive data like seeds, private keys, authConfig)
-    const safeParams = [
-      'walletAddress', 'keyVaultAddress', 'index', 'fromIndex', 'count',
-      'newLogicAddress', 'newAdminAddress', 'newImplAddr', 'authenticator',
-      'hook', 'customLogicImpl', 'addressToRemove', 'addressToCheck',
-      'newAddress', 'contractAddress', 'address', 'factoryAddress', 
-      'authenticatorAddress'
+    // Exclude sensitive parameters that should never appear in error context
+    const sensitiveParams = [
+      'authConfig', 'authProof', 'currentPassword', 'newPasswordHash',
+      'seed', 'mnemonic', 'hookData', 'logicData', 'txData', 'data',
+      'message', 'hash', 'privateKey', 'password'
     ];
     
-    // Extract safe parameters from options
-    for (const key of safeParams) {
-      if (options[key] !== undefined) {
+    // Include all parameters except sensitive ones
+    for (const key in options) {
+      if (options.hasOwnProperty(key) && !sensitiveParams.includes(key)) {
         context[key] = options[key];
       }
     }
