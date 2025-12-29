@@ -41,6 +41,22 @@ async function main() {
   const contractAddresses1 = sdk.addresses;
   console.log(`   Contract addresses 1: ${JSON.stringify(contractAddresses1, null, 2)}`);
 
+  // Check if SDK instance can perform write operations
+  const canWrite = sdk.canWrite();
+  console.log(`   Can write: ${canWrite}`);
+  if (!canWrite) {
+    console.error("❌ ERROR: SDK instance cannot perform write operations");
+    process.exit(1);
+  }
+
+  // Get the signer address
+  const signerAddress = await sdk.getSignerAddress();
+  console.log(`   Signer address: ${signerAddress}`);
+  if (!signerAddress) {
+    console.error("❌ ERROR: Failed to get signer address");
+    process.exit(1);
+  }
+
   // Prepare auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));

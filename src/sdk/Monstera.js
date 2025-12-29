@@ -186,6 +186,23 @@ class Monstera {
   // ============================================================================
 
   /**
+   * Check if SDK instance can perform write operations
+   * @returns {Boolean}
+   */
+  canWrite() {
+    return this.writeSigner !== null;
+  }
+
+  /**
+   * Get the signer address (if available)
+   * @returns {Promise<String|null>}
+   */
+  async getSignerAddress() {
+    if (!this.writeSigner) return null;
+    return await this.writeSigner.getAddress();
+  }
+
+  /**
    * Create an auth proof for a wallet
    * 
    * @param {Object} options - Create auth proof options
