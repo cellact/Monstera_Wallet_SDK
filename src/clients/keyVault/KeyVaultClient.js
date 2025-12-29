@@ -29,7 +29,7 @@ class KeyVaultClient extends BaseContractClient {
 
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const storageAddr = await keyVault.storage_();
@@ -51,7 +51,7 @@ class KeyVaultClient extends BaseContractClient {
 
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
     try {
       const authenticatorAddr = await keyVault.authenticator();
       return authenticatorAddr;
@@ -73,7 +73,7 @@ class KeyVaultClient extends BaseContractClient {
 
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const keyVaultImplAddr = await keyVault.implementation();
@@ -96,7 +96,7 @@ class KeyVaultClient extends BaseContractClient {
 
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
     try {
       const isInitialized = await keyVault.initialized();
       return isInitialized;
@@ -122,7 +122,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
 
-    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const result = await this.sendTx(
@@ -159,7 +159,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');
 
-    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const result = await this.sendTx(
@@ -192,7 +192,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireNonNegativeInteger(index, 'index');
 
-    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const accountAddress = await keyVault.getAccountAddress(index);
@@ -219,7 +219,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
 
-    const keyVault = this.contract('read', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
     
     try {
       const accountAddresses = await keyVault.getAccountAddresses(fromIndex, count);
@@ -260,7 +260,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(txData, 'txData');
     requireNonNegativeInteger(chainId, 'chainId');
 
-    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const signedTransaction = await keyVault.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId);
@@ -289,7 +289,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
 
-    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const signedHash = await keyVault.sign(authProof, index, hash);
@@ -318,7 +318,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
 
-    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const signedMessage = await keyVault.signMessage(authProof, index, message);
@@ -345,7 +345,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireBytes(implCall, 'implCall');
 
-    const keyVault = this.contract('write', getKeyVaultContract, keyVaultAddress);
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
     try {
       const result = await keyVault.executeWithAuth(authProof, implCall);

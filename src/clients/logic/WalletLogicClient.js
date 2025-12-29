@@ -27,7 +27,7 @@ class WalletLogicClient extends BaseContractClient {
 
     requireAddress(walletAddress, 'walletAddress');
 
-    const logic = this.contract('read', getWalletLogicContract, walletAddress);
+    const logic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const keyVaultAddr = await logic.getKeyVault();
@@ -49,7 +49,7 @@ class WalletLogicClient extends BaseContractClient {
 
     requireAddress(walletAddress, 'walletAddress');
 
-    const logic = this.contract('read', getWalletLogicContract, walletAddress);
+    const logic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const authenticator = await logic.getAuthenticator();
@@ -73,7 +73,7 @@ class WalletLogicClient extends BaseContractClient {
     requireAddress(walletAddress, 'walletAddress');
     requireNonNegativeInteger(index, 'index');
 
-    const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const accountAddress = await walletLogic.getAccountAddress(index);
@@ -99,7 +99,7 @@ class WalletLogicClient extends BaseContractClient {
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
     
-    const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const accountAddresses = await walletLogic.getAccountAddresses(fromIndex, count);
@@ -140,7 +140,7 @@ class WalletLogicClient extends BaseContractClient {
     requireString(data, 'data');
     requireNonNegativeInteger(chainId, 'chainId');
 
-    const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const signature = await walletLogic.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId);
@@ -168,7 +168,7 @@ class WalletLogicClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
 
-    const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const signature = await walletLogic.signMessage(authProof, index, message);
@@ -196,7 +196,7 @@ class WalletLogicClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
 
-    const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const signature = await walletLogic.sign(authProof, index, hash);
@@ -224,7 +224,7 @@ class WalletLogicClient extends BaseContractClient {
     requireAddress(newAuthenticatorAddress, 'newAuthenticatorAddress');
     requireBytes(newAuthConfig, 'newAuthConfig');
 
-    const walletLogic = this.contract('write', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
 
     try {
       const result = await this.sendTx(
@@ -258,7 +258,7 @@ class WalletLogicClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
 
-    const walletLogic = this.contract('write', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
 
     try {
       const result = await this.sendTx(
@@ -290,7 +290,7 @@ class WalletLogicClient extends BaseContractClient {
 
     requireAddress(walletAddress, 'walletAddress');
 
-    const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const keyVaultAddr = await walletLogic.keyVault();
@@ -312,7 +312,7 @@ class WalletLogicClient extends BaseContractClient {
 
     requireAddress(walletAddress, 'walletAddress');
 
-    const walletLogic = this.contract('read', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
     try {
       const isInitialized = await walletLogic.initialized();
@@ -336,7 +336,7 @@ class WalletLogicClient extends BaseContractClient {
     requireAddress(walletAddress, 'walletAddress');
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const walletLogic = this.contract('write', getWalletLogicContract, walletAddress);
+    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
   
     try {
       const result = await this.sendTx(

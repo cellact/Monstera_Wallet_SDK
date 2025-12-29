@@ -33,7 +33,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     requireBytes(currentPassword, 'currentPassword');
     requireBytes(newPasswordHash, 'newPasswordHash');
 
-    const passwordAuth = this.contract('write', getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
+    const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
     try {
       const result = await this.sendTx(
@@ -70,7 +70,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
 
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
-    const passwordAuth = this.contract('read', getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
+    const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
     try {
       const isConfigured = await passwordAuth.isConfigured(keyVaultAddress);
@@ -82,4 +82,3 @@ class PasswordAuthenticatorClient extends BaseContractClient {
 }
 
 module.exports = PasswordAuthenticatorClient;
-

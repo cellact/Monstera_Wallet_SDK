@@ -9,7 +9,7 @@
  * Validation helpers are available via delegation to assert.js
  */
 
-const { ValidationError, WriteRequiresSignerError, WalletError } = require('../errors');
+const { WriteRequiresSignerError, WalletError } = require('../errors');
 const SapphireWriteWrapper = require('./SapphireWriteWrapper');
 
 class BaseContractClient {
@@ -25,30 +25,29 @@ class BaseContractClient {
   }
 
   /**
-   * Get contract instance for read or write operations
+   * Get contract instance for read operations
    * 
-   * @param {'read'|'write'} mode - Operation mode
    * @param {Function} contractGetter - Function to get contract (e.g., getWalletFactoryContract)
    * @param {String} contractAddress - Contract address
    * @returns {Object} Contract instance
    */
-  contract(mode, contractGetter, contractAddress) {
-    if (mode === 'read') {
-      return contractGetter(this.readProvider, contractAddress);
-    } 
-    
-    if (mode === 'write') {
-      if (!this.writeSigner) {
-        throw new WriteRequiresSignerError('write operation');
-      }
-      return contractGetter(this.writeSigner, contractAddress);
-    }
+  getReadContract(contractGetter, contractAddress) {
+    return contractGetter(this.readProvider, contractAddress);
+  }
 
-    throw new ValidationError(
-      `Invalid contract mode: ${mode}. Must be 'read' or 'write'`,
-      'mode',
-      mode
-    );
+  /**
+   * Get contract instance for write operations
+   * 
+   * @param {Function} contractGetter - Function to get contract (e.g., getWalletFactoryContract)
+   * @param {String} contractAddress - Contract address
+   * @returns {Object} Contract instance
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   */
+  getWriteContract(contractGetter, contractAddress) {
+    if (!this.writeSigner) {
+      throw new WriteRequiresSignerError('write operation');
+    }
+    return contractGetter(this.writeSigner, contractAddress);
   }
 
   /**
