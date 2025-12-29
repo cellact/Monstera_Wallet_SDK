@@ -15,7 +15,8 @@ const {
   EventNotFoundError,
   PermissionError,
   SapphireRequiredError,
-  WriteRequiresSignerError
+  WriteRequiresSignerError,
+  EventParseError
 } = require('./errors');
 
 // Export Monstera as the default export (main entry point)
@@ -34,4 +35,5 @@ module.exports.EventNotFoundError = EventNotFoundError;
 module.exports.PermissionError = PermissionError;
 module.exports.SapphireRequiredError = SapphireRequiredError;
 module.exports.WriteRequiresSignerError = WriteRequiresSignerError;
+module.exports.EventParseError = EventParseError;
 

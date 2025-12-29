@@ -4,7 +4,7 @@
  * Generic event parsing logic for transaction receipts
  */
 
-const { ValidationError } = require('../errors');
+const { ValidationError, EventParseError } = require('../errors');
 
 /**
  * Generic event parser
@@ -52,8 +52,11 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
 
     return result;
   } catch (error) {
-    console.error(`[parseEvent] Error parsing ${eventName}:`, error.message);
-    return null;
+    throw new EventParseError(
+      eventName,
+      receipt?.hash || null,
+      error
+    );
   }
 }
 

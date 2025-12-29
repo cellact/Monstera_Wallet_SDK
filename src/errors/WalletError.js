@@ -192,6 +192,26 @@ class WriteRequiresSignerError extends WalletError {
   }
 }
 
+/**
+ * Event parse errors - Event found but failed to parse/decode
+ */
+class EventParseError extends WalletError {
+    constructor(eventName, transactionHash = null, originalError = null) {
+      super(
+        `Failed to parse ${eventName} event: ${originalError?.message || 'Unknown parsing error'}`,
+        'EVENT_PARSE_ERROR',
+        {
+          eventName,
+          transactionHash,
+          originalError: originalError ? originalError.message : null,
+          function: 'event_parsing'
+        }
+      );
+      this.name = 'EventParseError';
+      this.originalError = originalError;
+    }
+  }
+
 module.exports = {
   WalletError,
   ValidationError,
@@ -201,5 +221,6 @@ module.exports = {
   EventNotFoundError,
   PermissionError,
   SapphireRequiredError,
-  WriteRequiresSignerError
+  WriteRequiresSignerError,
+  EventParseError
 };
