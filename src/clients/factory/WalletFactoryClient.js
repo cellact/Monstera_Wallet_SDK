@@ -48,9 +48,15 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWallet(options = {}) {
-    const { authenticator = this.config.addresses.passwordAuth, authConfig } = options; // TODO: either use let or const for optional params 
+    const { authConfig } = options;
+    let { authenticator } = options;
 
     requireBytes(authConfig, 'authConfig');
+
+    // Set default authenticator if not provided
+    if (!authenticator) {
+      authenticator = this.config.addresses.passwordAuth;
+    }
 
     // Off-chain: Prepare wallet creation (mnemonic + seed)
     const { mnemonic, seed } = this._prepareWalletCreation();
@@ -96,11 +102,17 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWalletWithHook(options = {}) {
-    const { authenticator = this.config.addresses.passwordAuth, authConfig, hook, hookData } = options; // TODO: either use let or const for optional params 
+    const { authConfig, hook, hookData } = options;
+    let { authenticator } = options;
 
     requireBytes(authConfig, 'authConfig');
     requireAddress(hook, 'hook');
     requireBytes(hookData, 'hookData');
+
+    // Set default authenticator if not provided
+    if (!authenticator) {
+      authenticator = this.config.addresses.passwordAuth;
+    }
 
     // Off-chain: Prepare wallet creation (mnemonic + seed)
     const { mnemonic, seed } = this._prepareWalletCreation();
@@ -143,9 +155,15 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWalletCore(options = {}) {
-    const { authenticator = this.config.addresses.passwordAuth, authConfig } = options; // TODO: either use let or const for optional params 
+    const { authConfig } = options;
+    let { authenticator } = options;
 
     requireBytes(authConfig, 'authConfig');
+
+    // Set default authenticator if not provided
+    if (!authenticator) {
+      authenticator = this.config.addresses.passwordAuth;
+    }
 
     // Off-chain: Prepare wallet creation (mnemonic + seed)
     const { mnemonic, seed } = this._prepareWalletCreation();
@@ -192,11 +210,17 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
    */
   async createWalletWithCustomLogic(options = {}) {
-    const { authenticator = this.config.addresses.passwordAuth, authConfig, customLogicImpl, logicData } = options; // TODO: either use let or const for optional params 
+    const { authConfig, customLogicImpl, logicData } = options;
+    let { authenticator } = options;
 
     requireBytes(authConfig, 'authConfig');
     requireAddress(customLogicImpl, 'customLogicImpl');
     requireBytes(logicData, 'logicData');
+
+    // Set default authenticator if not provided
+    if (!authenticator) {
+      authenticator = this.config.addresses.passwordAuth;
+    }
 
     // Off-chain: Prepare wallet creation (mnemonic + seed)
     const { mnemonic, seed } = this._prepareWalletCreation();
