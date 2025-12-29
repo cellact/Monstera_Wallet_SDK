@@ -6,8 +6,8 @@
 
 const crypto = require('crypto');
 const { ethers, Wallet, HDNodeWallet } = require('ethers');
-const { requireAddress, requireString } = require('../internal/assert');
-const { ValidationError, NetworkError } = require('../errors');
+const { requireAddress } = require('../internal/assert');
+const { ValidationError, NetworkError, WalletError } = require('../errors');
 
 /**
  * Generate a new mnemonic phrase
@@ -118,9 +118,68 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
   // Note: For KeyVault auth, the "wallet" in the signature is the KeyVault address
   const value = { wallet: keyVaultAddress, deadline };
   
-  const signature = await signer.signTypedData(domain, types, value);
-
-  return ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "bytes"], [deadline, signature]);
+  try {
+    // Sign the typed data (EIP-712)
+    const signature = await signer.signTypedData(domain, types, value);
+    
+    // Encode the auth proof (deadline + signature)
+    return ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "bytes"], [deadline, signature]);
+  } catch (error) {
+    // Re-throw WalletError as-is (validation errors, etc.)
+    if (error instanceof WalletError) {
+      throw error;
+    }
+    
+    // Translate provider/network errors
+    const errorCode = error.code || error.error?.code;
+    const errorMessage = error.message || String(error);
+    
+    // Network/RPC errors from signer provider
+    if (errorCode === 'NETWORK_ERROR' || errorCode === 'TIMEOUT' || 
+        errorCode === 'SERVER_ERROR' || errorCode === 'UNKNOWN_ERROR' ||
+        error.name === 'NetworkError' || errorMessage.includes('network') ||
+        errorMessage.includes('connection') || errorMessage.includes('timeout')) {
+      throw new NetworkError(
+        `Failed to create auth proof: Network error during signing - ${errorMessage}`,
+        null,
+        error
+      );
+    }
+    
+    // Signing errors (invalid signer state, missing provider, etc.)
+    if (errorMessage.includes('sign') || errorMessage.includes('signer') ||
+        errorMessage.includes('private key') || errorMessage.includes('mnemonic')) {
+      throw new WalletError(
+        `Failed to create auth proof: Signing error - ${errorMessage}`,
+        'SIGNING_FAILED',
+        {
+          function: 'createAuthProof',
+          originalError: errorMessage,
+          originalCode: errorCode
+        }
+      );
+    }
+    
+    // Encoding errors (should be rare)
+    if (errorMessage.includes('encode') || errorMessage.includes('ABI')) {
+      throw new ValidationError(
+        `Failed to encode auth proof: ${errorMessage}`,
+        'authProof',
+        { deadline }
+      );
+    }
+    
+    // Generic error fallback
+    throw new WalletError(
+      `Failed to create auth proof: ${errorMessage}`,
+      'AUTH_PROOF_CREATION_FAILED',
+      {
+        function: 'createAuthProof',
+        originalError: errorMessage,
+        originalCode: errorCode
+      }
+    );
+  }
 }
 
 module.exports = {
