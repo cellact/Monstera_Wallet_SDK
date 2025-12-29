@@ -302,7 +302,6 @@ class WalletFactoryClient extends BaseContractClient {
       'transfer admin',
       {
         ...options,
-        parseEvents: [], // TODO: there is no event for transfer admin - check if can remove this 
         extraData: { newAdmin: newAdminAddress },
         factoryAddress: this.config.addresses.factory
       }

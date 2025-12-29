@@ -296,10 +296,7 @@ class WalletLogicClient extends BaseContractClient {
     return this.executeWrite(
       () => walletLogic.initialize(keyVaultAddress),
       'initialize wallet logic',
-      {
-        ...options,
-        parseEvents: []
-      }
+      options
     );
   }
 }
