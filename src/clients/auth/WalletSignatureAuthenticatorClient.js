@@ -15,8 +15,6 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     super(readProvider, writeSigner, config);
   }
 
-  // TODO: add configure method and verify method
-
   /**
    * Add a new address to the whitelist
    * 
@@ -49,6 +47,39 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
       return result;
     } catch (error) {
       throw this.wrapError('add to whitelist', error, { keyVaultAddress, newAddress });
+    }
+  }
+
+  /**
+   * Configure the wallet signature authenticator
+   * 
+   * @param {Object} options - Configure options
+   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the whitelist addresses 
+   * @returns {Promise<Object>} Configure wallet result
+   */
+  async configure(options = {}) {
+    const { keyVaultAddress, authConfig } = options;
+  
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireBytes(authConfig, 'authConfig');
+
+    const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
+
+    try {
+      const result = await this.sendTx(
+        () => walletSigAuth.configure(keyVaultAddress, authConfig),
+        {
+          parseEvents: [{
+            eventDef: WalletSignatureAuthenticatorEvents.WalletConfigured,
+            contract: walletSigAuth
+          }]
+        }
+      );
+
+      return result;
+    } catch (error) {
+      throw this.wrapError('configure wallet signature authenticator', error, { keyVaultAddress });
     }
   }
 
@@ -168,6 +199,30 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
       return domainSeparator;
     } catch (error) {
       throw this.wrapError('get domain separator', error);
+    }
+  }
+
+  /**
+   * Verify a signature
+   * 
+   * @param {Object} options - Verify options
+   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature), Signature is over EIP-712 typed data: WalletAuth(wallet, deadline)
+   * @returns {Promise<Boolean>} True if signature is valid, false otherwise
+   */ 
+  async verify(options = {}) {
+    const { keyVaultAddress, authProof } = options;
+
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireBytes(authProof, 'authProof');
+
+    const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
+
+    try {
+      const isValid = await walletSigAuth.verify(keyVaultAddress, authProof);
+      return isValid;
+    } catch (error) {
+      throw this.wrapError('verify signature', error, { keyVaultAddress });
     }
   }
 }

@@ -21,6 +21,15 @@ module.exports = {
       removed: 'removed'
     },
     description: 'Emitted when an address is removed from the wallet signature authenticator whitelist'
+  },
+
+  WalletConfigured: {
+    eventName: 'WalletConfigured',
+    fieldMapping: {
+      wallet: 'wallet',
+      initialWhitelist: 'initialWhitelist'
+    },
+    description: 'Emitted when a wallet signature authenticator is configured'
   }
 };
 

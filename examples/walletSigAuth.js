@@ -11,7 +11,9 @@
  * Tests:
  * 1. create a wallet with a whitelist
  * 2. check if a wallet is configured
- * 3. get the EIP-712 domain seperator 
+ * 3. get the EIP-712 domain seperator
+ * 4. configure the wallet signature authenticator
+ * 5. verify a signature
  */
 
 require('dotenv').config();
@@ -91,6 +93,41 @@ async function main() {
   console.log(`   ✅ domainSeparator: ${domainSeparator}`);
   if (!domainSeparator) {
     console.error("❌ ERROR: Failed to get domain separator");
+    process.exit(1);
+  }
+
+  // ============ STEP 4: Configure the wallet signature authenticator ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 4: Configure the wallet signature authenticator");
+  console.log("=".repeat(70));
+
+  const configResult = await sdk.auth.walletSignature.configure({
+    keyVaultAddress: result.keyVault,
+    authConfig: authConfig
+  });
+  console.log(`   ✅ result: ${configResult}`);
+  if (!configResult) {
+    console.error("❌ ERROR: Failed to configure wallet signature authenticator");
+    process.exit(1);
+  }
+
+  // ============ STEP 5: Verify a signature ============
+  console.log("\n" + "=".repeat(70));
+  console.log("STEP 5: Verify a signature");
+  console.log("=".repeat(70));
+
+  // create auth proof
+  const authProof = await sdk.crypto.wallet.createAuthProof(allowed1Signer, sdk.chainId, sdk.addresses.walletSignatureAuth, Date.now() + 1000, result.keyVault);
+  
+  const isValid = await sdk.auth.walletSignature.verify({
+    keyVaultAddress: result.keyVault,
+    authProof: authProof
+  });
+
+  console.log(`   Full result: ${isValid}`);
+  console.log(`   ✅ isValid: ${isValid ? "✅ Yes" : "❌ No"}`);
+  if (!isValid) {
+    console.error("❌ ERROR: Failed to verify signature");
     process.exit(1);
   }
 
