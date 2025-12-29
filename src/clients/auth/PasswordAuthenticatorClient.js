@@ -15,7 +15,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     super(readProvider, writeSigner, config);
   }
 
-  // TODO: add configure method and verify method
+  // TODO: add verify method
 
   /**
    * Change the password of a wallet
@@ -55,6 +55,39 @@ class PasswordAuthenticatorClient extends BaseContractClient {
       return result;
     } catch (error) {
       throw this.wrapError('change password', error, { keyVaultAddress });
+    }
+  }
+
+  /**
+   * Configure password
+   * 
+   * @param {Object} options - Configure password options
+   * @param {String} options.keyVaultAddress - KeyVault contract address
+   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the password hash (keccak256 of password)
+   * @returns {Promise<Object>} Configure wallet result
+   */
+  async configure(options = {}) {
+    const { keyVaultAddress, authConfig } = options;
+
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireBytes(authConfig, 'authConfig');
+
+    const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
+    
+    try {
+      const result = await this.sendTx(
+        () => passwordAuth.configure(keyVaultAddress, authConfig),
+        {
+          parseEvents: [{
+            eventDef: PasswordAuthenticatorEvents.PasswordConfigured,
+            contract: passwordAuth
+          }]
+        }
+      );
+
+      return result;
+    } catch (error) {
+      throw this.wrapError('configure password', error, { keyVaultAddress });
     }
   }
 

@@ -11,6 +11,13 @@ module.exports = {
       wallet: 'wallet'
     },
     description: 'Emitted when a wallet password is changed'
+  },
+  PasswordConfigured: {
+    eventName: 'PasswordConfigured',
+    fieldMapping: {
+      wallet: 'wallet'
+    },
+    description: 'Emitted when a wallet password is configured'
   }
 };
 
