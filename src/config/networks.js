@@ -36,7 +36,6 @@ const DEFAULT_ADDRESSES = {
     walletSignatureAuth: '0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a'
   },
   mainnet: {
-    // TODO: Set mainnet addresses when deployed
     factory: null,
     passwordAuth: null,
     walletSignatureAuth: null

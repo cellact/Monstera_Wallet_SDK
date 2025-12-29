@@ -6,7 +6,6 @@
 
 const { ConfigError } = require('../../errors');
 
-// TODO: Find a way to get ABI dynamically to avoid hardcoding it
 /**
  * KeyVault contract ABI
  */
