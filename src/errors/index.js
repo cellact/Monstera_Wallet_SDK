@@ -13,7 +13,8 @@ const {
   EventNotFoundError,
   PermissionError,
   SapphireRequiredError,
-  WriteRequiresSignerError
+  WriteRequiresSignerError,
+  EventParseError
 } = require('./WalletError');
 
 
@@ -28,5 +29,6 @@ module.exports = {
   PermissionError,
   SapphireRequiredError,
   WriteRequiresSignerError,
+  EventParseError
 };
 
