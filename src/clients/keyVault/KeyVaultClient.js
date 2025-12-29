@@ -24,9 +24,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getStorageAddr(options = {}) {
     const { keyVaultAddress } = options;
-
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
-
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     return this.executeRead(
@@ -45,9 +42,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getAuthenticator(options = {}) {
     const { keyVaultAddress } = options;
-
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
-
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     return this.executeRead(
@@ -66,9 +60,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getKeyVaultImplAddr(options = {}) {
     const { keyVaultAddress } = options;
-
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
-
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     return this.executeRead(
@@ -87,9 +78,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async isInitialized(options = {}) {
     const { keyVaultAddress } = options;
-
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
-
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     return this.executeRead(
@@ -110,7 +98,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async upgradeKeyVaultImpl(options = {}) {
     const { keyVaultAddress, authProof, newImplAddr } = options;
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
 
@@ -141,7 +128,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async changeAuthenticator(options = {}) {
     const { keyVaultAddress, authProof, newAuthenticatorAddr, newAuthConfig } = options;
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');
@@ -171,7 +157,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getAccountAddress(options = {}) {
     const { keyVaultAddress, index } = options;
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireNonNegativeInteger(index, 'index');
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
@@ -194,7 +179,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getAccountAddresses(options = {}) {
     const { keyVaultAddress, fromIndex, count } = options;
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
 
@@ -225,8 +209,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async signTransaction(options = {}) {
     const { keyVaultAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId } = options;
-
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireNonNegativeInteger(nonce, 'nonce');
@@ -258,8 +240,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async sign(options = {}) {
     const { keyVaultAddress, authProof, index, hash } = options;
-
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
@@ -285,8 +265,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async signMessage(options = {}) {
     const { keyVaultAddress, authProof, index, message } = options;
-
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
@@ -311,8 +289,6 @@ class KeyVaultClient extends BaseContractClient {
    */
   async executeWithAuth(options = {}) {
     const { keyVaultAddress, authProof, implCall } = options;
-
-    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireBytes(implCall, 'implCall');
 

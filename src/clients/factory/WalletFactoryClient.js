@@ -222,7 +222,6 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async isWallet(options = {}) {
     const { walletAddress } = options;
-
     requireAddress(walletAddress, 'walletAddress');
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -335,7 +334,6 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async getWalletKeyVault(options = {}) {
     const { walletAddress } = options;
-
     requireAddress(walletAddress, 'walletAddress');
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -359,7 +357,6 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async getStorageAddr(options = {}) {
     const { walletAddress } = options;
-
     requireAddress(walletAddress, 'walletAddress');
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
