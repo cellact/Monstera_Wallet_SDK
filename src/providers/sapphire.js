@@ -5,7 +5,7 @@
  * for encrypted transaction support.
  */
 
-const { ConfigError, ValidationError, NetworkError, SapphireRequiredError } = require('../errors');
+const { ConfigError, ValidationError, SapphireRequiredError } = require('../errors');
 
 /**
  * Create a provider for the given RPC URL

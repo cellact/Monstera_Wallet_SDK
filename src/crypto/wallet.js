@@ -126,7 +126,7 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
       throw error;
     }
     
-    // Translate provider/network errors
+    // Extract error details
     const errorCode = error.code || error.error?.code;
     const errorMessage = error.message || String(error);
     
@@ -141,21 +141,7 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
         error
       );
     }
-    
-    // Signing errors (invalid signer state, missing provider, etc.)
-    if (errorMessage.includes('sign') || errorMessage.includes('signer') ||
-        errorMessage.includes('private key') || errorMessage.includes('mnemonic')) {
-      throw new WalletError(
-        `Failed to create auth proof: Signing error - ${errorMessage}`,
-        'SIGNING_FAILED',
-        {
-          function: 'createAuthProof',
-          originalError: errorMessage,
-          originalCode: errorCode
-        }
-      );
-    }
-    
+
     // Encoding errors (should be rare)
     if (errorMessage.includes('encode') || errorMessage.includes('ABI')) {
       throw new ValidationError(
@@ -165,10 +151,10 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
       );
     }
     
-    // Generic error fallback
+    // Generic error fallback - use standard UNKNOWN_ERROR code
     throw new WalletError(
       `Failed to create auth proof: ${errorMessage}`,
-      'AUTH_PROOF_CREATION_FAILED',
+      'UNKNOWN_ERROR',
       {
         function: 'createAuthProof',
         originalError: errorMessage,
