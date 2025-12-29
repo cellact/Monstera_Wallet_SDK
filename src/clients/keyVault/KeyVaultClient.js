@@ -15,8 +15,6 @@ class KeyVaultClient extends BaseContractClient {
     super(readProvider, writeSigner, config);
   }
 
-  // TODO: add initialize method
-
   /**
    * Get the storage contract address holding the keys
    * 
@@ -358,4 +356,3 @@ class KeyVaultClient extends BaseContractClient {
 }
 
 module.exports = KeyVaultClient;
-
