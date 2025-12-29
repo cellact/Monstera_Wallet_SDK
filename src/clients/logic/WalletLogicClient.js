@@ -8,7 +8,7 @@
 const BaseContractClient = require('../../internal/BaseContractClient');
 const { getWalletLogicContract } = require('../../contracts/core/walletLogic');
 const { KeyVaultEvents } = require('../../events');
-const { requireAddress, requireBytes, requireNonNegativeInteger } = require('../../internal/assert');
+const { requireAddress, requireBytes, requireNonNegativeInteger, requireString } = require('../../internal/assert');
 
 class WalletLogicClient extends BaseContractClient {
   constructor(readProvider, writeSigner, config) {
