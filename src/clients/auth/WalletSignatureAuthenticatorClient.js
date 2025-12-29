@@ -26,31 +26,24 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    */
   async addToWhitelist(options = {}) {
     const { keyVaultAddress, authProof, newAddress } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireAddress(newAddress, 'newAddress');
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
-    try {
-      const result = await this.sendTx(
-        () => walletSigAuth.addToWhitelist(keyVaultAddress, authProof, newAddress),
-        {
-          parseEvents: [{
-            eventDef: WalletSignatureAuthenticatorEvents.AddressAdded,
-            contract: walletSigAuth
-          }]
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('add to whitelist', error, {
+    return this.executeWrite(
+      () => walletSigAuth.addToWhitelist(keyVaultAddress, authProof, newAddress),
+      'add to whitelist',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: WalletSignatureAuthenticatorEvents.AddressAdded,
+          contract: walletSigAuth
+        }],
         authenticatorAddress: this.config.addresses.walletSignatureAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -63,30 +56,23 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    */
   async configure(options = {}) {
     const { keyVaultAddress, authConfig } = options;
-  
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authConfig, 'authConfig');
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
-    try {
-      const result = await this.sendTx(
-        () => walletSigAuth.configure(keyVaultAddress, authConfig),
-        {
-          parseEvents: [{
-            eventDef: WalletSignatureAuthenticatorEvents.WalletConfigured,
-            contract: walletSigAuth
-          }]
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('configure wallet signature authenticator', error, {
+    return this.executeWrite(
+      () => walletSigAuth.configure(keyVaultAddress, authConfig),
+      'configure wallet signature authenticator',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: WalletSignatureAuthenticatorEvents.WalletConfigured,
+          contract: walletSigAuth
+        }],
         authenticatorAddress: this.config.addresses.walletSignatureAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -100,31 +86,24 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    */
   async removeFromWhitelist(options = {}) {
     const { keyVaultAddress, authProof, addressToRemove } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireAddress(addressToRemove, 'addressToRemove');
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
-    try {
-      const result = await this.sendTx(
-        () => walletSigAuth.removeFromWhitelist(keyVaultAddress, authProof, addressToRemove),
-        {
-          parseEvents: [{
-            eventDef: WalletSignatureAuthenticatorEvents.AddressRemoved,
-            contract: walletSigAuth
-          }]
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('remove from whitelist', error, {
+    return this.executeWrite(
+      () => walletSigAuth.removeFromWhitelist(keyVaultAddress, authProof, addressToRemove),
+      'remove from whitelist',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: WalletSignatureAuthenticatorEvents.AddressRemoved,
+          contract: walletSigAuth
+        }],
         authenticatorAddress: this.config.addresses.walletSignatureAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -136,20 +115,18 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    */
   async isConfigured(options = {}) {
     const { keyVaultAddress } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
     
-    try {
-      const isConfigured = await walletSigAuth.isConfigured(keyVaultAddress);
-      return isConfigured;
-    } catch (error) {
-      throw this.wrapError('check if wallet is configured', error, {
+    return this.executeRead(
+      () => walletSigAuth.isConfigured(keyVaultAddress),
+      'check if wallet is configured',
+      {
         ...options,
         authenticatorAddress: this.config.addresses.walletSignatureAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -162,21 +139,19 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    */
   async isWhitelisted(options = {}) {
     const { keyVaultAddress, addressToCheck } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireAddress(addressToCheck, 'addressToCheck');
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
-    try {
-      const isWhitelisted = await walletSigAuth.isWhitelisted(keyVaultAddress, addressToCheck);
-      return isWhitelisted;
-    } catch (error) {
-      throw this.wrapError('check if address is whitelisted', error, {
+    return this.executeRead(
+      () => walletSigAuth.isWhitelisted(keyVaultAddress, addressToCheck),
+      'check if address is whitelisted',
+      {
         ...options,
         authenticatorAddress: this.config.addresses.walletSignatureAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -188,20 +163,18 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    */
   async getWhitelist(options = {}) {
     const { keyVaultAddress } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
-    try {
-      const whitelist = await walletSigAuth.getWhitelist(keyVaultAddress);
-      return whitelist;
-    } catch (error) {
-      throw this.wrapError('get whitelist', error, {
+    return this.executeRead(
+      () => walletSigAuth.getWhitelist(keyVaultAddress),
+      'get whitelist',
+      {
         ...options,
         authenticatorAddress: this.config.addresses.walletSignatureAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -212,15 +185,14 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async getDomainSeparator(options = {}) {
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
-    try {
-      const domainSeparator = await walletSigAuth.domainSeparator();
-      return domainSeparator;
-    } catch (error) {
-      throw this.wrapError('get domain separator', error, {
+    return this.executeRead(
+      () => walletSigAuth.domainSeparator(),
+      'get domain separator',
+      {
         ...options,
         authenticatorAddress: this.config.addresses.walletSignatureAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -233,23 +205,20 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    */ 
   async verify(options = {}) {
     const { keyVaultAddress, authProof } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
-    try {
-      const isValid = await walletSigAuth.verify(keyVaultAddress, authProof);
-      return isValid;
-    } catch (error) {
-      throw this.wrapError('verify signature', error, {
+    return this.executeRead(
+      () => walletSigAuth.verify(keyVaultAddress, authProof),
+      'verify signature',
+      {
         ...options,
         authenticatorAddress: this.config.addresses.walletSignatureAuth
-      });
-    }
+      }
+    );
   }
 }
 
 module.exports = WalletSignatureAuthenticatorClient;
-

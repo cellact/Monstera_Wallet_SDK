@@ -25,16 +25,15 @@ class KeyVaultClient extends BaseContractClient {
   async getStorageAddr(options = {}) {
     const { keyVaultAddress } = options;
 
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const storageAddr = await keyVault.storage_();
-      return storageAddr;
-    } catch (error) {
-      throw this.wrapError('get storage address', error, options);
-    }
+    return this.executeRead(
+      () => keyVault.storage_(),
+      'get storage address',
+      options
+    );
   }
 
   /**
@@ -47,16 +46,15 @@ class KeyVaultClient extends BaseContractClient {
   async getAuthenticator(options = {}) {
     const { keyVaultAddress } = options;
 
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
-    try {
-      const authenticatorAddr = await keyVault.authenticator();
-      return authenticatorAddr;
-    }
-    catch (error) {
-      throw this.wrapError('get authenticator', error, options);
-    }
+
+    return this.executeRead(
+      () => keyVault.authenticator(),
+      'get authenticator',
+      options
+    );
   }
 
   /**
@@ -69,17 +67,15 @@ class KeyVaultClient extends BaseContractClient {
   async getKeyVaultImplAddr(options = {}) {
     const { keyVaultAddress } = options;
 
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const keyVaultImplAddr = await keyVault.implementation();
-      return keyVaultImplAddr;
-    }
-    catch (error) {
-      throw this.wrapError('get key vault implementation', error, options);
-    }
+    return this.executeRead(
+      () => keyVault.implementation(),
+      'get key vault implementation',
+      options
+    );
   }
 
   /**
@@ -92,16 +88,15 @@ class KeyVaultClient extends BaseContractClient {
   async isInitialized(options = {}) {
     const { keyVaultAddress } = options;
 
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
-    try {
-      const isInitialized = await keyVault.initialized();
-      return isInitialized;
-    }
-    catch (error) {
-      throw this.wrapError('check if key vault is initialized', error, options);
-    }
+
+    return this.executeRead(
+      () => keyVault.initialized(),
+      'check if key vault is initialized',
+      options
+    );
   }
 
   /**
@@ -115,28 +110,23 @@ class KeyVaultClient extends BaseContractClient {
    */
   async upgradeKeyVaultImpl(options = {}) {
     const { keyVaultAddress, authProof, newImplAddr } = options;
-
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const result = await this.sendTx(
-        () => keyVault.upgradeImplementation(authProof, newImplAddr),
-        {
-          parseEvents: [{
-            eventDef: KeyVaultEvents.ImplementationUpgraded,
-            contract: keyVault
-          }]
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('upgrade key vault implementation', error, options);
-    }
+    return this.executeWrite(
+      () => keyVault.upgradeImplementation(authProof, newImplAddr),
+      'upgrade key vault implementation',
+      {
+        ...options,
+        parseEvents: [{
+          eventDef: KeyVaultEvents.ImplementationUpgraded,
+          contract: keyVault
+        }]
+      }
+    );
   }
 
   /**
@@ -151,29 +141,24 @@ class KeyVaultClient extends BaseContractClient {
    */
   async changeAuthenticator(options = {}) {
     const { keyVaultAddress, authProof, newAuthenticatorAddr, newAuthConfig } = options;
-
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const result = await this.sendTx(
-        () => keyVault.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig),
-        {
-          parseEvents: [{
-            eventDef: KeyVaultEvents.AuthenticatorChanged,
-            contract: keyVault
-          }]
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('change authenticator', error, options);
-    }
+    return this.executeWrite(
+      () => keyVault.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig),
+      'change authenticator',
+      {
+        ...options,
+        parseEvents: [{
+          eventDef: KeyVaultEvents.AuthenticatorChanged,
+          contract: keyVault
+        }]
+      }
+    );
   }
 
   /**
@@ -186,19 +171,16 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getAccountAddress(options = {}) {
     const { keyVaultAddress, index } = options;
-
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireNonNegativeInteger(index, 'index');
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const accountAddress = await keyVault.getAccountAddress(index);
-      return accountAddress;
-    }
-    catch (error) {
-      throw this.wrapError('get account address', error, options);
-    }
+    return this.executeRead(
+      () => keyVault.getAccountAddress(index),
+      'get account address',
+      options
+    );
   }
 
   /**
@@ -212,20 +194,17 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getAccountAddresses(options = {}) {
     const { keyVaultAddress, fromIndex, count } = options;
-
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
     
-    try {
-      const accountAddresses = await keyVault.getAccountAddresses(fromIndex, count);
-      return accountAddresses;
-    }
-    catch (error) {
-      throw this.wrapError('get account addresses', error, options);
-    }
+    return this.executeRead(
+      () => keyVault.getAccountAddresses(fromIndex, count),
+      'get account addresses',
+      options
+    );
   }
 
   /**
@@ -247,7 +226,7 @@ class KeyVaultClient extends BaseContractClient {
   async signTransaction(options = {}) {
     const { keyVaultAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId } = options;
 
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireNonNegativeInteger(nonce, 'nonce');
@@ -260,13 +239,11 @@ class KeyVaultClient extends BaseContractClient {
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const signedTransaction = await keyVault.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId);
-      return signedTransaction;
-    }
-    catch (error) {
-      throw this.wrapError('sign transaction', error, options);
-    }
+    return this.executeRead(
+      () => keyVault.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId),
+      'sign transaction',
+      options
+    );
   }
 
   /**
@@ -282,20 +259,18 @@ class KeyVaultClient extends BaseContractClient {
   async sign(options = {}) {
     const { keyVaultAddress, authProof, index, hash } = options;
 
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const signedHash = await keyVault.sign(authProof, index, hash);
-      return signedHash;
-    }
-    catch (error) {
-      throw this.wrapError('sign hash', error, options);
-    }
+    return this.executeRead(
+      () => keyVault.sign(authProof, index, hash),
+      'sign hash',
+      options
+    );
   }
 
   /**
@@ -311,20 +286,18 @@ class KeyVaultClient extends BaseContractClient {
   async signMessage(options = {}) {
     const { keyVaultAddress, authProof, index, message } = options;
 
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const signedMessage = await keyVault.signMessage(authProof, index, message);
-      return signedMessage;
-    }
-    catch (error) {
-      throw this.wrapError('sign message', error, options);
-    }
+    return this.executeRead(
+      () => keyVault.signMessage(authProof, index, message),
+      'sign message',
+      options
+    );
   }
 
   /**
@@ -339,19 +312,17 @@ class KeyVaultClient extends BaseContractClient {
   async executeWithAuth(options = {}) {
     const { keyVaultAddress, authProof, implCall } = options;
 
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    // requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
     requireBytes(implCall, 'implCall');
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
 
-    try {
-      const result = await keyVault.executeWithAuth(authProof, implCall);
-      return result;
-    }
-    catch (error) {
-      throw this.wrapError('execute with auth', error, options);
-    }
+    return this.executeRead(
+      () => keyVault.executeWithAuth(authProof, implCall),
+      'execute with auth',
+      options
+    );
   }
 }
 

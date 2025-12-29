@@ -26,37 +26,32 @@ class PasswordAuthenticatorClient extends BaseContractClient {
    */
   async changePassword(options = {}) {
     const { keyVaultAddress, currentPassword, newPasswordHash } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(currentPassword, 'currentPassword');
     requireBytes(newPasswordHash, 'newPasswordHash');
 
     const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
-    try {
-      const result = await this.sendTx(
-        () => passwordAuth.changePassword(keyVaultAddress, currentPassword, newPasswordHash),
-        {
-          parseEvents: [{
-            eventDef: PasswordAuthenticatorEvents.PasswordChanged,
-            contract: passwordAuth
-          }]
-        }
-      );
-      
-      // Map wallet to walletAddress for consistency with original API
-      if (result.wallet) {
-        result.walletAddress = result.wallet;
-        delete result.wallet; // Remove wallet field to match original API
-      }
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('change password', error, {
+    const result = await this.executeWrite(
+      () => passwordAuth.changePassword(keyVaultAddress, currentPassword, newPasswordHash),
+      'change password',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: PasswordAuthenticatorEvents.PasswordChanged,
+          contract: passwordAuth
+        }],
         authenticatorAddress: this.config.addresses.passwordAuth
-      });
+      }
+    );
+    
+    // Map wallet to walletAddress for consistency with original API
+    if (result.wallet) {
+      result.walletAddress = result.wallet;
+      delete result.wallet; // Remove wallet field to match original API
     }
+
+    return result;
   }
 
   /**
@@ -69,30 +64,23 @@ class PasswordAuthenticatorClient extends BaseContractClient {
    */
   async configure(options = {}) {
     const { keyVaultAddress, authConfig } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authConfig, 'authConfig');
 
     const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
     
-    try {
-      const result = await this.sendTx(
-        () => passwordAuth.configure(keyVaultAddress, authConfig),
-        {
-          parseEvents: [{
-            eventDef: PasswordAuthenticatorEvents.PasswordConfigured,
-            contract: passwordAuth
-          }]
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('configure password', error, {
+    return this.executeWrite(
+      () => passwordAuth.configure(keyVaultAddress, authConfig),
+      'configure password',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: PasswordAuthenticatorEvents.PasswordConfigured,
+          contract: passwordAuth
+        }],
         authenticatorAddress: this.config.addresses.passwordAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -104,20 +92,18 @@ class PasswordAuthenticatorClient extends BaseContractClient {
    */
   async isConfigured(options = {}) {
     const { keyVaultAddress } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
-    try {
-      const isConfigured = await passwordAuth.isConfigured(keyVaultAddress);
-      return isConfigured;
-    } catch (error) {
-      throw this.wrapError('check if wallet is configured', error, {
+    return this.executeRead(
+      () => passwordAuth.isConfigured(keyVaultAddress),
+      'check if wallet is configured',
+      {
         ...options,
         authenticatorAddress: this.config.addresses.passwordAuth
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -130,21 +116,19 @@ class PasswordAuthenticatorClient extends BaseContractClient {
    */
   async verify(options = {}) {
     const { keyVaultAddress, authProof } = options;
-
     requireAddress(keyVaultAddress, 'keyVaultAddress');
     requireBytes(authProof, 'authProof');
 
     const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
-    try {
-      const isValid = await passwordAuth.verify(keyVaultAddress, authProof);
-      return isValid;
-    } catch (error) {
-      throw this.wrapError('verify password', error, {
+    return this.executeRead(
+      () => passwordAuth.verify(keyVaultAddress, authProof),
+      'verify password',
+      {
         ...options,
         authenticatorAddress: this.config.addresses.passwordAuth
-      });
-    }
+      }
+    );
   }
 }
 

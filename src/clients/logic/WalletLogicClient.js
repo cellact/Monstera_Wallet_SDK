@@ -24,17 +24,13 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getKeyVault(options = {}) {
     const { walletAddress } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
-
     const logic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const keyVaultAddr = await logic.getKeyVault();
-      return keyVaultAddr;
-    } catch (error) {
-      throw this.wrapError('get key vault', error, options);
-    }
+    return this.executeRead(
+      () => logic.getKeyVault(),
+      'get key vault',
+      options
+    );
   }
 
   /**
@@ -46,17 +42,13 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getAuthenticator(options = {}) {
     const { walletAddress } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
-
     const logic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const authenticator = await logic.getAuthenticator();
-      return authenticator;
-    } catch (error) {
-      throw this.wrapError('get authenticator', error, options);
-    }
+    return this.executeRead(
+      () => logic.getAuthenticator(),
+      'get authenticator',
+      options
+    );
   }
 
   /**
@@ -69,18 +61,15 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getAccountAddress(options = {}) {
     const { walletAddress, index } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
     requireNonNegativeInteger(index, 'index');
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const accountAddress = await walletLogic.getAccountAddress(index);
-      return accountAddress;
-    } catch (error) {
-      throw this.wrapError('get account address', error, options);
-    }
+    return this.executeRead(
+      () => walletLogic.getAccountAddress(index),
+      'get account address',
+      options
+    );
   }
 
   /**
@@ -94,19 +83,16 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getAccountAddresses(options = {}) {
     const { walletAddress, fromIndex, count } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
     
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const accountAddresses = await walletLogic.getAccountAddresses(fromIndex, count);
-      return accountAddresses;
-    } catch (error) {
-      throw this.wrapError('get account addresses', error, options);
-    }
+    return this.executeRead(
+      () => walletLogic.getAccountAddresses(fromIndex, count),
+      'get account addresses',
+      options
+    );
   }
 
   /**
@@ -128,8 +114,6 @@ class WalletLogicClient extends BaseContractClient {
    */
   async signTransaction(options = {}) {
     const { walletAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireNonNegativeInteger(nonce, 'nonce');
@@ -142,12 +126,11 @@ class WalletLogicClient extends BaseContractClient {
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const signature = await walletLogic.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId);
-      return signature;
-    } catch (error) {
-      throw this.wrapError('sign transaction', error, options);
-    }
+    return this.executeRead(
+      () => walletLogic.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId),
+      'sign transaction',
+      options
+    );
   }
 
   /**
@@ -162,20 +145,17 @@ class WalletLogicClient extends BaseContractClient {
    */
   async signMessage(options = {}) {
     const { walletAddress, authProof, index, message } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const signature = await walletLogic.signMessage(authProof, index, message);
-      return signature;
-    } catch (error) {
-      throw this.wrapError('sign message', error, options);
-    }
+    return this.executeRead(
+      () => walletLogic.signMessage(authProof, index, message),
+      'sign message',
+      options
+    );
   }
 
   /**
@@ -190,20 +170,17 @@ class WalletLogicClient extends BaseContractClient {
    */
   async sign(options = {}) {
     const { walletAddress, authProof, index, hash } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const signature = await walletLogic.sign(authProof, index, hash);
-      return signature;
-    } catch (error) {
-      throw this.wrapError('sign hash', error, options);
-    }
+    return this.executeRead(
+      () => walletLogic.sign(authProof, index, hash),
+      'sign hash',
+      options
+    );
   }
 
   /**
@@ -218,29 +195,23 @@ class WalletLogicClient extends BaseContractClient {
    */
   async changeAuthenticator(options = {}) {
     const { walletAddress, authProof, newAuthenticatorAddress, newAuthConfig } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
     requireBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddress, 'newAuthenticatorAddress');
     requireBytes(newAuthConfig, 'newAuthConfig');
 
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const result = await this.sendTx(
-        () => walletLogic.changeAuthenticator(authProof, newAuthenticatorAddress, newAuthConfig),
-        {
-          parseEvents: [{
-            eventDef: KeyVaultEvents.AuthenticatorChanged, // Is actually a KeyVault contract event
-            contract: walletLogic
-          }]
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('change authenticator', error, options);
-    }
+    return this.executeWrite(
+      () => walletLogic.changeAuthenticator(authProof, newAuthenticatorAddress, newAuthConfig),
+      'change authenticator',
+      {
+        ...options,
+        parseEvents: [{
+          eventDef: KeyVaultEvents.AuthenticatorChanged, // Is actually a KeyVault contract event
+          contract: walletLogic
+        }]
+      }
+    );
   }
 
   /**
@@ -253,29 +224,23 @@ class WalletLogicClient extends BaseContractClient {
    */
   async upgradeKeyVaultImpl(options = {}) {
     const { walletAddress, authProof, newImplAddr } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
 
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const result = await this.sendTx(
-        () => walletLogic.upgradeKeyVault(authProof, newImplAddr),
-        {
-          parseEvents: [{
-            eventDef: KeyVaultEvents.ImplementationUpgraded, // Is actually a KeyVault contract event
-            contract: walletLogic
-          }],
-          extraData: { newImplAddr: newImplAddr }
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('upgrade key vault implementation', error, options);
-    }
+    return this.executeWrite(
+      () => walletLogic.upgradeKeyVault(authProof, newImplAddr),
+      'upgrade key vault implementation',
+      {
+        ...options,
+        parseEvents: [{
+          eventDef: KeyVaultEvents.ImplementationUpgraded, // Is actually a KeyVault contract event
+          contract: walletLogic
+        }],
+        extraData: { newImplAddr: newImplAddr }
+      }
+    );
   }
 
   /**
@@ -287,17 +252,13 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getKeyvaultAddr(options = {}) {
     const { walletAddress } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
-
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const keyVaultAddr = await walletLogic.keyVault();
-      return keyVaultAddr;
-    } catch (error) {
-      throw this.wrapError('get key vault address', error, options);
-    }
+    return this.executeRead(
+      () => walletLogic.keyVault(),
+      'get key vault address',
+      options
+    );
   }
 
   /**
@@ -309,17 +270,13 @@ class WalletLogicClient extends BaseContractClient {
    */
   async isInitialized(options = {}) {
     const { walletAddress } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
-
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
 
-    try {
-      const isInitialized = await walletLogic.initialized();
-      return isInitialized;
-    } catch (error) {
-      throw this.wrapError('check if wallet is initialized', error, options);
-    }
+    return this.executeRead(
+      () => walletLogic.initialized(),
+      'check if wallet is initialized',
+      options
+    );
   }
 
   /**
@@ -332,26 +289,19 @@ class WalletLogicClient extends BaseContractClient {
    */
   async initialize(options = {}) {
     const { walletAddress, keyVaultAddress } = options;
-
-    requireAddress(walletAddress, 'walletAddress');
     requireAddress(keyVaultAddress, 'keyVaultAddress');
 
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
   
-    try {
-      const result = await this.sendTx(
-        () => walletLogic.initialize(keyVaultAddress),
-        {
-          parseEvents: []
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('initialize wallet logic', error, options);
-    }
+    return this.executeWrite(
+      () => walletLogic.initialize(keyVaultAddress),
+      'initialize wallet logic',
+      {
+        ...options,
+        parseEvents: []
+      }
+    );
   }
 }
 
 module.exports = WalletLogicClient;
-

@@ -35,6 +35,20 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
+   * Resolve authenticator address with default fallback
+   * 
+   * Standardizes default parameter handling for authenticator addresses.
+   * If no authenticator is provided, defaults to PasswordAuthenticator.
+   * 
+   * @private
+   * @param {String} [authenticator] - Optional authenticator address
+   * @returns {String} Authenticator address (provided or default)
+   */
+  _resolveAuthenticator(authenticator) {
+    return authenticator || this.config.addresses.passwordAuth;
+  }
+
+  /**
    * Create a new HD Wallet
    * 
    * Deploys complete wallet stack:
@@ -49,42 +63,26 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async createWallet(options = {}) {
     const { authConfig } = options;
-    let { authenticator } = options;
-
     requireBytes(authConfig, 'authConfig');
 
-    // Set default authenticator if not provided
-    if (!authenticator) {
-      authenticator = this.config.addresses.passwordAuth;
-    }
-
-    // Off-chain: Prepare wallet creation (mnemonic + seed)
+    const authenticator = this._resolveAuthenticator(options.authenticator);
     const { mnemonic, seed } = this._prepareWalletCreation();
-    
-    // On-chain: Get factory contract
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
-    // On-chain: Call createWallet
-    try {
-      const result = await this.sendTx(
-        () => factory.createWallet(seed, authenticator, authConfig),
-        {
-          parseEvents: [{
-            eventDef: WalletFactoryEvents.WalletCreated,
-            contract: factory
-          }],
-          extraData: { mnemonic }
-        }
-      );
-      
-      return result;
-    } catch (error) {
-      throw this.wrapError('create wallet', error, {
+    return this.executeWrite(
+      () => factory.createWallet(seed, authenticator, authConfig),
+      'create wallet',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.WalletCreated,
+          contract: factory
+        }],
+        extraData: { mnemonic },
         factoryAddress: this.config.addresses.factory,
-        authenticator: authenticator || this.config.addresses.passwordAuth
-      });
-    }
+        authenticator
+      }
+    );
   }
 
   /**
@@ -107,44 +105,28 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async createWalletWithHook(options = {}) {
     const { authConfig, hook, hookData } = options;
-    let { authenticator } = options;
-
     requireBytes(authConfig, 'authConfig');
     requireAddress(hook, 'hook');
     requireBytes(hookData, 'hookData');
 
-    // Set default authenticator if not provided
-    if (!authenticator) {
-      authenticator = this.config.addresses.passwordAuth;
-    }
-
-    // Off-chain: Prepare wallet creation (mnemonic + seed)
+    const authenticator = this._resolveAuthenticator(options.authenticator);
     const { mnemonic, seed } = this._prepareWalletCreation();
-    
-    // On-chain: Get factory contract
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
-    // On-chain: Call createWalletWithHook
-    try {
-      const result = await this.sendTx(
-        () => factory.createWalletWithHook(seed, authenticator, authConfig, hook, hookData),
-        {
-          parseEvents: [{
-            eventDef: WalletFactoryEvents.WalletCreated,
-            contract: factory
-          }],
-          extraData: { mnemonic }
-        }
-      );
-      
-      return result;
-    } catch (error) {
-      throw this.wrapError('create wallet with hook', error, {
+    return this.executeWrite(
+      () => factory.createWalletWithHook(seed, authenticator, authConfig, hook, hookData),
+      'create wallet with hook',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.WalletCreated,
+          contract: factory
+        }],
+        extraData: { mnemonic },
         factoryAddress: this.config.addresses.factory,
-        authenticator: authenticator || this.config.addresses.passwordAuth
-      });
-    }
+        authenticator
+      }
+    );
   }
 
   /**
@@ -164,42 +146,26 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async createWalletCore(options = {}) {
     const { authConfig } = options;
-    let { authenticator } = options;
-
     requireBytes(authConfig, 'authConfig');
 
-    // Set default authenticator if not provided
-    if (!authenticator) {
-      authenticator = this.config.addresses.passwordAuth;
-    }
-
-    // Off-chain: Prepare wallet creation (mnemonic + seed)
+    const authenticator = this._resolveAuthenticator(options.authenticator);
     const { mnemonic, seed } = this._prepareWalletCreation();
-    
-    // On-chain: Get factory contract
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
-    // On-chain: Call createWalletCore
-    try {
-      const result = await this.sendTx(
-        () => factory.createWalletCore(seed, authenticator, authConfig),
-        {
-          parseEvents: [{
-            eventDef: WalletFactoryEvents.WalletCreated,
-            contract: factory
-          }],
-          extraData: { mnemonic }
-        }
-      );
-      
-      return result;
-    } catch (error) {
-      throw this.wrapError('create wallet core', error, {
+    return this.executeWrite(
+      () => factory.createWalletCore(seed, authenticator, authConfig),
+      'create wallet core',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.WalletCreated,
+          contract: factory
+        }],
+        extraData: { mnemonic },
         factoryAddress: this.config.addresses.factory,
-        authenticator: authenticator || this.config.addresses.passwordAuth
-      });
-    }
+        authenticator
+      }
+    );
   }
 
   /**
@@ -223,44 +189,28 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async createWalletWithCustomLogic(options = {}) {
     const { authConfig, customLogicImpl, logicData } = options;
-    let { authenticator } = options;
-
     requireBytes(authConfig, 'authConfig');
     requireAddress(customLogicImpl, 'customLogicImpl');
     requireBytes(logicData, 'logicData');
 
-    // Set default authenticator if not provided
-    if (!authenticator) {
-      authenticator = this.config.addresses.passwordAuth;
-    }
-
-    // Off-chain: Prepare wallet creation (mnemonic + seed)
+    const authenticator = this._resolveAuthenticator(options.authenticator);
     const { mnemonic, seed } = this._prepareWalletCreation();
-    
-    // On-chain: Get factory contract
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    // On-chain: Call createWalletWithCustomLogic
-    try {
-      const result = await this.sendTx(
-        () => factory.createWalletWithCustomLogic(seed, authenticator, authConfig, customLogicImpl, logicData),
-        {
-          parseEvents: [{
-            eventDef: WalletFactoryEvents.WalletCreated,
-            contract: factory
-          }],
-          extraData: { mnemonic }
-        }
-      );
-      
-      return result;
-    } catch (error) {
-      throw this.wrapError('create wallet with custom logic', error, {
+    return this.executeWrite(
+      () => factory.createWalletWithCustomLogic(seed, authenticator, authConfig, customLogicImpl, logicData),
+      'create wallet with custom logic',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.WalletCreated,
+          contract: factory
+        }],
+        extraData: { mnemonic },
         factoryAddress: this.config.addresses.factory,
-        authenticator: authenticator || this.config.addresses.passwordAuth
-      });
-    }
+        authenticator
+      }
+    );
   }
 
   /**
@@ -277,15 +227,14 @@ class WalletFactoryClient extends BaseContractClient {
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    try {
-      const isWallet = await factory.isWallet(walletAddress);
-      return isWallet;
-    } catch (error) {
-      throw this.wrapError('check if address is wallet', error, {
+    return this.executeRead(
+      () => factory.isWallet(walletAddress),
+      'check if address is wallet',
+      {
         ...options,
         factoryAddress: this.config.addresses.factory
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -294,17 +243,16 @@ class WalletFactoryClient extends BaseContractClient {
    * @returns {Promise<String>} Current WalletLogic implementation
    */
   async getWalletLogicImplAddr(options = {}) {
-    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory); 
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    try {
-      const implementation = await factory.implementation();
-      return implementation;
-    } catch (error) {
-      throw this.wrapError('get wallet logic implementation', error, {
+    return this.executeRead(
+      () => factory.implementation(),
+      'get wallet logic implementation',
+      {
         ...options,
         factoryAddress: this.config.addresses.factory
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -318,29 +266,22 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async upgradeWalletLogicImplAddr(options = {}) {
     const { newLogicAddress } = options;
-
     requireAddress(newLogicAddress, 'newLogicAddress');
 
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    try {
-      const result = await this.sendTx(
-        () => factory.upgradeLogic(newLogicAddress),
-        {
-          parseEvents: [{
-            eventDef: WalletFactoryEvents.BeaconUpgraded,
-            contract: factory
-          }]
-        }
-      );
-
-      return result;
-    } catch (error) {
-      throw this.wrapError('upgrade wallet logic', error, {
+    return this.executeWrite(
+      () => factory.upgradeLogic(newLogicAddress),
+      'upgrade wallet logic',
+      {
         ...options,
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.BeaconUpgraded,
+          contract: factory
+        }],
         factoryAddress: this.config.addresses.factory
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -352,27 +293,20 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async transferAdmin(options = {}) {
     const { newAdminAddress } = options;
-
     requireAddress(newAdminAddress, 'newAdminAddress');
 
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    try {
-      const result = await this.sendTx(
-        () => factory.transferAdmin(newAdminAddress),
-        {
-          parseEvents: [],
-          extraData: { newAdmin: newAdminAddress }
-        }
-      );
-      
-      return result;
-    } catch (error) {
-      throw this.wrapError('transfer admin', error, {
+    return this.executeWrite(
+      () => factory.transferAdmin(newAdminAddress),
+      'transfer admin',
+      {
         ...options,
+        parseEvents: [], // TODO: there is no event for transfer admin - check if can remove this 
+        extraData: { newAdmin: newAdminAddress },
         factoryAddress: this.config.addresses.factory
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -383,15 +317,14 @@ class WalletFactoryClient extends BaseContractClient {
   async getAdmin(options = {}) {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    try {
-      const admin = await factory.admin();
-      return admin;
-    } catch (error) {
-      throw this.wrapError('get admin', error, {
+    return this.executeRead(
+      () => factory.admin(),
+      'get admin',
+      {
         ...options,
         factoryAddress: this.config.addresses.factory
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -408,15 +341,14 @@ class WalletFactoryClient extends BaseContractClient {
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    try {
-      const keyVaultAddr = await factory.walletKeyVault(walletAddress);
-      return keyVaultAddr;
-    } catch (error) {
-      throw this.wrapError('get wallet key vault', error, {
+    return this.executeRead(
+      () => factory.walletKeyVault(walletAddress),
+      'get wallet key vault',
+      {
         ...options,
         factoryAddress: this.config.addresses.factory
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -433,15 +365,14 @@ class WalletFactoryClient extends BaseContractClient {
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    try {
-      const storageAddr = await factory.walletStorage(walletAddress);
-      return storageAddr;
-    } catch (error) {
-      throw this.wrapError('get storage address', error, {
+    return this.executeRead(
+      () => factory.walletStorage(walletAddress),
+      'get storage address',
+      {
         ...options,
         factoryAddress: this.config.addresses.factory
-      });
-    }
+      }
+    );
   }
 
   /**
@@ -454,17 +385,15 @@ class WalletFactoryClient extends BaseContractClient {
   async getBeaconAddr(options = {}) {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    try {
-      const beaconAddr = await factory.beacon();
-      return beaconAddr;
-    } catch (error) {
-      throw this.wrapError('get beacon address', error, {
+    return this.executeRead(
+      () => factory.beacon(),
+      'get beacon address',
+      {
         ...options,
         factoryAddress: this.config.addresses.factory
-      });
-    }
+      }
+    );
   }
 }
 
 module.exports = WalletFactoryClient;
-

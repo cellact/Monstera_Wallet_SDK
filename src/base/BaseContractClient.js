@@ -11,6 +11,7 @@
 
 const { WriteRequiresSignerError, WalletError } = require('../errors');
 const SapphireWriteWrapper = require('./SapphireWriteWrapper');
+const { requireAddress } = require('../internal/assert');
 
 class BaseContractClient {
   /**
@@ -27,52 +28,33 @@ class BaseContractClient {
   /**
    * Get contract instance for read operations
    * 
+   * Validates the address and returns a contract instance for read operations.
+   * 
    * @param {Function} contractGetter - Function to get contract (e.g., getWalletFactoryContract)
-   * @param {String} contractAddress - Contract address
+   * @param {String} contractAddress - Contract address (will be validated)
    * @returns {Object} Contract instance
    */
   getReadContract(contractGetter, contractAddress) {
+    requireAddress(contractAddress, 'address');
     return contractGetter(this.readProvider, contractAddress);
   }
 
   /**
    * Get contract instance for write operations
    * 
+   * Validates the address and returns a contract instance for write operations.
+   * 
    * @param {Function} contractGetter - Function to get contract (e.g., getWalletFactoryContract)
-   * @param {String} contractAddress - Contract address
+   * @param {String} contractAddress - Contract address (will be validated)
    * @returns {Object} Contract instance
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    */
   getWriteContract(contractGetter, contractAddress) {
+    requireAddress(contractAddress, 'address');
     if (!this.writeSigner) {
       throw new WriteRequiresSignerError('write operation');
     }
     return contractGetter(this.writeSigner, contractAddress);
-  }
-
-  /**
-   * Send a transaction and optionally parse events
-   * 
-   * Delegates to SapphireWriteWrapper to ensure all writes go through
-   * the centralized execution path with encryption and error translation.
-   * 
-   * @param {Function} txFn - Function that returns a transaction promise (e.g., () => contract.method(...))
-   * @param {Object} options - Transaction options
-   * @param {Array<Object>} [options.parseEvents] - Array of event definitions to parse: [{ eventDef, contract }]
-   * @param {Boolean} [options.requireEvents=true] - Whether to throw if events are not found
-   * @param {Object} [options.extraData] - Additional data to include in result
-   * @returns {Promise<Object>} Transaction result with receipt and parsed events
-   */
-  async sendTx(txFn, options = {}) {
-    // Delegate to SapphireWriteWrapper for centralized execution
-    return SapphireWriteWrapper.execute(txFn, {
-      writeSigner: this.writeSigner,
-      parseEvents: options.parseEvents,
-      requireEvents: options.requireEvents,
-      extraData: options.extraData,
-      methodName: 'send transaction',
-      rpcUrl: this.config?.rpcUrl
-    });
   }
 
   /**
@@ -138,6 +120,79 @@ class BaseContractClient {
       ...context,
       rpcUrl: this.config?.rpcUrl
     });
+  }
+
+  /**
+   * Execute a read operation with automatic error handling
+   * 
+   * Reduces boilerplate by automatically wrapping errors with context.
+   * Use this for all read operations to ensure consistent error handling.
+   * 
+   * @param {Function} operation - Async function to execute (e.g., () => contract.method())
+   * @param {String} methodName - Name of the method for error context
+   * @param {Object} [options={}] - Options object for error context
+   * @returns {Promise<*>} Operation result
+   * 
+   * @example
+   * // Before:
+   * try {
+   *   const result = await contract.method();
+   *   return result;
+   * } catch (error) {
+   *   throw this.wrapError('method name', error, options);
+   * }
+   * 
+   * // After:
+   * return this.executeRead(
+   *   () => contract.method(),
+   *   'method name',
+   *   options
+   * );
+   */
+  async executeRead(operation, methodName, options = {}) {
+    try {
+      return await operation();
+    } catch (error) {
+      throw this.wrapError(methodName, error, options);
+    }
+  }
+
+  /**
+   * Execute a write operation with automatic error handling
+   * 
+   * Reduces boilerplate by automatically handling transaction sending and error wrapping.
+   * Use this for all write operations to ensure consistent error handling.
+   * 
+   * @param {Function} operation - Async function that returns transaction (e.g., () => contract.method())
+   * @param {String} methodName - Name of the method for error context
+   * @param {Object} [options={}] - Transaction and error context options
+   * @param {Array<Object>} [options.parseEvents] - Array of event definitions to parse
+   * @param {Boolean} [options.requireEvents=true] - Whether to throw if events are not found
+   * @param {Object} [options.extraData] - Additional data to include in result
+   * @returns {Promise<Object>} Transaction result with receipt and parsed events
+   * 
+   * @example
+   * return this.executeWrite(
+   *   () => contract.method(),
+   *   'method name',
+   *   { parseEvents: [...], extraData: {...}, ...options }
+   * );
+   */
+  async executeWrite(operation, methodName, options = {}) {
+    const { parseEvents, requireEvents, extraData, ...errorContext } = options;
+    
+    try {
+      return await SapphireWriteWrapper.execute(operation, {
+        writeSigner: this.writeSigner,
+        parseEvents,
+        requireEvents,
+        extraData,
+        methodName,
+        rpcUrl: this.config?.rpcUrl
+      });
+    } catch (error) {
+      throw this.wrapError(methodName, error, errorContext);
+    }
   }
 
 }
