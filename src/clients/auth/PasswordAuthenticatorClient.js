@@ -15,8 +15,6 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     super(readProvider, writeSigner, config);
   }
 
-  // TODO: add verify method
-
   /**
    * Change the password of a wallet
    * 
@@ -110,6 +108,30 @@ class PasswordAuthenticatorClient extends BaseContractClient {
       return isConfigured;
     } catch (error) {
       throw this.wrapError('check if wallet is configured', error, { keyVaultAddress });
+    }
+  }
+
+  /**
+   * Verify password
+   * 
+   * @param {Object} options - Verify password options
+   * @param {String} options.keyVaultAddress - KeyVault contract address
+   * @param {Bytes} options.authProof - the raw password bytes (utf8 encoded string)
+   * @returns {Promise<Boolean>} True if password is valid, false otherwise
+   */
+  async verify(options = {}) {
+    const { keyVaultAddress, authProof } = options;
+
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireBytes(authProof, 'authProof');
+
+    const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
+
+    try {
+      const isValid = await passwordAuth.verify(keyVaultAddress, authProof);
+      return isValid;
+    } catch (error) {
+      throw this.wrapError('verify password', error, { keyVaultAddress });
     }
   }
 }

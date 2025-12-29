@@ -53,24 +53,38 @@ async function main() {
     process.exit(1);
   }
 
-  // ============ Step 2: Change password ============
+  // ============ Step 2: Configure password ============
   console.log("\n" + "=".repeat(60));
   console.log("Step 2: Configure password");
   console.log("=".repeat(60));
 
   // prepare password hash (keccak256 of password)
-  const authProof = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
+  const authConfig = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
 
   const result = await sdk.auth.password.configure({
     keyVaultAddress: keyVault,
-    authConfig: authProof
+    authConfig: authConfig
   });
 
   console.log("   Transaction:", result.transactionHash);
   console.log("   Wallet Address (KeyVault address):", result.wallet);
   console.log("   Gas Used:", result.gasUsed);
   console.log("   Block Number:", result.blockNumber);
+
+  // ============ Step 3: Verify password ============
+  console.log("\n" + "=".repeat(60));
+  console.log("Step 3: Verify password");
   console.log("=".repeat(60));
+
+  // prepare raw password bytes (utf8 encoded string)
+  const authProof = ethers.toUtf8Bytes(PASSWORD);
+
+  const isValid = await sdk.auth.password.verify({
+    keyVaultAddress: keyVault,
+    authProof: authProof
+  });
+
+  console.log("Is Valid:", isValid ? "✅ Yes" : "❌ No");
 
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(60));
