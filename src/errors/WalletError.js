@@ -143,23 +143,6 @@ class EventNotFoundError extends WalletError {
 }
 
 /**
- * Permission errors - Insufficient permissions/role
- */
-class PermissionError extends WalletError {
-  constructor(message, requiredRole = null) {
-    super(
-      message,
-      'PERMISSION_DENIED',
-      {
-        requiredRole,
-        function: 'authorization'
-      }
-    );
-    this.name = 'PermissionError';
-  }
-}
-
-/**
  * Sapphire required errors - Operation requires Sapphire provider
  */
 class SapphireRequiredError extends WalletError {
@@ -219,7 +202,6 @@ module.exports = {
   NetworkError,
   ContractRevertError,
   EventNotFoundError,
-  PermissionError,
   SapphireRequiredError,
   WriteRequiresSignerError,
   EventParseError

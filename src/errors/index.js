@@ -11,7 +11,6 @@ const {
   NetworkError,
   ContractRevertError,
   EventNotFoundError,
-  PermissionError,
   SapphireRequiredError,
   WriteRequiresSignerError,
   EventParseError
@@ -26,7 +25,6 @@ module.exports = {
   NetworkError,
   ContractRevertError,
   EventNotFoundError,
-  PermissionError,
   SapphireRequiredError,
   WriteRequiresSignerError,
   EventParseError

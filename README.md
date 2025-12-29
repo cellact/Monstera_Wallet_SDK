@@ -103,6 +103,7 @@ The SDK is organized into modular components:
 
 ### Modules
 
+- **`base/`**: Base classes (BaseContractClient, SapphireWriteWrapper)
 - **`config/`**: Network presets, address validation, and SDK configuration
 - **`providers/`**: Ethers provider creation and Sapphire wrapper integration
 - **`crypto/`**: Mnemonic generation, seed derivation, and password hashing
@@ -110,8 +111,9 @@ The SDK is organized into modular components:
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Consistent error types with stable error codes
-- **`internal/`**: Internal utilities (BaseContractClient, validation helpers)
+- **`internal/`**: Internal utilities (validation helpers)
 - **`sdk/`**: Main SDK class (Monstera)
+- **`utils/`**: Utility functions
 
 ### API Design
 
@@ -183,16 +185,36 @@ const sdkWithOverrides = Monstera.connect({
 
 The SDK includes comprehensive examples in the `/examples` directory:
 
+**Wallet Creation:**
 - **`1_createHDWallet.js`** - Create a hierarchical deterministic wallet
 - **`1.2_createWalletWithHook.js`** - Create wallet with initialization hook
 - **`1.3_createWalletCore.js`** - Create wallet core functionality
 - **`1.4_createWalletCustom.js`** - Create wallet with custom logic
+
+**Wallet Usage:**
 - **`2_useWallet.js`** - Basic wallet usage examples
 - **`3_useWalletSigAuth.js`** - Wallet signature authentication
-- **`network-switching.js`** - Switch between testnet and mainnet
+- **`4_getAddress.js`** - Get account addresses
+- **`6.1_signTransaction.js`** - Sign transactions
+- **`6.2_getAccounts.js`** - Get multiple account addresses
+
+**Authentication:**
+- **`authenticator.js`** - Authenticator operations
+- **`changePassword.js`** - Change wallet password
+- **`changeAuthenticator.js`** - Change authenticator (WalletLogic)
+- **`changeAuthenticatorKeyVault.js`** - Change authenticator (KeyVault)
+- **`passwordAuthMethods.js`** - Password authenticator methods
+- **`walletSigAuth.js`** - Wallet signature authenticator methods
+- **`removeWhitelistedWallet.js`** - Remove from whitelist
+
+**Administration:**
+- **`5_ugradeToNewLogic.js`** - Upgrade wallet logic implementation
+- **`13.2_upgradeKeyVault.js`** - Upgrade KeyVault implementation
+- **`transferAdmin.js`** - Transfer factory admin
+- **`factoryMethods.js`** - Factory contract methods
 - **`walletLogicMethods.js`** - Wallet logic contract methods
 - **`keyVaultMethods.js`** - Key vault operations
-- **`factoryMethods.js`** - Factory contract methods
+- **`network-switching.js`** - Switch between testnet and mainnet
 
 ### Running Examples
 
@@ -257,6 +279,25 @@ Create a new wallet.
 }
 ```
 
+#### SDK Instance Methods
+
+```javascript
+// Check if SDK instance can perform write operations
+const canWrite = sdk.canWrite(); // boolean
+
+// Get the signer address (if available)
+const signerAddress = await sdk.getSignerAddress(); // string | null
+
+// Create an auth proof for wallet signature authentication
+const authProof = await sdk.createAuthProof({
+  signer: walletSigner,        // Wallet or HDNodeWallet instance
+  keyVault: keyVaultAddress,   // KeyVault address
+  authenticator: '0x...',      // Optional: authenticator address (defaults to config)
+  deadline: 1234567890,         // Optional: Unix timestamp (defaults to 1h from now)
+  chainId: 23295               // Optional: Chain ID (defaults to config chainId)
+});
+```
+
 #### SDK Clients
 
 The SDK provides access to domain-specific clients:
@@ -298,7 +339,7 @@ const {
   NetworkError,
   ContractRevertError,
   EventNotFoundError,
-  PermissionError,
+  EventParseError,
   SapphireRequiredError,
   WriteRequiresSignerError
 } = require('@monstera_protocol/sdk');
@@ -327,7 +368,7 @@ The SDK uses consistent error types with stable error codes:
 - `NetworkError` - Network/RPC communication failures (code: `RPC_ERROR`)
 - `ContractRevertError` - Transaction reverted on-chain (code: `TX_REVERTED`)
 - `EventNotFoundError` - Expected event missing from receipt (code: `EVENT_NOT_FOUND`)
-- `PermissionError` - Insufficient permissions/role (code: `PERMISSION_DENIED`)
+- `EventParseError` - Event found but failed to parse/decode (code: `EVENT_PARSE_ERROR`)
 - `SapphireRequiredError` - Operation requires Sapphire signer (code: `SAPPHIRE_REQUIRED`)
 - `WriteRequiresSignerError` - Write operation requires signer (code: `WRITE_REQUIRES_SIGNER`)
 
@@ -353,6 +394,7 @@ try {
 
 ```
 src/
+  base/          # Base classes (BaseContractClient, SapphireWriteWrapper)
   config/        # Network configuration
   providers/     # Provider and Sapphire wrapper
   crypto/        # Cryptographic utilities
@@ -360,8 +402,9 @@ src/
   clients/       # Domain clients (factory, logic, keyVault, auth)
   events/        # Event definitions and parsing
   errors/        # Error types
-  internal/      # Internal utilities (BaseContractClient, assert)
+  internal/      # Internal utilities (validation helpers)
   sdk/           # Main SDK class (Monstera)
+  utils/         # Utility functions
 ```
 
 ### Requirements

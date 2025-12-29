@@ -13,7 +13,6 @@ const {
   NetworkError,
   ContractRevertError,
   EventNotFoundError,
-  PermissionError,
   SapphireRequiredError,
   WriteRequiresSignerError,
   EventParseError
@@ -32,7 +31,6 @@ module.exports.ConfigError = ConfigError;
 module.exports.NetworkError = NetworkError;
 module.exports.ContractRevertError = ContractRevertError;
 module.exports.EventNotFoundError = EventNotFoundError;
-module.exports.PermissionError = PermissionError;
 module.exports.SapphireRequiredError = SapphireRequiredError;
 module.exports.WriteRequiresSignerError = WriteRequiresSignerError;
 module.exports.EventParseError = EventParseError;
