@@ -10,12 +10,18 @@
   "files": [
     "src",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "scripts",
+    "bin"
   ],
+  "bin": {
+    "monstera": "./bin/monstera.js"
+  },
   "scripts": {
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint src/**/*.js"
+    "lint": "eslint src/**/*.js",
+    "postinstall": "node scripts/postinstall.js"
   },
   "keywords": [
     "wallet",
