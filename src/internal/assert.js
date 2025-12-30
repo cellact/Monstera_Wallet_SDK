@@ -22,7 +22,7 @@ function isAddress(value) {
  * 
  * @param {String} value - Value to validate
  * @param {String} name - Parameter name for error message
- * @throws {Error} If value is not a valid address string
+ * @throws {Error} If value is not provided or is not a valid address string
  */
 function requireAddress(value, name = 'address') {
   if (!value || typeof value !== 'string') {
@@ -36,18 +36,34 @@ function requireAddress(value, name = 'address') {
 /**
  * Require a bytes value
  * 
- * @param {*} value - Value to validate
+ * @param {String|Uint8Array} value - Value to validate
  * @param {String} name - Parameter name for error message
- * @throws {Error} If value is not provided
+ * @throws {Error} If value is not provided or is not a valid bytes string or Uint8Array
  */
 function requireBytes(value, name = 'bytes') {
   if (value === undefined || value === null) {
     throw new ValidationError(`${name} is required`, name, value);
   }
-  // Bytes can be string (hex) or Uint8Array
-  if (typeof value !== 'string' && !(value instanceof Uint8Array)) {
-    throw new ValidationError(`${name} must be a string (hex) or Uint8Array`, name, value);
+  
+  // Uint8Array is always valid bytes
+  if (value instanceof Uint8Array) {
+    return;
   }
+  
+  // String must be valid hex
+  if (typeof value === 'string') {
+    // Check if it's a valid hex string
+    if (!/^0x[a-fA-F0-9]*$/.test(value)) {
+      throw new ValidationError(`${name} must be a valid hex string (0x...) or Uint8Array`, name, value);
+    }
+    // Optional: validate even length (hex pairs)
+    // if (value.length > 2 && (value.length - 2) % 2 !== 0) {
+    //   throw new ValidationError(`${name} hex string must have even length (pairs of hex digits)`, name, value);
+    // }
+    return;
+  }
+  
+  throw new ValidationError(`${name} must be a string (hex) or Uint8Array`, name, value);
 }
 
 /**
@@ -55,7 +71,7 @@ function requireBytes(value, name = 'bytes') {
  * 
  * @param {String} value - Value to validate
  * @param {String} name - Parameter name for error message
- * @throws {Error} If value is not a string
+ * @throws {Error} If value is not provided or is not a valid string
  */
 function requireString(value, name = 'string') {
   if (!value || typeof value !== 'string') {
@@ -72,7 +88,7 @@ function requireString(value, name = 'string') {
  * @param {Boolean} [options.allowZero=true] - Allow zero
  * @param {Boolean} [options.allowNegative=false] - Allow negative numbers
  * @param {Boolean} [options.requireInteger=false] - Require integer
- * @throws {Error} If value is not a valid number or BigInt
+ * @throws {Error} If value is not a valid number or BigInt or is not provided
  */
 function requireNumber(value, name = 'number', options = {}) {
   const { allowZero = true, allowNegative = false, requireInteger = false } = options;

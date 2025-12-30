@@ -30,10 +30,14 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const PASSWORD = process.env.PASSWORD || "";
 const MNEMONIC = process.env.MNEMONIC || "";
+const RPC_URL = process.env.RPC_URL || "";
+const CHAIN_ID = process.env.SAPPHIRE_CHAIN_ID || "";
 
 const sdk = Monstera.connect({
   network: 'testnet',
-  signer: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY,
+  rpcUrl: RPC_URL,   // optional
+  chainId: CHAIN_ID  // optional
 });
 
 async function main() {
@@ -109,7 +113,6 @@ async function main() {
       message: ethers.toUtf8Bytes(message)
     });
     console.log(`   Message: "${message}"`);
-    // console.log(`   Signature: ${result.signature.slice(0, 40)}...`);
     console.log(`   Signature: ${result}`);
 
     // Verify
@@ -117,7 +120,6 @@ async function main() {
       walletAddress: WALLET_ADDRESS,
       index: 0
     });
-    // const recovered = ethers.verifyMessage(message, result.signature);
     const recovered = ethers.verifyMessage(message, result);
     const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
     console.log(`   Recovered: ${recovered}`);
@@ -137,7 +139,6 @@ async function main() {
       hash: hash
     });
     console.log(`   Hash: ${hash.slice(0, 20)}...`);
-    // console.log(`   Signature: ${result.signature.slice(0, 40)}...`);
     console.log(`   Signature: ${result}`);
 
     const expectedAddr = await sdk.logic.getAccountAddress({
