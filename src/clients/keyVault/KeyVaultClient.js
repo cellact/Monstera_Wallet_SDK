@@ -158,20 +158,20 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Sign a transaction (authenticated function)
+   * Sign a raw transaction (authenticated function)
    * 
    * @param {Object} options - Sign transaction options
-   * @param {String} options.keyVaultAddress - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {Number} options.index - Account index (uint32)
-   * @param {Number} options.nonce - Nonce (uint256)
-   * @param {Number} options.gasPrice - Gas price (uint256)
-   * @param {Number} options.gasLimit - Gas limit (uint256)
-   * @param {String} options.to - To address (address)
-   * @param {Number} options.value - Value (uint256)
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
+   * @param {Number|BigInt} options.index - Account index
+   * @param {Number|BigInt} options.nonce - Nonce
+   * @param {Number|BigInt} options.gasPrice - Gas price
+   * @param {Number|BigInt} options.gasLimit - Gas limit
+   * @param {String} options.to - To address
+   * @param {Number|BigInt} options.value - Value
    * @param {Bytes} options.txData - Transaction data (bytes)
-   * @param {Number} options.chainId - Chain ID (uint256)
-   * @returns {Promise<Bytes>} Signed transaction (bytes)
+   * @param {Number|BigInt} options.chainId - Chain ID
+   * @returns {Promise<String>} Signed transaction
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signTransaction(options = {}) {
@@ -201,7 +201,7 @@ class KeyVaultClient extends BaseContractClient {
    * @param {Object} options - Sign message options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {Number} options.index - Account index (uint32)
+   * @param {Number|BigInt} options.index - Account index (uint32)
    * @param {Bytes} options.message - Message to sign (bytes)
    * @returns {Promise<Bytes>} Signed message (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -227,7 +227,7 @@ class KeyVaultClient extends BaseContractClient {
    * @param {Object} options - Sign hash options
    * @param {String} options.keyVaultAddress - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {Number} options.index - Account index (uint32)
+   * @param {Number|BigInt} options.index - Account index (uint32)
    * @param {Bytes32} options.hash - Hash to sign (bytes32)
    * @returns {Promise<Bytes>} Signed hash (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid

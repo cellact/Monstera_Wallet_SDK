@@ -158,19 +158,19 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Sign a raw transaction with an account's private key (authenticated function)
+   * Sign a raw transaction (authenticated function)
    * 
    * @param {Object} options - Sign transaction options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
-   * @param {Number} options.index - Account index
-   * @param {Number} options.nonce - Nonce
-   * @param {Number} options.gasPrice - Gas price
-   * @param {Number} options.gasLimit - Gas limit
+   * @param {Number|BigInt} options.index - Account index
+   * @param {Number|BigInt} options.nonce - Nonce
+   * @param {Number|BigInt} options.gasPrice - Gas price
+   * @param {Number|BigInt} options.gasLimit - Gas limit
    * @param {String} options.to - To address
-   * @param {Number} options.value - Value
-   * @param {String} options.data - Data (hex string) // TODO: check if data should be string or bytes 
-   * @param {Number} options.chainId - Chain ID
+   * @param {Number|BigInt} options.value - Value
+   * @param {Bytes} options.data - Transaction Data (bytes)
+   * @param {Number|BigInt} options.chainId - Chain ID
    * @returns {Promise<String>} Signed transaction
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -183,7 +183,7 @@ class WalletLogicClient extends BaseContractClient {
     requireNonNegativeInteger(gasLimit, 'gasLimit');
     requireAddress(to, 'to');
     requireNonNegativeInteger(value, 'value');
-    requireString(data, 'data');
+    requireBytes(data, 'data');
     requireNonNegativeInteger(chainId, 'chainId');
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
@@ -196,12 +196,12 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Sign EIP-191 personal message with an account's private key (authenticated function)
+   * Sign an EIP-191 message (authenticated function)
    * 
    * @param {Object} options - Sign message options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
-   * @param {Number} options.index - Account index
+   * @param {Number|BigInt} options.index - Account index
    * @param {Bytes} options.message - Message to sign (utf8 encoded string)
    * @returns {Promise<String>} Signed message
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -222,12 +222,12 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Sign a 32-byte hash with an account's private key (authenticated function)
+   * Sign a 32-byte hash (authenticated function)
    * 
    * @param {Object} options - Sign hash options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
-   * @param {Number} options.index - Account index
+   * @param {Number|BigInt} options.index - Account index
    * @param {Bytes32} options.hash - Hash to sign (32 bytes)
    * @returns {Promise<String>} Signed hash
    * @throws {ValidationError} If required parameters are missing or invalid

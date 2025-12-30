@@ -75,40 +75,59 @@ function requireString(value, name = 'string') {
 }
 
 /**
- * Require a number value
+ * Require a number value (supports both Number and BigInt)
  * 
- * @param {Number} value - Value to validate
+ * @param {Number|BigInt} value - Value to validate
  * @param {String} name - Parameter name for error message
  * @param {Object} options - Validation options
  * @param {Boolean} [options.allowZero=true] - Allow zero
  * @param {Boolean} [options.allowNegative=false] - Allow negative numbers
  * @param {Boolean} [options.requireInteger=false] - Require integer
- * @throws {Error} If value is not a valid number
+ * @throws {Error} If value is not a valid number or BigInt
  */
 function requireNumber(value, name = 'number', options = {}) {
   const { allowZero = true, allowNegative = false, requireInteger = false } = options;
 
-  if (value === undefined || value === null || typeof value !== 'number') {
-    throw new ValidationError(`${name} is required and must be a number`, name, value);
+  // Accept both number and BigInt
+  if (value === undefined || value === null) {
+    throw new ValidationError(`${name} is required`, name, value);
+  }
+  
+  const isNumber = typeof value === 'number';
+  const isBigInt = typeof value === 'bigint';
+  
+  if (!isNumber && !isBigInt) {
+    throw new ValidationError(`${name} is required and must be a number or BigInt`, name, value);
   }
 
-  if (!allowZero && value === 0) {
+  // Convert BigInt to Number for comparisons (safe for reasonable ranges)
+  // Note: This conversion is safe for gas values, nonces, etc. but may lose precision
+  // for very large BigInt values (> Number.MAX_SAFE_INTEGER)
+  const numValue = isBigInt ? Number(value) : value;
+
+  if (!allowZero && numValue === 0) {
     throw new ValidationError(`${name} must be non-zero`, name, value);
   }
 
-  if (!allowNegative && value < 0) {
+  if (!allowNegative && numValue < 0) {
     throw new ValidationError(`${name} must be non-negative`, name, value);
   }
 
-  if (requireInteger && !Number.isInteger(value)) {
-    throw new ValidationError(`${name} must be an integer`, name, value);
+  if (requireInteger) {
+    if (isBigInt) {
+      // BigInt is always an integer, so validation passes
+      return;
+    }
+    if (!Number.isInteger(numValue)) {
+      throw new ValidationError(`${name} must be an integer`, name, value);
+    }
   }
 }
 
 /**
- * Require a non-negative integer
+ * Require a non-negative integer (supports both Number and BigInt)
  * 
- * @param {Number} value - Value to validate
+ * @param {Number|BigInt} value - Value to validate
  * @param {String} name - Parameter name for error message
  * @throws {Error} If value is not a non-negative integer
  */
@@ -117,9 +136,9 @@ function requireNonNegativeInteger(value, name = 'number') {
 }
 
 /**
- * Require a positive integer
+ * Require a positive integer (supports both Number and BigInt)
  * 
- * @param {Number} value - Value to validate
+ * @param {Number|BigInt} value - Value to validate
  * @param {String} name - Parameter name for error message
  * @throws {Error} If value is not a positive integer
  */
