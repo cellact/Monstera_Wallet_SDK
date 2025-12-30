@@ -253,8 +253,23 @@ async function main() {
   console.log(`   Signature (signed transaction): ${signedTransaction}`);
 
   console.log("   Broadcasting deployment...");
-  const deployTxResponse = await amoyProvider.broadcastTransaction(signedTransaction);
-  console.log(`   Tx: ${deployTxResponse.hash}`);
+  let deployTxResponse;
+  try {
+    deployTxResponse = await amoyProvider.broadcastTransaction(signedTransaction);
+    console.log(`   Tx: ${deployTxResponse.hash}`);
+  } catch (error) {
+    // Check for insufficient funds error (most reliable check)
+    if (error.code === 'INSUFFICIENT_FUNDS' || 
+        error.shortMessage?.includes('insufficient funds') ||
+        error.message?.includes('insufficient funds')) {
+      console.error("❌ ERROR: Insufficient funds");
+      console.error(`   Send testnet MATIC to: ${accountAddress}`);
+      console.error("   Faucet: https://faucet.stakepool.dev.br/amoy");
+      process.exit(1);
+    }
+    // Re-throw if it's a different error
+    throw error;
+  }
 
   const deployReceipt = await deployTxResponse.wait();
   const counterAddress = deployReceipt?.contractAddress;
