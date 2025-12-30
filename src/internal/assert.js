@@ -51,17 +51,6 @@ function requireBytes(value, name = 'bytes') {
 }
 
 /**
- * Require a bytes-like value (string hex or Uint8Array)
- * 
- * @param {*} value - Value to validate
- * @param {String} name - Parameter name for error message
- * @throws {Error} If value is not bytes-like
- */
-function requireBytesLike(value, name = 'bytes') {
-  requireBytes(value, name);
-}
-
-/**
  * Require a string value
  * 
  * @param {String} value - Value to validate
@@ -146,48 +135,12 @@ function requirePositiveInteger(value, name = 'number') {
   requireNumber(value, name, { allowZero: false, allowNegative: false, requireInteger: true });
 }
 
-/**
- * Require a hex string value
- * 
- * @param {String} value - Value to validate
- * @param {String} name - Parameter name for error message
- * @throws {Error} If value is not a hex string
- */
-function requireHex(value, name = 'hex') {
-  if (!value || typeof value !== 'string') {
-    throw new ValidationError(`${name} is required and must be a string`, name, value);
-  }
-  if (!/^0x[a-fA-F0-9]+$/i.test(value)) {
-    throw new ValidationError(`${name} must be a valid hex string (0x...)`, name, value);
-  }
-}
-
-/**
- * Require value to be one of allowed values
- * 
- * @param {*} value - Value to validate
- * @param {Array} allowedValues - Array of allowed values
- * @param {String} name - Parameter name for error message
- * @throws {Error} If value is not one of allowed values
- */
-function requireOneOf(value, allowedValues, name = 'value') {
-  if (!allowedValues || !Array.isArray(allowedValues) || allowedValues.length === 0) {
-    throw new ValidationError('allowedValues must be a non-empty array', 'allowedValues', allowedValues);
-  }
-  if (!allowedValues.includes(value)) {
-    throw new ValidationError(`${name} must be one of: ${allowedValues.join(', ')}`, name, value);
-  }
-}
-
 module.exports = {
   isAddress,
   requireAddress,
   requireBytes,
-  requireBytesLike,
   requireString,
   requireNumber,
   requireNonNegativeInteger,
-  requirePositiveInteger,
-  requireHex,
-  requireOneOf
+  requirePositiveInteger
 };

@@ -186,7 +186,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(txData, 'txData');
     requireNonNegativeInteger(chainId, 'chainId');
 
-    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress); // TODO: check if this should be getWriteContract; should it be encrypted? 
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     return this.executeRead(
       () => keyVault.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId),
@@ -238,7 +238,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
 
-    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress); // TODO: check if this should be getWriteContract; should it be encrypted? 
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddress);
 
     return this.executeRead(
       () => keyVault.sign(authProof, index, hash),
