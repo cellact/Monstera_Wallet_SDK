@@ -11,6 +11,7 @@
     "src",
     "README.md",
     "LICENSE",
+    "CHANGELOG.md",
     "scripts",
     "bin"
   ],
