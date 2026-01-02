@@ -252,6 +252,30 @@ class WalletLogicClient extends BaseContractClient {
   // ============================================================================
 
   /**
+   * Initialize a wallet logic with a new keyVault 
+   * 
+   * @param {Object} options - Initialize wallet logic options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<Object>} Initialize wallet logic result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   */
+  async initialize(options = {}) {
+    const { walletAddress, keyVaultAddress } = options;
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+
+    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
+  
+    return this.executeWrite(
+      () => walletLogic.initialize(keyVaultAddress),
+      'initialize wallet logic',
+      options
+    );
+  }
+
+  /**
    * Change the authenticator (authenticated function)
    * 
    * @param {Object} options - Change authenticator options
@@ -317,30 +341,6 @@ class WalletLogicClient extends BaseContractClient {
         }],
         extraData: { newImplAddr: newImplAddr }
       }
-    );
-  }
-
-  /**
-   * Initialize a wallet logic with a new keyVault 
-   * 
-   * @param {Object} options - Initialize wallet logic options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-   * @param {String} options.keyVaultAddress - KeyVault contract address 
-   * @returns {Promise<Object>} Initialize wallet logic result
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   */
-  async initialize(options = {}) {
-    const { walletAddress, keyVaultAddress } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
-
-    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
-  
-    return this.executeWrite(
-      () => walletLogic.initialize(keyVaultAddress),
-      'initialize wallet logic',
-      options
     );
   }
 }

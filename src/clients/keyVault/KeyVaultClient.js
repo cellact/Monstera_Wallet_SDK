@@ -276,6 +276,35 @@ class KeyVaultClient extends BaseContractClient {
   // ============================================================================
 
   /**
+   * Initialize a KeyVault contract
+   * 
+   * @param {Object} options - Initialize key vault options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {String} options.storageAddr - WalletStorage contract address 
+   * @param {String} options.authAddr - Authenticator contract address
+   * @param {Bytes32} options.accessToken - Secret token for storage access (bytes32)
+   * @returns {Promise<Object>} Initialize key vault result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   */
+  async initialize(options = {}) {
+    const { keyVaultAddress, storageAddr, authAddr, accessToken } = options;
+    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    requireAddress(storageAddr, 'storageAddr');
+    requireAddress(authAddr, 'authAddr');
+    requireBytes(accessToken, 'accessToken');
+
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddress);
+
+    return this.executeWrite(
+      () => keyVault.initialize(storageAddr, authAddr, accessToken),
+      'initialize key vault',
+      options
+    );
+  }
+
+  /**
    * Upgrade the keyVaultImplementation contract address (authenticated function)
    * 
    * @param {Object} options - Upgrade keyVaultImplementation options
