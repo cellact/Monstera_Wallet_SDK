@@ -18,7 +18,9 @@ import { ethers } from 'ethers';
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.PASSWORD;
-const MNEMONIC = "test test test test test test test test test test test test";
+// Example: Use a valid BIP39 mnemonic (12 words from the BIP39 wordlist)
+// This is a well-known test mnemonic - in production, use a secure randomly generated one
+const MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
 
 const sdk = Monstera.connect({
   mainnet: false,

@@ -16,7 +16,7 @@ import { WalletFactoryEvents } from '../../events/index.js';
 
 // Internal utilities
 import { generateMnemonic, deriveSeed } from '../../crypto/wallet.js';
-import { requireAddress, requireBytes, requireString } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireMnemonic } from '../../internal/assert.js';
 
 class WalletFactoryClient extends BaseContractClient {
   // ============================================================================
@@ -284,7 +284,7 @@ class WalletFactoryClient extends BaseContractClient {
   async createWalletFromMnemonic(options = {}) {
     const { authConfig, mnemonic } = options;
     requireBytes(authConfig, 'authConfig');
-    requireString(mnemonic, 'mnemonic');
+    requireMnemonic(mnemonic, 'mnemonic');
 
     const authenticator = this._resolveAuthenticator(options.authenticator);
     const seed = deriveSeed(mnemonic);

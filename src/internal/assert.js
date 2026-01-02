@@ -6,6 +6,7 @@
  */
 
 import { ValidationError } from '../errors/index.js';
+import { Mnemonic } from 'ethers';
 
 /**
  * Check if a value is a valid Ethereum address
@@ -76,6 +77,48 @@ function requireBytes(value, name = 'bytes') {
 function requireString(value, name = 'string') {
   if (!value || typeof value !== 'string') {
     throw new ValidationError(`${name} is required and must be a string`, name, value);
+  }
+}
+
+/**
+ * Require a valid BIP39 mnemonic phrase (12 or 24 words)
+ * 
+ * @param {String} value - Value to validate
+ * @param {String} name - Parameter name for error message
+ * @throws {Error} If value is not a valid BIP39 mnemonic
+ */
+function requireMnemonic(value, name = 'mnemonic') {
+  if (!value || typeof value !== 'string') {
+    throw new ValidationError(`${name} is required and must be a string`, name, value);
+  }
+  
+  // Normalize the mnemonic more aggressively to handle ethers v6 whitespace issues
+  // Remove all types of whitespace (spaces, tabs, newlines) and replace with single space
+  const normalized = value
+    .trim()
+    .replace(/[\s\n\r\t]+/g, ' ')  // Replace all whitespace types with single space
+    .replace(/\s+/g, ' ')           // Ensure no double spaces
+    .trim();
+
+  const words = normalized.split(' ').filter(word => word.length > 0);
+  
+  // Check word count (must be 12 or 24 words)
+  if (words.length !== 12 && words.length !== 24) {
+    throw new ValidationError(
+      `${name} must be a valid BIP39 mnemonic with 12 or 24 words (got ${words.length} words)`,
+      name,
+      value
+    );
+  }
+
+  // Use ethers v6 official validation method
+  // Mnemonic.isValidMnemonic() checks: wordlist membership, valid length, and checksum
+  if (!Mnemonic.isValidMnemonic(normalized)) {
+    throw new ValidationError(
+      `${name} is not a valid BIP39 mnemonic (invalid words, length, or checksum)`,
+      name,
+      value
+    );
   }
 }
 
@@ -156,6 +199,7 @@ export {
   requireAddress,
   requireBytes,
   requireString,
+  requireMnemonic,
   requireNumber,
   requireNonNegativeInteger,
   requirePositiveInteger
