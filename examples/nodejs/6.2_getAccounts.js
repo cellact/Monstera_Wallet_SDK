@@ -1,7 +1,7 @@
 /**
  * Step 6.2: Get Account Addresses for Funding
  * 
- * Run: node examples/6.2_getAccounts.js
+ * Run: node examples/nodejs/6.2_getAccounts.js
  * 
  * Shows the first 3 account addresses so you can fund them on Amoy.
  * 
@@ -11,7 +11,7 @@
  * 
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 
 // ============ CONFIGURATION ============
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";

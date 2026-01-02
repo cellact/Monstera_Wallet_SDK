@@ -6,7 +6,7 @@
  */
 
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 
 async function networkSwitchingExample() {
   console.log('=== Network Switching Example ===\n');

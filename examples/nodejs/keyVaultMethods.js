@@ -1,7 +1,7 @@
 /**
  * Step X: KeyVault method examples
  * 
- * Run: node examples/keyVaultMethods.js
+ * Run: node examples/nodejs/keyVaultMethods.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -25,7 +25,7 @@
  */
 
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============

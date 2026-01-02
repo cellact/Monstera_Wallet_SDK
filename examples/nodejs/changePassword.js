@@ -1,7 +1,7 @@
 /**
  * Step X: Change the password of a wallet
  * 
- * Run: node examples/changePassword.js
+ * Run: node examples/nodejs/changePassword.js
  * 
  * This demonstrates that the password can be changed!
  * 
@@ -12,7 +12,7 @@
  *   NEW_PASSWORD=mynewpassword123
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============

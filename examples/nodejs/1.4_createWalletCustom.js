@@ -1,10 +1,12 @@
 /**
- * Step 1: Create a HD wallet
- * Run: node examples/1_createHDWallet.js
+ * Step 1.4: Create a HD wallet with a custom logic contract
+ * 
+ * Run: node examples/nodejs/1.4_createWalletCustom.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x...
  *   PASSWORD=mysecretpassword123
+ *   CUSTOM_LOGIC_IMPL=0x... (your custom wallet logic implementation contract address)
  * 
  * This creates:
  *   - WalletStorage (holds private keys, locked to KeyVault)
@@ -12,12 +14,13 @@
  *   - Wallet (BeaconProxy to WalletLogic, admin-upgradeable)
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.PASSWORD;
+const CUSTOM_LOGIC_IMPL = process.env.CUSTOM_LOGIC_IMPL || ""; // your custom wallet logic implementationcontract address; (must implement IWalletLogic)
 
 const sdk = Monstera.connect({
   network: 'testnet',
@@ -29,45 +32,24 @@ async function main() {
   console.log("Step 1: Create a HD Wallet");
   console.log("=".repeat(60));
 
-  // Access network info (static method, returns the networks for all networks)
-  const networks = Monstera.networks;
-  console.log(`   Networks: ${JSON.stringify(networks, null, 2)}`);
-
-  // Access contract addresses (static method, returns the addresses for all networks)
-  const contractAddresses = Monstera.defaultAddresses;
-  console.log(`   Contract addresses: ${JSON.stringify(contractAddresses, null, 2)}`);
-
-  // Access contract addresses for the SDK instance (returns only the addresses for the current network)
-  const contractAddresses1 = sdk.addresses;
-  console.log(`   Contract addresses 1: ${JSON.stringify(contractAddresses1, null, 2)}`);
-
-  // Check if SDK instance can perform write operations
-  const canWrite = sdk.canWrite();
-  console.log(`   Can write: ${canWrite}`);
-  if (!canWrite) {
-    console.error("❌ ERROR: SDK instance cannot perform write operations");
-    process.exit(1);
-  }
-
-  // Get the signer address
-  const signerAddress = await sdk.getSignerAddress();
-  console.log(`   Signer address: ${signerAddress}`);
-  if (!signerAddress) {
-    console.error("❌ ERROR: Failed to get signer address");
-    process.exit(1);
-  }
-
   // Prepare auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
 
+  // Prepare logic data (initialization data for your custom logic)
+  console.log("\n2. Preparing logic data...");
+  const logicData = ethers.toUtf8Bytes("some data");
+  console.log("   Logic data:", logicData.slice(0, 20) + "...");
+
   // Create wallet
   console.log("\n3. Creating wallet stack...");
-  console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
-  const result = await sdk.factory.createWallet({
+  console.log("   This deploys: WalletStorage + KeyVault + CustomLogicProxy");
+  const result = await sdk.factory.createWalletWithCustomLogic({
     authenticator: sdk.addresses.passwordAuth,
     authConfig: passwordHash,
+    customLogicImpl: CUSTOM_LOGIC_IMPL,
+    logicData: logicData
   });
   console.log("   Transaction:", result.transactionHash);
 

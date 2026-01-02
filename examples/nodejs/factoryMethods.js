@@ -1,7 +1,7 @@
 /**
  * Test WalletFactory methods
  * 
- * Run: node examples/factoryMethods.js
+ * Run: node examples/nodejs/factoryMethods.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -16,7 +16,7 @@
  */
 
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS;

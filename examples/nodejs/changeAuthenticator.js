@@ -1,7 +1,7 @@
 /**
- * Change the authenticator of a wallet (via keyVault contract)
+ * Change the authenticator of a wallet
  * 
- * Run: node examples/changeAuthenticatorKeyVault.js
+ * Run: node examples/nodejs/changeAuthenticator.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -16,14 +16,13 @@
  * 
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const PASSWORD = process.env.PASSWORD || "";
 const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0x9bf630Fa31bb2Bdd1c1720bf7AcF324281e6156E";
-// const NEW_AUTHENTICATOR_ADDRESS = "0x579DAE1e43Aed272580AF19DD2D6a77A4a953338"; // old authenticator address
 
 const sdk = Monstera.connect({
   network: 'testnet',
@@ -49,8 +48,8 @@ async function main() {
   const keyVault = await sdk.logic.getKeyVault({
     walletAddress: WALLET_ADDRESS
   });
-  const oldAuthenticator = await sdk.keyVault.getAuthenticator({
-    keyVaultAddress: keyVault
+  const oldAuthenticator = await sdk.logic.getAuthenticator({
+    walletAddress: WALLET_ADDRESS
   });
   
   console.log("\nWallet Stack:");
@@ -59,8 +58,8 @@ async function main() {
   console.log(`      └── Auth:   ${oldAuthenticator}`);
 
   // check if wallet is initilized 
-  const isInitialized = await sdk.keyVault.isInitialized({
-    keyVaultAddress: keyVault
+  const isInitialized = await sdk.logic.isInitialized({
+    walletAddress: WALLET_ADDRESS
   });
   console.log("   Is Initialized:", isInitialized ? "✅ Yes" : "❌ No");
   if (!isInitialized) {
@@ -81,10 +80,10 @@ async function main() {
   console.log("STEP 2: Change Authenticator");
   console.log("=".repeat(60));
 
-  const result = await sdk.keyVault.changeAuthenticator({
-    keyVaultAddress: keyVault,
+  const result = await sdk.logic.changeAuthenticator({
+    walletAddress: WALLET_ADDRESS,
     authProof: authProof,
-    newAuthenticatorAddr: NEW_AUTHENTICATOR_ADDRESS,
+    newAuthenticatorAddress: NEW_AUTHENTICATOR_ADDRESS,
     newAuthConfig: passwordHash
   });
 
@@ -99,8 +98,8 @@ async function main() {
   console.log("STEP 3: Change Authenticator is successful");
   console.log("=".repeat(60));
 
-  const currentAuthenticator = await sdk.keyVault.getAuthenticator({
-    keyVaultAddress: keyVault
+  const currentAuthenticator = await sdk.logic.getAuthenticator({
+    walletAddress: WALLET_ADDRESS
   });
   console.log("   Current Auth:", currentAuthenticator);
 

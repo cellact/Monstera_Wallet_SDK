@@ -21,15 +21,6 @@ import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 // Internal errors
 import { ValidationError } from '../errors/index.js';
 
-// For reading package.json in ESM
-import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const require = createRequire(import.meta.url);
-
 /**
  * Monstera Wallet SDK
  * 
@@ -133,7 +124,24 @@ class Monstera {
    * @readonly
    */
   static get version() {
-    return require('../../package.json').version;
+    // In browser builds, version is injected at build time
+    // @ts-ignore
+    if (typeof __MONSTERA_VERSION__ !== 'undefined') {
+      // @ts-ignore
+      return __MONSTERA_VERSION__;
+    }
+    // Node.js environment - lazy load createRequire
+    try {
+      if (typeof window === 'undefined' && typeof import.meta !== 'undefined') {
+        // Use dynamic import to avoid top-level await
+        const { createRequire } = require('module');
+        const requireFn = createRequire(import.meta.url);
+        return requireFn('../../package.json').version;
+      }
+    } catch (e) {
+      // Fallback if require fails (e.g., in browser build)
+    }
+    return 'unknown';
   }
   
   /**

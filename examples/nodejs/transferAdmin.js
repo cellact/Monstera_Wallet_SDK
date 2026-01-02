@@ -1,7 +1,7 @@
 /**
  * Transfer admin ownership to a new address (ADMIN ONLY)
  * 
- * Run: node examples/transferAdmin.js
+ * Run: node examples/nodejs/transferAdmin.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -16,7 +16,7 @@
  * 
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";

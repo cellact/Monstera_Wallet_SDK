@@ -1,7 +1,7 @@
 /**
  * Step X: Remove Whitelisted Wallet
  * 
- * Run: node examples/removeWhitelistedWallet.js
+ * Run: node examples/nodejs/removeWhitelistedWallet.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -18,7 +18,7 @@
  */
 
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers, Wallet } from 'ethers';
 
 // ============ CONFIGURATION ============

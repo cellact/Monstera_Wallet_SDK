@@ -1,7 +1,7 @@
 /**
  * Step X: Change the password of a wallet
  * 
- * Run: node examples/passwordAuthMethods.js
+ * Run: node examples/nodejs/passwordAuthMethods.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -9,7 +9,7 @@
  *   PASSWORD=mysecretpassword123
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============

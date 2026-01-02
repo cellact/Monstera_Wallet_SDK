@@ -1,7 +1,7 @@
 /**
  * Step 3: Test WalletSignatureAuthenticator
  * 
- * Run: node examples/3_useWalletSigAuth.js
+ * Run: node examples/nodejs/3_useWalletSigAuth.js
  * 
  * Tests:
  * 1. Create wallet with whitelist of allowed signers
@@ -18,7 +18,7 @@
  */
 
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers, Wallet } from 'ethers';
 
 // ============ CONFIGURATION ============

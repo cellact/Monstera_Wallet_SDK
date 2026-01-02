@@ -1,7 +1,7 @@
 /**
  * Step X: WalletSignatureAuthenticator method examples
  * 
- * Run: node examples/walletSigAuth.js
+ * Run: node examples/nodejs/walletSigAuth.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -17,7 +17,7 @@
  */
 
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers, Wallet } from 'ethers';
 
 // ============ CONFIGURATION ============

@@ -1,7 +1,7 @@
 /**
  * Step 6.1: Test Cross-Chain Transaction (Sapphire → Amoy)
  * 
- * Run: node examples/6.1_signTransaction.js
+ * Run: node examples/nodejs/6.1_signTransaction.js
  * 
  * This demonstrates THE KEY SECURITY FEATURE:
  * - Private key NEVER leaves Sapphire enclave
@@ -27,7 +27,7 @@
  * 
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============

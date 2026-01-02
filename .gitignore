@@ -85,6 +85,10 @@ temp/
 
 node_modules/
 
+# Build outputs
+dist/
+*.map
+
 .cursorrules
 
 SDK_ANALYSIS.md

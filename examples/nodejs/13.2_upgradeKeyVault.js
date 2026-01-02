@@ -1,7 +1,7 @@
 /**
  * Step 13.2: Upgrade the keyVault implementation of a wallet
  * 
- * Run: node examples/13.2_upgradeKeyVault.js
+ * Run: node examples/nodejs/13.2_upgradeKeyVault.js
  * 
  * This demonstrates that KeyVaultImplementation IS upgradeable!
  * 
@@ -19,7 +19,7 @@
  * 
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";

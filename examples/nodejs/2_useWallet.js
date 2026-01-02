@@ -1,7 +1,7 @@
 /**
  * Step 2: Use the wallet (get addresses, sign messages)
  * 
- * Run: node examples/2_useWallet.js
+ * Run: node examples/nodejs/2_useWallet.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -22,7 +22,7 @@
  */
 
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers, HDNodeWallet, Mnemonic } from 'ethers';
 
 // ============ CONFIGURATION ============

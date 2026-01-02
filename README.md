@@ -16,11 +16,97 @@ A JavaScript SDK for interacting with wallet smart contracts on Oasis Sapphire. 
 
 ## Installation
 
+### Node.js / Bundlers
+
 ```bash
 npm install @monstera_protocol/sdk
 ```
 
 **Note:** This SDK uses ES Modules (ESM). Make sure your project supports ESM or use a bundler that handles ESM.
+
+The SDK provides multiple entry points via `package.json` exports:
+- **Default**: `import { Monstera } from '@monstera_protocol/sdk'` → Uses ESM build (`dist/monstera.mjs`) for browsers, or source (`src/index.js`) for Node.js
+- **ESM Build**: `import { Monstera } from '@monstera_protocol/sdk/mjs'` → Direct access to `dist/monstera.mjs`
+- **IIFE Global**: Available at `dist/monstera.global.js` (for script tags) or via `@monstera_protocol/sdk/global` in package exports
+
+### Browser
+
+#### Option A: ESM (Modern Browsers)
+
+```html
+<script type="module">
+  import { Monstera } from './node_modules/@monstera_protocol/sdk/dist/monstera.mjs';
+  import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@6/dist/index.min.mjs';
+  
+  const sdk = Monstera.connect({
+    network: 'testnet',
+    signer: 'your_private_key'
+  });
+</script>
+```
+
+**Note:** For production, host `dist/monstera.mjs` on your CDN or use a bundler.
+
+#### Option B: IIFE Global (Script Tag)
+
+```html
+<!-- Load ethers first (required) -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+
+<!-- Load Monstera SDK (queue stub is automatically included in the build) -->
+<script src="./node_modules/@monstera_protocol/sdk/dist/monstera.global.js"></script>
+
+<script>
+  const sdk = window.Monstera.connect({
+    network: 'testnet',
+    signer: 'your_private_key'
+  });
+  
+  // Error classes are also exposed on window.Monstera
+  console.log(window.Monstera.WalletError);
+  console.log(window.Monstera.ValidationError);
+</script>
+```
+
+**Note:** 
+- The IIFE build (`monstera.global.js`) automatically includes a queue stub, so you can call `Monstera()` before the script loads if needed.
+- All error classes are automatically exposed on `window.Monstera` (e.g., `window.Monstera.WalletError`).
+- For production, host `dist/monstera.global.js` on your CDN.
+
+#### Async Loading with Queue Stub
+
+The IIFE build (`monstera.global.js`) automatically includes a queue stub, so you can call `Monstera()` before the script loads:
+
+```html
+<!-- Load ethers first -->
+<script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+
+<!-- Optional: Call Monstera before script loads (will be queued automatically) -->
+<script>
+  // The queue stub is built into monstera.global.js, but you can also add it manually
+  // if you want to call Monstera before the script tag executes
+  Monstera = Monstera || function() {
+    (Monstera.q = Monstera.q || []).push(arguments);
+  };
+  Monstera.q = Monstera.q || [];
+  
+  // Call Monstera before script loads (queued)
+  Monstera('connect', { network: 'testnet', signer: '0x...' });
+</script>
+
+<!-- Load SDK asynchronously -->
+<script>
+  (function() {
+    var script = document.createElement('script');
+    script.async = true;
+    script.src = './node_modules/@monstera_protocol/sdk/dist/monstera.global.js';
+    var firstScript = document.getElementsByTagName('script')[0];
+    firstScript.parentNode.insertBefore(script, firstScript);
+  })();
+</script>
+```
+
+**Note:** The queue stub is automatically included in `monstera.global.js`, so queued calls will be processed when the SDK loads.
 
 ### Peer Dependencies
 
@@ -185,7 +271,17 @@ const sdkWithOverrides = Monstera.connect({
 
 ## Examples
 
-The SDK includes comprehensive examples in the `/examples` directory:
+### Browser Examples
+
+The SDK includes browser examples in `examples/browser/` demonstrating both ESM and IIFE usage:
+
+- **`browser-esm.html`** - ESM usage with `<script type="module">`
+- **`browser-global.html`** - IIFE global bundle usage
+- **`browser-global-async.html`** - Async loading with queue stub
+
+### Node.js Examples
+
+The SDK includes comprehensive Node.js examples in `examples/nodejs/`:
 
 **Wallet Creation:**
 - **`1_createHDWallet.js`** - Create a hierarchical deterministic wallet
@@ -224,8 +320,11 @@ The SDK includes comprehensive examples in the `/examples` directory:
 # Set up environment variables
 export SIGNER_PRIVATE_KEY=0x...
 
-# Run an example
-node examples/1_createHDWallet.js
+# Run a Node.js example
+node examples/nodejs/1_createHDWallet.js
+
+# Or run a browser example by opening the HTML file in a browser
+open examples/browser/browser-esm.html
 ```
 
 **Note:** Examples use ES Modules. Ensure you're using Node.js 14+ with ESM support, or use a bundler.
@@ -336,7 +435,7 @@ import {
   // Main SDK class (default export)
   Monstera,
   
-  // Error classes
+  // Error classes (automatically exported - no manual maintenance required)
   WalletError,
   ValidationError,
   ConfigError,
@@ -353,6 +452,8 @@ const networks = Monstera.networks;
 const defaultAddresses = Monstera.defaultAddresses;
 const requiredAddresses = Monstera.requiredAddresses;
 ```
+
+**Note:** Error classes are automatically exported from `src/errors/index.js`. Adding a new error class to that file will automatically make it available in the SDK exports.
 
 ## Security Considerations
 
@@ -397,7 +498,7 @@ try {
 ### Project Structure
 
 ```
-src/
+src/             # Source code
   base/          # Base classes (BaseContractClient, SapphireWriteWrapper)
   config/        # Network configuration
   providers/     # Provider and Sapphire wrapper
@@ -405,11 +506,34 @@ src/
   contracts/     # Contract interfaces and ABIs
   clients/       # Domain clients (factory, logic, keyVault, auth)
   events/        # Event definitions and parsing
-  errors/        # Error types
+  errors/        # Error types (single source of truth for error exports)
   internal/      # Internal utilities (validation helpers)
   sdk/           # Main SDK class (Monstera)
   utils/         # Utility functions
+build/           # Build entry points (browser-global.js)
+dist/            # Build outputs (monstera.mjs, monstera.global.js) - gitignored
+examples/
+  nodejs/        # Node.js examples
+  browser/       # Browser HTML examples
 ```
+
+### Building
+
+The SDK uses Rollup to build browser bundles:
+
+```bash
+# Build browser bundles (ESM and IIFE)
+npm run build
+
+# Watch mode for development
+npm run build:watch
+```
+
+This generates:
+- `dist/monstera.mjs` - ESM build for modern browsers
+- `dist/monstera.global.js` - IIFE global bundle for script tags
+
+**Note:** Builds are automatically generated before publishing via `prepublishOnly` script. The `dist/` directory is gitignored.
 
 ### Requirements
 

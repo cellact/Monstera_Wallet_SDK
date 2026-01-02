@@ -1,7 +1,7 @@
 /**
  * Step 5: Upgrade WalletLogic for all existing wallets (ADMIN ONLY)
  * 
- * Run: node examples/5_ugradeToNewLogic.js
+ * Run: node examples/nodejs/5_ugradeToNewLogic.js
  * 
  * This demonstrates ADMIN-controlled upgrades:
  * - Deploys new WalletLogic contract (needs to be done eslewhere first and get the address)
@@ -19,7 +19,7 @@
  * 
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;

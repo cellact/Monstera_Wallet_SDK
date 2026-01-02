@@ -1,7 +1,7 @@
 /**
  * Step 4: Get an account address from the wallet
  * 
- * Run: node examples/4_getAddress.js
+ * Run: node examples/nodejs/4_getAddress.js
  * 
  * Env vars:
  *   WALLET_ADDRESS=0x... (required)
@@ -9,7 +9,7 @@
  *   SIGNER_PRIVATE_KEY=0x... (required)
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const INDEX = parseInt(process.env.INDEX || "0");

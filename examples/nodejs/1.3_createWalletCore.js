@@ -1,26 +1,23 @@
 /**
- * Step 1.4: Create a HD wallet with a custom logic contract
+ * Step 1.3: Create a HD wallet core (no logic wrapper)
  * 
- * Run: node examples/1.4_createWalletCustom.js
+ * Run: node examples/nodejs/1.3_createWalletCore.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x...
  *   PASSWORD=mysecretpassword123
- *   CUSTOM_LOGIC_IMPL=0x... (your custom wallet logic implementation contract address)
  * 
  * This creates:
  *   - WalletStorage (holds private keys, locked to KeyVault)
- *   - KeyVault (auth + signing, user-upgradeable)
- *   - Wallet (BeaconProxy to WalletLogic, admin-upgradeable)
+ *   - KeyVault (KeyVault is the wallet)
  */
 import 'dotenv/config';
-import { Monstera } from '../src/index.js';
+import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.PASSWORD;
-const CUSTOM_LOGIC_IMPL = process.env.CUSTOM_LOGIC_IMPL || ""; // your custom wallet logic implementationcontract address; (must implement IWalletLogic)
 
 const sdk = Monstera.connect({
   network: 'testnet',
@@ -37,19 +34,12 @@ async function main() {
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
 
-  // Prepare logic data (initialization data for your custom logic)
-  console.log("\n2. Preparing logic data...");
-  const logicData = ethers.toUtf8Bytes("some data");
-  console.log("   Logic data:", logicData.slice(0, 20) + "...");
-
   // Create wallet
   console.log("\n3. Creating wallet stack...");
-  console.log("   This deploys: WalletStorage + KeyVault + CustomLogicProxy");
-  const result = await sdk.factory.createWalletWithCustomLogic({
+  console.log("   This deploys: WalletStorage + KeyVault");
+  const result = await sdk.factory.createWalletCore({
     authenticator: sdk.addresses.passwordAuth,
     authConfig: passwordHash,
-    customLogicImpl: CUSTOM_LOGIC_IMPL,
-    logicData: logicData
   });
   console.log("   Transaction:", result.transactionHash);
 
