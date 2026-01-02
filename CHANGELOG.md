@@ -9,97 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - This CHANGELOG file
-- **Browser Support** (HIGH Priority):
-  - UMD/IIFE bundle for direct `<script>` tag inclusion
-  - ES modules (ESM) build for modern bundlers
-  - CDN distribution support
-  - Async script loading with callback support
-  - Build system (webpack/rollup/vite) for browser and Node.js builds
-  - Source maps for debugging
-  - Browser polyfills for older browsers (ES5+ support)
-  - Feature detection and graceful degradation
-- **Version Management** (MEDIUM Priority):
-  - Version checking mechanism to detect outdated SDK versions
-  - Deprecation warnings for deprecated methods
-  - Migration guides for breaking changes
-  - Automated changelog generation (standard-version or conventional-changelog)
-- **Storage Mechanisms** (MEDIUM Priority):
-  - `StorageManager` class with cookie support (read, write, remove)
-  - localStorage support with quota exceeded error handling
-  - sessionStorage support for temporary session data
-  - Fallback mechanisms for storage unavailability
-  - Third-party cookie restriction handling
-- **Browser Event Handling** (MEDIUM Priority):
-  - Document ready event handling utility
-  - postMessage support for iframe communication
-  - Page Visibility API integration (pause/resume operations)
-  - Device orientation change handling
-  - Scroll disable utility for modals
-- **Debugging Support** (MEDIUM Priority):
-  - Debug mode flag in SDK configuration
-  - Structured logging with log levels (debug, info, warn, error)
-  - Console logs polyfill for old browsers
-  - Network request logging
-  - Transaction trace logging
-  - Error stack traces
-  - Performance metrics
-  - Browser DevTools integration
-- **Browser Testing** (MEDIUM Priority):
-  - Browser test suite (Karma, Jest with jsdom, or Playwright)
-  - Cross-browser test automation
-  - E2E testing for full SDK workflows in browser
-  - Testing with different bundlers
-- **Documentation** (MEDIUM Priority):
-  - Browser setup guide
-  - CDN usage examples and documentation
-  - Browser compatibility matrix
-  - Generated API documentation (JSDoc/TypeDoc)
-  - Interactive examples
-- **Request Utilities** (LOW Priority):
-  - HTTP request utilities (`RequestManager` class)
-  - Image beacon support for analytics/tracking
-  - Iframe request support
-  - JSONP request support
-  - Navigator.sendBeacon for reliable delivery
-- **URI Parsing Utilities** (LOW Priority):
-  - `URIUtils` class for URL parsing and manipulation
-  - Query parameter extraction
-  - Query string building
-  - URL parameter updates
-- **Viewport Utilities** (LOW Priority):
-  - `ViewportUtils` class for viewport operations
-  - Element visibility checks
-  - Viewport size detection
-  - Pixel ratio handling
-  - Style value utilities
-- **Error Reporting** (LOW Priority):
-  - Optional error reporting service integration
-  - User-friendly error messages
-  - Error recovery suggestions
-  - Browser-specific error handling (CORS, network timeouts)
+- **ESM Support**: Full ES Modules (ESM) support throughout the SDK
 
 ### Changed
-- **Build System**: 
-  - Separate builds for browser and Node.js environments
-  - Universal JavaScript SDK (browser + Node.js compatible)
-- **Error Handling**: 
-  - Browser-specific error handling (CORS, network timeouts)
-  - Enhanced error context for browser environments
+- **Module System**: Migrated entire SDK from CommonJS to ES Modules (ESM)
+  - Updated `package.json` to set `"type": "module"`
+  - Converted all source files from `require()`/`module.exports` to `import`/`export`
+  - Updated all 23 example files to use ESM syntax
+  - Updated README.md with ESM code examples and usage notes
+  - All import paths now include `.js` extensions (ESM requirement)
+  - Updated `bin/monstera.js` and `scripts/postinstall.js` to use ESM
+  - SDK now requires ESM-compatible environment (Node.js 14+ with ESM support or a bundler)
+  - All `require()` statements must be replaced with `import` statements
+  - All `module.exports` must be replaced with `export` statements
+  - Import paths must include `.js` extensions
+  - Migration: Update your code to use ESM syntax:
+    ```javascript
+    // Before (CommonJS)
+    const { Monstera } = require('@monstera_protocol/sdk');
+    
+    // After (ESM)
+    import { Monstera } from '@monstera_protocol/sdk';
+    ```
 - **Documentation**: 
   - Added `CHANGELOG.md` to files array
-  - Browser usage examples and CDN documentation
-
-### Deprecated
-- (None planned yet - will be documented here when methods are deprecated)
 
 ### Removed
-- (None planned yet)
-
-### Fixed
-- (None planned yet)
-
-### Security
-- (None planned yet - security vulnerabilities will be documented here)
+- **CommonJS Support**: Removed CommonJS (`require`/`module.exports`) support - SDK is now ESM-only
 
 ## [1.0.0-alpha.2] - 2025-12-30
 
