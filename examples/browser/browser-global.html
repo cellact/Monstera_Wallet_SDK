@@ -15,10 +15,10 @@
   <!-- Queue stub for async loading (optional - for async script loading) -->
   <script>
     // This allows calling Monstera before the script loads
-    Monstera = Monstera || function() {
-      (Monstera.q = Monstera.q || []).push(arguments);
+    window.Monstera = window.Monstera || function() {
+      (window.Monstera.q = window.Monstera.q || []).push(arguments);
     };
-    Monstera.q = Monstera.q || [];
+    window.Monstera.q = window.Monstera.q || [];
   </script>
 
   <!-- Load Monstera SDK as IIFE global -->
