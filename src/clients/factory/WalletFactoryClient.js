@@ -16,7 +16,7 @@ import { WalletFactoryEvents } from '../../events/index.js';
 
 // Internal utilities
 import { generateMnemonic, deriveSeed } from '../../crypto/wallet.js';
-import { requireAddress, requireBytes } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireString } from '../../internal/assert.js';
 
 class WalletFactoryClient extends BaseContractClient {
   // ============================================================================
@@ -237,6 +237,57 @@ class WalletFactoryClient extends BaseContractClient {
 
     const authenticator = this._resolveAuthenticator(options.authenticator);
     const { mnemonic, seed } = this._prepareWalletCreation();
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+    
+    return this.executeWrite(
+      () => factory.createWallet(seed, authenticator, authConfig),
+      'create wallet',
+      {
+        ...options,
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.WalletCreated,
+          contract: factory
+        }],
+        extraData: { mnemonic },
+        factoryAddress: this.config.addresses.factory,
+        authenticator
+      }
+    );
+  }
+
+  /**
+   * Create a new HD Wallet from a provided mnemonic
+   * 
+   * Deploys complete wallet stack:
+   *      1. WalletStorage (holds keys, locked to KeyVault)
+   *      2. KeyVault (auth + signing, user-upgradeable)
+   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
+   * 
+   * @param {Object} options - Wallet creation options
+   * @param {String} [options.authenticator] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
+   * @param {String} options.mnemonic - Mnemonic phrase (BIP39)
+   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @throws {ValidationError} If authConfig is missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * 
+   * @example
+   * const result = await sdk.factory.createWalletFromMnemonic({
+   *   authConfig: passwordHash,
+   *   mnemonic: 'my mnemonic phrase'
+   * });
+   * console.log('Wallet created:', result.wallet);
+   * console.log('Mnemonic:', result.mnemonic); // Save this securely!
+   */
+  async createWalletFromMnemonic(options = {}) {
+    const { authConfig, mnemonic } = options;
+    requireBytes(authConfig, 'authConfig');
+    requireString(mnemonic, 'mnemonic');
+
+    const authenticator = this._resolveAuthenticator(options.authenticator);
+    const seed = deriveSeed(mnemonic);
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
     return this.executeWrite(
