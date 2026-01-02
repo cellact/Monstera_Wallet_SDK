@@ -102,7 +102,7 @@ export default [
       banner: '/* Monstera SDK - ESM Build */'
     },
     plugins: createPlugins(),
-    external: ['ethers', '@oasisprotocol/sapphire-ethers-v6', 'module', 'url', 'path']
+    external: ['ethers', 'module', 'url', 'path']
   },
   
   // IIFE global build for script-tag usage
@@ -115,8 +115,7 @@ export default [
       sourcemap: true,
       exports: 'named',
       globals: {
-        'ethers': 'ethers',
-        '@oasisprotocol/sapphire-ethers-v6': 'SapphireEthers'
+        'ethers': 'ethers'
       },
       banner: queueStub,
       footer: (() => {
@@ -149,7 +148,7 @@ if (typeof window !== 'undefined') {
       })()
     },
     plugins: createPlugins(),
-    external: ['ethers', '@oasisprotocol/sapphire-ethers-v6', 'module', 'url', 'path']
+    external: ['ethers', 'module', 'url', 'path']
   }
 ];
 
