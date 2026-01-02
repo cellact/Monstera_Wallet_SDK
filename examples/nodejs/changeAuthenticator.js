@@ -25,7 +25,7 @@ const PASSWORD = process.env.PASSWORD || "";
 const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0x9bf630Fa31bb2Bdd1c1720bf7AcF324281e6156E";
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

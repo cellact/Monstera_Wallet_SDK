@@ -14,7 +14,7 @@ async function networkSwitchingExample() {
   // Example 1: Testnet configuration
   console.log('1. Creating testnet SDK instance...');
   const testnetSdk = Monstera.connect({
-    network: 'testnet',
+    mainnet: false,
     signer: process.env.SIGNER_PRIVATE_KEY
   });
 
@@ -26,7 +26,7 @@ async function networkSwitchingExample() {
   // Example 2: Mainnet configuration
   console.log('2. Creating mainnet SDK instance...');
   const mainnetSdk = Monstera.connect({
-    network: 'mainnet',
+    mainnet: true,
     signer: process.env.SIGNER_PRIVATE_KEY
   });
 
@@ -38,7 +38,7 @@ async function networkSwitchingExample() {
   // Example 3: Custom RPC URL (for local development or custom endpoints)
   console.log('3. Creating SDK with custom RPC URL...');
   const customSdk = Monstera.connect({
-    network: 'testnet',
+    mainnet: false,
     rpcUrl: 'https://custom-rpc-endpoint.com', // Override default RPC
     signer: process.env.SIGNER_PRIVATE_KEY
   });

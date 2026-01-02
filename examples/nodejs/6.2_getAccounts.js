@@ -18,7 +18,7 @@ const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

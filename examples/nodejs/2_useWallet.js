@@ -34,7 +34,7 @@ const RPC_URL = process.env.RPC_URL || "";
 const CHAIN_ID = process.env.SAPPHIRE_CHAIN_ID || "";
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY,
   rpcUrl: RPC_URL,   // optional
   chainId: CHAIN_ID  // optional

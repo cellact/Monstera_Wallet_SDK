@@ -22,7 +22,7 @@ const PASSWORD = process.env.PASSWORD || "";
 const NEW_PASSWORD = process.env.NEW_PASSWORD || "";
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

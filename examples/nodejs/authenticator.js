@@ -27,7 +27,7 @@ async function main() {
 
   // Initialize SDK
   const sdk = Monstera.connect({
-    network: 'testnet', // or 'mainnet'
+    mainnet: false, // or true for mainnet
     signer: SIGNER_PRIVATE_KEY
   });
 

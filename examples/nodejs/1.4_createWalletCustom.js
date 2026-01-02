@@ -23,7 +23,7 @@ const PASSWORD = process.env.PASSWORD;
 const CUSTOM_LOGIC_IMPL = process.env.CUSTOM_LOGIC_IMPL || ""; // your custom wallet logic implementationcontract address; (must implement IWalletLogic)
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

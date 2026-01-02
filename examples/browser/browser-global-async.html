@@ -25,7 +25,7 @@
 
     // Call Monstera BEFORE the script loads (queued)
     console.log('Calling Monstera before script loads...');
-    Monstera('connect', { network: 'testnet', signer: '0x...' });
+    Monstera('connect', { mainnet: false, signer: '0x...' });
     console.log('Queue:', Monstera.q);
   </script>
 

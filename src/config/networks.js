@@ -49,34 +49,18 @@ const DEFAULT_ADDRESSES = {
 const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth'];
 
 /**
- * Validate network configuration
+ * Build network configuration from network name
  * 
  * @param {Object} config - Network configuration
- * @param {String} config.network - Network name ('testnet' or 'mainnet')
+ * @param {'testnet'|'mainnet'} config.network - Network name (guaranteed to be valid)
  * @param {String} config.rpcUrl - RPC URL (optional, uses default if not provided)
  * @param {Object} config.addresses - Contract addresses (optional)
- * @returns {Object} Validated network configuration
- * @throws {Error} If network is invalid
+ * @returns {Object} Network configuration object
  */
-function validateNetworkConfig(config) {
-  if (!config || !config.network) {
-    throw new ConfigError('Network configuration is required', 'network');
-  }
-
+function buildNetworkConfig(config) {
   const { network, rpcUrl, addresses } = config;
 
-  if (network !== 'testnet' && network !== 'mainnet') {
-    throw new ValidationError(
-      `Invalid network: ${network}. Must be 'testnet' or 'mainnet'`,
-      'network',
-      network
-    );
-  }
-
   const networkConfig = NETWORKS[network];
-  if (!networkConfig) {
-    throw new ConfigError(`Network configuration not found for: ${network}`, 'network');
-  }
 
   // Merge addresses with defaults
   const mergedAddresses = {
@@ -130,14 +114,20 @@ function validateAddresses(addresses, required) {
  * and returns a normalized config object used by the Monstera constructor.
  * 
  * @param {Object} options
+ * @param {Boolean} options.mainnet - true for mainnet, false for testnet
  * @throws {Error} If network or required addresses are invalid/missing.
  */
 function resolveBaseConfig(options) {
-  const { network, rpcUrl, addresses } = options || {};
+  const { mainnet, rpcUrl, addresses } = options || {};
 
-  if (!network) throw new ConfigError('Network is required. Use "testnet" or "mainnet"', 'network');
+  if (typeof mainnet !== 'boolean') {
+    throw new ConfigError('mainnet is required and must be a boolean (true for mainnet, false for testnet)', 'mainnet');
+  }
 
-  const networkConfig = validateNetworkConfig({ network, rpcUrl, addresses });
+  // Convert boolean to network string
+  const network = mainnet ? 'mainnet' : 'testnet';
+
+  const networkConfig = buildNetworkConfig({ network, rpcUrl, addresses });
 
   validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
 

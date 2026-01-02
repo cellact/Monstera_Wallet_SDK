@@ -39,7 +39,7 @@ The SDK provides multiple entry points via `package.json` exports:
   import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@6/dist/index.min.mjs';
   
   const sdk = Monstera.connect({
-    network: 'testnet',
+    mainnet: false,
     signer: 'your_private_key'
   });
 </script>
@@ -58,7 +58,7 @@ The SDK provides multiple entry points via `package.json` exports:
 
 <script>
   const sdk = window.Monstera.connect({
-    network: 'testnet',
+    mainnet: false,
     signer: 'your_private_key'
   });
   
@@ -91,7 +91,7 @@ The IIFE build (`monstera.global.js`) automatically includes a queue stub, so yo
   Monstera.q = Monstera.q || [];
   
   // Call Monstera before script loads (queued)
-  Monstera('connect', { network: 'testnet', signer: '0x...' });
+  Monstera('connect', { mainnet: false, signer: '0x...' });
 </script>
 
 <!-- Load SDK asynchronously -->
@@ -132,7 +132,7 @@ import { ethers } from 'ethers';
 
 // Create SDK instance for testnet (with signer for write operations)
 const sdk = Monstera.connect({
-  network: 'testnet', // or 'mainnet'
+  mainnet: false, // or true for mainnet
   signer: 'your_private_key' // Private key string or ethers Signer instance
 });
 
@@ -162,19 +162,19 @@ import { ethers } from 'ethers';
 
 // Testnet configuration (with signer for write operations)
 const testnetSdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: 'your_private_key' // Private key string or ethers Signer instance
 });
 
 // Mainnet configuration
 const mainnetSdk = Monstera.connect({
-  network: 'mainnet',
+  mainnet: true,
   signer: 'your_private_key' // Private key string or ethers Signer instance
 });
 
 // Read-only instance (no signer, read operations only)
 const readonlySdk = Monstera.readonly({
-  network: 'testnet'
+  mainnet: false
   // provider is optional - will use default RPC if not provided
 });
 
@@ -207,7 +207,7 @@ The SDK is organized into modular components:
 
 - **Read operations**: Use plain provider (no wrapper needed)
 - **Write operations**: Automatically use Sapphire-wrapped signer for encrypted transactions
-- **Network switching**: Single config parameter (`'testnet'` or `'mainnet'`)
+- **Network switching**: Single config parameter (`mainnet: true` for mainnet, `mainnet: false` for testnet)
 
 ## Configuration
 
@@ -233,7 +233,7 @@ You can override default contract addresses when creating the SDK:
 
 ```javascript
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: 'your_private_key', // Private key string or ethers Signer instance
   addresses: {
     factory: '0x...',               // Override factory address
@@ -251,14 +251,14 @@ Override the default RPC URL:
 
 ```javascript
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   rpcUrl: 'https://custom-rpc-endpoint.com',
   signer: 'your_private_key' // Private key string or ethers Signer instance
 });
 
 // Or with address overrides
 const sdkWithOverrides = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   rpcUrl: 'https://custom-rpc-endpoint.com',
   addresses: {
     factory: '0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a',
@@ -340,7 +340,7 @@ Main SDK class for wallet operations.
 Create an SDK instance with write capabilities (requires signer).
 
 **Parameters:**
-- `network` (required): `'testnet'` or `'mainnet'`
+- `mainnet` (required): `true` for mainnet, `false` for testnet
 - `signer` (required): Private key string (0x-prefixed hex) or ethers Signer instance
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
 - `addresses` (optional): Object with contract addresses to override defaults
@@ -352,7 +352,7 @@ Create an SDK instance with write capabilities (requires signer).
 Create a read-only SDK instance (no signer required).
 
 **Parameters:**
-- `network` (required): `'testnet'` or `'mainnet'`
+- `mainnet` (required): `true` for mainnet, `false` for testnet
 - `provider` (optional): ethers Provider instance (uses default RPC if not provided)
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
 - `addresses` (optional): Object with contract addresses to override defaults

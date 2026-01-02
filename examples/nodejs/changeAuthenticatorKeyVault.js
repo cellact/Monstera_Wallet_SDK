@@ -26,7 +26,7 @@ const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0x9b
 // const NEW_AUTHENTICATOR_ADDRESS = "0x579DAE1e43Aed272580AF19DD2D6a77A4a953338"; // old authenticator address
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

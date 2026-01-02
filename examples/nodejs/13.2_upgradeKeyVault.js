@@ -28,7 +28,7 @@ const PASSWORD = process.env.PASSWORD || "";
 const NEW_KEYVAULT_IMPL_ADDRESS = process.env.NEW_KEYVAULT_IMPL_ADDRESS || "";
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

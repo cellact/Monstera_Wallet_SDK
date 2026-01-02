@@ -40,7 +40,7 @@ const COUNTER_BYTECODE = process.env.COUNTER_BYTECODE || "0x60808060405234610016
 
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

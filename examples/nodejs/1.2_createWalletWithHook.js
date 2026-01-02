@@ -23,7 +23,7 @@ const PASSWORD = process.env.PASSWORD;
 const HOOK_ADDRESS = process.env.HOOK_ADDRESS || ""; // your hook contract address; hook Contract implementing IWalletCreationHook (or address(0) to skip)
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

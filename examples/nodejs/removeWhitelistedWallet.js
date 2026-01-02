@@ -29,7 +29,7 @@ const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY || "";
 const ALLOWED_2_KEY = process.env.ALLOWED_2_KEY || "";
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 

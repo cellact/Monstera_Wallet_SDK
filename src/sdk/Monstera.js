@@ -60,7 +60,7 @@ class Monstera {
    * Creates and configures an SDK client. Signer is required for write operations.
    * 
    * @param {Object} options
-   * @param {'testnet'|'mainnet'} options.network - Network to use
+   * @param {Boolean} options.mainnet - true for mainnet, false for testnet
    * @param {import('ethers').Signer | string} options.signer
    *        A Signer. If you pass a private key string, it must be a 0x-prefixed hex key.
    * @param {String} [options.rpcUrl] - Optional custom RPC URL (defaults to network preset).
@@ -93,7 +93,7 @@ class Monstera {
    * Creates and configures an SDK client. Provider supports read operations only.
    * 
    * @param {Object} options
-   * @param {'testnet'|'mainnet'} options.network - Network to use
+   * @param {Boolean} options.mainnet - true for mainnet, false for testnet
    * @param {import('ethers').Provider} options.provider - A Provider (optional)
    * @param {String} [options.rpcUrl] - Optional custom RPC URL (defaults to network preset).
    * @param {Object} [options.addresses] - Optional contract address overrides.

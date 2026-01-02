@@ -28,7 +28,7 @@ const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS || "";
 const NEW_LOGIC_ADDRESS = process.env.NEW_LOGIC_ADDRESS || "";
 
 const sdk = Monstera.connect({
-  network: 'testnet',
+  mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 
