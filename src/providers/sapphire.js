@@ -6,7 +6,9 @@
  */
 
 // Internal errors
-const { ConfigError, SapphireRequiredError, ValidationError } = require('../errors');
+import { ConfigError, SapphireRequiredError, ValidationError } from '../errors/index.js';
+import { ethers } from 'ethers';
+import { wrapEthersSigner } from '@oasisprotocol/sapphire-ethers-v6';
 
 /**
  * Create a provider for the given RPC URL
@@ -15,8 +17,6 @@ const { ConfigError, SapphireRequiredError, ValidationError } = require('../erro
  * @returns {Object} Ethers provider instance
  */
 function createProvider(rpcUrl) {
-  const { ethers } = require('ethers');
-  
   if (!rpcUrl) {
     throw new ConfigError('RPC URL is required', 'rpcUrl');
   }
@@ -32,7 +32,6 @@ function createProvider(rpcUrl) {
  */
 function wrapSigner(signer) {
   try {
-    const { wrapEthersSigner } = require('@oasisprotocol/sapphire-ethers-v6');
     return wrapEthersSigner(signer);
   } catch (error) {
     throw new SapphireRequiredError(
@@ -50,8 +49,6 @@ function wrapSigner(signer) {
  * @returns {Object} Wrapped signer for encrypted transactions
  */
 function createWriteSigner(providedSigner, rpcUrl) {
-  const { ethers } = require('ethers');
-  
   let signer;
   
   // If it's a string, treat it as a private key
@@ -78,7 +75,7 @@ function createWriteSigner(providedSigner, rpcUrl) {
   return wrapSigner(signer);
 }
 
-module.exports = {
+export {
   createProvider,
   wrapSigner,
   createWriteSigner,

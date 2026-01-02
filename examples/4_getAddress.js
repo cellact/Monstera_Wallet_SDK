@@ -8,8 +8,8 @@
  *   INDEX=0 (optional, defaults to 0)
  *   SIGNER_PRIVATE_KEY=0x... (required)
  */
-require('dotenv').config();
-const { Monstera } = require('../src/index');
+import 'dotenv/config';
+import { Monstera } from '../src/index.js';
 
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const INDEX = parseInt(process.env.INDEX || "0");

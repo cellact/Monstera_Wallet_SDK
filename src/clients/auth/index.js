@@ -4,11 +4,11 @@
  * Exports authenticator clients for authentication operations.
  */
 
-const AuthenticatorClient = require('./AuthenticatorClient');
-const WalletSignatureAuthenticatorClient = require('./WalletSignatureAuthenticatorClient');
-const PasswordAuthenticatorClient = require('./PasswordAuthenticatorClient');
+import AuthenticatorClient from './AuthenticatorClient.js';
+import WalletSignatureAuthenticatorClient from './WalletSignatureAuthenticatorClient.js';
+import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
 
-module.exports = {
+export {
   AuthenticatorClient,
   WalletSignatureAuthenticatorClient,
   PasswordAuthenticatorClient

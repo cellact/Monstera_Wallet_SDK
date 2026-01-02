@@ -6,16 +6,16 @@
  */
 
 // Internal base classes
-const BaseContractClient = require('../../base/BaseContractClient');
+import BaseContractClient from '../../base/BaseContractClient.js';
 
 // Internal contracts
-const { getPasswordAuthenticatorContract } = require('../../contracts/authenticators/PasswordAuthenticator');
+import { getPasswordAuthenticatorContract } from '../../contracts/authenticators/PasswordAuthenticator.js';
 
 // Internal events
-const { PasswordAuthenticatorEvents } = require('../../events');
+import { PasswordAuthenticatorEvents } from '../../events/index.js';
 
 // Internal utilities
-const { requireAddress, requireBytes } = require('../../internal/assert');
+import { requireAddress, requireBytes } from '../../internal/assert.js';
 
 class PasswordAuthenticatorClient extends BaseContractClient {
   // ============================================================================
@@ -167,4 +167,4 @@ class PasswordAuthenticatorClient extends BaseContractClient {
 
 }
 
-module.exports = PasswordAuthenticatorClient;
+export default PasswordAuthenticatorClient;

@@ -5,7 +5,7 @@
  * with default RPC URLs and contract addresses.
  */
 
-const { ConfigError, ValidationError } = require('../errors');
+import { ConfigError, ValidationError } from '../errors/index.js';
 
 /**
  * Network configuration presets
@@ -145,7 +145,7 @@ function resolveBaseConfig(options) {
 }
 
 
-module.exports = {
+export {
   NETWORKS,
   DEFAULT_ADDRESSES,
   REQUIRED_ADDRESSES,

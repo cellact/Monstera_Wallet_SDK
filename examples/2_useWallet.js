@@ -21,9 +21,9 @@
  * 7. Wrong password test
  */
 
-require('dotenv').config();
-const { Monstera } = require('../src/index');
-const { ethers, HDNodeWallet, Mnemonic } = require('ethers');
+import 'dotenv/config';
+import { Monstera } from '../src/index.js';
+import { ethers, HDNodeWallet, Mnemonic } from 'ethers';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";

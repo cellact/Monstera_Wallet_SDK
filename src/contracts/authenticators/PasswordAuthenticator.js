@@ -4,7 +4,8 @@
  * Typed contract getter for the PasswordAuthenticator contract
  */
 
-const { ConfigError } = require('../../errors');
+import { ConfigError } from '../../errors/index.js';
+import { ethers } from 'ethers';
 
 /**
  * Password authenticator contract ABI
@@ -145,8 +146,6 @@ const PASSWORD_AUTHENTICATOR_ABI = [
  * @returns {Object} Contract instance
  */
 function getPasswordAuthenticatorContract(signerOrProvider, passwordAuthenticatorAddress) {
-    const { ethers } = require('ethers');
-
     if (!passwordAuthenticatorAddress) {
         throw new ConfigError('Password authenticator address is required', 'passwordAuthenticatorAddress');
     }
@@ -154,7 +153,7 @@ function getPasswordAuthenticatorContract(signerOrProvider, passwordAuthenticato
     return new ethers.Contract(passwordAuthenticatorAddress, PASSWORD_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
-module.exports = {
+export {
     PASSWORD_AUTHENTICATOR_ABI,
     getPasswordAuthenticatorContract,
 };

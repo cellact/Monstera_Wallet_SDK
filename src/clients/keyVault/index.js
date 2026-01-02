@@ -4,6 +4,6 @@
  * Exports KeyVaultClient for key vault operations.
  */
 
-const KeyVaultClient = require('./KeyVaultClient');
+import KeyVaultClient from './KeyVaultClient.js';
 
-module.exports = KeyVaultClient;
+export default KeyVaultClient;

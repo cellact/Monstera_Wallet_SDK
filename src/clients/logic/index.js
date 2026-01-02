@@ -4,6 +4,6 @@
  * Exports WalletLogicClient for wallet logic operations.
  */
 
-const WalletLogicClient = require('./WalletLogicClient');
+import WalletLogicClient from './WalletLogicClient.js';
 
-module.exports = WalletLogicClient;
+export default WalletLogicClient;

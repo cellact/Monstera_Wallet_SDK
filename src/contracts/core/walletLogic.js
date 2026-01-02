@@ -4,7 +4,8 @@
  * Typed contract getter for the WalletLogic contract
  */
 
-const { ConfigError } = require('../../errors');
+import { ConfigError } from '../../errors/index.js';
+import { ethers } from 'ethers';
 
 /**
  * Wallet logic contract ABI
@@ -301,8 +302,6 @@ const WALLET_LOGIC_ABI = [
    * @returns {Object} Contract instance
    */
   function getWalletLogicContract(signerOrProvider, walletLogicAddress) {
-    const { ethers } = require('ethers');
-    
     if (!walletLogicAddress) {
       throw new ConfigError('Wallet logic address is required', 'walletLogicAddress');
     }
@@ -310,7 +309,7 @@ const WALLET_LOGIC_ABI = [
     return new ethers.Contract(walletLogicAddress, WALLET_LOGIC_ABI, signerOrProvider);
   }
 
-  module.exports = {
+  export {
     WALLET_LOGIC_ABI,
     getWalletLogicContract,
   };

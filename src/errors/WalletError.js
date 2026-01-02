@@ -195,7 +195,7 @@ class EventParseError extends WalletError {
     }
   }
 
-module.exports = {
+export {
   WalletError,
   ValidationError,
   ConfigError,

@@ -6,16 +6,16 @@
  */
 
 // Internal base classes
-const BaseContractClient = require('../../base/BaseContractClient');
+import BaseContractClient from '../../base/BaseContractClient.js';
 
 // Internal contracts
-const { getWalletSignatureAuthenticatorContract } = require('../../contracts/authenticators/WalletSignatureAuthenticator');
+import { getWalletSignatureAuthenticatorContract } from '../../contracts/authenticators/WalletSignatureAuthenticator.js';
 
 // Internal events
-const { WalletSignatureAuthenticatorEvents } = require('../../events');
+import { WalletSignatureAuthenticatorEvents } from '../../events/index.js';
 
 // Internal utilities
-const { requireAddress, requireBytes } = require('../../internal/assert');
+import { requireAddress, requireBytes } from '../../internal/assert.js';
 
 class WalletSignatureAuthenticatorClient extends BaseContractClient {
   // ============================================================================
@@ -263,4 +263,4 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
 
 }
 
-module.exports = WalletSignatureAuthenticatorClient;
+export default WalletSignatureAuthenticatorClient;

@@ -15,8 +15,8 @@
  * 3. Verify the new admin can access the wallet
  * 
  */
-require('dotenv').config();
-const { Monstera } = require('../src/index');
+import 'dotenv/config';
+import { Monstera } from '../src/index.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";

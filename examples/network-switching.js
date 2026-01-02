@@ -5,8 +5,8 @@
  * with the same SDK instance or create new instances.
  */
 
-require('dotenv').config();
-const { Monstera } = require('../src/index');
+import 'dotenv/config';
+import { Monstera } from '../src/index.js';
 
 async function networkSwitchingExample() {
   console.log('=== Network Switching Example ===\n');

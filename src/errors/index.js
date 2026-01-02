@@ -4,7 +4,7 @@
  * Central export point for all SDK error types
  */
 
-const {
+export {
   WalletError,
   ValidationError,
   ConfigError,
@@ -14,19 +14,5 @@ const {
   SapphireRequiredError,
   WriteRequiresSignerError,
   EventParseError
-} = require('./WalletError');
-
-
-module.exports = {
-  // Error classes
-  WalletError,
-  ValidationError,
-  ConfigError,
-  NetworkError,
-  ContractRevertError,
-  EventNotFoundError,
-  SapphireRequiredError,
-  WriteRequiresSignerError,
-  EventParseError
-};
+} from './WalletError.js';
 

@@ -3,14 +3,14 @@
  * 
  * Central registry for all contract events organized by contract
  */
-const WalletSignatureAuthenticatorEvents = require('./walletSignatureAuthenticator');
-const WalletFactoryEvents = require('./walletFactory');
-const PasswordAuthenticatorEvents = require('./passwordAuthenticator');
-const KeyVaultEvents = require('./keyVault');
+import WalletSignatureAuthenticatorEvents from './walletSignatureAuthenticator.js';
+import WalletFactoryEvents from './walletFactory.js';
+import PasswordAuthenticatorEvents from './passwordAuthenticator.js';
+import KeyVaultEvents from './keyVault.js';
 
-const { parseEventFromReceipt } = require('./decodeReceipt');
+import { parseEventFromReceipt } from './decodeReceipt.js';
 
-module.exports = {
+export {
   WalletSignatureAuthenticatorEvents,
   WalletFactoryEvents,
   PasswordAuthenticatorEvents,

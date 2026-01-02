@@ -4,7 +4,8 @@
  * Typed contract getter for the KeyVault contract
  */
 
-const { ConfigError } = require('../../errors');
+import { ConfigError } from '../../errors/index.js';
+import { ethers } from 'ethers';
 
 /**
  * KeyVault contract ABI
@@ -398,8 +399,6 @@ const KEYVAULT_ABI = [
  * @returns {Object} Contract instance
  */
 function getKeyVaultContract(signerOrProvider, keyVaultAddress) {
-    const { ethers } = require('ethers');
-    
     if (!keyVaultAddress) {
       throw new ConfigError('KeyVault address is required', 'keyVaultAddress');
     }
@@ -407,7 +406,7 @@ function getKeyVaultContract(signerOrProvider, keyVaultAddress) {
     return new ethers.Contract(keyVaultAddress, KEYVAULT_ABI, signerOrProvider);
 }
 
-module.exports = {
+export {
     KEYVAULT_ABI,
     getKeyVaultContract,
 };

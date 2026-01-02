@@ -6,11 +6,11 @@
  */
 
 // Internal clients
-const PasswordAuthenticatorClient = require('./PasswordAuthenticatorClient');
-const WalletSignatureAuthenticatorClient = require('./WalletSignatureAuthenticatorClient');
+import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
+import WalletSignatureAuthenticatorClient from './WalletSignatureAuthenticatorClient.js';
 
 // Internal errors
-const { ValidationError } = require('../../errors');
+import { ValidationError } from '../../errors/index.js';
 
 class AuthenticatorClient {
   // ============================================================================
@@ -68,5 +68,5 @@ class AuthenticatorClient {
   }
 }
 
-module.exports = AuthenticatorClient;
+export default AuthenticatorClient;
 

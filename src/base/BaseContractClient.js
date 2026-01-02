@@ -10,13 +10,13 @@
  */
 
 // Internal base classes
-const SapphireWriteWrapper = require('./SapphireWriteWrapper');
+import SapphireWriteWrapper from './SapphireWriteWrapper.js';
 
 // Internal utilities
-const { requireAddress } = require('../internal/assert');
+import { requireAddress } from '../internal/assert.js';
 
 // Internal errors
-const { WalletError, WriteRequiresSignerError } = require('../errors');
+import { WalletError, WriteRequiresSignerError } from '../errors/index.js';
 
 class BaseContractClient {
   // ============================================================================
@@ -218,4 +218,4 @@ class BaseContractClient {
 
 }
 
-module.exports = BaseContractClient;
+export default BaseContractClient;

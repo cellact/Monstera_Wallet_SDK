@@ -6,20 +6,29 @@
  */
 
 // Internal config
-const { DEFAULT_ADDRESSES, NETWORKS, REQUIRED_ADDRESSES, resolveBaseConfig } = require('../config/networks');
+import { DEFAULT_ADDRESSES, NETWORKS, REQUIRED_ADDRESSES, resolveBaseConfig } from '../config/networks.js';
 
 // Internal clients
-const WalletFactoryClient = require('../clients/factory');
-const WalletLogicClient = require('../clients/logic');
-const KeyVaultClient = require('../clients/keyVault');
-const { AuthenticatorClient } = require('../clients/auth');
+import WalletFactoryClient from '../clients/factory/index.js';
+import WalletLogicClient from '../clients/logic/index.js';
+import KeyVaultClient from '../clients/keyVault/index.js';
+import { AuthenticatorClient } from '../clients/auth/index.js';
 
 // Internal utilities
-const { createAuthProof } = require('../crypto/wallet');
-const { createProvider, createWriteSigner } = require('../providers/sapphire');
+import { createAuthProof } from '../crypto/wallet.js';
+import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 
 // Internal errors
-const { ValidationError } = require('../errors');
+import { ValidationError } from '../errors/index.js';
+
+// For reading package.json in ESM
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 
 /**
  * Monstera Wallet SDK
@@ -247,4 +256,4 @@ class Monstera {
 
 }
 
-module.exports = Monstera;
+export default Monstera;

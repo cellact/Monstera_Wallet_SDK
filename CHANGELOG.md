@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- This CHANGELOG file 
+- This CHANGELOG file
 - **Browser Support** (HIGH Priority):
   - UMD/IIFE bundle for direct `<script>` tag inclusion
   - ES modules (ESM) build for modern bundlers

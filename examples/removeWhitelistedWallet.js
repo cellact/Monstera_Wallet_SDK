@@ -17,9 +17,9 @@
  * 
  */
 
-require('dotenv').config();
-const { Monstera } = require('../src/index');
-const { ethers, Wallet } = require('ethers');
+import 'dotenv/config';
+import { Monstera } from '../src/index.js';
+import { ethers, Wallet } from 'ethers';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";

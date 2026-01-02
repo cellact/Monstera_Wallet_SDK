@@ -4,7 +4,7 @@
  * All event definitions for the PasswordAuthenticator contract
  */
 
-module.exports = {
+export default {
   PasswordChanged: {
     eventName: 'PasswordChanged',
     fieldMapping: {

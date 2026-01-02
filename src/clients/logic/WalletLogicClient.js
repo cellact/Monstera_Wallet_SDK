@@ -6,16 +6,16 @@
  */
 
 // Internal base classes
-const BaseContractClient = require('../../base/BaseContractClient');
+import BaseContractClient from '../../base/BaseContractClient.js';
 
 // Internal contracts
-const { getWalletLogicContract } = require('../../contracts/core/walletLogic');
+import { getWalletLogicContract } from '../../contracts/core/walletLogic.js';
 
 // Internal events
-const { KeyVaultEvents } = require('../../events');
+import { KeyVaultEvents } from '../../events/index.js';
 
 // Internal utilities
-const { requireAddress, requireBytes, requireNonNegativeInteger } = require('../../internal/assert');
+import { requireAddress, requireBytes, requireNonNegativeInteger } from '../../internal/assert.js';
 
 class WalletLogicClient extends BaseContractClient {
   // ============================================================================
@@ -345,4 +345,4 @@ class WalletLogicClient extends BaseContractClient {
   }
 }
 
-module.exports = WalletLogicClient;
+export default WalletLogicClient;

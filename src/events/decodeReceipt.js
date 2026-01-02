@@ -4,7 +4,7 @@
  * Generic event parsing logic for transaction receipts
  */
 
-const { ValidationError, EventParseError } = require('../errors');
+import { ValidationError, EventParseError } from '../errors/index.js';
 
 /**
  * Generic event parser
@@ -80,7 +80,7 @@ function parseEventFromReceipt(eventDef, receipt, contract) {
   return parseEvent(receipt, contract, eventDef.eventName, eventDef.fieldMapping);
 }
 
-module.exports = {
+export {
   parseEvent,
   parseEventFromReceipt
 };

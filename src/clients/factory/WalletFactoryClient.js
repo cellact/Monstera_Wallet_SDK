@@ -6,17 +6,17 @@
  */
 
 // Internal base classes
-const BaseContractClient = require('../../base/BaseContractClient');
+import BaseContractClient from '../../base/BaseContractClient.js';
 
 // Internal contracts
-const { getWalletFactoryContract } = require('../../contracts/core/walletFactory');
+import { getWalletFactoryContract } from '../../contracts/core/walletFactory.js';
 
 // Internal events
-const { WalletFactoryEvents } = require('../../events');
+import { WalletFactoryEvents } from '../../events/index.js';
 
 // Internal utilities
-const { generateMnemonic, deriveSeed } = require('../../crypto/wallet');
-const { requireAddress, requireBytes } = require('../../internal/assert');
+import { generateMnemonic, deriveSeed } from '../../crypto/wallet.js';
+import { requireAddress, requireBytes } from '../../internal/assert.js';
 
 class WalletFactoryClient extends BaseContractClient {
   // ============================================================================
@@ -457,4 +457,4 @@ class WalletFactoryClient extends BaseContractClient {
 
 }
 
-module.exports = WalletFactoryClient;
+export default WalletFactoryClient;

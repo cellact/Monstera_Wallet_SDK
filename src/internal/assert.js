@@ -5,7 +5,7 @@
  * These throw errors on validation failure.
  */
 
-const { ValidationError } = require('../errors');
+import { ValidationError } from '../errors/index.js';
 
 /**
  * Check if a value is a valid Ethereum address
@@ -151,7 +151,7 @@ function requirePositiveInteger(value, name = 'number') {
   requireNumber(value, name, { allowZero: false, allowNegative: false, requireInteger: true });
 }
 
-module.exports = {
+export {
   isAddress,
   requireAddress,
   requireBytes,

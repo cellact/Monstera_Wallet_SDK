@@ -13,14 +13,14 @@
  * on execution, receipt handling, and result normalization.
  */
 
-const { parseEventFromReceipt } = require('../events');
-const {
+import { parseEventFromReceipt } from '../events/index.js';
+import {
   WalletError,
   NetworkError,
   ContractRevertError,
   EventNotFoundError,
   WriteRequiresSignerError
-} = require('../errors');
+} from '../errors/index.js';
 
 class SapphireWriteWrapper {
   /**
@@ -142,4 +142,4 @@ class SapphireWriteWrapper {
   }
 }
 
-module.exports = SapphireWriteWrapper;
+export default SapphireWriteWrapper;

@@ -4,7 +4,7 @@
  * All event definitions for the KeyVault contract
  */
 
-module.exports = {
+export default {
   AuthenticatorChanged: {
     eventName: 'AuthenticatorChanged',
     fieldMapping: {

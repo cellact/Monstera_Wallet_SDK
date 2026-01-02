@@ -6,16 +6,16 @@
  */
 
 // Internal base classes
-const BaseContractClient = require('../../base/BaseContractClient');
+import BaseContractClient from '../../base/BaseContractClient.js';
 
 // Internal contracts
-const { getKeyVaultContract } = require('../../contracts/core/keyVault');
+import { getKeyVaultContract } from '../../contracts/core/keyVault.js';
 
 // Internal events
-const { KeyVaultEvents } = require('../../events');
+import { KeyVaultEvents } from '../../events/index.js';
 
 // Internal utilities
-const { requireAddress, requireBytes, requireNonNegativeInteger } = require('../../internal/assert');
+import { requireAddress, requireBytes, requireNonNegativeInteger } from '../../internal/assert.js';
 
 class KeyVaultClient extends BaseContractClient {
   // ============================================================================
@@ -344,4 +344,4 @@ class KeyVaultClient extends BaseContractClient {
   }
 }
 
-module.exports = KeyVaultClient;
+export default KeyVaultClient;

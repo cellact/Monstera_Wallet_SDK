@@ -3,7 +3,7 @@
   "version": "1.0.0-alpha.2",
   "description": "Monstera SDK - JavaScript SDK for wallet operations through smart contract interactions. Create and manage wallets via smart contracts with a simple, idiomatic API.",
   "main": "src/index.js",
-  "type": "commonjs",
+  "type": "module",
   "exports": {
     ".": "./src/index.js"
   },

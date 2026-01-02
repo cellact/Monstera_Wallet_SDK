@@ -4,7 +4,8 @@
  * Typed contract getter for the WalletFactory contract
  */
 
-const { ConfigError } = require('../../errors');
+import { ConfigError } from '../../errors/index.js';
+import { ethers } from 'ethers';
 
 /**
  * Factory contract ABI (minimal - only methods we use)
@@ -393,8 +394,6 @@ const WALLET_FACTORY_ABI = [
  * @returns {Object} Contract instance
  */
 function getWalletFactoryContract(signerOrProvider, walletFactoryAddress) {
-  const { ethers } = require('ethers');
-  
   if (!walletFactoryAddress) {
     throw new ConfigError('Wallet factory address is required', 'walletFactoryAddress');
   }
@@ -402,7 +401,7 @@ function getWalletFactoryContract(signerOrProvider, walletFactoryAddress) {
   return new ethers.Contract(walletFactoryAddress, WALLET_FACTORY_ABI, signerOrProvider);
 }
 
-module.exports = {
+export {
   WALLET_FACTORY_ABI,
   getWalletFactoryContract,
 };

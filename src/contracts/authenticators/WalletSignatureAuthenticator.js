@@ -4,7 +4,8 @@
  * Typed contract getter for the WalletSignatureAuthenticator contract
  */
 
-const { ConfigError } = require('../../errors');
+import { ConfigError } from '../../errors/index.js';
+import { ethers } from 'ethers';
 
 /**
  * Wallet signature authenticator contract ABI
@@ -385,8 +386,6 @@ const WALLET_SIGNATURE_AUTHENTICATOR_ABI = [
  * @returns {Object} Contract instance
  */
 function getWalletSignatureAuthenticatorContract(signerOrProvider, walletSignatureAuthenticatorAddress) {
-    const { ethers } = require('ethers');
-
     if (!walletSignatureAuthenticatorAddress) {
         throw new ConfigError('Wallet signature authenticator address is required', 'walletSignatureAuthenticatorAddress');
     }
@@ -395,7 +394,7 @@ function getWalletSignatureAuthenticatorContract(signerOrProvider, walletSignatu
 }
 
 
-module.exports = {
+export {
     WALLET_SIGNATURE_AUTHENTICATOR_ABI,
     getWalletSignatureAuthenticatorContract,
 };

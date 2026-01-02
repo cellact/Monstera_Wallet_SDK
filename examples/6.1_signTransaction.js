@@ -26,9 +26,9 @@
  *   COUNTER_BYTECODE=0x... (your counter contract bytecode)
  * 
  */
-require('dotenv').config();
-const { Monstera } = require('../src/index');
-const { ethers } = require("ethers");
+import 'dotenv/config';
+import { Monstera } from '../src/index.js';
+import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
 const SAPPHIRE_WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";

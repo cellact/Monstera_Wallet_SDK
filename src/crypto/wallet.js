@@ -5,14 +5,14 @@
  */
 
 // External libraries
-const crypto = require('crypto');
-const { ethers, HDNodeWallet, Wallet } = require('ethers');
+import crypto from 'crypto';
+import { ethers, HDNodeWallet, Wallet } from 'ethers';
 
 // Internal utilities
-const { requireAddress } = require('../internal/assert');
+import { requireAddress } from '../internal/assert.js';
 
 // Internal errors
-const { NetworkError, ValidationError, WalletError } = require('../errors');
+import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 
 /**
  * Generate a new mnemonic phrase
@@ -169,7 +169,7 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
   }
 }
 
-module.exports = {
+export {
   generateMnemonic,
   deriveSeed,
   hashPassword,

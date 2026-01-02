@@ -4,7 +4,7 @@
  * All event definitions for the WalletFactory contract
  */
 
-module.exports = {
+export default {
   WalletCreated: {
     eventName: 'WalletCreated',
     fieldMapping: {

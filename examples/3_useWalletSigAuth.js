@@ -17,9 +17,9 @@
  *   ALLOWED_2_KEY=0x... (private key for second allowed address)
  */
 
-require('dotenv').config();
-const { Monstera } = require('../src/index');
-const { ethers, Wallet } = require('ethers');
+import 'dotenv/config';
+import { Monstera } from '../src/index.js';
+import { ethers, Wallet } from 'ethers';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";

@@ -4,7 +4,7 @@
  * Exports WalletFactoryClient for wallet creation and factory administration.
  */
 
-const WalletFactoryClient = require('./WalletFactoryClient');
+import WalletFactoryClient from './WalletFactoryClient.js';
 
-module.exports = WalletFactoryClient;
+export default WalletFactoryClient;
 

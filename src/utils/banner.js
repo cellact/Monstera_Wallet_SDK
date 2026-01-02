@@ -28,7 +28,7 @@ function printBanner() {
   console.log(BANNER);
 }
 
-module.exports = {
+export {
   BANNER,
   printBanner
 };

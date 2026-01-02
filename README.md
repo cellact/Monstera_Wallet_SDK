@@ -20,6 +20,8 @@ A JavaScript SDK for interacting with wallet smart contracts on Oasis Sapphire. 
 npm install @monstera_protocol/sdk
 ```
 
+**Note:** This SDK uses ES Modules (ESM). Make sure your project supports ESM or use a bundler that handles ESM.
+
 ### Peer Dependencies
 
 Monstera requires either `ethers` or `web3` as a peer dependency:
@@ -39,8 +41,8 @@ npm install web3
 Contract addresses are **hardcoded** - no configuration needed! Just install and use:
 
 ```javascript
-const { Monstera } = require('@monstera_protocol/sdk');
-const { ethers } = require('ethers');
+import { Monstera } from '@monstera_protocol/sdk';
+import { ethers } from 'ethers';
 
 // Create SDK instance for testnet (with signer for write operations)
 const sdk = Monstera.connect({
@@ -69,8 +71,8 @@ createWallet();
 ### Network Switching
 
 ```javascript
-const { Monstera } = require('@monstera_protocol/sdk');
-const { ethers } = require('ethers');
+import { Monstera } from '@monstera_protocol/sdk';
+import { ethers } from 'ethers';
 
 // Testnet configuration (with signer for write operations)
 const testnetSdk = Monstera.connect({
@@ -226,6 +228,8 @@ export SIGNER_PRIVATE_KEY=0x...
 node examples/1_createHDWallet.js
 ```
 
+**Note:** Examples use ES Modules. Ensure you're using Node.js 14+ with ESM support, or use a bundler.
+
 ## API Reference
 
 ### Monstera
@@ -328,7 +332,7 @@ const walletSigAuth = sdk.auth.getClient('walletSignature');
 The SDK exports the following:
 
 ```javascript
-const {
+import {
   // Main SDK class (default export)
   Monstera,
   
@@ -342,7 +346,7 @@ const {
   EventParseError,
   SapphireRequiredError,
   WriteRequiresSignerError
-} = require('@monstera_protocol/sdk');
+} from '@monstera_protocol/sdk';
 
 // Access network presets and addresses via static properties
 const networks = Monstera.networks;
@@ -409,9 +413,11 @@ src/
 
 ### Requirements
 
-- Node.js >= 14.0.0
+- Node.js >= 14.0.0 (ESM support required)
 - ethers.js ^6.0.0
 - @oasisprotocol/sapphire-ethers-v6 ^6.0.1
+
+**Note:** This SDK uses ES Modules (ESM). Ensure your project is configured for ESM or use a bundler that supports ESM.
 
 ## License
 

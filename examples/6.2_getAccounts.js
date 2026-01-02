@@ -10,8 +10,8 @@
  *   WALLET_ADDRESS=0x... (your wallet address)
  * 
  */
-require('dotenv').config();
-const { Monstera } = require('../src/index');
+import 'dotenv/config';
+import { Monstera } from '../src/index.js';
 
 // ============ CONFIGURATION ============
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";

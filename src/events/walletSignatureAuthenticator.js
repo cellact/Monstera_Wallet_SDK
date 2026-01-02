@@ -4,7 +4,7 @@
  * All event definitions for the WalletSignatureAuthenticator contract
  */
 
-module.exports = {
+export default {
   AddressAdded: {
     eventName: 'AddressAdded',
     fieldMapping: {
