@@ -648,6 +648,202 @@ class Monstera {
     return this.auth.getAvailableTypes();
   }
 
+  // ============================================================================
+  // KeyVaultClient Method Delegation
+  // ============================================================================
+
+  /**
+   * Get the storage contract address holding the keys
+   * 
+   * @param {Object} options - Get storage address options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<String>} Storage contract address
+   * @throws {ValidationError} If keyVaultAddress is missing or invalid
+   */
+  async getKeyVaultStorageAddr(options = {}) {
+    return this.keyVault.getStorageAddr(options);
+  }
+
+  /**
+   * Get the authenticator contract address for a wallet 
+   * 
+   * @param {Object} options - Get authenticator options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<String>} Authenticator address
+   * @throws {ValidationError} If keyVaultAddress is missing or invalid
+   */
+  async getKeyVaultAuthenticator(options = {}) {
+    return this.keyVault.getAuthenticator(options);
+  }
+
+  /**
+   * Get the current KeyVaultImplementation contract address
+   * 
+   * @param {Object} options - Get implementation options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<String>} Implementation address
+   * @throws {ValidationError} If keyVaultAddress is missing or invalid
+   */
+  async getKeyVaultImplAddr(options = {}) {
+    return this.keyVault.getKeyVaultImplAddr(options);
+  }
+
+  /**
+   * Check if a given keyVault is initialized 
+   * 
+   * @param {Object} options - Check if keyVault is initialized options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<Boolean>} True if keyVault is initialized, false otherwise
+   * @throws {ValidationError} If keyVaultAddress is missing or invalid
+   */
+  async isKeyVaultInitialized(options = {}) {
+    return this.keyVault.isInitialized(options);
+  }
+
+  /**
+   * Get one of a wallet's account addresses for a given index
+   * 
+   * @param {Object} options - Get account address options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Number} options.index - Account index (uint32)
+   * @returns {Promise<String>} Account address
+   * @throws {ValidationError} If keyVaultAddress is missing or invalid, or if index is invalid
+   */
+  async keyVaultGetAccountAddress(options = {}) {
+    return this.keyVault.getAccountAddress(options);
+  }
+
+  /**
+   * Get multiple account addresses from a wallet for a given range of indexes
+   * 
+   * @param {Object} options - Get account addresses options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Number} options.fromIndex - From index (uint32)
+   * @param {Number} options.count - Count (uint32)
+   * @returns {Promise<Array<String>>} Array of account addresses
+   * @throws {ValidationError} If keyVaultAddress is missing or invalid, or if fromIndex/count are invalid
+   */
+  async keyVaultGetAccountAddresses(options = {}) {
+    return this.keyVault.getAccountAddresses(options);
+  }
+
+  /**
+   * Sign a raw transaction (authenticated function)
+   * 
+   * @param {Object} options - Sign transaction options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
+   * @param {Number|BigInt} options.index - Account index
+   * @param {Number|BigInt} options.nonce - Nonce
+   * @param {Number|BigInt} options.gasPrice - Gas price
+   * @param {Number|BigInt} options.gasLimit - Gas limit
+   * @param {String} options.to - To address
+   * @param {Number|BigInt} options.value - Value
+   * @param {Bytes} options.txData - Transaction data (bytes)
+   * @param {Number|BigInt} options.chainId - Chain ID
+   * @returns {Promise<String>} Signed transaction
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async keyVaultSignTransaction(options = {}) {
+    return this.keyVault.signTransaction(options);
+  }
+
+  /**
+   * Sign an EIP-191 message (authenticated function)
+   * 
+   * @param {Object} options - Sign message options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes)
+   * @param {Number|BigInt} options.index - Account index (uint32)
+   * @param {Bytes} options.message - Message to sign (bytes)
+   * @returns {Promise<Bytes>} Signed message (bytes)
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async keyVaultSignMessage(options = {}) {
+    return this.keyVault.signMessage(options);
+  }
+
+  /**
+   * Sign a 32-byte hash (authenticated function)
+   * 
+   * @param {Object} options - Sign hash options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes)
+   * @param {Number|BigInt} options.index - Account index (uint32)
+   * @param {Bytes32} options.hash - Hash to sign (bytes32)
+   * @returns {Promise<Bytes>} Signed hash (bytes)
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async keyVaultSign(options = {}) {
+    return this.keyVault.sign(options);
+  }
+
+  /**
+   * Execute a function with an auth proof (authenticated function)
+   * 
+   * @param {Object} options - Execute function options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes)
+   * @param {Bytes} options.implCall - Implementation call (bytes)
+   * @returns {Promise<Bytes>} Execute function result (bytes)
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async executeWithAuth(options = {}) {
+    return this.keyVault.executeWithAuth(options);
+  }
+
+  /**
+   * Initialize a KeyVault contract
+   * 
+   * @param {Object} options - Initialize key vault options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {String} options.storageAddr - WalletStorage contract address 
+   * @param {String} options.authAddr - Authenticator contract address
+   * @param {Bytes32} options.accessToken - Secret token for storage access (bytes32)
+   * @returns {Promise<Object>} Initialize key vault result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   */
+  async initializeKeyVault(options = {}) {
+    return this.keyVault.initialize(options);
+  }
+
+  /**
+   * Upgrade the keyVaultImplementation contract address (authenticated function)
+   * 
+   * @param {Object} options - Upgrade keyVaultImplementation options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes)
+   * @param {String} options.newImplAddr - New keyVaultImplementation contract address
+   * @returns {Promise<Object>} Upgrade keyVaultImplementation result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async keyVaultUpgradeKeyVaultImpl(options = {}) {
+    return this.keyVault.upgradeKeyVaultImpl(options);
+  }
+
+  /**
+   * Change the authenticator (Authenticated function)
+   * 
+   * @param {Object} options - Change authenticator options
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes)
+   * @param {String} options.newAuthenticatorAddr - New authenticator contract address
+   * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
+   * @returns {Promise<Object>} Change authenticator result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async changeKeyVaultAuthenticator(options = {}) {
+    return this.keyVault.changeAuthenticator(options);
+  }
+
   /**
    * Create an auth proof for a wallet
    * 

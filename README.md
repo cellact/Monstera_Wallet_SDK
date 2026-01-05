@@ -417,9 +417,9 @@ await sdk.logic.getAuthenticator({ walletAddress });
 await sdk.logic.getAccountAddress({ walletAddress, index });
 
 // KeyVault client - key vault operations and signing
-await sdk.keyVault.getStorageAddr({ keyVaultAddress });
-await sdk.keyVault.getAuthenticator({ keyVaultAddress });
-await sdk.keyVault.signTransaction({ keyVaultAddress, ... });
+await sdk.getStorageAddr({ keyVaultAddress });
+await sdk.getAuthenticator({ keyVaultAddress });
+await sdk.signTransaction({ keyVaultAddress, ... });
 
 // Auth client - authenticator management
 const passwordAuth = sdk.getClient('password');
