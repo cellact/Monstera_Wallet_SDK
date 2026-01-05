@@ -299,16 +299,15 @@ The SDK includes comprehensive Node.js examples in `examples/nodejs/`:
 
 **Authentication:**
 - **`authenticator.js`** - Authenticator operations
-- **`changePassword.js`** - Change wallet password
-- **`changeAuthenticator.js`** - Change authenticator (WalletLogic)
-- **`changeAuthenticatorKeyVault.js`** - Change authenticator (KeyVault)
+- **`updatePassword.js`** - Update wallet password
+- **`updateAuthenticator.js`** - Update authenticator
 - **`passwordAuthMethods.js`** - Password authenticator methods
 - **`walletSigAuth.js`** - Wallet signature authenticator methods
 - **`removeWhitelistedWallet.js`** - Remove from whitelist
 
 **Administration:**
-- **`5_ugradeToNewLogic.js`** - Upgrade wallet logic implementation
-- **`13.2_upgradeKeyVault.js`** - Upgrade KeyVault implementation
+- **`5_ugradeToNewLogic.js`** - Update wallet logic implementation
+- **`13.2_updateKeyVault.js`** - Update KeyVault implementation
 - **`transferAdmin.js`** - Transfer factory admin
 - **`factoryMethods.js`** - Factory contract methods
 - **`walletLogicMethods.js`** - Wallet logic contract methods
@@ -434,7 +433,7 @@ Create a wallet with a custom logic implementation.
 
 ```javascript
 // Check if SDK instance can perform write operations
-const canWrite = sdk.canWrite(); // boolean
+const hasWriteAccess = sdk.hasWriteAccess(); // boolean
 
 // Get the signer address (if available)
 const signerAddress = await sdk.getSignerAddr(); // string | null
@@ -466,7 +465,7 @@ await sdk.getWalletLogicImplAddr();
 await sdk.getKeyVaultAddr({ walletAddr });
 await sdk.getStorageAddr({ walletAddr });
 await sdk.getBeaconAddr();
-await sdk.upgradeWalletLogicImplAddr({ newLogicAddr });
+await sdk.updateWalletLogicImplAddr({ newLogicAddr });
 await sdk.transferAdmin({ newAdminAddr });
 
 // Logic client - wallet operations and account management
@@ -484,8 +483,8 @@ await sdk.signMessage({ keyVaultAddr, authProof, index, message });
 await sdk.sign({ keyVaultAddr, authProof, index, hash });
 await sdk.executeWithAuth({ keyVaultAddr, authProof, implCall });
 await sdk.initialize({ keyVaultAddr, storageAddr, authenticatorAddr, accessToken });
-await sdk.upgradeKeyVaultImplAddr({ keyVaultAddr, authProof, newImplAddr });
-await sdk.changeAuthenticatorAddr({ keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig });
+await sdk.updateKeyVaultImplAddr({ keyVaultAddr, authProof, newImplAddr });
+await sdk.updateAuthenticatorAddr({ keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig });
 
 // Auth client - authenticator management
 const passwordAuth = sdk.getAuthClient('password');

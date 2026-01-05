@@ -1,7 +1,7 @@
 /**
- * Change the authenticator of a wallet
+ * Update the authenticator of a wallet
  * 
- * Run: node examples/nodejs/changeAuthenticator.js
+ * Run: node examples/nodejs/updateAuthenticator.js
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -11,7 +11,7 @@
  * 
  * Tests:
  * 1. Get the current authenticator
- * 2. Change the authenticator to a new one
+ * 2. Update the authenticator to a new one
  * 3. Verify the new authenticator is used
  * 
  */
@@ -31,7 +31,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step X: Change Authenticator");
+  console.log("Step X: Update Authenticator");
   console.log("=".repeat(60));
 
   if (!WALLET_ADDRESS) {
@@ -75,12 +75,12 @@ async function main() {
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
 
-  // ============ STEP 2: Change Authenticator ============
+  // ============ STEP 2: Update Authenticator ============
   console.log("\n" + "=".repeat(60));
-  console.log("STEP 2: Change Authenticator");
+  console.log("STEP 2: Update Authenticator");
   console.log("=".repeat(60));
 
-  const result = await sdk.changeAuthenticatorAddr({
+  const result = await sdk.updateAuthenticatorAddr({
     keyVaultAddr: keyVault,
     authProof: authProof,
     newAuthenticatorAddr: NEW_AUTHENTICATOR_ADDRESS,
@@ -95,7 +95,7 @@ async function main() {
 
   // ============ STEP 3: Verify the new authenticator is used ============
   console.log("\n" + "=".repeat(60));
-  console.log("STEP 3: Change Authenticator is successful");
+  console.log("STEP 3: Update Authenticator is successful");
   console.log("=".repeat(60));
 
   const currentAuthenticator = await sdk.getAuthenticatorAddr({

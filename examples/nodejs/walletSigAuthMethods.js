@@ -159,7 +159,7 @@ async function main() {
     console.log(`   ✅ Auth proof created`);
 
     // Verify the signature
-    const isValid = await monstera.verifyWalletSignature({
+    const isValid = await monstera.isWalletSignatureValid({
       keyVaultAddr: result.keyVault,
       authProof: authProof
     });

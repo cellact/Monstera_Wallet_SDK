@@ -1,9 +1,9 @@
 /**
- * Step 13.2: Upgrade the keyVault implementation of a wallet
+ * Step 13.2: Update the keyVault implementation of a wallet
  * 
- * Run: node examples/nodejs/13.2_upgradeKeyVault.js
+ * Run: node examples/nodejs/13.2_updateKeyVault.js
  * 
- * This demonstrates that KeyVaultImplementation IS upgradeable!
+ * This demonstrates that KeyVaultImplementation IS updateable!
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -14,7 +14,7 @@
  * Tests:
  * 1. Get the current keyVault implementation
  * 2. Deploy a new keyVault implementation (this is not implemented here)
- * 3. Upgrade the keyVault implementation to a new one
+ * 3. Update the keyVault implementation to a new one
  * 4. Verify the new keyVaultImplementation contract is used
  * 
  */
@@ -34,7 +34,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step 13.2: Upgrade KeyVaultImplementation");
+  console.log("Step 13.2: Update KeyVaultImplementation");
   console.log("=".repeat(60));
 
   if (!WALLET_ADDRESS) {
@@ -67,17 +67,17 @@ async function main() {
 
   console.log("deployment not implemented here - Deploy new KeyVaultImplementation contract first and get the address");
 
-  // ============ STEP 3: Upgrade KeyVaultImplementation ============
+  // ============ STEP 3: Update KeyVaultImplementation ============
   console.log("\n" + "=".repeat(60));
-  console.log("STEP 3: Upgrade KeyVaultImplementation");
+  console.log("STEP 3: Update KeyVaultImplementation");
   console.log("=".repeat(60));
 
   // Prepare auth proof
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   try {
-    // upgrade KeyVaultImplementation
-    const result = await sdk.upgradeKeyVaultImplAddr({
+    // Update KeyVaultImplementation
+    const result = await sdk.updateKeyVaultImplAddr({
       keyVaultAddr: keyVaultAddr,
       authProof: authProof,
       newImplAddr: NEW_KEYVAULT_IMPL_ADDRESS
@@ -93,7 +93,7 @@ async function main() {
     console.log(`Match: ${currentKeyVaultImplAddr === newImplAddr}`);
 
   } catch (error) {
-    console.error("\n❌ Upgrade failed: ", error);
+    console.error("\n❌ Update failed: ", error);
     process.exit(1);
   }
 

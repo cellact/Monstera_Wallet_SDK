@@ -155,7 +155,7 @@ async function main() {
     console.log("   ✅ Verified existing wallets still work");
   }
   console.log("\n   ⚠️  IMPORTANT: The new admin now has control over");
-  console.log("      WalletFactory upgrades and admin transfers.");
+  console.log("      WalletFactory updates and admin transfers.");
   console.log("=".repeat(70));
 }
 

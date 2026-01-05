@@ -276,20 +276,20 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Change the authenticator (authenticated function)
+   * Update the authenticator (authenticated function)
    * 
-   * @param {Object} options - Change authenticator options
+   * @param {Object} options - Update authenticator options
    * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
    * @param {String} options.newAuthenticatorAddr - New authenticator contract address
    * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
-   * @returns {Promise<Object>} Change authenticator result
+   * @returns {Promise<Object>} Update authenticator result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async changeAuthenticatorAddr(options = {}) {
+  async updateAuthenticatorAddr(options = {}) {
     const { walletAddr, authProof, newAuthenticatorAddr, newAuthConfig } = options;
     requireBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
@@ -311,19 +311,19 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Upgrade the keyVaultImplementation (authenticated function)
+   * Update the keyVaultImplementation (authenticated function)
    * 
-   * @param {Object} options - Upgrade keyVault implementation options
+   * @param {Object} options - Update keyVault implementation options
    * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
    * @param {String} options.newImplAddr - New keyVault contract address
-   * @returns {Promise<Object>} Upgrade keyVaultImplementation result
+   * @returns {Promise<Object>} Update keyVaultImplementation result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async upgradeKeyVaultImplAddr(options = {}) {
+  async updateKeyVaultImplAddr(options = {}) {
     const { walletAddr, authProof, newImplAddr } = options;
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');

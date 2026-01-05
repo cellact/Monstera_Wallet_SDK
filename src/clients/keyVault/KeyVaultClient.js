@@ -305,19 +305,19 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Upgrade the keyVaultImplementation contract address (authenticated function)
+   * Update the keyVaultImplementation contract address (authenticated function)
    * 
-   * @param {Object} options - Upgrade keyVaultImplementation options
+   * @param {Object} options - Update keyVaultImplementation options
    * @param {String} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
    * @param {String} options.newImplAddr - New keyVaultImplementation contract address
-   * @returns {Promise<Object>} Upgrade keyVaultImplementation result
+   * @returns {Promise<Object>} Update keyVaultImplementation result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async upgradeKeyVaultImplAddr(options = {}) {
+  async updateKeyVaultImplAddr(options = {}) {
     const { keyVaultAddr, authProof, newImplAddr } = options;
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
@@ -338,20 +338,20 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Change the authenticator (Authenticated function)
+   * Update the authenticator (Authenticated function)
    * 
-   * @param {Object} options - Change authenticator options
+   * @param {Object} options - Update authenticator options
    * @param {String} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
    * @param {String} options.newAuthenticatorAddr - New authenticator contract address
    * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
-   * @returns {Promise<Object>} Change authenticator result
+   * @returns {Promise<Object>} Update authenticator result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async changeAuthenticatorAddr(options = {}) {
+  async updateAuthenticatorAddr(options = {}) {
     const { keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig } = options;
     requireBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');

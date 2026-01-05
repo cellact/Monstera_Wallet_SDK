@@ -59,7 +59,7 @@ async function main() {
   Wallet (BeaconProxy) ──► WalletLogic (orchestration)
   ${result.wallet}
       │
-      └──► KeyVault (auth + signing, YOU control upgrades)
+      └──► KeyVault (auth + signing, YOU control updates)
           ${result.keyVault}
               │
               ├──► PasswordAuthenticator (verifies your password)

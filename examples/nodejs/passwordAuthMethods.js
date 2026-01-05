@@ -79,7 +79,7 @@ async function main() {
   // prepare raw password bytes (utf8 encoded string)
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
-  const isValid = await sdk.verifyPassword({
+  const isValid = await sdk.isPasswordValid({
     keyVaultAddr: keyVault,
     authProof: authProof
   });

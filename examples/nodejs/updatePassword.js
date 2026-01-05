@@ -1,9 +1,9 @@
 /**
- * Step X: Change the password of a wallet
+ * Step X: Update the password of a wallet
  * 
- * Run: node examples/nodejs/changePassword.js
+ * Run: node examples/nodejs/updatePassword.js
  * 
- * This demonstrates that the password can be changed!
+ * This demonstrates that the password can be updated!
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -28,14 +28,14 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step X: Change Password");
+  console.log("Step X: Update Password");
   console.log("=".repeat(60));
 
   if (!WALLET_ADDRESS) {
     console.error("ERROR: Set WALLET_ADDRESS env var");
     process.exit(1);
   }
-  console.log("Changing password for wallet:", WALLET_ADDRESS);
+  console.log("Updating password for wallet:", WALLET_ADDRESS);
 
   // ============ Step 1: Check if wallet is configured ============
   console.log("\n" + "=".repeat(60));
@@ -60,15 +60,15 @@ async function main() {
   // Prepare auth proof
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
-  // ============ Step 2: Change password ============
+  // ============ Step 2: Update password ============
   console.log("\n" + "=".repeat(60));
-  console.log("Step 2: Change password");
+  console.log("Step 2: Update password");
   console.log("=".repeat(60));
 
   // Prepare new password hash
   const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes(NEW_PASSWORD));
 
-  const result = await sdk.changePassword({
+  const result = await sdk.updatePassword({
     keyVaultAddr: keyVault,
     currentPassword: authProof,
     newPasswordHash: newPasswordHash
@@ -117,7 +117,7 @@ async function main() {
   console.log("\n" + "=".repeat(60));
   console.log("SUMMARY");
   console.log("=".repeat(60));
-  console.log(`   Password Changed for Wallet Address: ${WALLET_ADDRESS}`);
+  console.log(`   Password Updated for Wallet Address: ${WALLET_ADDRESS}`);
   console.log("=".repeat(60));
 }
 

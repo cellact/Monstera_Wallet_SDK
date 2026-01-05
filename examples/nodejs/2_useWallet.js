@@ -194,8 +194,8 @@ async function main() {
   ───────────────────
   ✅ Private key NEVER leaves the Sapphire enclave
   ✅ Every signing operation requires authentication
-  ✅ Admin can upgrade WalletLogic but NOT access keys
-  ✅ YOU control KeyVault upgrades (not admin)
+  ✅ Admin can update WalletLogic but NOT access keys
+  ✅ YOU control KeyVault updates (not admin)
   `);
   console.log("=".repeat(60));
 }

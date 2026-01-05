@@ -90,19 +90,19 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Change the password of a wallet
+   * Update the password of a wallet
    * 
-   * @param {Object} options - Change password options
+   * @param {Object} options - Update password options
    * @param {String} options.keyVaultAddr - KeyVault address of the wallet
    * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
    * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
-   * @returns {Promise<Object>} Change password result
+   * @returns {Promise<Object>} Update password result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async changePassword(options = {}) {
+  async updatePassword(options = {}) {
     const { keyVaultAddr, currentPassword, newPasswordHash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(currentPassword, 'currentPassword');

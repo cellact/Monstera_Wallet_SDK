@@ -1,9 +1,9 @@
 /**
- * Step 5: Upgrade WalletLogic for all existing wallets (ADMIN ONLY)
+ * Step 5: Update WalletLogic for all existing wallets (ADMIN ONLY)
  * 
- * Run: node examples/nodejs/5_ugradeToNewLogic.js
+ * Run: node examples/nodejs/5_updateToNewLogic.js
  * 
- * This demonstrates ADMIN-controlled upgrades:
+ * This demonstrates ADMIN-controlled updates:
  * - Deploys new WalletLogic contract (needs to be done eslewhere first and get the address)
  * - Updates the beacon (all wallets use new logic instantly)
  * - Keys in WalletStorage remain untouched
@@ -15,7 +15,7 @@
  *   ADMIN_ADDRESS=0x... (your admin address)
  *   NEW_LOGIC_ADDRESS=0x... (your new wallet logic implementation contract address)
  * 
- * Note: This does NOT upgrade KeyVault (that's user-controlled)
+ * Note: This does NOT update KeyVault (that's user-controlled)
  * 
  */
 import 'dotenv/config';
@@ -23,7 +23,7 @@ import { Monstera } from '../../src/index.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || ""; // Optional: to verify upgrade
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS || ""; // Optional: to verify update
 const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS || "";
 const NEW_LOGIC_ADDRESS = process.env.NEW_LOGIC_ADDRESS || "";
 
@@ -34,7 +34,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(70));
-  console.log("Step 5: Upgrade WalletLogic (Admin)");
+  console.log("Step 5: Update WalletLogic (Admin)");
   console.log("=".repeat(70));
 
   // Verify caller is admin
@@ -59,18 +59,18 @@ async function main() {
 
   console.log("deployment not implemented here - Deploy new WalletLogic contract first and get the address");
 
-  // ============ STEP 2: Upgrade Beacon ============
+  // ============ STEP 2: Update Beacon ============
   console.log("\n" + "=".repeat(70));
-  console.log("STEP 2: Upgrade Beacon (affects all wallets)");
+  console.log("STEP 2: Update Beacon (affects all wallets)");
   console.log("=".repeat(70));
 
-  const result = await sdk.upgradeWalletLogicImplAddr({
+  const result = await sdk.updateWalletLogicImplAddr({
     newLogicAddr: NEW_LOGIC_ADDRESS
   });
   console.log(`   Transaction: ${result.transactionHash}`);
   console.log(`   Old Implementation: ${result.oldImpl}`);
   console.log(`   New Implementation: ${result.newImpl}`);
-  console.log("   ✅ Upgrade complete!");
+  console.log("   ✅ Update complete!");
 
   // Verify
   const currentImpl = await sdk.getWalletLogicImplAddr();
@@ -106,10 +106,10 @@ async function main() {
 
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(70));
-  console.log("ADMIN UPGRADE COMPLETE");
+  console.log("ADMIN UPDATE COMPLETE");
   console.log("=".repeat(70));
   console.log(`
-  What was upgraded:
+  What was updated:
   ─────────────────
   ✅ WalletLogic (orchestration layer)
      Old: ${result.oldImpl}

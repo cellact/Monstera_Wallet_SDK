@@ -185,7 +185,7 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Get the beacon address for a wallet 
    * 
-   * The beacon controlling WalletLogic upgrades
+   * The beacon controlling WalletLogic updates
    * 
    * @param {Object} [options={}] - Options object
    * @returns {Promise<String>} Beacon address
@@ -212,8 +212,8 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * Deploys complete wallet stack:
    *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-upgradeable)
-   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
+   *      2. KeyVault (auth + signing, user-updateable)
+   *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
    * @param {Object} options - Wallet creation options
    * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
@@ -254,8 +254,8 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * Deploys complete wallet stack:
    *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-upgradeable)
-   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
+   *      2. KeyVault (auth + signing, user-updateable)
+   *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
    * @param {Object} options - Wallet creation options
    * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
@@ -298,8 +298,8 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * Deploys complete wallet stack:
    *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-upgradeable)
-   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
+   *      2. KeyVault (auth + signing, user-updateable)
+   *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
    * The hook is called after the wallet is created.
    * The hook contract must implement IWalletCreationHook interface.
@@ -393,7 +393,7 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * Deploys a minimal proxy (clone) of the customLogicImpl.
    * Unlike default BeaconProxy wallets:
-   * - Custom logic wallets are NOT affected by admin beacon upgrades
+   * - Custom logic wallets are NOT affected by admin beacon updates
    * - Each wallet gets its own independent clone
    * 
    * @param {Object} options - Wallet creation options
@@ -434,19 +434,19 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Upgrade the WalletLogic implementation for all wallets (Admin function)
+   * Update the WalletLogic implementation for all wallets (Admin function)
    * 
-   * This upgrades the orchestration layer, not the key security.
+   * This updates the orchestration layer, not the key security.
    * 
-   * @param {Object} options - Upgrade logic options
+   * @param {Object} options - Update logic options
    * @param {String} options.newLogicAddr - New walletLogic contract address
-   * @returns {Promise<Object>} Upgrade logic result
+   * @returns {Promise<Object>} Update logic result
    * @throws {ValidationError} If newLogicAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async upgradeWalletLogicImplAddr(options = {}) {
+  async updateWalletLogicImplAddr(options = {}) {
     const { newLogicAddr } = options;
     requireAddress(newLogicAddr, 'newLogicAddr');
 
@@ -454,7 +454,7 @@ class WalletFactoryClient extends BaseContractClient {
 
     return this.executeWrite(
       () => factory.upgradeLogic(newLogicAddr),
-      'upgrade wallet logic',
+      'update wallet logic',
       {
         ...options,
         parseEvents: [{

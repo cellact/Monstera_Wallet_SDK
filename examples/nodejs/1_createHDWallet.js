@@ -8,8 +8,8 @@
  * 
  * This creates:
  *   - WalletStorage (holds private keys, locked to KeyVault)
- *   - KeyVault (auth + signing, user-upgradeable)
- *   - Wallet (BeaconProxy to WalletLogic, admin-upgradeable)
+ *   - KeyVault (auth + signing, user-updateable)
+ *   - Wallet (BeaconProxy to WalletLogic, admin-updateable)
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
@@ -42,9 +42,9 @@ async function main() {
   console.log(`   Contract addresses 1: ${JSON.stringify(contractAddresses1, null, 2)}`);
 
   // Check if SDK instance can perform write operations
-  const canWrite = sdk.canWrite();
-  console.log(`   Can write: ${canWrite}`);
-  if (!canWrite) {
+  const hasWriteAccess = sdk.hasWriteAccess();
+  console.log(`   Can write: ${hasWriteAccess}`);
+  if (!hasWriteAccess) {
     console.error("❌ ERROR: SDK instance cannot perform write operations");
     process.exit(1);
   }
@@ -87,7 +87,7 @@ async function main() {
   Wallet (BeaconProxy) ──► WalletLogic (orchestration)
   ${result.wallet}
       │
-      └──► KeyVault (auth + signing, YOU control upgrades)
+      └──► KeyVault (auth + signing, YOU control updates)
           ${result.keyVault}
               │
               ├──► PasswordAuthenticator (verifies your password)

@@ -213,7 +213,7 @@ class Monstera {
    * Check if SDK instance can perform write operations
    * @returns {Boolean}
    */
-  canWrite() {
+  hasWriteAccess() {
     return this.writeSigner !== null;
   }
 
@@ -363,8 +363,8 @@ class Monstera {
    * 
    * Deploys complete wallet stack:
    *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-upgradeable)
-   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
+   *      2. KeyVault (auth + signing, user-updateable)
+   *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
    * @param {Object} options - Wallet creation options
    * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
@@ -384,8 +384,8 @@ class Monstera {
    * 
    * Deploys complete wallet stack:
    *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-upgradeable)
-   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
+   *      2. KeyVault (auth + signing, user-updateable)
+   *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
    * @param {Object} options - Wallet creation options
    * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
@@ -406,8 +406,8 @@ class Monstera {
    * 
    * Deploys complete wallet stack:
    *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-upgradeable)
-   *      3. WalletLogic proxy (orchestration, admin-upgradeable)
+   *      2. KeyVault (auth + signing, user-updateable)
+   *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
    * The hook is called after the wallet is created.
    * The hook contract must implement IWalletCreationHook interface.
@@ -459,7 +459,7 @@ class Monstera {
    * 
    * Deploys a minimal proxy (clone) of the customLogicImpl.
    * Unlike default BeaconProxy wallets:
-   * - Custom logic wallets are NOT affected by admin beacon upgrades
+   * - Custom logic wallets are NOT affected by admin beacon updates
    * - Each wallet gets its own independent clone
    * 
    * @param {Object} options - Wallet creation options
@@ -542,7 +542,7 @@ class Monstera {
   /**
    * Get the beacon address for a wallet 
    * 
-   * The beacon controlling WalletLogic upgrades
+   * The beacon controlling WalletLogic updates
    * 
    * @param {Object} [options={}] - Options object
    * @returns {Promise<String>} Beacon address
@@ -718,7 +718,7 @@ class Monstera {
    * @returns {Promise<Boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
-  async verifyPassword(options = {}) {
+  async isPasswordValid(options = {}) {
     return this.auth.password.verify(options);
   }
 
@@ -778,7 +778,7 @@ class Monstera {
    * @returns {Promise<Boolean>} True if signature is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
-  async verifyWalletSignature(options = {}) {
+  async isWalletSignatureValid(options = {}) {
     return this.auth.walletSignature.verify(options);
   }
 
@@ -789,20 +789,20 @@ class Monstera {
   // --- Factory Writes ---
 
   /**
-   * Upgrade the WalletLogic implementation for all wallets (Admin function)
+   * Update the WalletLogic implementation for all wallets (Admin function)
    * 
-   * This upgrades the orchestration layer, not the key security.
+   * This updates the orchestration layer, not the key security.
    * 
-   * @param {Object} options - Upgrade logic options
+   * @param {Object} options - Update logic options
    * @param {String} options.newLogicAddr - New walletLogic contract address
-   * @returns {Promise<Object>} Upgrade logic result
+   * @returns {Promise<Object>} Update logic result
    * @throws {ValidationError} If newLogicAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async upgradeWalletLogicImplAddr(options = {}) {
-    return this.factory.upgradeWalletLogicImplAddr(options);
+  async updateWalletLogicImplAddr(options = {}) {
+    return this.factory.updateWalletLogicImplAddr(options);
   }
 
   /**
@@ -822,57 +822,57 @@ class Monstera {
   // --- KeyVault Writes ---
 
   /**
-   * Upgrade the keyVaultImplementation contract address (authenticated function)
+   * Update the keyVaultImplementation contract address (authenticated function)
    * 
-   * @param {Object} options - Upgrade keyVaultImplementation options
+   * @param {Object} options - Update keyVaultImplementation options
    * @param {String} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
    * @param {String} options.newImplAddr - New keyVaultImplementation contract address
-   * @returns {Promise<Object>} Upgrade keyVaultImplementation result
+   * @returns {Promise<Object>} Update keyVaultImplementation result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async upgradeKeyVaultImplAddr(options = {}) {
-    return this.keyVault.upgradeKeyVaultImplAddr(options);
+  async updateKeyVaultImplAddr(options = {}) {
+    return this.keyVault.updateKeyVaultImplAddr(options);
   }
 
   /**
-   * Change the authenticator contract address (Authenticated function)
+   * Update the authenticator contract address (Authenticated function)
    * 
-   * @param {Object} options - Change authenticator options
+   * @param {Object} options - Update authenticator options
    * @param {String} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
    * @param {String} options.newAuthenticatorAddr - New authenticator contract address
    * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
-   * @returns {Promise<Object>} Change authenticator result
+   * @returns {Promise<Object>} Update authenticator result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async changeAuthenticatorAddr(options = {}) {
-    return this.keyVault.changeAuthenticatorAddr(options);
+  async updateAuthenticatorAddr(options = {}) {
+    return this.keyVault.updateAuthenticatorAddr(options);
   }
 
   // --- Auth Writes ---
 
   /**
-   * Change the password of a wallet
+   * Update the password of a wallet
    * 
-   * @param {Object} options - Change password options
+   * @param {Object} options - Update password options
    * @param {String} options.keyVaultAddr - KeyVault address of the wallet
    * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
    * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
-   * @returns {Promise<Object>} Change password result
+   * @returns {Promise<Object>} Update password result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async changePassword(options = {}) {
-    return this.auth.password.changePassword(options);
+  async updatePassword(options = {}) {
+    return this.auth.password.updatePassword(options);
   }
 
   /**
