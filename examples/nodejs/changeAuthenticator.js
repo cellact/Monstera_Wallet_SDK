@@ -58,9 +58,6 @@ async function main() {
   console.log(`      └── Auth:   ${oldAuthenticator}`);
 
   // check if wallet is initilized 
-  // const isInitialized = await sdk.isWalletLogicInitialized({
-  //   walletAddr: WALLET_ADDRESS
-  // });
   const isInitialized = await sdk.isInitialized({
     keyVaultAddr: keyVault
   });
@@ -101,9 +98,6 @@ async function main() {
   console.log("STEP 3: Change Authenticator is successful");
   console.log("=".repeat(60));
 
-  // const currentAuthenticator = await sdk.getWalletLogicAuthenticator({
-  //   walletAddr: WALLET_ADDRESS
-  // });
   const currentAuthenticator = await sdk.getAuthenticatorAddr({
     keyVaultAddr: keyVault
   });

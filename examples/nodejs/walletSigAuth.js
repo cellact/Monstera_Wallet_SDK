@@ -11,7 +11,7 @@
  * Tests:
  * 1. create a wallet with a whitelist
  * 2. check if a wallet is configured
- * 3. get the EIP-712 domain seperator
+ * 3. get the EIP-712 domain separator
  * 4. configure the wallet signature authenticator
  * 5. verify a signature
  */
@@ -34,7 +34,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(70));
-  console.log("Step X: Remove Whitelisted Wallet");
+  console.log("Step X: WalletSignatureAuthenticator Test Suite");
   console.log("=".repeat(70));
 
   if (!ALLOWED_1_KEY || !ALLOWED_2_KEY) {
@@ -84,9 +84,9 @@ async function main() {
     process.exit(1);
   }
 
-  // ============ STEP 3: Get the EIP-712 domain seperator ============
+  // ============ STEP 3: Get the EIP-712 domain separator ============
   console.log("\n" + "=".repeat(70));
-  console.log("STEP 3: Get the EIP-712 domain seperator");
+  console.log("STEP 3: Get the EIP-712 domain separator");
   console.log("=".repeat(70));
 
   const domainSeparator = await sdk.getDomainSeparator();
@@ -101,7 +101,7 @@ async function main() {
   console.log("STEP 4: Configure the wallet signature authenticator");
   console.log("=".repeat(70));
 
-  const configResult = await sdk.configure({
+  const configResult = await sdk.configureWalletSignature({
     keyVaultAddr: result.keyVault,
     authConfig: authConfig
   });

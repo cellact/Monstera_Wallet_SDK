@@ -1,5 +1,5 @@
 /**
- * Test WalletFactory methods
+ * Test WalletLogic methods
  * 
  * Run: node examples/nodejs/walletLogicMethods.js
  * 
@@ -24,7 +24,7 @@ const NEW_KEYVAULT_ADDRESS = process.env.NEW_KEYVAULT_ADDRESS;
 
 async function main() {
   console.log("=".repeat(70));
-  console.log("WalletFactory - Full Test Suite");
+  console.log("WalletLogic - Full Test Suite");
   console.log("=".repeat(70));
 
   // Initialize SDK
@@ -43,7 +43,7 @@ async function main() {
 
   try {
     // Get keyVault contract address for a wallet
-    const result = await sdk.getKeyVaultAddr({
+    const result = await sdk.logic.getKeyVaultAddr({
       walletAddr: WALLET_ADDRESS
     });
 

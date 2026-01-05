@@ -314,7 +314,7 @@ async function main() {
     index: 0,
     message: ethers.toUtf8Bytes(message)
   });
-  console.log(`   Signatur (signed message): ${signature}`);
+  console.log(`   Signature (signed message): ${signature}`);
   if (!signature) {
     console.error("❌ ERROR: Failed to sign message");
     process.exit(1);

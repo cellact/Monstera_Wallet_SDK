@@ -61,7 +61,7 @@ async function main() {
   // prepare password hash (keccak256 of password)
   const authConfig = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
 
-  const result = await sdk.configure({
+  const result = await sdk.configurePassword({
     keyVaultAddr: keyVault,
     authConfig: authConfig
   });

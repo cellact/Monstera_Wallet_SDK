@@ -161,7 +161,7 @@ class KeyVaultClient extends BaseContractClient {
    * Sign a raw transaction (authenticated function)
    * 
    * @param {Object} options - Sign transaction options
-   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {String} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
    * @param {Number|BigInt} options.index - Account index
    * @param {Number|BigInt} options.nonce - Nonce
