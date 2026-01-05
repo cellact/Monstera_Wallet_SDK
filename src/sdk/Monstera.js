@@ -206,7 +206,7 @@ class Monstera {
   get provider() { return this.config.provider; }
 
   // ============================================================================
-  // Instance Methods
+  // Utility Methods
   // ============================================================================
 
   /**
@@ -226,77 +226,137 @@ class Monstera {
     return await this.writeSigner.getAddress();
   }
 
+  /**
+   * Get a specific authenticator client by type
+   * 
+   * @param {String} type - Authenticator type ('walletSignature', 'password', etc.)
+   * @returns {Object} Authenticator client instance
+   * @throws {ValidationError} If authenticator type is not found
+   */
+  getAuthClient(type) {
+    return this.auth.getClient(type);
+  }
+
+  /**
+   * Get all registered authenticator types
+   * 
+   * @returns {Array<String>} Array of authenticator type names
+   */
+  getAvailableAuthTypes() {
+    return this.auth.getAvailableTypes();
+  }
+
+  /**
+   * Create an auth proof for a wallet
+   * 
+   * @param {Object} options - Create auth proof options
+   * @param {Object} options.signer - Signer (Wallet or HDNodeWallet) trying to authenticate
+   * @param {String} options.keyVaultAddr - KeyVault address of the wallet trying to authenticate
+   * @param {String} options.authenticatorAddr - Wallet signature authenticator contract address (optional, defaults to the one in the config)
+   * @param {Number} options.deadline - Deadline for the auth proof (optional, defaults to 1h from now)
+   * @param {String} options.chainId - Chain ID (optional, defaults to the one in the config)
+   * @returns {Promise<String>} Auth proof (bytes)
+   */
+  async createAuthProof(options = {}) {
+    const { signer, keyVaultAddr } = options;
+    let { authenticatorAddr, deadline, chainId } = options;
+
+    // Set default authenticator if not provided
+    if (!authenticatorAddr) {
+      authenticatorAddr = this.config.addresses.walletSignatureAuth;
+    }
+
+    // Set deadline default if not provided
+    if (!deadline) {
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      deadline = nowInSeconds + 3600; // 1 hour from now
+    }
+
+    // Set chainId default if not provided
+    if (!chainId) {
+      chainId = this.config.chainId;
+    }
+
+    const authProof = await createAuthProof(signer, chainId, authenticatorAddr, deadline, keyVaultAddr);
+
+    return authProof;
+  }
+
   // ============================================================================
-  // WalletFactoryClient Method Delegation
+  // Initialize Methods (Write)
   // ============================================================================
 
   /**
-   * Check if an address is a wallet created by this factory
+   * Initialize a KeyVault contract
    * 
-   * @param {Object} options - Is wallet options
-   * @param {String} options.walletAddr - Wallet address to check
-   * @returns {Promise<Boolean>} True if address is a wallet created by this factory, false otherwise
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @param {Object} options - Initialize key vault options
+   * @param {String} options.keyVaultAddr - KeyVault contract address 
+   * @param {String} options.storageAddr - WalletStorage contract address 
+   * @param {String} options.authenticatorAddr - Authenticator contract address
+   * @param {Bytes32} options.accessToken - Secret token for storage access (bytes32)
+   * @returns {Promise<Object>} Initialize key vault result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
    */
-  async isWallet(options = {}) {
-    return this.factory.isWallet(options);
+  async initialize(options = {}) {
+    return this.keyVault.initialize(options);
   }
 
   /**
-   * Get the admin address
+   * Initialize a wallet logic with a new keyVault 
    * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Admin address
-   */
-  async getAdmin(options = {}) {
-    return this.factory.getAdmin(options);
-  }
-
-  /**
-   * Get current WalletLogic implementation (current walletLogic contract address)
-   * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Current WalletLogic implementation
-   */
-  async getWalletLogicImplAddr(options = {}) {
-    return this.factory.getWalletLogicImplAddr(options);
-  }
-
-  /**
-   * Get the keyVault contract address for a wallet
-   * 
-   * @param {Object} options - KeyVault options
+   * @param {Object} options - Initialize wallet logic options
    * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} KeyVault contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @param {String} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<Object>} Initialize wallet logic result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
    */
-  async getKeyVaultAddr(options = {}) {
-    return this.factory.getKeyVaultAddr(options);
+  async initializeWalletLogic(options = {}) {
+    return this.logic.initialize(options);
+  }
+
+  // ============================================================================
+  // Configure Methods (Write)
+  // ============================================================================
+
+  /**
+   * Configure password
+   * 
+   * @param {Object} options - Configure password options
+   * @param {String} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the password hash (keccak256 of password)
+   * @returns {Promise<Object>} Configure wallet result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async configurePassword(options = {}) {
+    return this.auth.password.configure(options);
   }
 
   /**
-   * Get the storage contract address for a wallet
+   * Configure the wallet signature authenticator
    * 
-   * @param {Object} options - Storage options
-   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} Storage contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @param {Object} options - Configure options
+   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the whitelist addresses 
+   * @returns {Promise<Object>} Configure wallet result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async getStorageAddr(options = {}) {
-    return this.factory.getStorageAddr(options);
+  async configureWalletSignature(options = {}) {
+    return this.auth.walletSignature.configure(options);
   }
 
-  /**
-   * Get the beacon address for a wallet 
-   * 
-   * The beacon controlling WalletLogic upgrades
-   * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Beacon address
-   */
-  async getBeaconAddr(options = {}) {
-    return this.factory.getBeaconAddr(options);
-  }
+  // ============================================================================
+  // Create Methods (Write)
+  // ============================================================================
 
   /**
    * Create a new HD Wallet
@@ -417,240 +477,81 @@ class Monstera {
     return this.factory.createWalletWithCustomLogic(options);
   }
 
-  /**
-   * Upgrade the WalletLogic implementation for all wallets (Admin function)
-   * 
-   * This upgrades the orchestration layer, not the key security.
-   * 
-   * @param {Object} options - Upgrade logic options
-   * @param {String} options.newLogicAddr - New walletLogic contract address
-   * @returns {Promise<Object>} Upgrade logic result
-   * @throws {ValidationError} If newLogicAddr is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
-   */
-  async upgradeWalletLogicImplAddr(options = {}) {
-    return this.factory.upgradeWalletLogicImplAddr(options);
-  }
-
-  /**
-   * Transfer admin ownership role to a new address (Admin function)
-   * 
-   * @param {Object} options - Transfer admin options
-   * @param {String} options.newAdminAddr - New admin address
-   * @returns {Promise<Object>} Transfer admin result
-   * @throws {ValidationError} If newAdminAddr is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   */
-  async transferAdmin(options = {}) {
-    return this.factory.transferAdmin(options);
-  }
-
   // ============================================================================
-  // PasswordAuthenticatorClient Method Delegation
+  // Read Methods
   // ============================================================================
 
+  // --- Factory Reads ---
+
   /**
-   * Check if a wallet is configured
+   * Check if an address is a wallet created by this factory
    * 
-   * @param {Object} options - Check if wallet is configured options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @param {Object} options - Is wallet options
+   * @param {String} options.walletAddr - Wallet address to check
+   * @returns {Promise<Boolean>} True if address is a wallet created by this factory, false otherwise
+   * @throws {ValidationError} If walletAddr is missing or invalid
    */
-  async isPasswordConfigured(options = {}) {
-    return this.auth.password.isConfigured(options);
+  async isWallet(options = {}) {
+    return this.factory.isWallet(options);
   }
 
   /**
-   * Verify password
-   * 
-   * @param {Object} options - Verify password options
-   * @param {String} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - The raw password bytes (utf8 encoded string)
-   * @returns {Promise<Boolean>} True if password is valid, false otherwise
-   * @throws {ValidationError} If required parameters are missing or invalid
-   */
-  async verifyPassword(options = {}) {
-    return this.auth.password.verify(options);
-  }
-
-  /**
-   * Change the password of a wallet
-   * 
-   * @param {Object} options - Change password options
-   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
-   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
-   * @returns {Promise<Object>} Change password result
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
-   */
-  async changePassword(options = {}) {
-    return this.auth.password.changePassword(options);
-  }
-
-  /**
-   * Configure password
-   * 
-   * @param {Object} options - Configure password options
-   * @param {String} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the password hash (keccak256 of password)
-   * @returns {Promise<Object>} Configure wallet result
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
-   */
-  async configurePassword(options = {}) {
-    return this.auth.password.configure(options);
-  }
-
-  // ============================================================================
-  // WalletSignatureAuthenticatorClient Method Delegation
-  // ============================================================================
-
-  /**
-   * Check if a wallet is configured
-   * 
-   * @param {Object} options - Is configured options
-   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
-   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
-   */
-  async isWalletSignatureConfigured(options = {}) {
-    return this.auth.walletSignature.isConfigured(options);
-  }
-
-  /**
-   * Check if an address is whitelisted for a wallet
-   * 
-   * @param {Object} options - Is whitelisted options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @param {String} options.addressToCheck - Address to check if it is whitelisted
-   * @returns {Promise<Boolean>} True if address is whitelisted, false otherwise
-   * @throws {ValidationError} If required parameters are missing or invalid
-   */
-  async isWhitelisted(options = {}) {
-    return this.auth.walletSignature.isWhitelisted(options);
-  }
-
-  /**
-   * Get all whitelisted addresses for a wallet
-   * 
-   * @param {Object} options - Get whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @returns {Promise<Array<String>>} Whitelist addresses
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
-   */
-  async getWhitelist(options = {}) {
-    return this.auth.walletSignature.getWhitelist(options);
-  }
-
-  /**
-   * Get the EIP-712 domain separator
+   * Get the admin address
    * 
    * @param {Object} [options={}] - Options object
-   * @returns {Promise<Bytes32>} EIP-712 domain separator
+   * @returns {Promise<String>} Admin address
    */
-  async getDomainSeparator(options = {}) {
-    return this.auth.walletSignature.getDomainSeparator(options);
+  async getAdmin(options = {}) {
+    return this.factory.getAdmin(options);
   }
 
   /**
-   * Verify a signature
+   * Get current WalletLogic implementation (current walletLogic contract address)
    * 
-   * @param {Object} options - Verify options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature), Signature is over EIP-712 typed data: WalletAuth(wallet, deadline)
-   * @returns {Promise<Boolean>} True if signature is valid, false otherwise
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * @param {Object} [options={}] - Options object
+   * @returns {Promise<String>} Current WalletLogic implementation
    */
-  async verifyWalletSignature(options = {}) {
-    return this.auth.walletSignature.verify(options);
+  async getWalletLogicImplAddr(options = {}) {
+    return this.factory.getWalletLogicImplAddr(options);
   }
 
   /**
-   * Add a new address to the whitelist
+   * Get the keyVault contract address for a wallet
    * 
-   * @param {Object} options - Add to whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {String} options.addressToAdd - Address to add to the whitelist
-   * @returns {Promise<Object>} Transaction receipt
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @param {Object} options - KeyVault options
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} KeyVault contract address
+   * @throws {ValidationError} If walletAddr is missing or invalid
    */
-  async addToWhitelist(options = {}) {
-    return this.auth.walletSignature.addToWhitelist(options);
+  async getKeyVaultAddr(options = {}) {
+    return this.factory.getKeyVaultAddr(options);
   }
 
   /**
-   * Configure the wallet signature authenticator
+   * Get the storage contract address for a wallet
    * 
-   * @param {Object} options - Configure options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the whitelist addresses 
-   * @returns {Promise<Object>} Configure wallet result
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @param {Object} options - Storage options
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} Storage contract address
+   * @throws {ValidationError} If walletAddr is missing or invalid
    */
-  async configureWalletSignature(options = {}) {
-    return this.auth.walletSignature.configure(options);
+  async getStorageAddr(options = {}) {
+    return this.factory.getStorageAddr(options);
   }
 
   /**
-   * Remove an address from the whitelist
+   * Get the beacon address for a wallet 
    * 
-   * @param {Object} options - Remove from whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {String} options.addressToRemove - Address to remove from the whitelist
-   * @returns {Promise<Object>} Transaction receipt
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * The beacon controlling WalletLogic upgrades
+   * 
+   * @param {Object} [options={}] - Options object
+   * @returns {Promise<String>} Beacon address
    */
-  async removeFromWhitelist(options = {}) {
-    return this.auth.walletSignature.removeFromWhitelist(options);
+  async getBeaconAddr(options = {}) {
+    return this.factory.getBeaconAddr(options);
   }
 
-  // ============================================================================
-  // AuthenticatorClient Method Delegation
-  // ============================================================================
-
-  /**
-   * Get a specific authenticator client by type
-   * 
-   * @param {String} type - Authenticator type ('walletSignature', 'password', etc.)
-   * @returns {Object} Authenticator client instance
-   * @throws {ValidationError} If authenticator type is not found
-   */
-  getAuthClient(type) {
-    return this.auth.getClient(type);
-  }
-
-  /**
-   * Get all registered authenticator types
-   * 
-   * @returns {Array<String>} Array of authenticator type names
-   */
-  getAvailableAuthTypes() {
-    return this.auth.getAvailableTypes();
-  }
-
-  // ============================================================================
-  // KeyVaultClient Method Delegation
-  // ============================================================================
+  // --- KeyVault Reads ---
 
   /**
    * Get the storage contract address holding the keys
@@ -727,6 +628,8 @@ class Monstera {
     return this.keyVault.getAccountAddresses(options);
   }
 
+  // --- Signing Reads ---
+
   /**
    * Sign a raw transaction (authenticated function)
    * 
@@ -792,22 +695,131 @@ class Monstera {
     return this.keyVault.executeWithAuth(options);
   }
 
+  // --- Auth Reads ---
+
   /**
-   * Initialize a KeyVault contract
+   * Check if a wallet is configured
    * 
-   * @param {Object} options - Initialize key vault options
+   * @param {Object} options - Check if wallet is configured options
    * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {String} options.storageAddr - WalletStorage contract address 
-   * @param {String} options.authenticatorAddr - Authenticator contract address
-   * @param {Bytes32} options.accessToken - Secret token for storage access (bytes32)
-   * @returns {Promise<Object>} Initialize key vault result
+   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   */
+  async isPasswordConfigured(options = {}) {
+    return this.auth.password.isConfigured(options);
+  }
+
+  /**
+   * Verify password
+   * 
+   * @param {Object} options - Verify password options
+   * @param {String} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes} options.authProof - The raw password bytes (utf8 encoded string)
+   * @returns {Promise<Boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async verifyPassword(options = {}) {
+    return this.auth.password.verify(options);
+  }
+
+  /**
+   * Check if a wallet is configured
+   * 
+   * @param {Object} options - Is configured options
+   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
+   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   */
+  async isWalletSignatureConfigured(options = {}) {
+    return this.auth.walletSignature.isConfigured(options);
+  }
+
+  /**
+   * Check if an address is whitelisted for a wallet
+   * 
+   * @param {Object} options - Is whitelisted options
+   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {String} options.addressToCheck - Address to check if it is whitelisted
+   * @returns {Promise<Boolean>} True if address is whitelisted, false otherwise
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async isWhitelisted(options = {}) {
+    return this.auth.walletSignature.isWhitelisted(options);
+  }
+
+  /**
+   * Get all whitelisted addresses for a wallet
+   * 
+   * @param {Object} options - Get whitelist options
+   * @param {String} options.keyVaultAddr - Key vault address 
+   * @returns {Promise<Array<String>>} Whitelist addresses
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   */
+  async getWhitelist(options = {}) {
+    return this.auth.walletSignature.getWhitelist(options);
+  }
+
+  /**
+   * Get the EIP-712 domain separator
+   * 
+   * @param {Object} [options={}] - Options object
+   * @returns {Promise<Bytes32>} EIP-712 domain separator
+   */
+  async getDomainSeparator(options = {}) {
+    return this.auth.walletSignature.getDomainSeparator(options);
+  }
+
+  /**
+   * Verify a signature
+   * 
+   * @param {Object} options - Verify options
+   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature), Signature is over EIP-712 typed data: WalletAuth(wallet, deadline)
+   * @returns {Promise<Boolean>} True if signature is valid, false otherwise
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async verifyWalletSignature(options = {}) {
+    return this.auth.walletSignature.verify(options);
+  }
+
+  // ============================================================================
+  // Write Methods
+  // ============================================================================
+
+  // --- Factory Writes ---
+
+  /**
+   * Upgrade the WalletLogic implementation for all wallets (Admin function)
+   * 
+   * This upgrades the orchestration layer, not the key security.
+   * 
+   * @param {Object} options - Upgrade logic options
+   * @param {String} options.newLogicAddr - New walletLogic contract address
+   * @returns {Promise<Object>} Upgrade logic result
+   * @throws {ValidationError} If newLogicAddr is missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async upgradeWalletLogicImplAddr(options = {}) {
+    return this.factory.upgradeWalletLogicImplAddr(options);
+  }
+
+  /**
+   * Transfer admin ownership role to a new address (Admin function)
+   * 
+   * @param {Object} options - Transfer admin options
+   * @param {String} options.newAdminAddr - New admin address
+   * @returns {Promise<Object>} Transfer admin result
+   * @throws {ValidationError} If newAdminAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    */
-  async initialize(options = {}) {
-    return this.keyVault.initialize(options);
+  async transferAdmin(options = {}) {
+    return this.factory.transferAdmin(options);
   }
+
+  // --- KeyVault Writes ---
 
   /**
    * Upgrade the keyVaultImplementation contract address (authenticated function)
@@ -844,59 +856,57 @@ class Monstera {
     return this.keyVault.changeAuthenticatorAddr(options);
   }
 
-  // ============================================================================
-  // WalletLogicClient Method Delegation
-  // ============================================================================
+  // --- Auth Writes ---
 
   /**
-   * Initialize a wallet logic with a new keyVault 
+   * Change the password of a wallet
    * 
-   * @param {Object} options - Initialize wallet logic options
-   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<Object>} Initialize wallet logic result
+   * @param {Object} options - Change password options
+   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
+   * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
+   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
+   * @returns {Promise<Object>} Change password result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async initializeWalletLogic(options = {}) {
-    return this.logic.initialize(options);
+  async changePassword(options = {}) {
+    return this.auth.password.changePassword(options);
   }
 
   /**
-   * Create an auth proof for a wallet
+   * Add a new address to the whitelist
    * 
-   * @param {Object} options - Create auth proof options
-   * @param {Object} options.signer - Signer (Wallet or HDNodeWallet) trying to authenticate
-   * @param {String} options.keyVaultAddr - KeyVault address of the wallet trying to authenticate
-   * @param {String} options.authenticatorAddr - Wallet signature authenticator contract address (optional, defaults to the one in the config)
-   * @param {Number} options.deadline - Deadline for the auth proof (optional, defaults to 1h from now)
-   * @param {String} options.chainId - Chain ID (optional, defaults to the one in the config)
-   * @returns {Promise<String>} Auth proof (bytes)
+   * @param {Object} options - Add to whitelist options
+   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
+   * @param {String} options.addressToAdd - Address to add to the whitelist
+   * @returns {Promise<Object>} Transaction receipt
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async createAuthProof(options = {}) {
-    const { signer, keyVaultAddr } = options;
-    let { authenticatorAddr, deadline, chainId } = options;
+  async addToWhitelist(options = {}) {
+    return this.auth.walletSignature.addToWhitelist(options);
+  }
 
-    // Set default authenticator if not provided
-    if (!authenticatorAddr) {
-      authenticatorAddr = this.config.addresses.walletSignatureAuth;
-    }
-
-    // Set deadline default if not provided
-    if (!deadline) {
-      const nowInSeconds = Math.floor(Date.now() / 1000);
-      deadline = nowInSeconds + 3600; // 1 hour from now
-    }
-
-    // Set chainId default if not provided
-    if (!chainId) {
-      chainId = this.config.chainId;
-    }
-
-    const authProof = await createAuthProof(signer, chainId, authenticatorAddr, deadline, keyVaultAddr);
-
-    return authProof;
+  /**
+   * Remove an address from the whitelist
+   * 
+   * @param {Object} options - Remove from whitelist options
+   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
+   * @param {String} options.addressToRemove - Address to remove from the whitelist
+   * @returns {Promise<Object>} Transaction receipt
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async removeFromWhitelist(options = {}) {
+    return this.auth.walletSignature.removeFromWhitelist(options);
   }
 
 }

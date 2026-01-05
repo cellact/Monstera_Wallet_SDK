@@ -75,7 +75,7 @@ async function main() {
   console.log("STEP 2: Check if a wallet is configured");
   console.log("=".repeat(70));
 
-  const isConfigured = await sdk.isConfigured({
+  const isConfigured = await sdk.isWalletSignatureConfigured({
     keyVaultAddr: result.keyVault
   });
   console.log(`   ✅ isConfigured: ${isConfigured ? "✅ Yes" : "❌ No"}`);
@@ -125,7 +125,7 @@ async function main() {
     keyVaultAddr: result.keyVault
   });
 
-  const isValid = await sdk.verify({
+  const isValid = await sdk.verifyWalletSignature({
     keyVaultAddr: result.keyVault,
     authProof: authProof
   });

@@ -48,7 +48,7 @@ async function main() {
   });
   console.log("KeyVault:", keyVault);
 
-  const isConfigured = await sdk.isConfigured({
+  const isConfigured = await sdk.isPasswordConfigured({
     keyVaultAddr: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");

@@ -44,7 +44,7 @@ async function main() {
   });
   console.log("KeyVault:", keyVault);
 
-  const isConfigured = await sdk.isConfigured({
+  const isConfigured = await sdk.isPasswordConfigured({
     keyVaultAddr: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");
@@ -79,7 +79,7 @@ async function main() {
   // prepare raw password bytes (utf8 encoded string)
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
-  const isValid = await sdk.verify({
+  const isValid = await sdk.verifyPassword({
     keyVaultAddr: keyVault,
     authProof: authProof
   });
