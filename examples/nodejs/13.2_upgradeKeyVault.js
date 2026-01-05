@@ -77,7 +77,8 @@ async function main() {
 
   try {
     // // Upgrade KeyVaultImplementation (via walletLogic contract)
-    // const result = await sdk.logic.upgradeKeyVaultImpl({
+    // // const result = await sdk.logic.upgradeKeyVaultImpl({
+    // const result = await sdk.walletLogicUpgradeKeyVaultImpl({
     //   walletAddress: WALLET_ADDRESS,
     //   authProof: authProof,
     //   newImplAddr: NEW_KEYVAULT_IMPL_ADDRESS

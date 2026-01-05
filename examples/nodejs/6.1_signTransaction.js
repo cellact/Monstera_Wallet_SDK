@@ -66,11 +66,13 @@ async function main() {
   console.log("=".repeat(70));
 
   // Get account address and KeyVault
-  const accountAddress = await sdk.logic.getAccountAddress({
+  // const accountAddress = await sdk.logic.getAccountAddress({
+  const accountAddress = await sdk.walletLogicGetAccountAddress({
     walletAddress: SAPPHIRE_WALLET_ADDRESS,
     index: ACCOUNT_INDEX
   });
-  const keyVaultAddr = await sdk.logic.getKeyVault({
+  // const keyVaultAddr = await sdk.logic.getKeyVault({
+  const keyVaultAddr = await sdk.getKeyVault({
     walletAddress: SAPPHIRE_WALLET_ADDRESS
   });
   
@@ -178,7 +180,8 @@ async function main() {
 
   // Sign deployment via Sapphire (key stays in enclave!)
   console.log("   Requesting signature from Sapphire...");
-  const signedDeployTx = await sdk.logic.signTransaction({
+  // const signedDeployTx = await sdk.logic.signTransaction({
+  const signedDeployTx = await sdk.walletLogicSignTransaction({
     walletAddress: SAPPHIRE_WALLET_ADDRESS,
     authProof: authProof,
     index: ACCOUNT_INDEX,
@@ -220,7 +223,8 @@ async function main() {
   console.log(`   Nonce: ${nonce}`);
 
   console.log("   Requesting signature from Sapphire...");
-  const signedTx = await sdk.logic.signTransaction({
+  // const signedTx = await sdk.logic.signTransaction({
+  const signedTx = await sdk.walletLogicSignTransaction({
     walletAddress: SAPPHIRE_WALLET_ADDRESS,
     authProof: authProof,
     index: ACCOUNT_INDEX,
@@ -252,7 +256,8 @@ async function main() {
   const nonce2 = await amoyProvider.getTransactionCount(accountAddress);
 
   console.log("   Requesting signature from Sapphire...");
-  const signedTx2 = await sdk.logic.signTransaction({
+  // const signedTx2 = await sdk.logic.signTransaction({
+  const signedTx2 = await sdk.walletLogicSignTransaction({
     walletAddress: SAPPHIRE_WALLET_ADDRESS,
     authProof: authProof,
     index: ACCOUNT_INDEX,

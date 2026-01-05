@@ -43,7 +43,8 @@ async function main() {
   console.log("=".repeat(60));
 
   // Get KeyVault info
-  const keyVault = await sdk.logic.getKeyVault({
+  // const keyVault = await sdk.logic.getKeyVault({
+  const keyVault = await sdk.getKeyVault({
     walletAddress: WALLET_ADDRESS
   });
   console.log("KeyVault:", keyVault);
@@ -91,7 +92,8 @@ async function main() {
   console.log("Signing a message...");
   const message = "Hello from TheWallet!";
   try {
-    const signature = await sdk.logic.signMessage({
+    // const signature = await sdk.logic.signMessage({ 
+    const signature = await sdk.walletLogicSignMessage({
       walletAddress: keyVault,
       authProof: newAuthProof,
       index: 0,
@@ -101,7 +103,8 @@ async function main() {
     console.log(`   Signature: ${signature}`);
 
     // Verify
-    const expectedAddr = await sdk.logic.getAccountAddress({
+    // const expectedAddr = await sdk.logic.getAccountAddress({
+    const expectedAddr = await sdk.walletLogicGetAccountAddress({
       walletAddress: WALLET_ADDRESS,
       index: 0
     });

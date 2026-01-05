@@ -52,10 +52,12 @@ async function main() {
   }
 
   // Show architecture info
-  const keyVaultAddr = await sdk.logic.getKeyVault({ 
+  // const keyVaultAddr = await sdk.logic.getKeyVault({ 
+  const keyVaultAddr = await sdk.getKeyVault({ 
     walletAddress: WALLET_ADDRESS 
   });
-  const authAddr = await sdk.logic.getAuthenticator({ 
+  // const authAddr = await sdk.logic.getAuthenticator({ 
+  const authAddr = await sdk.getWalletLogicAuthenticator({ 
     walletAddress: WALLET_ADDRESS 
   });
   console.log("\nWallet Stack:");
@@ -73,7 +75,8 @@ async function main() {
 
   console.log("\n1. Getting account addresses...");
   for (let i = 0; i < 5; i++) {
-    const addr = await sdk.logic.getAccountAddress({
+    // const addr = await sdk.logic.getAccountAddress({
+    const addr = await sdk.walletLogicGetAccountAddress({
       walletAddress: WALLET_ADDRESS,
       index: i
     });
@@ -86,7 +89,8 @@ async function main() {
     const mnemonic = Mnemonic.fromPhrase(MNEMONIC);
     for (let i = 0; i < 3; i++) {
       const ethersWallet = HDNodeWallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/${i}`);
-      const onChainAddr = await sdk.logic.getAccountAddress({
+      // const onChainAddr = await sdk.logic.getAccountAddress({
+      const onChainAddr = await sdk.walletLogicGetAccountAddress({
         walletAddress: WALLET_ADDRESS,
         index: i
       });
@@ -106,7 +110,8 @@ async function main() {
   console.log("\n3. Signing a message...");
   const message = "Hello from TheWallet!";
   try {
-    const result = await sdk.logic.signMessage({
+    // const result = await sdk.logic.signMessage({
+    const result = await sdk.walletLogicSignMessage({
       walletAddress: WALLET_ADDRESS,
       authProof: authProof,
       index: 0,
@@ -116,7 +121,8 @@ async function main() {
     console.log(`   Signature: ${result}`);
 
     // Verify
-    const expectedAddr = await sdk.logic.getAccountAddress({
+    // const expectedAddr = await sdk.logic.getAccountAddress({
+    const expectedAddr = await sdk.walletLogicGetAccountAddress({
       walletAddress: WALLET_ADDRESS,
       index: 0
     });
@@ -132,7 +138,8 @@ async function main() {
   console.log("\n4. Signing a raw hash...");
   const hash = ethers.keccak256(ethers.toUtf8Bytes("Some data"));
   try {
-    const result = await sdk.logic.sign({
+    // const result = await sdk.logic.sign({
+    const result = await sdk.walletLogicSign({
       walletAddress: WALLET_ADDRESS,
       authProof: authProof,
       index: 0,
@@ -141,7 +148,8 @@ async function main() {
     console.log(`   Hash: ${hash.slice(0, 20)}...`);
     console.log(`   Signature: ${result}`);
 
-    const expectedAddr = await sdk.logic.getAccountAddress({
+    // const expectedAddr = await sdk.logic.getAccountAddress({
+    const expectedAddr = await sdk.walletLogicGetAccountAddress({
       walletAddress: WALLET_ADDRESS,
       index: 0
     });
@@ -160,7 +168,8 @@ async function main() {
   console.log("\n5. Trying with wrong password...");
   const wrongAuthProof = ethers.toUtf8Bytes("wrongpassword");
   try {
-    await sdk.logic.signMessage({
+    // await sdk.logic.signMessage({
+    await sdk.walletLogicSignMessage({
       walletAddress: WALLET_ADDRESS,
       authProof: wrongAuthProof,
       index: 0,

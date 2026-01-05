@@ -53,7 +53,8 @@ async function main() {
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   // Get keyVault address for a wallet
-  const keyVaultAddr = await sdk.logic.getKeyVault({
+  // const keyVaultAddr = await sdk.logic.getKeyVault({
+  const keyVaultAddr = await sdk.getKeyVault({
     walletAddress: WALLET_ADDRESS
   });
   console.log(`   KeyVault: ${keyVaultAddr}`);

@@ -844,6 +844,186 @@ class Monstera {
     return this.keyVault.changeAuthenticator(options);
   }
 
+  // ============================================================================
+  // WalletLogicClient Method Delegation
+  // ============================================================================
+
+  /**
+   * Get the keyVault contract address for a wallet 
+   * 
+   * @param {Object} options - KeyVault options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} KeyVault contract address
+   * @throws {ValidationError} If walletAddress is missing or invalid
+   */
+  async getKeyVault(options = {}) {
+    return this.logic.getKeyVault(options);
+  }
+
+  /**
+   * Get the keyVault contract address for a wallet
+   * 
+   * @param {Object} options - KeyVault options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} KeyVault contract address
+   * @throws {ValidationError} If walletAddress is missing or invalid
+   */
+  async getKeyvaultAddr(options = {}) {
+    return this.logic.getKeyvaultAddr(options);
+  }
+
+  /**
+   * Get the current authenticator address for a wallet
+   * 
+   * @param {Object} options - Authenticator options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<String>} Authenticator address (from KeyVault)
+   * @throws {ValidationError} If walletAddress is missing or invalid
+   */
+  async getWalletLogicAuthenticator(options = {}) {
+    return this.logic.getAuthenticator(options);
+  }
+
+  /**
+   * Check if a wallet is initialized
+   * 
+   * @param {Object} options - Is initialized options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @returns {Promise<Boolean>} True if wallet is initialized, false otherwise
+   * @throws {ValidationError} If walletAddress is missing or invalid
+   */
+  async isWalletLogicInitialized(options = {}) {
+    return this.logic.isInitialized(options);
+  }
+
+  /**
+   * Get account address at an index from wallet
+   * 
+   * @param {Object} options - Account address options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Number} options.index - Account index (uint32)
+   * @returns {Promise<String>} Account address
+   * @throws {ValidationError} If walletAddress is missing or invalid, or if index is invalid
+   */
+  async walletLogicGetAccountAddress(options = {}) {
+    return this.logic.getAccountAddress(options);
+  }
+
+  /**
+   * Get account addresses from wallet
+   * 
+   * @param {Object} options - Account addresses options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Number} options.fromIndex - From index (uint32)
+   * @param {Number} options.count - Count (uint32)
+   * @returns {Promise<Array<String>>} Array of account addresses
+   * @throws {ValidationError} If walletAddress is missing or invalid, or if fromIndex/count are invalid
+   */
+  async walletLogicGetAccountAddresses(options = {}) {
+    return this.logic.getAccountAddresses(options);
+  }
+
+  /**
+   * Sign a raw transaction (authenticated function)
+   * 
+   * @param {Object} options - Sign transaction options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
+   * @param {Number|BigInt} options.index - Account index
+   * @param {Number|BigInt} options.nonce - Nonce
+   * @param {Number|BigInt} options.gasPrice - Gas price
+   * @param {Number|BigInt} options.gasLimit - Gas limit
+   * @param {String} options.to - To address
+   * @param {Number|BigInt} options.value - Value
+   * @param {Bytes} options.data - Transaction Data (bytes)
+   * @param {Number|BigInt} options.chainId - Chain ID
+   * @returns {Promise<String>} Signed transaction
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async walletLogicSignTransaction(options = {}) {
+    return this.logic.signTransaction(options);
+  }
+
+  /**
+   * Sign an EIP-191 message (authenticated function)
+   * 
+   * @param {Object} options - Sign message options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
+   * @param {Number|BigInt} options.index - Account index
+   * @param {Bytes} options.message - Message to sign (utf8 encoded string)
+   * @returns {Promise<String>} Signed message
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async walletLogicSignMessage(options = {}) {
+    return this.logic.signMessage(options);
+  }
+
+  /**
+   * Sign a 32-byte hash (authenticated function)
+   * 
+   * @param {Object} options - Sign hash options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
+   * @param {Number|BigInt} options.index - Account index
+   * @param {Bytes32} options.hash - Hash to sign (32 bytes)
+   * @returns {Promise<String>} Signed hash
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async walletLogicSign(options = {}) {
+    return this.logic.sign(options);
+  }
+
+  /**
+   * Initialize a wallet logic with a new keyVault 
+   * 
+   * @param {Object} options - Initialize wallet logic options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @returns {Promise<Object>} Initialize wallet logic result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   */
+  async initializeWalletLogic(options = {}) {
+    return this.logic.initialize(options);
+  }
+
+  /**
+   * Change the authenticator (authenticated function)
+   * 
+   * @param {Object} options - Change authenticator options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
+   * @param {String} options.newAuthenticatorAddress - New authenticator contract address
+   * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
+   * @returns {Promise<Object>} Change authenticator result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async changeWalletLogicAuthenticator(options = {}) {
+    return this.logic.changeAuthenticator(options);
+  }
+
+  /**
+   * Upgrade the keyVaultImplementation (authenticated function)
+   * 
+   * @param {Object} options - Upgrade keyVault implementation options
+   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
+   * @param {String} options.newImplAddr - New keyVault contract address
+   * @returns {Promise<Object>} Upgrade keyVaultImplementation result
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async walletLogicUpgradeKeyVaultImpl(options = {}) {
+    return this.logic.upgradeKeyVaultImpl(options);
+  }
+
   /**
    * Create an auth proof for a wallet
    * 
