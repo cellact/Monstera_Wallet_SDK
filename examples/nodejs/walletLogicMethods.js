@@ -1,5 +1,7 @@
 /**
- * Test WalletLogic methods
+ * WalletLogic Client Methods
+ * 
+ * Demonstrates WalletLogic client methods, primarily initializeWalletLogic.
  * 
  * Run: node examples/nodejs/walletLogicMethods.js
  * 
@@ -8,10 +10,13 @@
  *   WALLET_ADDRESS=0x... (your wallet address)
  *   NEW_KEYVAULT_ADDRESS=0x... (your new key vault address)
  * 
- * Tests:
- * 1. Get keyVault contract address for a wallet.
- * 2. Initialize a wallet logic contract (with new key vault).
+ * What this demonstrates:
+ * 1. Accessing WalletLogic client methods directly
+ * 2. Initialize a wallet logic contract with a new key vault
  * 
+ * Note: Most WalletLogic methods delegate to KeyVault methods through
+ * the WalletLogic contract. For better performance, use KeyVaultClient
+ * methods directly (e.g., monstera.getKeyVaultAddr() instead of monstera.logic.getKeyVaultAddr()).
  */
 
 import 'dotenv/config';
@@ -24,70 +29,90 @@ const NEW_KEYVAULT_ADDRESS = process.env.NEW_KEYVAULT_ADDRESS;
 
 async function main() {
   console.log("=".repeat(70));
-  console.log("WalletLogic - Full Test Suite");
+  console.log("WalletLogic Client Methods");
   console.log("=".repeat(70));
 
   // Initialize SDK
-  const sdk = Monstera.connect({
-    mainnet: false, // or true for mainnet
+  const monstera = Monstera.connect({
+    mainnet: false,
     signer: SIGNER_PRIVATE_KEY
   });
 
   console.log("\n📋 Configuration:");
-  console.log(`   Network: ${sdk.network}`);
+  console.log(`   Network: ${monstera.network}`);
 
-  // ============ STEP 1: Get keyVault contract address for a wallet. ============
+  // ============ STEP 1: Access WalletLogic client methods directly ============
   console.log("\n" + "=".repeat(70));
-  console.log("STEP 1: Get keyVault contract address for a wallet.");
+  console.log("STEP 1: Access WalletLogic client methods directly");
   console.log("=".repeat(70));
+  console.log("\n   Note: You can access WalletLogic client methods via monstera.logic");
+  console.log("   However, most read methods are also available via KeyVaultClient");
+  console.log("   and that's the preferred way to call them.\n");
 
   try {
-    // Get keyVault contract address for a wallet
-    const result = await sdk.logic.getKeyVaultAddr({
+    // Example: Get keyVault address via WalletLogic client
+    // Note: This is also available as monstera.getKeyVaultAddr() which is preferred
+    const keyVaultAddr = await monstera.logic.getKeyVaultAddr({
       walletAddr: WALLET_ADDRESS
     });
-
-    console.log(`   ✅ KeyVault contract address: ${result}`);
-
+    console.log(`   ✅ KeyVault address (via monstera.logic): ${keyVaultAddr}`);
+    console.log(`   💡 Tip: Use monstera.getKeyVaultAddr() instead (preferred method)`);
   } catch (error) {
-    console.error(`   ❌ FAILED to get keyVault contract address for a wallet: ${error.message}`);
-    if (error.stack) {
-      console.error(`   Stack: ${error.stack}`);
-    }
+    console.error(`   ❌ Error: ${error.message}`);
     process.exit(1);
   }
 
-  // ============ STEP 2: Initialize a wallet logic contract. ============
+  // ============ STEP 2: Initialize wallet logic with new key vault ============
   console.log("\n" + "=".repeat(70));
-  console.log("STEP 2: Initialize a wallet logic contract (with new key vault).");
+  console.log("STEP 2: Initialize wallet logic with new key vault");
   console.log("=".repeat(70));
+  console.log("\n   This is the main WalletLogic write method.");
+  console.log("   It connects a wallet proxy to a new KeyVault contract.\n");
+
+  if (!NEW_KEYVAULT_ADDRESS) {
+    console.error("   ❌ Error: NEW_KEYVAULT_ADDRESS env var is required");
+    process.exit(1);
+  }
 
   try {
-    // Initialize a wallet logic contract
-    const result = await sdk.initializeWalletLogic({
+    const result = await monstera.initializeWalletLogic({
       walletAddr: WALLET_ADDRESS,
       keyVaultAddr: NEW_KEYVAULT_ADDRESS
     });
 
-    console.log(`   ✅ Initialize wallet logic contract result: ${result}`);
-
+    console.log(`   ✅ Wallet logic initialized successfully!`);
+    console.log(`   Transaction: ${result.transactionHash}`);
+    if (result.gasUsed) {
+      console.log(`   Gas Used: ${result.gasUsed}`);
+    }
   } catch (error) {
-    console.error(`   ❌ FAILED to initialize wallet logic contract: ${error.message}`);
+    console.error(`   ❌ Error: ${error.message}`);
     if (error.stack) {
       console.error(`   Stack: ${error.stack}`);
     }
     process.exit(1);
   }
+
+  // ============ SUMMARY ============
+  console.log("\n" + "=".repeat(70));
+  console.log("SUMMARY");
+  console.log("=".repeat(70));
+  console.log("   ✅ Demonstrated accessing WalletLogic client directly");
+  console.log("   ✅ Initialized wallet logic with new key vault");
+  console.log("\n   💡 Remember: Most read methods are available via");
+  console.log("      KeyVaultClient (monstera.getKeyVaultAddr(), etc.)");
+  console.log("      and that's the preferred way to use them.");
+  console.log("=".repeat(70));
 }
 
 // Run example
 main()
   .then(() => {
-    console.log("\n✅ Test suite completed successfully!");
+    console.log("\n✅ Example completed successfully!");
     process.exit(0);
   })
   .catch((error) => {
-    console.error("\n❌ Test suite failed:");
+    console.error("\n❌ Example failed:");
     console.error(error);
     process.exit(1);
   });
