@@ -1,137 +1,101 @@
 /**
- * Test Authenticator methods
+ * Authenticator Client Methods
+ * 
+ * Demonstrates how to access authenticator clients through the SDK.
  * 
  * Run: node examples/nodejs/authenticator.js
  * 
- * Required env vars:
- *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   WALLET_ADDRESS=0x... (your wallet address)
- * 
- * Tests:
- * 1. Get all available authenticator types.
- * 2. Get a specific authenticator client by type.
- * 3. Get whitelist for a wallet.
+ * What this demonstrates:
+ * 1. Get all available authenticator types
+ * 2. Get specific authenticator clients by type
  */
 
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 
-// ============ CONFIGURATION ============
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
-
 async function main() {
   console.log("=".repeat(70));
-  console.log("Authenticator - Full Test Suite");
+  console.log("Authenticator Client Methods");
   console.log("=".repeat(70));
 
   // Initialize SDK
-  const sdk = Monstera.connect({
-    mainnet: false, // or true for mainnet
-    signer: SIGNER_PRIVATE_KEY
+  const monstera = Monstera.readonly({
+    mainnet: false
   });
 
   console.log("\n📋 Configuration:");
-  console.log(`   Network: ${sdk.network}`);
+  console.log(`   Network: ${monstera.network}`);
 
-
-  // ============ STEP 1: Get all available authenticator types. ============
+  // ============ STEP 1: Get all available authenticator types ============
   console.log("\n" + "=".repeat(70));
   console.log("STEP 1: Get all available authenticator types");
   console.log("=".repeat(70));
 
   try {
-    // Get all available authenticator types
-    const availableTypes = sdk.getAvailableTypes();
-    console.log(`   ✅ Available authenticator types: ${availableTypes.join(', ')}`);
-    if (availableTypes.length === 0) {
-      console.error("❌ ERROR: No authenticator types found");
-      process.exit(1);
-    }
+    const availableTypes = monstera.getAvailableAuthTypes();
+    console.log(`   ✅ Found ${availableTypes.length} authenticator type(s):`);
+    availableTypes.forEach((type, index) => {
+      console.log(`      ${index + 1}. ${type}`);
+    });
   } catch (error) {
-    console.error(`   ❌ FAILED to get all available authenticator types: ${error.message}`);
-    if (error.stack) {
-      console.error(`   Stack: ${error.stack}`);
-    }
+    console.error(`   ❌ Error: ${error.message}`);
     process.exit(1);
   }
 
-  // ============ STEP 2: Get a specific authenticator client by type. ============
+  // ============ STEP 2: Get specific authenticator clients ============
   console.log("\n" + "=".repeat(70));
-  console.log("STEP 2: Get a specific authenticator client by type");
+  console.log("STEP 2: Get specific authenticator clients by type");
   console.log("=".repeat(70));
 
+  // Get password authenticator client
   try {
-    // Get a specific authenticator client by type
-    const passwordClient = sdk.getClient('password');
-    console.log(`   ✅ Password client: ${passwordClient}`);
-
-    if (!passwordClient) {
-      console.error("❌ ERROR: Password client not found");
-      process.exit(1);
-    }
+    console.log("\n   Getting password authenticator client...");
+    const passwordClient = monstera.getAuthClient('password');
+    console.log(`   ✅ Password client retrieved: ${passwordClient.constructor.name}`);
   } catch (error) {
-    console.error(`   ❌ FAILED to get a specific authenticator client by type: ${error.message}`);
-    if (error.stack) {
-      console.error(`   Stack: ${error.stack}`);
-    }
+    console.error(`   ❌ Error getting password client: ${error.message}`);
     process.exit(1);
   }
 
-  // ============ STEP 3: Use the fetched authenticator client. ============
+  // Get wallet signature authenticator client
+  try {
+    console.log("\n   Getting wallet signature authenticator client...");
+    const walletSignatureClient = monstera.getAuthClient('walletSignature');
+    console.log(`   ✅ WalletSignature client retrieved: ${walletSignatureClient.constructor.name}`);
+  } catch (error) {
+    console.error(`   ❌ Error getting wallet signature client: ${error.message}`);
+    process.exit(1);
+  }
+
+  // Test invalid type
+  try {
+    console.log("\n   Testing invalid authenticator type...");
+    monstera.getAuthClient('invalidType');
+    console.error(`   ❌ Error: Should have thrown an error for invalid type`);
+    process.exit(1);
+  } catch (error) {
+    console.log(`   ✅ Correctly rejected invalid type: ${error.message}`);
+  }
+
+  // ============ SUMMARY ============
   console.log("\n" + "=".repeat(70));
-  console.log("STEP 3: Use the fetched authenticator client");
+  console.log("SUMMARY");
   console.log("=".repeat(70));
-
-  try {
-    // Get keyVault address for a wallet
-    console.log("\n1. Getting keyVault address for a wallet...");
-    const keyVaultAddr = await sdk.getKeyVaultAddr({
-      walletAddr: WALLET_ADDRESS
-    });
-    console.log(`   ✅ KeyVault address: ${keyVaultAddr}`);
-    if (!keyVaultAddr) {
-      console.error("❌ ERROR: Failed to get key vault address");
-      process.exit(1);
-    }
-
-    // Get wallet signature authenticator client
-    console.log("\n2. Getting wallet signature authenticator client...");
-    const walletSignatureClient = sdk.getClient('walletSignature');
-    console.log(`   ✅ WalletSignature client: ${walletSignatureClient}`);
-    if (!walletSignatureClient) {
-      console.error("❌ ERROR: Failed to get wallet signature authenticator client");
-      process.exit(1);
-    }
-
-    // Get whitelist 
-    console.log("\n3. Getting whitelist for a wallet...");
-    const whitelist = await walletSignatureClient.getWhitelist({
-      keyVaultAddr: keyVaultAddr
-    });
-    console.log(`   ✅ Whitelist: ${whitelist.join(', ')}`);
-    if (!whitelist) {
-      console.error("❌ ERROR: Failed to get whitelist");
-      process.exit(1);
-    }
-  } catch (error) {
-    console.error(`   ❌ FAILED to use the fetched authenticator client: ${error.message}`);
-    if (error.stack) {
-      console.error(`   Stack: ${error.stack}`);
-    }
-    process.exit(1);
-  }
+  console.log("   ✅ Successfully retrieved all available authenticator types");
+  console.log("   ✅ Successfully retrieved password authenticator client");
+  console.log("   ✅ Successfully retrieved wallet signature authenticator client");
+  console.log("   ✅ Correctly handled invalid authenticator type");
+  console.log("=".repeat(70));
 }
-
 
 // Run example
 main()
   .then(() => {
-    console.log("\n✅ Test suite completed successfully!");
+    console.log("\n✅ Example completed successfully!");
     process.exit(0);
   })
   .catch((error) => {
-    console.error("\n❌ Test suite failed:");
+    console.error("\n❌ Example failed:");
     console.error(error);
     process.exit(1);
   });
