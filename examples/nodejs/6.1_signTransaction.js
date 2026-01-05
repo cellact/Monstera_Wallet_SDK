@@ -66,12 +66,12 @@ async function main() {
   console.log("=".repeat(70));
 
   // Get account address and KeyVault
-  const accountAddress = await sdk.getAccountAddress({
-    keyVaultAddress: keyVaultAddr,
+  const accountAddress = await sdk.getAccountAddr({
+    keyVaultAddr: keyVaultAddr,
     index: ACCOUNT_INDEX
   });
-  const keyVaultAddr = await sdk.getKeyVault({
-    walletAddress: SAPPHIRE_WALLET_ADDRESS
+  const keyVaultAddr = await sdk.getKeyVaultAddr({
+    walletAddr: SAPPHIRE_WALLET_ADDRESS
   });
   
   console.log(`   Wallet (proxy): ${SAPPHIRE_WALLET_ADDRESS}`);
@@ -179,7 +179,7 @@ async function main() {
   // Sign deployment via Sapphire (key stays in enclave!)
   console.log("   Requesting signature from Sapphire...");
   const signedDeployTx = await sdk.signTransaction({
-    keyVaultAddress: keyVaultAddr,
+    keyVaultAddr: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
     nonce: deployNonce,
@@ -221,7 +221,7 @@ async function main() {
 
   console.log("   Requesting signature from Sapphire...");
   const signedTx = await sdk.signTransaction({
-    keyVaultAddress: keyVaultAddr,
+    keyVaultAddr: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
     nonce: nonce,
@@ -253,7 +253,7 @@ async function main() {
 
   console.log("   Requesting signature from Sapphire...");
   const signedTx2 = await sdk.signTransaction({
-    keyVaultAddress: keyVaultAddr,
+    keyVaultAddr: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
     nonce: nonce2,

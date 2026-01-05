@@ -51,7 +51,7 @@ async function main() {
   console.log("=".repeat(70));
 
   const result = await sdk.transferAdmin({
-    newAdminAddress: NEW_ADMIN_ADDRESS
+    newAdminAddr: NEW_ADMIN_ADDRESS
   });
   console.log(`   Transaction: ${result.transactionHash}`);
   console.log(`   New Admin: ${result.newAdmin}`);
@@ -69,15 +69,15 @@ async function main() {
 
     try {
       // Get KeyVault (should still work)
-      const keyVault = await sdk.getKeyVault({
-        walletAddress: WALLET_ADDRESS
+      const keyVault = await sdk.getKeyVaultAddr({
+        walletAddr: WALLET_ADDRESS
       });
       console.log(`   Wallet: ${WALLET_ADDRESS}`);
       console.log(`   KeyVault: ${keyVault} (unchanged)`);
       
       // Test public function
-      const addr = await sdk.getAccountAddress({
-        keyVaultAddress: keyVault,
+      const addr = await sdk.getAccountAddr({
+        keyVaultAddr: keyVault,
         index: 0
       });
       console.log(`   Account 0: ${addr}`);

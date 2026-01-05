@@ -39,18 +39,18 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * Check if a wallet is configured
    * 
    * @param {Object} options - Is configured options
-   * @param {String} options.keyVaultAddress - KeyVault address of the wallet
+   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
    * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddress is missing or invalid
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async isConfigured(options = {}) {
-    const { keyVaultAddress } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    const { keyVaultAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
     
     return this.executeRead(
-      () => walletSigAuth.isConfigured(keyVaultAddress),
+      () => walletSigAuth.isConfigured(keyVaultAddr),
       'check if wallet is configured',
       {
         ...options,
@@ -63,20 +63,20 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * Check if an address is whitelisted for a wallet
    * 
    * @param {Object} options - Is whitelisted options
-   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {String} options.keyVaultAddr - Key vault address 
    * @param {String} options.addressToCheck - Address to check if it is whitelisted
    * @returns {Promise<Boolean>} True if address is whitelisted, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async isWhitelisted(options = {}) {
-    const { keyVaultAddress, addressToCheck } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    const { keyVaultAddr, addressToCheck } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(addressToCheck, 'addressToCheck');
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeRead(
-      () => walletSigAuth.isWhitelisted(keyVaultAddress, addressToCheck),
+      () => walletSigAuth.isWhitelisted(keyVaultAddr, addressToCheck),
       'check if address is whitelisted',
       {
         ...options,
@@ -89,18 +89,18 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * Get all whitelisted addresses for a wallet
    * 
    * @param {Object} options - Get whitelist options
-   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {String} options.keyVaultAddr - Key vault address 
    * @returns {Promise<Array<String>>} Whitelist addresses
-   * @throws {ValidationError} If keyVaultAddress is missing or invalid
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getWhitelist(options = {}) {
-    const { keyVaultAddress } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    const { keyVaultAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeRead(
-      () => walletSigAuth.getWhitelist(keyVaultAddress),
+      () => walletSigAuth.getWhitelist(keyVaultAddr),
       'get whitelist',
       {
         ...options,
@@ -132,20 +132,20 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * Verify a signature
    * 
    * @param {Object} options - Verify options
-   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {String} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature), Signature is over EIP-712 typed data: WalletAuth(wallet, deadline)
    * @returns {Promise<Boolean>} True if signature is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */ 
   async verify(options = {}) {
-    const { keyVaultAddress, authProof } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    const { keyVaultAddr, authProof } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeRead(
-      () => walletSigAuth.verify(keyVaultAddress, authProof),
+      () => walletSigAuth.verify(keyVaultAddr, authProof),
       'verify signature',
       {
         ...options,
@@ -162,9 +162,9 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * Add a new address to the whitelist
    * 
    * @param {Object} options - Add to whitelist options
-   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {String} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {String} options.newAddress - New address to add to the whitelist
+   * @param {String} options.addressToAdd - Address to add to the whitelist
    * @returns {Promise<Object>} Transaction receipt
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -172,15 +172,15 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async addToWhitelist(options = {}) {
-    const { keyVaultAddress, authProof, newAddress } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    const { keyVaultAddr, authProof, addressToAdd } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
-    requireAddress(newAddress, 'newAddress');
+    requireAddress(addressToAdd, 'addressToAdd');
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeWrite(
-      () => walletSigAuth.addToWhitelist(keyVaultAddress, authProof, newAddress),
+      () => walletSigAuth.addToWhitelist(keyVaultAddr, authProof, addressToAdd),
       'add to whitelist',
       {
         ...options,
@@ -197,7 +197,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * Configure the wallet signature authenticator
    * 
    * @param {Object} options - Configure options
-   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {String} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the whitelist addresses 
    * @returns {Promise<Object>} Configure wallet result
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -206,14 +206,14 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async configure(options = {}) {
-    const { keyVaultAddress, authConfig } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    const { keyVaultAddr, authConfig } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authConfig, 'authConfig');
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeWrite(
-      () => walletSigAuth.configure(keyVaultAddress, authConfig),
+      () => walletSigAuth.configure(keyVaultAddr, authConfig),
       'configure wallet signature authenticator',
       {
         ...options,
@@ -230,7 +230,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * Remove an address from the whitelist
    * 
    * @param {Object} options - Remove from whitelist options
-   * @param {String} options.keyVaultAddress - Key vault address 
+   * @param {String} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
    * @param {String} options.addressToRemove - Address to remove from the whitelist
    * @returns {Promise<Object>} Transaction receipt
@@ -240,15 +240,15 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async removeFromWhitelist(options = {}) {
-    const { keyVaultAddress, authProof, addressToRemove } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    const { keyVaultAddr, authProof, addressToRemove } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     requireAddress(addressToRemove, 'addressToRemove');
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeWrite(
-      () => walletSigAuth.removeFromWhitelist(keyVaultAddress, authProof, addressToRemove),
+      () => walletSigAuth.removeFromWhitelist(keyVaultAddr, authProof, addressToRemove),
       'remove from whitelist',
       {
         ...options,

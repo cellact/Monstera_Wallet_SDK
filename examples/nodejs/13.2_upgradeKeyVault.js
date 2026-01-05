@@ -47,14 +47,14 @@ async function main() {
   console.log("STEP 1: Get Current KeyVault address");
   console.log("=".repeat(60));
 
-  // Get KeyVault contract address from wallet factory 
-  const keyVaultAddr = await sdk.getWalletKeyVault({
-    walletAddress: WALLET_ADDRESS
+  // Get KeyVault contract address
+  const keyVaultAddr = await sdk.getKeyVaultAddr({
+    walletAddr: WALLET_ADDRESS
   });
 
   // Get KeyVaultImplementation contract address from keyVault contract
   const oldkeyVaultImplAddr = await sdk.getKeyVaultImplAddr({
-    keyVaultAddress: keyVaultAddr
+    keyVaultAddr: keyVaultAddr
   });
 
   console.log(`\nKeyVault: ${keyVaultAddr}`);
@@ -77,8 +77,8 @@ async function main() {
 
   try {
     // upgrade KeyVaultImplementation
-    const result = await sdk.upgradeKeyVaultImpl({
-      keyVaultAddress: keyVaultAddr,
+    const result = await sdk.upgradeKeyVaultImplAddr({
+      keyVaultAddr: keyVaultAddr,
       authProof: authProof,
       newImplAddr: NEW_KEYVAULT_IMPL_ADDRESS
     });
@@ -87,7 +87,7 @@ async function main() {
 
     // Verify 
     const currentKeyVaultImplAddr = await sdk.getKeyVaultImplAddr({
-      keyVaultAddress: keyVaultAddr
+      keyVaultAddr: keyVaultAddr
     });
     console.log(`\nCurrent Implementation: ${currentKeyVaultImplAddr}`);
     console.log(`Match: ${currentKeyVaultImplAddr === newImplAddr}`);

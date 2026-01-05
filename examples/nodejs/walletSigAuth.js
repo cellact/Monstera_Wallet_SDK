@@ -63,7 +63,7 @@ async function main() {
 
   // Create wallet
   const result = await sdk.createWallet({
-    authenticator: sdk.addresses.walletSignatureAuth,
+    authenticatorAddr: sdk.addresses.walletSignatureAuth,
     authConfig: authConfig,
   });
   
@@ -76,7 +76,7 @@ async function main() {
   console.log("=".repeat(70));
 
   const isConfigured = await sdk.isConfigured({
-    keyVaultAddress: result.keyVault
+    keyVaultAddr: result.keyVault
   });
   console.log(`   ✅ isConfigured: ${isConfigured ? "✅ Yes" : "❌ No"}`);
   if (!isConfigured) {
@@ -102,7 +102,7 @@ async function main() {
   console.log("=".repeat(70));
 
   const configResult = await sdk.configure({
-    keyVaultAddress: result.keyVault,
+    keyVaultAddr: result.keyVault,
     authConfig: authConfig
   });
   console.log(`   ✅ result: ${configResult}`);
@@ -117,10 +117,16 @@ async function main() {
   console.log("=".repeat(70));
 
   // create auth proof
-  const authProof = await sdk.crypto.wallet.createAuthProof(allowed1Signer, sdk.chainId, sdk.addresses.walletSignatureAuth, Date.now() + 1000, result.keyVault);
-  
+  const authProof = await sdk.createAuthProof({
+    signer: allowed1Signer,
+    chainId: sdk.chainId,
+    authenticatorAddr: sdk.addresses.walletSignatureAuth,
+    deadline: Date.now() + 1000,
+    keyVaultAddr: result.keyVault
+  });
+
   const isValid = await sdk.verify({
-    keyVaultAddress: result.keyVault,
+    keyVaultAddr: result.keyVault,
     authProof: authProof
   });
 

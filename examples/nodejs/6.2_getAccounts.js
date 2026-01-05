@@ -33,11 +33,11 @@ async function main() {
   }
 
   // Get wallet info
-  const keyVault = await sdk.getKeyVault({
-    walletAddress: WALLET_ADDRESS
+  const keyVault = await sdk.getKeyVaultAddr({
+    walletAddr: WALLET_ADDRESS
   });
   const auth = await sdk.getAuthenticatorAddr({
-    keyVaultAddress: keyVault
+    keyVaultAddr: keyVault
   });
   
   console.log("\nWallet Stack:");
@@ -50,8 +50,8 @@ async function main() {
   console.log("=".repeat(70));
 
   for (let i = 0; i < 3; i++) {
-    const addr = await sdk.getAccountAddress({
-      keyVaultAddress: keyVault,
+    const addr = await sdk.getAccountAddr({
+      keyVaultAddr: keyVault,
       index: i
     });
     console.log(`\n   Account ${i}: ${addr}`);

@@ -64,7 +64,7 @@ async function main() {
 
   // Create wallet
   const result = await sdk.createWallet({
-    authenticator: sdk.addresses.walletSignatureAuth,
+    authenticatorAddr: sdk.addresses.walletSignatureAuth,
     authConfig: authConfig,
   });
   
@@ -81,13 +81,13 @@ async function main() {
   try {
     const authProof = await sdk.createAuthProof({
       signer: allowed1Signer,
-      keyVault: result.keyVault
+      keyVaultAddr: result.keyVault
     });
     
     // Sign a message
     const message = "Hello from WalletSigAuth test!";
     const sig = await sdk.signMessage({
-      keyVaultAddress: result.keyVault,
+      keyVaultAddr: result.keyVault,
       authProof: authProof,
       index: 0,
       message: ethers.toUtf8Bytes(message)
@@ -95,8 +95,8 @@ async function main() {
     console.log(`   ✅ signMessage succeeded!`);
     
     // Verify signature
-    const accountAddr = await sdk.getAccountAddress({
-      keyVaultAddress: result.keyVault,
+    const accountAddr = await sdk.getAccountAddr({
+      keyVaultAddr: result.keyVault,
       index: 0
     });
     const recovered = ethers.verifyMessage(message, sig);
@@ -114,12 +114,12 @@ async function main() {
   try {
     const authProof = await sdk.createAuthProof({
       signer: allowed2Signer,
-      keyVault: result.keyVault
+      keyVaultAddr: result.keyVault
     });
     
     const hash = ethers.keccak256(ethers.toUtf8Bytes("test data"));
     const sig = await sdk.sign({
-      keyVaultAddress: result.keyVault,
+      keyVaultAddr: result.keyVault,
       authProof: authProof,
       index: 0,
       hash: hash
@@ -139,10 +139,10 @@ async function main() {
     // Use allowed1 to remove allowed2 from the whitelist
     const authProof = await sdk.createAuthProof({
       signer: allowed1Signer,
-      keyVault: result.keyVault
+      keyVaultAddr: result.keyVault
     });
     const removeResult = await sdk.removeFromWhitelist({
-      keyVaultAddress: result.keyVault,
+      keyVaultAddr: result.keyVault,
       authProof: authProof,
       addressToRemove: allowed2Signer.address
     });
@@ -150,7 +150,7 @@ async function main() {
 
     // Verify whitelist
     const isWhitelistedResult = await sdk.isWhitelisted({
-      keyVaultAddress: result.keyVault,
+      keyVaultAddr: result.keyVault,
       addressToCheck: allowed2Signer.address
     });
     // should be false as allowed2Signer is now removed from the whitelist
@@ -167,10 +167,10 @@ async function main() {
   try {
     const authProof = await sdk.createAuthProof({
       signer: allowed2Signer,
-      keyVault: result.keyVault
+      keyVaultAddr: result.keyVault
     });
     const sig = await sdk.signMessage({
-      keyVaultAddress: result.keyVault,
+      keyVaultAddr: result.keyVault,
       authProof: authProof,
       index: 0,
       message: ethers.toUtf8Bytes("I'm now not allowed!")
@@ -190,7 +190,7 @@ async function main() {
   console.log(`   Mnemonic: ${result.mnemonic}`);
   console.log("\n   Current Whitelist:");
   const currentWhitelist = await sdk.getWhitelist({
-    keyVaultAddress: result.keyVault
+    keyVaultAddr: result.keyVault
   });
   currentWhitelist.forEach((addr, i) => {
     console.log(`      ${i + 1}. ${addr}`);

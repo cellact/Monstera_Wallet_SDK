@@ -53,8 +53,8 @@ async function main() {
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   // Get keyVault address for a wallet
-  const keyVaultAddr = await sdk.getKeyVault({
-    walletAddress: WALLET_ADDRESS
+  const keyVaultAddr = await sdk.getKeyVaultAddr({
+    walletAddr: WALLET_ADDRESS
   });
   console.log(`   KeyVault: ${keyVaultAddr}`);
   if (!keyVaultAddr) {
@@ -69,7 +69,7 @@ async function main() {
 
   // const storageAddr = await sdk.getStorageAddr({
   const storageAddr = await sdk.getKeyVaultStorageAddr({
-    keyVaultAddress: keyVaultAddr
+    keyVaultAddr: keyVaultAddr
   });
 
   console.log(`   Storage: ${storageAddr}`);
@@ -84,7 +84,7 @@ async function main() {
   console.log("=".repeat(70));
 
   const authenticatorAddr = await sdk.getAuthenticatorAddr({
-    keyVaultAddress: keyVaultAddr
+    keyVaultAddr: keyVaultAddr
   });
   console.log(`   Authenticator: ${authenticatorAddr}`);
   if (!authenticatorAddr) {
@@ -98,7 +98,7 @@ async function main() {
   console.log("=".repeat(70));
 
   const keyVaultImplAddr = await sdk.getKeyVaultImplAddr({
-    keyVaultAddress: keyVaultAddr
+    keyVaultAddr: keyVaultAddr
   });
   console.log(`   Implementation: ${keyVaultImplAddr}`);
   if (!keyVaultImplAddr) {
@@ -112,7 +112,7 @@ async function main() {
   console.log("=".repeat(70));
 
   const isInitialized = await sdk.isInitialized({
-    keyVaultAddress: keyVaultAddr
+    keyVaultAddr: keyVaultAddr
   });
   console.log(`   isInitialized: ${isInitialized ? "✅ Yes" : "❌ No"}`);
   if (!isInitialized) {
@@ -125,8 +125,8 @@ async function main() {
   console.log("STEP 5: Get the account address (index 0) from the keyVault contract");
   console.log("=".repeat(70));
 
-  const accountAddress = await sdk.getAccountAddress({
-    keyVaultAddress: keyVaultAddr,
+  const accountAddress = await sdk.getAccountAddr({
+    keyVaultAddr: keyVaultAddr,
     index: 0
   });
   console.log(`   Account Address (index 0): ${accountAddress}`);
@@ -141,7 +141,7 @@ async function main() {
   console.log("=".repeat(70));
 
   const accountAddresses = await sdk.getAccountAddresses({
-    keyVaultAddress: keyVaultAddr,
+    keyVaultAddr: keyVaultAddr,
     fromIndex: 0,
     count: 5
   });
@@ -240,7 +240,7 @@ async function main() {
 
   console.log("   Requesting signature from Sapphire...");
   const signedTransaction = await sdk.signTransaction({
-    keyVaultAddress: keyVaultAddr,
+    keyVaultAddr: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
     nonce: deployNonce,
@@ -290,7 +290,7 @@ async function main() {
   const hash = ethers.keccak256(ethers.toUtf8Bytes("Hello from TheWallet!"));
 
   const signedHash = await sdk.sign({
-    keyVaultAddress: keyVaultAddr,
+    keyVaultAddr: keyVaultAddr,
     authProof: authProof,
     index: 0,
     hash: hash
@@ -309,7 +309,7 @@ async function main() {
   const message = "Hello from TheWallet!";
 
   const signature = await sdk.signMessage({
-    keyVaultAddress: keyVaultAddr,
+    keyVaultAddr: keyVaultAddr,
     authProof: authProof,
     index: 0,
     message: ethers.toUtf8Bytes(message)
@@ -666,7 +666,7 @@ async function main() {
   console.log(`Impl call length: ${implCall.length} chars`);
 
   const result = await sdk.executeWithAuth({
-    keyVaultAddress: keyVaultAddr,
+    keyVaultAddr: keyVaultAddr,
     authProof: authProof,
     implCall: implCall
   });

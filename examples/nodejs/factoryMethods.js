@@ -43,7 +43,7 @@ async function main() {
   try {
     // Check if an address is a wallet created by this factory
     const result = await sdk.isWallet({
-        walletAddress:WALLET_ADDRESS
+        walletAddr:WALLET_ADDRESS
     });
 
     console.log(`   ✅ Address ${WALLET_ADDRESS} is ${result ? 'a' : 'not a'} wallet created by this factory`);
@@ -102,7 +102,7 @@ async function main() {
   try {
     // Get storage contract address for a wallet
     const result = await sdk.getStorageAddr({
-      walletAddress: WALLET_ADDRESS
+      walletAddr: WALLET_ADDRESS
     });
     console.log(`   ✅ Storage contract address: ${result}`);
 

@@ -46,11 +46,11 @@ async function main() {
   console.log("=".repeat(60));
   
   // Get KeyVault info
-  const keyVault = await sdk.getKeyVault({
-    walletAddress: WALLET_ADDRESS
+  const keyVault = await sdk.getKeyVaultAddr({
+    walletAddr: WALLET_ADDRESS
   });
   const oldAuthenticator = await sdk.getAuthenticatorAddr({
-    keyVaultAddress: keyVault
+    keyVaultAddr: keyVault
   });
   
   console.log("\nWallet Stack:");
@@ -60,7 +60,7 @@ async function main() {
 
   // check if wallet is initilized 
   const isInitialized = await sdk.isInitialized({
-    keyVaultAddress: keyVault
+    keyVaultAddr: keyVault
   });
   console.log("   Is Initialized:", isInitialized ? "✅ Yes" : "❌ No");
   if (!isInitialized) {
@@ -81,8 +81,8 @@ async function main() {
   console.log("STEP 2: Change Authenticator");
   console.log("=".repeat(60));
 
-  const result = await sdk.changeAuthenticator({
-    keyVaultAddress: keyVault,
+  const result = await sdk.changeAuthenticatorAddr({
+    keyVaultAddr: keyVault,
     authProof: authProof,
     newAuthenticatorAddr: NEW_AUTHENTICATOR_ADDRESS,
     newAuthConfig: passwordHash
@@ -100,7 +100,7 @@ async function main() {
   console.log("=".repeat(60));
 
   const currentAuthenticator = await sdk.getAuthenticatorAddr({
-    keyVaultAddress: keyVault
+    keyVaultAddr: keyVault
   });
   console.log("   Current Auth:", currentAuthenticator);
 

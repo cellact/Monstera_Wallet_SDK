@@ -39,13 +39,13 @@ async function main() {
   console.log("=".repeat(60));
 
   // Get KeyVault info
-  const keyVault = await sdk.getKeyVault({
-    walletAddress: WALLET_ADDRESS
+  const keyVault = await sdk.getKeyVaultAddr({
+    walletAddr: WALLET_ADDRESS
   });
   console.log("KeyVault:", keyVault);
 
   const isConfigured = await sdk.isConfigured({
-    keyVaultAddress: keyVault
+    keyVaultAddr: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");
   if (!isConfigured) {
@@ -62,7 +62,7 @@ async function main() {
   const authConfig = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
 
   const result = await sdk.configure({
-    keyVaultAddress: keyVault,
+    keyVaultAddr: keyVault,
     authConfig: authConfig
   });
 
@@ -80,7 +80,7 @@ async function main() {
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   const isValid = await sdk.verify({
-    keyVaultAddress: keyVault,
+    keyVaultAddr: keyVault,
     authProof: authProof
   });
 

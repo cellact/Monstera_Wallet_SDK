@@ -395,15 +395,15 @@ const KEYVAULT_ABI = [
  * Get keyVault contract instance
  * 
  * @param {Object} signerOrProvider - Ethers Signer or Provider
- * @param {String} keyVaultAddress - KeyVault contract address
+ * @param {String} keyVaultAddr - KeyVault contract address
  * @returns {Object} Contract instance
  */
-function getKeyVaultContract(signerOrProvider, keyVaultAddress) {
-    if (!keyVaultAddress) {
-      throw new ConfigError('KeyVault address is required', 'keyVaultAddress');
+function getKeyVaultContract(signerOrProvider, keyVaultAddr) {
+    if (!keyVaultAddr) {
+      throw new ConfigError('KeyVault address is required', 'keyVaultAddr');
     }
     
-    return new ethers.Contract(keyVaultAddress, KEYVAULT_ABI, signerOrProvider);
+    return new ethers.Contract(keyVaultAddr, KEYVAULT_ABI, signerOrProvider);
 }
 
 export {

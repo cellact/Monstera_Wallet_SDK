@@ -72,12 +72,12 @@ function hashPassword(password) {
  * 
  * @param {Object} signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
  * @param {String} chainId - Chain ID
- * @param {String} authenticator - Wallet signature authenticator contract address
+ * @param {String} authenticatorAddr - Wallet signature authenticator contract address
  * @param {Number} deadline - Deadline for the auth proof
- * @param {String} keyVaultAddress - Key vault address
+ * @param {String} keyVaultAddr - Key vault address
  * @returns {String} Auth proof (bytes)
  */
-async function createAuthProof(signer, chainId, authenticator, deadline, keyVaultAddress) {
+async function createAuthProof(signer, chainId, authenticatorAddr, deadline, keyVaultAddr) {
   
   // Validate signer
   if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
@@ -90,8 +90,8 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
   }
 
   // Validate addresses
-  requireAddress(authenticator, 'authenticator');
-  requireAddress(keyVaultAddress, 'keyVaultAddress');
+  requireAddress(authenticatorAddr, 'authenticatorAddr');
+  requireAddress(keyVaultAddr, 'keyVaultAddr');
 
   // Validate deadline (must be number, Unix timestamp in seconds) and in the future
   if (typeof deadline !== 'number' || !Number.isInteger(deadline)) {
@@ -107,7 +107,7 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
     name: "WalletSignatureAuthenticator",
     version: "1",
     chainId: chainId, 
-    verifyingContract: authenticator 
+    verifyingContract: authenticatorAddr 
   };
   const types = {
     WalletAuth: [
@@ -117,7 +117,7 @@ async function createAuthProof(signer, chainId, authenticator, deadline, keyVaul
   };
 
   // Note: For KeyVault auth, the "wallet" in the signature is the KeyVault address
-  const value = { wallet: keyVaultAddress, deadline };
+  const value = { wallet: keyVaultAddr, deadline };
   
   try {
     // Sign the typed data (EIP-712)

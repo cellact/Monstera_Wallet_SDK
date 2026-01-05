@@ -86,11 +86,11 @@ async function main() {
   try {
     // Get keyVault address for a wallet
     console.log("\n1. Getting keyVault address for a wallet...");
-    const keyVaultAddress = await sdk.getKeyVault({
-      walletAddress: WALLET_ADDRESS
+    const keyVaultAddr = await sdk.getKeyVaultAddr({
+      walletAddr: WALLET_ADDRESS
     });
-    console.log(`   ✅ KeyVault address: ${keyVaultAddress}`);
-    if (!keyVaultAddress) {
+    console.log(`   ✅ KeyVault address: ${keyVaultAddr}`);
+    if (!keyVaultAddr) {
       console.error("❌ ERROR: Failed to get key vault address");
       process.exit(1);
     }
@@ -107,7 +107,7 @@ async function main() {
     // Get whitelist 
     console.log("\n3. Getting whitelist for a wallet...");
     const whitelist = await walletSignatureClient.getWhitelist({
-      keyVaultAddress: keyVaultAddress
+      keyVaultAddr: keyVaultAddr
     });
     console.log(`   ✅ Whitelist: ${whitelist.join(', ')}`);
     if (!whitelist) {

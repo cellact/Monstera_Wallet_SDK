@@ -50,7 +50,7 @@ async function main() {
   }
 
   // Get the signer address
-  const signerAddress = await sdk.getSignerAddress();
+  const signerAddress = await sdk.getSignerAddr();
   console.log(`   Signer address: ${signerAddress}`);
   if (!signerAddress) {
     console.error("❌ ERROR: Failed to get signer address");
@@ -66,7 +66,7 @@ async function main() {
   console.log("\n3. Creating wallet stack...");
   console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
   const result = await sdk.createWallet({
-    authenticator: sdk.addresses.passwordAuth,
+    authenticatorAddr: sdk.addresses.passwordAuth,
     authConfig: passwordHash,
   });
   console.log("   Transaction:", result.transactionHash);

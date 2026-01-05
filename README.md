@@ -145,7 +145,7 @@ async function createWallet() {
   // Create a wallet
   const result = await sdk.createWallet({
     authConfig: passwordHash
-    // authenticator is optional - defaults to PasswordAuthenticator
+    // authenticatorAddr is optional - defaults to PasswordAuthenticator
   });
 
   return result;
@@ -288,6 +288,7 @@ The SDK includes comprehensive Node.js examples in `examples/nodejs/`:
 - **`1.2_createWalletWithHook.js`** - Create wallet with initialization hook
 - **`1.3_createWalletCore.js`** - Create wallet core functionality
 - **`1.4_createWalletCustom.js`** - Create wallet with custom logic
+- **`1.5_createWalletWithMnemonic.js`** - Create wallet from provided mnemonic
 
 **Wallet Usage:**
 - **`2_useWallet.js`** - Basic wallet usage examples
@@ -359,13 +360,15 @@ Create a read-only SDK instance (no signer required).
 
 **Returns:** `Monstera` instance (read-only)
 
-#### `sdk.createWallet(options)`
+#### Wallet Creation Methods
 
-Create a new wallet.
+##### `sdk.createWallet(options)`
+
+Create a new wallet with auto-generated mnemonic.
 
 **Parameters:**
 - `authConfig` (required): Authentication configuration (e.g., password hash as hex string)
-- `authenticator` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
+- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
 **Returns:**
 ```javascript
@@ -382,6 +385,51 @@ Create a new wallet.
 }
 ```
 
+##### `sdk.createWalletFromMnemonic(options)`
+
+Create a new wallet from a provided mnemonic.
+
+**Parameters:**
+- `authConfig` (required): Authentication configuration (e.g., password hash as hex string)
+- `mnemonic` (required): BIP39 mnemonic phrase
+- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
+
+**Returns:** Same as `createWallet()`
+
+##### `sdk.createWalletWithHook(options)`
+
+Create a wallet with a post-creation hook.
+
+**Parameters:**
+- `authConfig` (required): Authentication configuration
+- `hook` (required): Hook contract address
+- `hookData` (required): Data for the hook
+- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
+
+**Returns:** Same as `createWallet()`
+
+##### `sdk.createWalletCore(options)`
+
+Create a wallet core (KeyVault + Storage only, no WalletLogic proxy).
+
+**Parameters:**
+- `authConfig` (required): Authentication configuration
+- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
+
+**Returns:** Same as `createWallet()`
+
+##### `sdk.createWalletWithCustomLogic(options)`
+
+Create a wallet with a custom logic implementation.
+
+**Parameters:**
+- `authConfig` (required): Authentication configuration
+- `customLogicImplAddr` (required): Custom logic implementation contract address
+- `logicData` (required): Initialization data for custom logic
+- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
+
+**Returns:** Same as `createWallet()`
+
 #### SDK Instance Methods
 
 ```javascript
@@ -389,13 +437,13 @@ Create a new wallet.
 const canWrite = sdk.canWrite(); // boolean
 
 // Get the signer address (if available)
-const signerAddress = await sdk.getSignerAddress(); // string | null
+const signerAddress = await sdk.getSignerAddr(); // string | null
 
 // Create an auth proof for wallet signature authentication
 const authProof = await sdk.createAuthProof({
   signer: walletSigner,        // Wallet or HDNodeWallet instance
-  keyVault: keyVaultAddress,   // KeyVault address
-  authenticator: '0x...',      // Optional: authenticator address (defaults to config)
+  keyVaultAddr: keyVaultAddr,   // KeyVault address
+  authenticatorAddr: '0x...',      // Optional: authenticator address (defaults to config)
   deadline: 1234567890,         // Optional: Unix timestamp (defaults to 1h from now)
   chainId: 23295               // Optional: Chain ID (defaults to config chainId)
 });
@@ -408,20 +456,41 @@ The SDK provides access to domain-specific clients:
 ```javascript
 // Factory client - wallet creation and factory administration
 await sdk.createWallet({ authConfig });
-await sdk.isWallet({ walletAddress });
+await sdk.createWalletFromMnemonic({ authConfig, mnemonic });
+await sdk.createWalletWithHook({ authConfig, hook, hookData });
+await sdk.createWalletCore({ authConfig });
+await sdk.createWalletWithCustomLogic({ authConfig, customLogicImplAddr, logicData });
+await sdk.isWallet({ walletAddr });
 await sdk.getAdmin();
+await sdk.getWalletLogicImplAddr();
+await sdk.getKeyVaultAddr({ walletAddr });
+await sdk.getStorageAddr({ walletAddr });
+await sdk.getBeaconAddr();
+await sdk.upgradeWalletLogicImplAddr({ newLogicAddr });
+await sdk.transferAdmin({ newAdminAddr });
 
 // Logic client - wallet operations and account management
-await sdk.getKeyVault({ walletAddress });
+await sdk.initializeWalletLogic({ walletAddr, keyVaultAddr });
 
 // KeyVault client - key vault operations and signing
-await sdk.getKeyVaultStorageAddr({ keyVaultAddress });
-await sdk.getAuthenticatorAddr({ keyVaultAddress });
-await sdk.signTransaction({ keyVaultAddress, ... });
+await sdk.getKeyVaultStorageAddr({ keyVaultAddr });
+await sdk.getAuthenticatorAddr({ keyVaultAddr });
+await sdk.getKeyVaultImplAddr({ keyVaultAddr });
+await sdk.isInitialized({ keyVaultAddr });
+await sdk.getAccountAddr({ keyVaultAddr, index });
+await sdk.getAccountAddresses({ keyVaultAddr, fromIndex, count });
+await sdk.signTransaction({ keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId });
+await sdk.signMessage({ keyVaultAddr, authProof, index, message });
+await sdk.sign({ keyVaultAddr, authProof, index, hash });
+await sdk.executeWithAuth({ keyVaultAddr, authProof, implCall });
+await sdk.initialize({ keyVaultAddr, storageAddr, authenticatorAddr, accessToken });
+await sdk.upgradeKeyVaultImplAddr({ keyVaultAddr, authProof, newImplAddr });
+await sdk.changeAuthenticatorAddr({ keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig });
 
 // Auth client - authenticator management
-const passwordAuth = sdk.getClient('password');
-const walletSigAuth = sdk.getClient('walletSignature');
+const passwordAuth = sdk.getAuthClient('password');
+const walletSigAuth = sdk.getAuthClient('walletSignature');
+const availableTypes = sdk.getAvailableAuthTypes(); // ['password', 'walletSignature']
 ```
 
 ### Exports

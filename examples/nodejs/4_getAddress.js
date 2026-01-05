@@ -31,16 +31,16 @@ async function main() {
   }
   
   // Get KeyVault info
-  const keyVault = await sdk.getKeyVault({
-    walletAddress: WALLET_ADDRESS
+  const keyVault = await sdk.getKeyVaultAddr({
+    walletAddr: WALLET_ADDRESS
   });
   const authenticator = await sdk.getAuthenticatorAddr({
-    keyVaultAddress: keyVault
+    keyVaultAddr: keyVault
   });
   
   // Get account address
-  const addr = await sdk.getAccountAddress({
-    keyVaultAddress: keyVault,
+  const addr = await sdk.getAccountAddr({
+    keyVaultAddr: keyVault,
     index: INDEX
   });
   

@@ -52,16 +52,16 @@ async function main() {
   }
 
   // Show architecture info
-  const keyVaultAddr = await sdk.getKeyVault({ 
-    walletAddress: WALLET_ADDRESS 
+  const keyVaultAddr = await sdk.getKeyVaultAddr({ 
+    walletAddr: WALLET_ADDRESS 
   });
-  const authAddr = await sdk.getAuthenticatorAddr({
-    keyVaultAddress: keyVaultAddr
+  const AuthenticatorAddr = await sdk.getAuthenticatorAddr({
+    keyVaultAddr: keyVaultAddr
   });
   console.log("\nWallet Stack:");
   console.log(`  Wallet (proxy): ${WALLET_ADDRESS}`);
   console.log(`  └── KeyVault:   ${keyVaultAddr}`);
-  console.log(`      └── Auth:   ${authAddr}`);
+  console.log(`      └── Auth:   ${AuthenticatorAddr}`);
 
   // Prepare auth proof (raw password bytes)
   const authProof = ethers.toUtf8Bytes(PASSWORD);
@@ -73,8 +73,8 @@ async function main() {
 
   console.log("\n1. Getting account addresses...");
   for (let i = 0; i < 5; i++) {
-    const addr = await sdk.getAccountAddress({
-      keyVaultAddress: keyVaultAddr,
+    const addr = await sdk.getAccountAddr({
+      keyVaultAddr: keyVaultAddr,
       index: i
     });
     console.log(`   Account ${i}: ${addr}`);
@@ -86,8 +86,8 @@ async function main() {
     const mnemonic = Mnemonic.fromPhrase(MNEMONIC);
     for (let i = 0; i < 3; i++) {
       const ethersWallet = HDNodeWallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/${i}`);
-      const onChainAddr = await sdk.getAccountAddress({
-        keyVaultAddress: keyVaultAddr,
+      const onChainAddr = await sdk.getAccountAddr({
+        keyVaultAddr: keyVaultAddr,
         index: i
       });
       const match = ethersWallet.address.toLowerCase() === onChainAddr.toLowerCase();
@@ -107,7 +107,7 @@ async function main() {
   const message = "Hello from TheWallet!";
   try {
     const result = await sdk.signMessage({
-      keyVaultAddress: keyVaultAddr,
+      keyVaultAddr: keyVaultAddr,
       authProof: authProof,
       index: 0,
       message: ethers.toUtf8Bytes(message)
@@ -116,8 +116,8 @@ async function main() {
     console.log(`   Signature: ${result}`);
 
     // Verify
-    const expectedAddr = await sdk.getAccountAddress({
-      keyVaultAddress: keyVaultAddr,
+    const expectedAddr = await sdk.getAccountAddr({
+      keyVaultAddr: keyVaultAddr,
       index: 0
     });
     const recovered = ethers.verifyMessage(message, result);
@@ -133,7 +133,7 @@ async function main() {
   const hash = ethers.keccak256(ethers.toUtf8Bytes("Some data"));
   try {
     const result = await sdk.sign({
-      keyVaultAddress: keyVaultAddr,
+      keyVaultAddr: keyVaultAddr,
       authProof: authProof,
       index: 0,
       hash: hash
@@ -141,8 +141,8 @@ async function main() {
     console.log(`   Hash: ${hash.slice(0, 20)}...`);
     console.log(`   Signature: ${result}`);
 
-    const expectedAddr = await sdk.getAccountAddress({
-      keyVaultAddress: keyVaultAddr,
+    const expectedAddr = await sdk.getAccountAddr({
+      keyVaultAddr: keyVaultAddr,
       index: 0
     });
     const recovered = ethers.recoverAddress(hash, result);
@@ -161,7 +161,7 @@ async function main() {
   const wrongAuthProof = ethers.toUtf8Bytes("wrongpassword");
   try {
     await sdk.signMessage({
-      keyVaultAddress: keyVaultAddr,
+      keyVaultAddr: keyVaultAddr,
       authProof: wrongAuthProof,
       index: 0,
       message: ethers.toUtf8Bytes("test")

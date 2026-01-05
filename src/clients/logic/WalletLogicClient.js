@@ -39,17 +39,17 @@ class WalletLogicClient extends BaseContractClient {
    * Get the keyVault contract address for a wallet 
    * 
    * @param {Object} options - KeyVault options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @returns {Promise<String>} KeyVault contract address
-   * @throws {ValidationError} If walletAddress is missing or invalid
+   * @throws {ValidationError} If walletAddr is missing or invalid
    */
-  async getKeyVault(options = {}) {
-    const { walletAddress } = options;
-    const logic = this.getReadContract(getWalletLogicContract, walletAddress);
+  async getKeyVaultAddr(options = {}) {
+    const { walletAddr } = options;
+    const logic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => logic.getKeyVault(),
-      'get key vault',
+      'get key vault address',
       options
     );
   }
@@ -58,13 +58,13 @@ class WalletLogicClient extends BaseContractClient {
    * Get the keyVault contract address for a wallet
    * 
    * @param {Object} options - KeyVault options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @returns {Promise<String>} KeyVault contract address
-   * @throws {ValidationError} If walletAddress is missing or invalid
+   * @throws {ValidationError} If walletAddr is missing or invalid
    */
-  async getKeyvaultAddr(options = {}) {
-    const { walletAddress } = options;
-    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
+  async get_key_vault_addr(options = {}) {
+    const { walletAddr } = options;
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => walletLogic.keyVault(),
@@ -77,13 +77,13 @@ class WalletLogicClient extends BaseContractClient {
    * Get the current authenticator contract address for a wallet
    * 
    * @param {Object} options - Get authenticator options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @returns {Promise<String>} Authenticator address 
-   * @throws {ValidationError} If walletAddress is missing or invalid
+   * @throws {ValidationError} If walletAddr is missing or invalid
    */
-  async getAuthenticator(options = {}) {
-    const { walletAddress } = options;
-    const logic = this.getReadContract(getWalletLogicContract, walletAddress);
+  async getAuthenticatorAddr(options = {}) {
+    const { walletAddr } = options;
+    const logic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => logic.getAuthenticator(),
@@ -96,13 +96,13 @@ class WalletLogicClient extends BaseContractClient {
    * Check if a wallet is initialized
    * 
    * @param {Object} options - Is initialized options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @returns {Promise<Boolean>} True if wallet is initialized, false otherwise
-   * @throws {ValidationError} If walletAddress is missing or invalid
+   * @throws {ValidationError} If walletAddr is missing or invalid
    */
   async isInitialized(options = {}) {
-    const { walletAddress } = options;
-    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
+    const { walletAddr } = options;
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => walletLogic.initialized(),
@@ -115,16 +115,16 @@ class WalletLogicClient extends BaseContractClient {
    * Get account address at an index from wallet
    * 
    * @param {Object} options - Account address options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Number} options.index - Account index (uint32)
    * @returns {Promise<String>} Account address
-   * @throws {ValidationError} If walletAddress is missing or invalid, or if index is invalid
+   * @throws {ValidationError} If walletAddr is missing or invalid, or if index is invalid
    */
-  async getAccountAddress(options = {}) {
-    const { walletAddress, index } = options;
+  async getAccountAddr(options = {}) {
+    const { walletAddr, index } = options;
     requireNonNegativeInteger(index, 'index');
 
-    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => walletLogic.getAccountAddress(index),
@@ -137,18 +137,18 @@ class WalletLogicClient extends BaseContractClient {
    * Get account addresses from wallet
    * 
    * @param {Object} options - Account addresses options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Number} options.fromIndex - From index (uint32)
    * @param {Number} options.count - Count (uint32)
    * @returns {Promise<Array<String>>} Array of account addresses
-   * @throws {ValidationError} If walletAddress is missing or invalid, or if fromIndex/count are invalid
+   * @throws {ValidationError} If walletAddr is missing or invalid, or if fromIndex/count are invalid
    */
   async getAccountAddresses(options = {}) {
-    const { walletAddress, fromIndex, count } = options;
+    const { walletAddr, fromIndex, count } = options;
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
     
-    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => walletLogic.getAccountAddresses(fromIndex, count),
@@ -161,7 +161,7 @@ class WalletLogicClient extends BaseContractClient {
    * Sign a raw transaction (authenticated function)
    * 
    * @param {Object} options - Sign transaction options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
    * @param {Number|BigInt} options.index - Account index
    * @param {Number|BigInt} options.nonce - Nonce
@@ -175,7 +175,7 @@ class WalletLogicClient extends BaseContractClient {
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signTransaction(options = {}) {
-    const { walletAddress, authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId } = options;
+    const { walletAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId } = options;
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireNonNegativeInteger(nonce, 'nonce');
@@ -186,7 +186,7 @@ class WalletLogicClient extends BaseContractClient {
     requireBytes(data, 'data');
     requireNonNegativeInteger(chainId, 'chainId');
 
-    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => walletLogic.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId),
@@ -199,7 +199,7 @@ class WalletLogicClient extends BaseContractClient {
    * Sign an EIP-191 message (authenticated function)
    * 
    * @param {Object} options - Sign message options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
    * @param {Number|BigInt} options.index - Account index
    * @param {Bytes} options.message - Message to sign (utf8 encoded string)
@@ -207,12 +207,12 @@ class WalletLogicClient extends BaseContractClient {
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signMessage(options = {}) {
-    const { walletAddress, authProof, index, message } = options;
+    const { walletAddr, authProof, index, message } = options;
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
 
-    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => walletLogic.signMessage(authProof, index, message),
@@ -225,7 +225,7 @@ class WalletLogicClient extends BaseContractClient {
    * Sign a 32-byte hash (authenticated function)
    * 
    * @param {Object} options - Sign hash options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
    * @param {Number|BigInt} options.index - Account index
    * @param {Bytes32} options.hash - Hash to sign (32 bytes)
@@ -233,12 +233,12 @@ class WalletLogicClient extends BaseContractClient {
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async sign(options = {}) {
-    const { walletAddress, authProof, index, hash } = options;
+    const { walletAddr, authProof, index, hash } = options;
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
 
-    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddress);
+    const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
       () => walletLogic.sign(authProof, index, hash),
@@ -255,21 +255,21 @@ class WalletLogicClient extends BaseContractClient {
    * Initialize a wallet logic with a new keyVault 
    * 
    * @param {Object} options - Initialize wallet logic options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-   * @param {String} options.keyVaultAddress - KeyVault contract address 
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {String} options.keyVaultAddr - KeyVault contract address 
    * @returns {Promise<Object>} Initialize wallet logic result
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    */
   async initialize(options = {}) {
-    const { walletAddress, keyVaultAddress } = options;
-    requireAddress(keyVaultAddress, 'keyVaultAddress');
+    const { walletAddr, keyVaultAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
 
-    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
+    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
   
     return this.executeWrite(
-      () => walletLogic.initialize(keyVaultAddress),
+      () => walletLogic.initialize(keyVaultAddr),
       'initialize wallet logic',
       options
     );
@@ -279,9 +279,9 @@ class WalletLogicClient extends BaseContractClient {
    * Change the authenticator (authenticated function)
    * 
    * @param {Object} options - Change authenticator options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
-   * @param {String} options.newAuthenticatorAddress - New authenticator contract address
+   * @param {String} options.newAuthenticatorAddr - New authenticator contract address
    * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
    * @returns {Promise<Object>} Change authenticator result
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -289,16 +289,16 @@ class WalletLogicClient extends BaseContractClient {
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async changeAuthenticator(options = {}) {
-    const { walletAddress, authProof, newAuthenticatorAddress, newAuthConfig } = options;
+  async changeAuthenticatorAddr(options = {}) {
+    const { walletAddr, authProof, newAuthenticatorAddr, newAuthConfig } = options;
     requireBytes(authProof, 'authProof');
-    requireAddress(newAuthenticatorAddress, 'newAuthenticatorAddress');
+    requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');
 
-    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
+    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
 
     return this.executeWrite(
-      () => walletLogic.changeAuthenticator(authProof, newAuthenticatorAddress, newAuthConfig),
+      () => walletLogic.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig),
       'change authenticator',
       {
         ...options,
@@ -314,7 +314,7 @@ class WalletLogicClient extends BaseContractClient {
    * Upgrade the keyVaultImplementation (authenticated function)
    * 
    * @param {Object} options - Upgrade keyVault implementation options
-   * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
+   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
    * @param {String} options.newImplAddr - New keyVault contract address
    * @returns {Promise<Object>} Upgrade keyVaultImplementation result
@@ -323,12 +323,12 @@ class WalletLogicClient extends BaseContractClient {
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
-  async upgradeKeyVaultImpl(options = {}) {
-    const { walletAddress, authProof, newImplAddr } = options;
+  async upgradeKeyVaultImplAddr(options = {}) {
+    const { walletAddr, authProof, newImplAddr } = options;
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
 
-    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddress);
+    const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
 
     return this.executeWrite(
       () => walletLogic.upgradeKeyVault(authProof, newImplAddr),

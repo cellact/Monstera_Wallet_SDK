@@ -43,13 +43,13 @@ async function main() {
   console.log("=".repeat(60));
 
   // Get KeyVault info
-  const keyVault = await sdk.getKeyVault({
-    walletAddress: WALLET_ADDRESS
+  const keyVault = await sdk.getKeyVaultAddr({
+    walletAddr: WALLET_ADDRESS
   });
   console.log("KeyVault:", keyVault);
 
   const isConfigured = await sdk.isConfigured({
-    keyVaultAddress: keyVault
+    keyVaultAddr: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");
   if (!isConfigured) {
@@ -69,12 +69,12 @@ async function main() {
   const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes(NEW_PASSWORD));
 
   const result = await sdk.changePassword({
-    keyVaultAddress: keyVault,
+    keyVaultAddr: keyVault,
     currentPassword: authProof,
     newPasswordHash: newPasswordHash
   });
   console.log("   Transaction:", result.transactionHash);
-  console.log("   Wallet Address (KeyVault address):", result.walletAddress);
+  console.log("   Wallet Address (KeyVault address):", result.walletAddr);
   console.log("   Gas Used:", result.gasUsed);
   console.log("   Block Number:", result.blockNumber);
   console.log("=".repeat(60));
@@ -92,7 +92,7 @@ async function main() {
   const message = "Hello from TheWallet!";
   try {
     const signature = await sdk.signMessage({
-      keyVaultAddress: keyVault,
+      keyVaultAddr: keyVault,
       authProof: newAuthProof,
       index: 0,
       message: ethers.toUtf8Bytes(message)
@@ -101,8 +101,8 @@ async function main() {
     console.log(`   Signature: ${signature}`);
 
     // Verify
-    const expectedAddr = await sdk.getAccountAddress({
-      keyVaultAddress: keyVault,
+    const expectedAddr = await sdk.getAccountAddr({
+      keyVaultAddr: keyVault,
       index: 0
     });
     const recovered = ethers.verifyMessage(message, signature);

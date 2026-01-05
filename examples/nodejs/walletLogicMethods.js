@@ -43,8 +43,8 @@ async function main() {
 
   try {
     // Get keyVault contract address for a wallet
-    const result = await sdk.getKeyvaultAddr({
-      walletAddress: WALLET_ADDRESS
+    const result = await sdk.getKeyVaultAddr({
+      walletAddr: WALLET_ADDRESS
     });
 
     console.log(`   ✅ KeyVault contract address: ${result}`);
@@ -64,10 +64,9 @@ async function main() {
 
   try {
     // Initialize a wallet logic contract
-    // const result = await sdk.logic.initialize({
     const result = await sdk.initializeWalletLogic({
-      walletAddress: WALLET_ADDRESS,
-      keyVaultAddress: NEW_KEYVAULT_ADDRESS
+      walletAddr: WALLET_ADDRESS,
+      keyVaultAddr: NEW_KEYVAULT_ADDRESS
     });
 
     console.log(`   ✅ Initialize wallet logic contract result: ${result}`);
