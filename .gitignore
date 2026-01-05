@@ -89,6 +89,4 @@ node_modules/
 dist/
 *.map
 
-.cursorrules
-
 SDK_ANALYSIS.md
