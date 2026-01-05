@@ -422,8 +422,8 @@ await sdk.keyVault.getAuthenticator({ keyVaultAddress });
 await sdk.keyVault.signTransaction({ keyVaultAddress, ... });
 
 // Auth client - authenticator management
-const passwordAuth = sdk.auth.getClient('password');
-const walletSigAuth = sdk.auth.getClient('walletSignature');
+const passwordAuth = sdk.getClient('password');
+const walletSigAuth = sdk.getClient('walletSignature');
 ```
 
 ### Exports

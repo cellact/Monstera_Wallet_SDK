@@ -141,7 +141,7 @@ async function main() {
       signer: allowed1Signer,
       keyVault: result.keyVault
     });
-    const removeResult = await sdk.auth.walletSignature.removeFromWhitelist({
+    const removeResult = await sdk.removeFromWhitelist({
       keyVaultAddress: result.keyVault,
       authProof: authProof,
       addressToRemove: allowed2Signer.address
@@ -149,7 +149,7 @@ async function main() {
     console.log(`   ✅ Removed ${allowed2Signer.address.slice(0, 10)}... from whitelist`);
 
     // Verify whitelist
-    const isWhitelistedResult = await sdk.auth.walletSignature.isWhitelisted({
+    const isWhitelistedResult = await sdk.isWhitelisted({
       keyVaultAddress: result.keyVault,
       addressToCheck: allowed2Signer.address
     });
@@ -189,7 +189,7 @@ async function main() {
   console.log(`   KeyVault: ${result.keyVault}`);
   console.log(`   Mnemonic: ${result.mnemonic}`);
   console.log("\n   Current Whitelist:");
-  const currentWhitelist = await sdk.auth.walletSignature.getWhitelist({
+  const currentWhitelist = await sdk.getWhitelist({
     keyVaultAddress: result.keyVault
   });
   currentWhitelist.forEach((addr, i) => {

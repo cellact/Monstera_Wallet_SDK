@@ -75,7 +75,7 @@ async function main() {
   console.log("STEP 2: Check if a wallet is configured");
   console.log("=".repeat(70));
 
-  const isConfigured = await sdk.auth.walletSignature.isConfigured({
+  const isConfigured = await sdk.isConfigured({
     keyVaultAddress: result.keyVault
   });
   console.log(`   ✅ isConfigured: ${isConfigured ? "✅ Yes" : "❌ No"}`);
@@ -89,7 +89,7 @@ async function main() {
   console.log("STEP 3: Get the EIP-712 domain seperator");
   console.log("=".repeat(70));
 
-  const domainSeparator = await sdk.auth.walletSignature.getDomainSeparator();
+  const domainSeparator = await sdk.getDomainSeparator();
   console.log(`   ✅ domainSeparator: ${domainSeparator}`);
   if (!domainSeparator) {
     console.error("❌ ERROR: Failed to get domain separator");
@@ -101,7 +101,7 @@ async function main() {
   console.log("STEP 4: Configure the wallet signature authenticator");
   console.log("=".repeat(70));
 
-  const configResult = await sdk.auth.walletSignature.configure({
+  const configResult = await sdk.configure({
     keyVaultAddress: result.keyVault,
     authConfig: authConfig
   });
@@ -119,7 +119,7 @@ async function main() {
   // create auth proof
   const authProof = await sdk.crypto.wallet.createAuthProof(allowed1Signer, sdk.chainId, sdk.addresses.walletSignatureAuth, Date.now() + 1000, result.keyVault);
   
-  const isValid = await sdk.auth.walletSignature.verify({
+  const isValid = await sdk.verify({
     keyVaultAddress: result.keyVault,
     authProof: authProof
   });

@@ -48,7 +48,7 @@ async function main() {
   });
   console.log("KeyVault:", keyVault);
 
-  const isConfigured = await sdk.auth.password.isConfigured({
+  const isConfigured = await sdk.isConfigured({
     keyVaultAddress: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");
@@ -68,7 +68,7 @@ async function main() {
   // Prepare new password hash
   const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes(NEW_PASSWORD));
 
-  const result = await sdk.auth.password.changePassword({
+  const result = await sdk.changePassword({
     keyVaultAddress: keyVault,
     currentPassword: authProof,
     newPasswordHash: newPasswordHash

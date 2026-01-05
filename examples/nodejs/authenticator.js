@@ -42,7 +42,7 @@ async function main() {
 
   try {
     // Get all available authenticator types
-    const availableTypes = sdk.auth.getAvailableTypes();
+    const availableTypes = sdk.getAvailableTypes();
     console.log(`   ✅ Available authenticator types: ${availableTypes.join(', ')}`);
     if (availableTypes.length === 0) {
       console.error("❌ ERROR: No authenticator types found");
@@ -63,7 +63,7 @@ async function main() {
 
   try {
     // Get a specific authenticator client by type
-    const passwordClient = sdk.auth.getClient('password');
+    const passwordClient = sdk.getClient('password');
     console.log(`   ✅ Password client: ${passwordClient}`);
 
     if (!passwordClient) {
@@ -97,7 +97,7 @@ async function main() {
 
     // Get wallet signature authenticator client
     console.log("\n2. Getting wallet signature authenticator client...");
-    const walletSignatureClient = sdk.auth.getClient('walletSignature');
+    const walletSignatureClient = sdk.getClient('walletSignature');
     console.log(`   ✅ WalletSignature client: ${walletSignatureClient}`);
     if (!walletSignatureClient) {
       console.error("❌ ERROR: Failed to get wallet signature authenticator client");
