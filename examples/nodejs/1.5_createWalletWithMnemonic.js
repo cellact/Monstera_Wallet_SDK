@@ -48,7 +48,7 @@ async function main() {
   // Create wallet
   console.log("\n3. Creating wallet stack...");
   console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
-  const result = await sdk.factory.createWalletFromMnemonic({
+  const result = await sdk.createWalletFromMnemonic({
     authenticator: sdk.addresses.passwordAuth,
     authConfig: passwordHash,
     mnemonic: MNEMONIC

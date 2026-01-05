@@ -63,7 +63,7 @@ async function main() {
   console.log(`   Initial Whitelist: ${whitelist.length} addresses`);
 
   // Create wallet
-  const result = await sdk.factory.createWallet({
+  const result = await sdk.createWallet({
     authenticator: sdk.addresses.walletSignatureAuth,
     authConfig: authConfig,
   });

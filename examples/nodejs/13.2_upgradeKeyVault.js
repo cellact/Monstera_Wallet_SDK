@@ -48,7 +48,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // Get KeyVault contract address from wallet factory 
-  const keyVaultAddr = await sdk.factory.getWalletKeyVault({
+  const keyVaultAddr = await sdk.getWalletKeyVault({
     walletAddress: WALLET_ADDRESS
   });
 

@@ -143,7 +143,7 @@ async function createWallet() {
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
 
   // Create a wallet
-  const result = await sdk.factory.createWallet({
+  const result = await sdk.createWallet({
     authConfig: passwordHash
     // authenticator is optional - defaults to PasswordAuthenticator
   });
@@ -359,7 +359,7 @@ Create a read-only SDK instance (no signer required).
 
 **Returns:** `Monstera` instance (read-only)
 
-#### `sdk.factory.createWallet(options)`
+#### `sdk.createWallet(options)`
 
 Create a new wallet.
 
@@ -407,9 +407,9 @@ The SDK provides access to domain-specific clients:
 
 ```javascript
 // Factory client - wallet creation and factory administration
-await sdk.factory.createWallet({ authConfig });
-await sdk.factory.isWallet({ walletAddress });
-await sdk.factory.getAdmin();
+await sdk.createWallet({ authConfig });
+await sdk.isWallet({ walletAddress });
+await sdk.getAdmin();
 
 // Logic client - wallet operations and account management
 await sdk.logic.getKeyVault({ walletAddress });
@@ -479,7 +479,7 @@ The SDK uses consistent error types with stable error codes:
 
 ```javascript
 try {
-  await sdk.factory.createWallet({ authConfig: passwordHash });
+  await sdk.createWallet({ authConfig: passwordHash });
 } catch (error) {
   if (error instanceof ValidationError) {
     console.error('Validation error:', error.message);

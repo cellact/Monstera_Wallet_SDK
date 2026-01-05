@@ -224,12 +224,6 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    * 
-   * @example
-   * const result = await sdk.factory.createWallet({
-   *   authConfig: passwordHash
-   * });
-   * console.log('Wallet created:', result.wallet);
-   * console.log('Mnemonic:', result.mnemonic); // Save this securely!
    */
   async createWallet(options = {}) {
     const { authConfig } = options;
@@ -273,13 +267,6 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
    * 
-   * @example
-   * const result = await sdk.factory.createWalletFromMnemonic({
-   *   authConfig: passwordHash,
-   *   mnemonic: 'my mnemonic phrase'
-   * });
-   * console.log('Wallet created:', result.wallet);
-   * console.log('Mnemonic:', result.mnemonic); // Save this securely!
    */
   async createWalletFromMnemonic(options = {}) {
     const { authConfig, mnemonic } = options;

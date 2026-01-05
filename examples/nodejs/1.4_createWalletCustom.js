@@ -45,7 +45,7 @@ async function main() {
   // Create wallet
   console.log("\n3. Creating wallet stack...");
   console.log("   This deploys: WalletStorage + KeyVault + CustomLogicProxy");
-  const result = await sdk.factory.createWalletWithCustomLogic({
+  const result = await sdk.createWalletWithCustomLogic({
     authenticator: sdk.addresses.passwordAuth,
     authConfig: passwordHash,
     customLogicImpl: CUSTOM_LOGIC_IMPL,
