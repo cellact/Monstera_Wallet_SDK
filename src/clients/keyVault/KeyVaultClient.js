@@ -55,7 +55,7 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get the authenticator contract address for a wallet 
+   * Get the current authenticator contract address for a wallet 
    * 
    * @param {Object} options - Get authenticator options
    * @param {String} options.keyVaultAddress - KeyVault contract address 

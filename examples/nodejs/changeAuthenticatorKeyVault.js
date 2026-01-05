@@ -1,5 +1,5 @@
 /**
- * Change the authenticator of a wallet (via keyVault contract)
+ * Change the authenticator of a wallet
  * 
  * Run: node examples/nodejs/changeAuthenticatorKeyVault.js
  * 
@@ -46,12 +46,10 @@ async function main() {
   console.log("=".repeat(60));
   
   // Get KeyVault info
-  // const keyVault = await sdk.logic.getKeyVault({
   const keyVault = await sdk.getKeyVault({
     walletAddress: WALLET_ADDRESS
   });
-  // const oldAuthenticator = await sdk.getAuthenticator({
-  const oldAuthenticator = await sdk.getKeyVaultAuthenticator({
+  const oldAuthenticator = await sdk.getAuthenticatorAddr({
     keyVaultAddress: keyVault
   });
   
@@ -61,8 +59,7 @@ async function main() {
   console.log(`      └── Auth:   ${oldAuthenticator}`);
 
   // check if wallet is initilized 
-  // const isInitialized = await sdk.isInitialized({
-  const isInitialized = await sdk.isKeyVaultInitialized({
+  const isInitialized = await sdk.isInitialized({
     keyVaultAddress: keyVault
   });
   console.log("   Is Initialized:", isInitialized ? "✅ Yes" : "❌ No");
@@ -84,8 +81,7 @@ async function main() {
   console.log("STEP 2: Change Authenticator");
   console.log("=".repeat(60));
 
-  // const result = await sdk.changeAuthenticator({
-  const result = await sdk.changeKeyVaultAuthenticator({
+  const result = await sdk.changeAuthenticator({
     keyVaultAddress: keyVault,
     authProof: authProof,
     newAuthenticatorAddr: NEW_AUTHENTICATOR_ADDRESS,
@@ -103,8 +99,7 @@ async function main() {
   console.log("STEP 3: Change Authenticator is successful");
   console.log("=".repeat(60));
 
-  // const currentAuthenticator = await sdk.getAuthenticator({
-  const currentAuthenticator = await sdk.getKeyVaultAuthenticator({
+  const currentAuthenticator = await sdk.getAuthenticatorAddr({
     keyVaultAddress: keyVault
   });
   console.log("   Current Auth:", currentAuthenticator);

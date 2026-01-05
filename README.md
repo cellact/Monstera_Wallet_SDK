@@ -413,13 +413,11 @@ await sdk.getAdmin();
 
 // Logic client - wallet operations and account management
 await sdk.getKeyVault({ walletAddress });
-await sdk.getWalletLogicAuthenticator({ walletAddress });
-await sdk.walletLogicGetAccountAddress({ walletAddress, index });
 
 // KeyVault client - key vault operations and signing
 await sdk.getKeyVaultStorageAddr({ keyVaultAddress });
-await sdk.getKeyVaultAuthenticator({ keyVaultAddress });
-await sdk.keyVaultSignTransaction({ keyVaultAddress, ... });
+await sdk.getAuthenticatorAddr({ keyVaultAddress });
+await sdk.signTransaction({ keyVaultAddress, ... });
 
 // Auth client - authenticator management
 const passwordAuth = sdk.getClient('password');

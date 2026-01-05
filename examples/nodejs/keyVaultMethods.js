@@ -53,7 +53,6 @@ async function main() {
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   // Get keyVault address for a wallet
-  // const keyVaultAddr = await sdk.logic.getKeyVault({
   const keyVaultAddr = await sdk.getKeyVault({
     walletAddress: WALLET_ADDRESS
   });
@@ -84,8 +83,7 @@ async function main() {
   console.log("STEP 2: Get authenticator contract address");
   console.log("=".repeat(70));
 
-  // const authenticatorAddr = await sdk.getAuthenticator({
-  const authenticatorAddr = await sdk.getKeyVaultAuthenticator({
+  const authenticatorAddr = await sdk.getAuthenticatorAddr({
     keyVaultAddress: keyVaultAddr
   });
   console.log(`   Authenticator: ${authenticatorAddr}`);
@@ -113,8 +111,7 @@ async function main() {
   console.log("STEP 4: Check if a keyVault is initialized");
   console.log("=".repeat(70));
 
-  // const isInitialized = await sdk.isInitialized({
-  const isInitialized = await sdk.isKeyVaultInitialized({
+  const isInitialized = await sdk.isInitialized({
     keyVaultAddress: keyVaultAddr
   });
   console.log(`   isInitialized: ${isInitialized ? "✅ Yes" : "❌ No"}`);
@@ -128,8 +125,7 @@ async function main() {
   console.log("STEP 5: Get the account address (index 0) from the keyVault contract");
   console.log("=".repeat(70));
 
-  // const accountAddress = await sdk.getAccountAddress({
-  const accountAddress = await sdk.keyVaultGetAccountAddress({
+  const accountAddress = await sdk.getAccountAddress({
     keyVaultAddress: keyVaultAddr,
     index: 0
   });
@@ -144,8 +140,7 @@ async function main() {
   console.log("STEP 6: Get multiple account addresses (indexes 0-4) from the keyVault contract");
   console.log("=".repeat(70));
 
-  // const accountAddresses = await sdk.getAccountAddresses({
-  const accountAddresses = await sdk.keyVaultGetAccountAddresses({
+  const accountAddresses = await sdk.getAccountAddresses({
     keyVaultAddress: keyVaultAddr,
     fromIndex: 0,
     count: 5
@@ -244,8 +239,7 @@ async function main() {
   console.log(`   Gas Price: ${ethers.formatUnits(gasPrice, "gwei")} gwei`);
 
   console.log("   Requesting signature from Sapphire...");
-  // const signedTransaction = await sdk.signTransaction({
-  const signedTransaction = await sdk.keyVaultSignTransaction({
+  const signedTransaction = await sdk.signTransaction({
     keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
@@ -295,8 +289,7 @@ async function main() {
 
   const hash = ethers.keccak256(ethers.toUtf8Bytes("Hello from TheWallet!"));
 
-  // const signedHash = await sdk.sign({
-  const signedHash = await sdk.keyVaultSign({
+  const signedHash = await sdk.sign({
     keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: 0,
@@ -315,8 +308,7 @@ async function main() {
 
   const message = "Hello from TheWallet!";
 
-  // const signature = await sdk.signMessage({
-  const signature = await sdk.keyVaultSignMessage({
+  const signature = await sdk.signMessage({
     keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: 0,

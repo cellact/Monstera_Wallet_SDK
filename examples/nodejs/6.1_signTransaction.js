@@ -66,12 +66,10 @@ async function main() {
   console.log("=".repeat(70));
 
   // Get account address and KeyVault
-  // const accountAddress = await sdk.logic.getAccountAddress({
-  const accountAddress = await sdk.walletLogicGetAccountAddress({
-    walletAddress: SAPPHIRE_WALLET_ADDRESS,
+  const accountAddress = await sdk.getAccountAddress({
+    keyVaultAddress: keyVaultAddr,
     index: ACCOUNT_INDEX
   });
-  // const keyVaultAddr = await sdk.logic.getKeyVault({
   const keyVaultAddr = await sdk.getKeyVault({
     walletAddress: SAPPHIRE_WALLET_ADDRESS
   });
@@ -180,9 +178,8 @@ async function main() {
 
   // Sign deployment via Sapphire (key stays in enclave!)
   console.log("   Requesting signature from Sapphire...");
-  // const signedDeployTx = await sdk.logic.signTransaction({
-  const signedDeployTx = await sdk.walletLogicSignTransaction({
-    walletAddress: SAPPHIRE_WALLET_ADDRESS,
+  const signedDeployTx = await sdk.signTransaction({
+    keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
     nonce: deployNonce,
@@ -190,7 +187,7 @@ async function main() {
     gasLimit: deployGasLimit,
     to: ethers.ZeroAddress,
     value: 0,
-    data: deployData,
+    txData: deployData,
     chainId: AMOY_CHAIN_ID
   });
 
@@ -223,9 +220,8 @@ async function main() {
   console.log(`   Nonce: ${nonce}`);
 
   console.log("   Requesting signature from Sapphire...");
-  // const signedTx = await sdk.logic.signTransaction({
-  const signedTx = await sdk.walletLogicSignTransaction({
-    walletAddress: SAPPHIRE_WALLET_ADDRESS,
+  const signedTx = await sdk.signTransaction({
+    keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
     nonce: nonce,
@@ -233,7 +229,7 @@ async function main() {
     gasLimit: gasLimit,
     to: counterAddress,
     value: 0,
-    data: txData,
+    txData: txData,
     chainId: AMOY_CHAIN_ID
   });
 
@@ -256,9 +252,8 @@ async function main() {
   const nonce2 = await amoyProvider.getTransactionCount(accountAddress);
 
   console.log("   Requesting signature from Sapphire...");
-  // const signedTx2 = await sdk.logic.signTransaction({
-  const signedTx2 = await sdk.walletLogicSignTransaction({
-    walletAddress: SAPPHIRE_WALLET_ADDRESS,
+  const signedTx2 = await sdk.signTransaction({
+    keyVaultAddress: keyVaultAddr,
     authProof: authProof,
     index: ACCOUNT_INDEX,
     nonce: nonce2,
@@ -266,7 +261,7 @@ async function main() {
     gasLimit: gasLimit,
     to: counterAddress,
     value: 0,
-    data: txData2,
+    txData: txData2,
     chainId: AMOY_CHAIN_ID
   });
 

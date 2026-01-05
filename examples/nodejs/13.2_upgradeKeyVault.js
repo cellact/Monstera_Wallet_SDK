@@ -76,19 +76,8 @@ async function main() {
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   try {
-    // // Upgrade KeyVaultImplementation (via walletLogic contract)
-    // // const result = await sdk.logic.upgradeKeyVaultImpl({
-    // const result = await sdk.walletLogicUpgradeKeyVaultImpl({
-    //   walletAddress: WALLET_ADDRESS,
-    //   authProof: authProof,
-    //   newImplAddr: NEW_KEYVAULT_IMPL_ADDRESS
-    // });
-
-    // const newImplAddr = result.newImplAddr;
-
-    // upgrade KeyVaultImplementation (via keyVault contract)
-    // const result = await sdk.upgradeKeyVaultImpl({
-    const result = await sdk.keyVaultUpgradeKeyVaultImpl({
+    // upgrade KeyVaultImplementation
+    const result = await sdk.upgradeKeyVaultImpl({
       keyVaultAddress: keyVaultAddr,
       authProof: authProof,
       newImplAddr: NEW_KEYVAULT_IMPL_ADDRESS

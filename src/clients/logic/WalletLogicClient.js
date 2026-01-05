@@ -74,11 +74,11 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Get the current authenticator address for a wallet
+   * Get the current authenticator contract address for a wallet
    * 
-   * @param {Object} options - Authenticator options
+   * @param {Object} options - Get authenticator options
    * @param {String} options.walletAddress - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} Authenticator address (from KeyVault)
+   * @returns {Promise<String>} Authenticator address 
    * @throws {ValidationError} If walletAddress is missing or invalid
    */
   async getAuthenticator(options = {}) {

@@ -82,9 +82,8 @@ async function main() {
 
   try {
     // Public function works for anyone
-    // const addr = await sdk.logic.getAccountAddress({
-    const addr = await sdk.walletLogicGetAccountAddress({
-      walletAddress: result.wallet,
+    const addr = await sdk.getAccountAddress({
+      keyVaultAddress: result.keyVault,
       index: 0
     });
     console.log(`   ✅ getAccountAddress(0) works: ${addr.slice(0, 20)}...`);
@@ -94,9 +93,8 @@ async function main() {
       signer: notAllowedSigner,
       keyVault: result.keyVault
     });
-    // await sdk.logic.signMessage({
-    await sdk.walletLogicSignMessage({
-      walletAddress: result.wallet,
+    await sdk.signMessage({
+      keyVaultAddress: result.keyVault,
       authProof: authProof,
       index: 0,
       message: ethers.toUtf8Bytes("test")
@@ -119,9 +117,8 @@ async function main() {
     
     // Sign a message
     const message = "Hello from WalletSigAuth test!";
-    // const sig = await sdk.logic.signMessage({
-    const sig = await sdk.walletLogicSignMessage({
-      walletAddress: result.wallet,
+    const sig = await sdk.signMessage({
+      keyVaultAddress: result.keyVault,
       authProof: authProof,
       index: 0,
       message: ethers.toUtf8Bytes(message)
@@ -129,9 +126,8 @@ async function main() {
     console.log(`   ✅ signMessage succeeded!`);
     
     // Verify signature
-    // const accountAddr = await sdk.logic.getAccountAddress({
-    const accountAddr = await sdk.walletLogicGetAccountAddress({
-      walletAddress: result.wallet,
+    const accountAddr = await sdk.getAccountAddress({
+      keyVaultAddress: result.keyVault,
       index: 0
     });
     const recovered = ethers.verifyMessage(message, sig);
@@ -153,9 +149,8 @@ async function main() {
     });
     
     const hash = ethers.keccak256(ethers.toUtf8Bytes("test data"));
-    // const sig = await sdk.logic.sign({
-    const sig = await sdk.walletLogicSign({
-      walletAddress: result.wallet,
+    const sig = await sdk.sign({
+      keyVaultAddress: result.keyVault,
       authProof: authProof,
       index: 0,
       hash: hash
@@ -207,9 +202,8 @@ async function main() {
       signer: notAllowedSigner,
       keyVault: result.keyVault
     });
-    // const sig = await sdk.logic.signMessage({
-    const sig = await sdk.walletLogicSignMessage({
-      walletAddress: result.wallet,
+    const sig = await sdk.signMessage({
+      keyVaultAddress: result.keyVault,
       authProof: authProof,
       index: 0,
       message: ethers.toUtf8Bytes("I'm now allowed!")
