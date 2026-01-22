@@ -4,7 +4,7 @@
 
 /**
  * Parse semantic version string into components
- * @param {string} version - Semantic version string (e.g., "1.0.0-alpha.2")
+ * @param {string} version - Semantic version string
  * @returns {Object} Parsed version object with {major, minor, patch, prerelease, build}
  */
 export function parseVersion(version) {

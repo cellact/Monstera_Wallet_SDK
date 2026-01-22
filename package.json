@@ -32,7 +32,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "lint": "eslint src/**/*.js",
-    "postinstall": "node scripts/postinstall.js"
+    "postinstall": "node ./scripts/postinstall.js"
   },
   "keywords": [
     "wallet",
