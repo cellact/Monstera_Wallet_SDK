@@ -10,41 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - This CHANGELOG file
 - **ESM Support**: Full ES Modules (ESM) support throughout the SDK
-- **Automatic Version Checking**: SDK now automatically checks for updates on initialization
-  - Checks npm registry for latest version (Node.js only, skipped in browser due to CORS)
-  - Displays console warnings for major/minor updates (not patch/prerelease)
-  - Cached to run only once per process to avoid multiple checks
-  - Can be disabled via `checkVersion: false` option in `connect()` and `readonly()` methods
-  - Non-blocking and fails silently to never interrupt SDK usage
-- **Version Comparison Utilities**: New version management utilities in `src/internal/version.js`
-  - `parseVersion()`: Parse semantic version strings into components
-  - `compareVersions()`: Compare two semantic versions
-  - `satisfiesRange()`: Check if version satisfies a range (supports ^, ~, >=, <=, >, <, =, and ranges)
-  - `getVersionType()`: Get version type difference (major/minor/patch/prerelease)
-- **Version Check Module**: New `src/internal/versionCheck.js` module
-  - `checkVersion()`: Check if current version is outdated
-  - `fetchLatestVersion()`: Fetch latest version from npm registry
-  - `checkAndWarnVersion()`: Automatic version check with console warnings
-- **Version Check Example**: Added `examples/nodejs/versionCheck.js` demonstrating version checking functionality
-- **Convenience API Methods**: All client methods are now accessible directly on the SDK instance
-  - All factory, keyVault, and auth methods are available directly on SDK instance
-  - most logic methods are not directly available on SDK instance as it is preferable to use the keyVault methods directly
-  - Sub-clients (`sdk.factory`, `sdk.logic`, `sdk.keyVault`, `sdk.auth`) remain available for advanced use cases
-  - This provides a cleaner, more intuitive API while maintaining backward compatibility
+- **Automatic Version Checking**: SDK automatically checks for updates on initialization (Node.js only, can be disabled via `checkVersion: false`)
+- **Version Management Utilities**: Version comparison and checking utilities (`parseVersion`, `compareVersions`, `satisfiesRange`, `getVersionType`)
+- **Convenience API Methods**: All factory, keyVault, and auth methods are now accessible directly on the SDK instance (e.g., `sdk.createWallet()` instead of `sdk.factory.createWallet()`)
+- **Wallet Creation from Mnemonic**: Added `createWalletFromMnemonic()` method with BIP39 validation
+- **KeyVault Initialization**: Added `initialize()` method to KeyVaultClient
+- **Browser Builds**: Added ESM and IIFE browser builds with Rollup bundler
 
 ### Changed
-- **Module System**: Migrated entire SDK from CommonJS to ES Modules (ESM)
-  - Updated `package.json` to set `"type": "module"`
-  - Converted all source files from `require()`/`module.exports` to `import`/`export`
-  - Updated all 23 example files to use ESM syntax
-  - Updated README.md with ESM code examples and usage notes
-  - All import paths now include `.js` extensions (ESM requirement)
-  - Updated `bin/monstera.js` and `scripts/postinstall.js` to use ESM
-  - SDK now requires ESM-compatible environment (Node.js 14+ with ESM support or a bundler)
-  - All `require()` statements must be replaced with `import` statements
-  - All `module.exports` must be replaced with `export` statements
-  - Import paths must include `.js` extensions
-  - Migration: Update your code to use ESM syntax:
+- **Module System** (BREAKING): Migrated entire SDK from CommonJS to ES Modules (ESM)
+  - **BREAKING**: SDK now requires ESM-compatible environment (Node.js 14+ with ESM support or a bundler)
+  - Migration: Replace `require()` with `import` and `module.exports` with `export`
+  - Example:
     ```javascript
     // Before (CommonJS)
     const { Monstera } = require('@monstera_protocol/sdk');
@@ -52,14 +29,46 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     // After (ESM)
     import { Monstera } from '@monstera_protocol/sdk';
     ```
-- **Documentation**: 
-  - Added `CHANGELOG.md` to files array
-- **SDK Configuration**: Added `checkVersion` option to `Monstera.connect()` and `Monstera.readonly()` methods
-  - Defaults to `true` (automatic version checking enabled)
-  - Set to `false` to disable automatic version checking
+- **SDK Configuration**: Added `checkVersion` option to `Monstera.connect()` and `Monstera.readonly()` methods (defaults to `true`)
+- **Method Organization**: Reorganized SDK methods by operation type (Utility, Initialize, Configure, Create, Read, Write) for better discoverability
+- **KeyVault vs WalletLogic**: Prefer KeyVaultClient methods over WalletLogicClient for duplicate functionality (better performance)
+- **Network Parameter** (BREAKING): Changed from `network: 'testnet'|'mainnet'` to `mainnet: boolean` in `connect()` and `readonly()` methods
+  - **BREAKING**: API now uses `mainnet: boolean` instead of `network: string`
+  - Migration: Replace `network: 'testnet'` with `mainnet: false` and `network: 'mainnet'` with `mainnet: true`
+  - Example:
+    ```javascript
+    // Before
+    Monstera.connect({ network: 'testnet', signer: ... });
+    
+    // After
+    Monstera.connect({ mainnet: false, signer: ... });
+    ```
+- **Method Renames** (BREAKING): Renamed several methods to use "update" prefix for consistency
+  - **BREAKING**: `upgradeWalletLogicImplAddr()` → `updateWalletLogicImplAddr()`
+  - **BREAKING**: `upgradeKeyVaultImplAddr()` → `updateKeyVaultImplAddr()`
+  - **BREAKING**: `changeAuthenticatorAddr()` → `updateAuthenticatorAddr()`
+  - **BREAKING**: `changePassword()` → `updatePassword()`
+  - Aligns with SDK naming conventions for write operations
+- **Address Parameter Naming** (BREAKING): Standardized all address parameters to use "Addr" suffix
+  - **BREAKING**: All address parameters now use "Addr" suffix (e.g., `walletAddr`, `keyVaultAddr`)
+  - **BREAKING**: All address getter methods use "Addr" suffix (e.g., `getKeyVaultAddr()`)
+  - Migration: Update all address parameter names in your code to use "Addr" suffix
+  - Example:
+    ```javascript
+    // Before
+    sdk.getKeyVault({ walletAddress: ... });
+    
+    // After
+    sdk.getKeyVaultAddr({ walletAddr: ... });
+    ```
 
 ### Removed
 - **CommonJS Support**: Removed CommonJS (`require`/`module.exports`) support - SDK is now ESM-only
+
+### Fixed
+- **Browser Builds**: Fixed browser builds by bundling `@oasisprotocol/sapphire-ethers-v6` dependency
+- **Browser Global Queue**: Fixed browser global queue stub to use `window.Monstera` correctly
+- **Example Files**: Fixed method calls, typos, and removed duplicate files
 
 ## [1.0.0-alpha.2] - 2025-12-30
 
