@@ -22,7 +22,7 @@ import { ethers } from 'ethers';
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const PASSWORD = process.env.PASSWORD || "";
-const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0x9bf630Fa31bb2Bdd1c1720bf7AcF324281e6156E";
+const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7";
 
 const sdk = Monstera.connect({
   mainnet: false,
