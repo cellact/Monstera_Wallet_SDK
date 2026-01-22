@@ -1,5 +1,4 @@
 import { compareVersions, getVersionType } from './version.js';
-import Monstera from '../sdk/Monstera.js';
 
 /**
  * Check if current version is outdated
@@ -49,12 +48,10 @@ export async function fetchLatestVersion() {
 /**
  * Check version and display warning if outdated
  * This is called automatically by the SDK
+ * @param {string} currentVersion - Current SDK version
  * @returns {Promise<void>}
  */
-export async function checkAndWarnVersion() {
-  // Get current version
-  const currentVersion = Monstera.version;
-  
+export async function checkAndWarnVersion(currentVersion) {
   // Skip if version is unknown (e.g., in some build scenarios)
   if (currentVersion === 'unknown') {
     return;

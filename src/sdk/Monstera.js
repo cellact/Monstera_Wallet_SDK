@@ -150,7 +150,7 @@ class Monstera {
     Monstera._versionCheckDone = true;
 
     // Start async check (fire and forget)
-    Monstera._versionCheckPromise = checkAndWarnVersion()
+    Monstera._versionCheckPromise = checkAndWarnVersion(Monstera.version)
       .catch(() => {
         // Silently fail - version check should never break SDK usage
       })

@@ -172,10 +172,10 @@ async function testManualVersionCheck() {
   console.log("Testing Manual Version Check");
   console.log("=".repeat(60));
 
-  console.log("\n1. Calling checkAndWarnVersion() manually...");
+  console.log("\n1. Calling checkAndWarnVersion(Monstera.version) manually...");
   console.log("   (This will show a warning if update is available)");
   
-  await checkAndWarnVersion({ silent: false });
+  await checkAndWarnVersion(Monstera.version);
   
   console.log("   ✓ Manual version check completed");
 }
