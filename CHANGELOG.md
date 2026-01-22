@@ -10,6 +10,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - This CHANGELOG file
 - **ESM Support**: Full ES Modules (ESM) support throughout the SDK
+- **Automatic Version Checking**: SDK now automatically checks for updates on initialization
+  - Checks npm registry for latest version (Node.js only, skipped in browser due to CORS)
+  - Displays console warnings for major/minor updates (not patch/prerelease)
+  - Cached to run only once per process to avoid multiple checks
+  - Can be disabled via `checkVersion: false` option in `connect()` and `readonly()` methods
+  - Non-blocking and fails silently to never interrupt SDK usage
+- **Version Comparison Utilities**: New version management utilities in `src/internal/version.js`
+  - `parseVersion()`: Parse semantic version strings into components
+  - `compareVersions()`: Compare two semantic versions
+  - `satisfiesRange()`: Check if version satisfies a range (supports ^, ~, >=, <=, >, <, =, and ranges)
+  - `getVersionType()`: Get version type difference (major/minor/patch/prerelease)
+- **Version Check Module**: New `src/internal/versionCheck.js` module
+  - `checkVersion()`: Check if current version is outdated
+  - `fetchLatestVersion()`: Fetch latest version from npm registry
+  - `checkAndWarnVersion()`: Automatic version check with console warnings
+- **Version Check Example**: Added `examples/nodejs/versionCheck.js` demonstrating version checking functionality
+- **Convenience API Methods**: All client methods are now accessible directly on the SDK instance
+  - All factory, keyVault, and auth methods are available directly on SDK instance
+  - most logic methods are not directly available on SDK instance as it is preferable to use the keyVault methods directly
+  - Sub-clients (`sdk.factory`, `sdk.logic`, `sdk.keyVault`, `sdk.auth`) remain available for advanced use cases
+  - This provides a cleaner, more intuitive API while maintaining backward compatibility
 
 ### Changed
 - **Module System**: Migrated entire SDK from CommonJS to ES Modules (ESM)
@@ -33,6 +54,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ```
 - **Documentation**: 
   - Added `CHANGELOG.md` to files array
+- **SDK Configuration**: Added `checkVersion` option to `Monstera.connect()` and `Monstera.readonly()` methods
+  - Defaults to `true` (automatic version checking enabled)
+  - Set to `false` to disable automatic version checking
 
 ### Removed
 - **CommonJS Support**: Removed CommonJS (`require`/`module.exports`) support - SDK is now ESM-only
