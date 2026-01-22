@@ -627,9 +627,7 @@ Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.m
 
 ## Support
 
-- 📖 [Documentation](./docs/)
 - 🐛 [Report Issues](https://github.com/Ariana0699/Wallet_SDK_JavaScript/issues)
-- 💬 [Discussions](https://github.com/Ariana0699/Wallet_SDK_JavaScript/discussions)
 
 ## Changelog
 
