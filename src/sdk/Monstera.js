@@ -21,6 +21,14 @@ import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 // Internal errors
 import { ValidationError } from '../errors/index.js';
 
+// Internal version check
+import { checkAndWarnVersion } from '../internal/versionCheck.js';
+
+// Node.js built-in modules (for version reading)
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+import { readFileSync } from 'fs';
+
 /**
  * Monstera Wallet SDK
  * 
@@ -31,10 +39,13 @@ class Monstera {
   // ============================================================================
   // Constructor
   // ============================================================================
+
+  // Static cache for version check (to avoid multiple checks)
+  static _versionCheckPromise = null;
+  static _versionCheckDone = false;
   
   constructor(config) {
     this.config = config;
-
     this.version = Monstera.version;
 
     // Initialize read provider (for read operations)
@@ -48,6 +59,12 @@ class Monstera {
     this.logic = new WalletLogicClient(this.readProvider, this.writeSigner, config);
     this.keyVault = new KeyVaultClient(this.readProvider, this.writeSigner, config);
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, config);
+
+    // Check version in background (non-blocking, cached)
+    // Skip if disabled in config or already checked
+    if (config?.checkVersion !== false && !Monstera._versionCheckDone) {
+      Monstera._checkVersionOnce(config?.silentVersionCheck);
+    }
   }
 
   // ============================================================================
@@ -114,6 +131,30 @@ class Monstera {
     });
   }
 
+  /**
+   * Check version once per process (cached)
+   * @private
+   * @static
+   */
+  static _checkVersionOnce(silent = false) {
+    // If check is already in progress, don't start another
+    if (Monstera._versionCheckPromise) {
+      return;
+    }
+
+    // Mark as done immediately to prevent multiple checks
+    Monstera._versionCheckDone = true;
+
+    // Start async check (fire and forget)
+    Monstera._versionCheckPromise = checkAndWarnVersion({ silent })
+      .catch(() => {
+        // Silently fail - version check should never break SDK usage
+      })
+      .finally(() => {
+        Monstera._versionCheckPromise = null;
+      });
+  }
+
   // ============================================================================
   // Static Properties (Class-Level Constants)
   // ============================================================================
@@ -130,16 +171,23 @@ class Monstera {
       // @ts-ignore
       return __MONSTERA_VERSION__;
     }
-    // Node.js environment - lazy load createRequire
+    // Node.js environment - read package.json directly
     try {
       if (typeof window === 'undefined' && typeof import.meta !== 'undefined') {
-        // Use dynamic import to avoid top-level await
-        const { createRequire } = require('module');
-        const requireFn = createRequire(import.meta.url);
-        return requireFn('../../package.json').version;
+        // Get the directory of this file (src/sdk/)
+        const currentFile = fileURLToPath(import.meta.url);
+        const currentDir = dirname(currentFile);
+        
+        // Resolve to package.json (go up two levels: src/sdk -> src -> root)
+        const packageJsonPath = join(currentDir, '..', '..', 'package.json');
+        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
+        return packageJson.version;
       }
     } catch (e) {
-      // Fallback if require fails (e.g., in browser build)
+      // Log error for debugging (only in development)
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn('Failed to load SDK version from package.json:', e.message);
+      }
     }
     return 'unknown';
   }
