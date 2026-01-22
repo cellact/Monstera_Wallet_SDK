@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.3] - 2026-01-22
+
 ### Added
 - This CHANGELOG file
 - **ESM Support**: Full ES Modules (ESM) support throughout the SDK
@@ -66,6 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CommonJS Support**: Removed CommonJS (`require`/`module.exports`) support - SDK is now ESM-only
 
 ### Fixed
+- **Circular Dependency**: Resolved circular dependency between `Monstera.js` and `versionCheck.js` by passing version as parameter instead of importing
 - **Browser Builds**: Fixed browser builds by bundling `@oasisprotocol/sapphire-ethers-v6` dependency
 - **Browser Global Queue**: Fixed browser global queue stub to use `window.Monstera` correctly
 - **Example Files**: Fixed method calls, typos, and removed duplicate files
