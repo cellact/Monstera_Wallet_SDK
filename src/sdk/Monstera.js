@@ -63,7 +63,7 @@ class Monstera {
     // Check version in background (non-blocking, cached)
     // Skip if disabled in config or already checked
     if (config?.checkVersion !== false && !Monstera._versionCheckDone) {
-      Monstera._checkVersionOnce(config?.silentVersionCheck);
+      Monstera._checkVersionOnce();
     }
   }
 
@@ -82,6 +82,7 @@ class Monstera {
    *        A Signer. If you pass a private key string, it must be a 0x-prefixed hex key.
    * @param {String} [options.rpcUrl] - Optional custom RPC URL (defaults to network preset).
    * @param {Object} [options.addresses] - Optional contract address overrides.
+   * @param {Boolean} [options.checkVersion=true] - Enable automatic version checking (default: true)
    * @returns {Monstera} SDK instance
    */
   static connect(options) {
@@ -100,7 +101,8 @@ class Monstera {
     return new Monstera({
       ...base,
       signer,      // write-capable identity
-      provider: null
+      provider: null,
+      checkVersion: options?.checkVersion
     });
   }
   
@@ -114,6 +116,7 @@ class Monstera {
    * @param {import('ethers').Provider} options.provider - A Provider (optional)
    * @param {String} [options.rpcUrl] - Optional custom RPC URL (defaults to network preset).
    * @param {Object} [options.addresses] - Optional contract address overrides.
+   * @param {Boolean} [options.checkVersion=true] - Enable automatic version checking (default: true)
    * @returns {Monstera} SDK instance
    */
   static readonly(options) {
@@ -127,7 +130,8 @@ class Monstera {
     return new Monstera({
       ...base,
       provider,   // optional
-      signer: null
+      signer: null,
+      checkVersion: options?.checkVersion
     });
   }
 
@@ -136,7 +140,7 @@ class Monstera {
    * @private
    * @static
    */
-  static _checkVersionOnce(silent = false) {
+  static _checkVersionOnce() {
     // If check is already in progress, don't start another
     if (Monstera._versionCheckPromise) {
       return;
@@ -146,7 +150,7 @@ class Monstera {
     Monstera._versionCheckDone = true;
 
     // Start async check (fire and forget)
-    Monstera._versionCheckPromise = checkAndWarnVersion({ silent })
+    Monstera._versionCheckPromise = checkAndWarnVersion()
       .catch(() => {
         // Silently fail - version check should never break SDK usage
       })

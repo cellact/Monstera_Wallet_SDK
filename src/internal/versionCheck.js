@@ -49,13 +49,9 @@ export async function fetchLatestVersion() {
 /**
  * Check version and display warning if outdated
  * This is called automatically by the SDK
- * @param {Object} options - Options
- * @param {boolean} [options.silent=false] - If true, don't log warnings
  * @returns {Promise<void>}
  */
-export async function checkAndWarnVersion(options = {}) {
-  const { silent = false } = options;
-  
+export async function checkAndWarnVersion() {
   // Get current version
   const currentVersion = Monstera.version;
   
@@ -74,14 +70,16 @@ export async function checkAndWarnVersion(options = {}) {
   // Check if outdated
   const result = await checkVersion(currentVersion, latestVersion);
   
-  if (result.isOutdated && !silent) {
+  if (result.isOutdated) {
     // Only warn for major/minor updates (not patch/prerelease)
     if (result.versionType === 'major' || result.versionType === 'minor') {
       console.warn(
         `\n⚠️  Monstera SDK Update Available\n` +
-        `   Current: ${currentVersion}\n` +
-        `   Latest:  ${latestVersion}\n` +
-        `   Update: npm install @monstera_protocol/sdk@latest\n`
+        `   You are running version ${currentVersion}, but version ${latestVersion} is available.\n` +
+        `   This is a ${result.versionType} update that may include important fixes and improvements.\n` +
+        `   \n` +
+        `   To update, run:\n` +
+        `   npm install @monstera_protocol/sdk@latest\n`
       );
     }
   }
