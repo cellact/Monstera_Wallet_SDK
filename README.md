@@ -3,646 +3,113 @@
 [![npm version](https://img.shields.io/npm/v/@monstera_protocol/sdk.svg)](https://www.npmjs.com/package/@monstera_protocol/sdk)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-A JavaScript SDK for interacting with wallet smart contracts on Oasis Sapphire. Monstera provides a clean, type-safe API for creating and managing wallets with built-in support for encrypted transactions via Sapphire's confidential computing.
+A JavaScript SDK for creating and managing smart contract wallets on Oasis Sapphire. Built-in support for encrypted transactions via Sapphire's confidential computing.
 
-## Features
+## What is Monstera
 
-- 🔐 **Encrypted Transactions** - Automatic Sapphire wrapper integration for confidential transactions
-- 🌐 **Network Support** - Built-in support for Sapphire testnet and mainnet
-- 🔑 **Wallet Management** - Create, manage, and interact with smart contract wallets
-- 🔒 **Multiple Authenticators** - Support for password and wallet signature authentication
-- 📦 **Modular Architecture** - Clean separation of concerns with extensible design
-- ⚡ **Easy Integration** - Simple API with comprehensive error handling
+Monstera is an SDK for **API-driven wallets where private keys never leave a Sapphire enclave**.  
+It gives you one wallet with a single cryptographic root and **many isolated accounts**, each of which can be mapped to products, environments, or features.
+
+Your application sends **auth proofs** (password-based, wallet-signature-based, or custom).  
+Monstera verifies them on-chain, derives the correct account from the wallet’s HD root, and signs **inside the enclave**.  
+Your backend never sees private keys and never has to handle raw key material.
+
+## How it works (high level)
+
+- A wallet is created once and gets a single HD root inside a Sapphire-backed contract.
+- All accounts are **derived** from that root by index (account 0, 1, 2, …).  
+  Each account is a normal Ethereum address with its own balance and history.
+- The user authenticates once (password, wallet signature, etc.).  
+  Authentication is attached to the wallet, **not** to individual accounts.
+- When you call `sign*` from the SDK:
+  - You send an `authProof` plus signing params.
+  - The wallet’s authenticator verifies the proof.
+  - If valid, the KeyVault derives the requested account key and signs **inside the enclave**.
+  - Only the signature leaves; the private key never does.
+
+Responsibilities are split so that no single contract can compromise a wallet on its own.
+
+
+## What It Does
+
+- 🔐 **Encrypted Transactions** - Automatic Sapphire wrapper for confidential transactions
+- 🌐 **Network Support** - Built-in testnet and mainnet presets
+- 🔑 **Wallet Management** - Create and manage smart contract wallets
+- 🔒 **Multiple Authenticators** - Password and wallet signature authentication
+- ⚡ **Simple API** - Clean, intuitive interface with comprehensive error handling
 
 ## Installation
-
-### Node.js / Bundlers
 
 ```bash
 npm install @monstera_protocol/sdk
 ```
 
-**Note:** This SDK uses ES Modules (ESM). Make sure your project supports ESM or use a bundler that handles ESM.
+**Note:** This SDK uses ES Modules (ESM). Requires Node.js 14+ or a bundler.
 
-### CLI Tool
-
-After installation, run the CLI tool to get started:
+After installation, run the CLI to get started:
 
 ```bash
 npx monstera
 ```
 
-The SDK provides multiple entry points via `package.json` exports:
-- **Default**: `import { Monstera } from '@monstera_protocol/sdk'` → Uses ESM build (`dist/monstera.mjs`) for browsers, or source (`src/index.js`) for Node.js
-- **ESM Build**: `import { Monstera } from '@monstera_protocol/sdk/mjs'` → Direct access to `dist/monstera.mjs`
-- **IIFE Global**: Available at `dist/monstera.global.js` (for script tags) or via `@monstera_protocol/sdk/global` in package exports
-
-### Browser
-
-#### Option A: ESM (Modern Browsers)
-
-```html
-<script type="module">
-  import { Monstera } from './node_modules/@monstera_protocol/sdk/dist/monstera.mjs';
-  import { ethers } from 'https://cdn.jsdelivr.net/npm/ethers@6/dist/index.min.mjs';
-  
-  const sdk = Monstera.connect({
-    mainnet: false,
-    signer: 'your_private_key'
-  });
-</script>
-```
-
-**Note:** For production, host `dist/monstera.mjs` on your CDN or use a bundler.
-
-#### Option B: IIFE Global (Script Tag)
-
-```html
-<!-- Load ethers first (required) -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
-
-<!-- Load Monstera SDK (queue stub is automatically included in the build) -->
-<script src="./node_modules/@monstera_protocol/sdk/dist/monstera.global.js"></script>
-
-<script>
-  const sdk = window.Monstera.connect({
-    mainnet: false,
-    signer: 'your_private_key'
-  });
-  
-  // Error classes are also exposed on window.Monstera
-  console.log(window.Monstera.WalletError);
-  console.log(window.Monstera.ValidationError);
-</script>
-```
-
-**Note:** 
-- The IIFE build (`monstera.global.js`) automatically includes a queue stub, so you can call `Monstera()` before the script loads if needed.
-- All error classes are automatically exposed on `window.Monstera` (e.g., `window.Monstera.WalletError`).
-- For production, host `dist/monstera.global.js` on your CDN.
-
-#### Async Loading with Queue Stub
-
-The IIFE build (`monstera.global.js`) automatically includes a queue stub, so you can call `Monstera()` before the script loads:
-
-```html
-<!-- Load ethers first -->
-<script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
-
-<!-- Optional: Call Monstera before script loads (will be queued automatically) -->
-<script>
-  // The queue stub is built into monstera.global.js, but you can also add it manually
-  // if you want to call Monstera before the script tag executes
-  Monstera = Monstera || function() {
-    (Monstera.q = Monstera.q || []).push(arguments);
-  };
-  Monstera.q = Monstera.q || [];
-  
-  // Call Monstera before script loads (queued)
-  Monstera('connect', { mainnet: false, signer: '0x...' });
-</script>
-
-<!-- Load SDK asynchronously -->
-<script>
-  (function() {
-    var script = document.createElement('script');
-    script.async = true;
-    script.src = './node_modules/@monstera_protocol/sdk/dist/monstera.global.js';
-    var firstScript = document.getElementsByTagName('script')[0];
-    firstScript.parentNode.insertBefore(script, firstScript);
-  })();
-</script>
-```
-
-**Note:** The queue stub is automatically included in `monstera.global.js`, so queued calls will be processed when the SDK loads.
-
-### Peer Dependencies
-
-Monstera requires either `ethers` or `web3` as a peer dependency:
-
-```bash
-# Using ethers (recommended)
-npm install ethers
-
-# Or using web3
-npm install web3
-```
-
 ## Quick Start
 
-### Simple Usage (Recommended)
-
-Contract addresses are **hardcoded** - no configuration needed! Just install and use:
-
 ```javascript
 import { Monstera } from '@monstera_protocol/sdk';
 import { ethers } from 'ethers';
 
-// Create SDK instance for testnet (with signer for write operations)
-const sdk = Monstera.connect({
-  mainnet: false, // or true for mainnet
-  signer: 'your_private_key' // Private key string or ethers Signer instance
+const monstera = Monstera.connect({ 
+  mainnet: false, 
+  signer: '0x...' // Your private key
 });
 
-async function createWallet() {
-  
-  // Prepare auth config (password hash for PasswordAuthenticator)
-  const password = 'my-secure-password'; // Replace with your password
-  const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
+// Create password hash for authentication
+const passwordHash = ethers.keccak256(ethers.toUtf8Bytes('your-secure-password'));
 
-  // Create a wallet
-  const result = await sdk.createWallet({
-    authConfig: passwordHash
-    // authenticatorAddr is optional - defaults to PasswordAuthenticator
-  });
+// Create a wallet
+const wallet = await monstera.createWallet({ 
+  authConfig: passwordHash 
+});
 
-  return result;
-}
-
-createWallet();
+console.log('Wallet created:', wallet.wallet);
+console.log('Save this mnemonic securely:', wallet.mnemonic);
 ```
 
-### Network Switching
+That's it! Contract addresses are hardcoded - no configuration needed.
 
-```javascript
-import { Monstera } from '@monstera_protocol/sdk';
-import { ethers } from 'ethers';
+**Need more details?** See [Full wallet creation guide](docs/node.md#basic-usage).
 
-// Testnet configuration (with signer for write operations)
-const testnetSdk = Monstera.connect({
-  mainnet: false,
-  signer: 'your_private_key' // Private key string or ethers Signer instance
-});
+## Documentation
 
-// Mainnet configuration
-const mainnetSdk = Monstera.connect({
-  mainnet: true,
-  signer: 'your_private_key' // Private key string or ethers Signer instance
-});
-
-// Read-only instance (no signer, read operations only)
-const readonlySdk = Monstera.readonly({
-  mainnet: false
-  // provider is optional - will use default RPC if not provided
-});
-
-// Access network information
-console.log('Network:', testnetSdk.network); // 'sapphire-testnet'
-console.log('Chain ID:', testnetSdk.chainId); // 23295
-console.log('RPC URL:', testnetSdk.rpcUrl);
-console.log('Addresses:', testnetSdk.addresses);
-```
-
-## Architecture
-
-The SDK is organized into modular components:
-
-### Modules
-
-- **`base/`**: Base classes (BaseContractClient, SapphireWriteWrapper)
-- **`config/`**: Network presets, address validation, and SDK configuration
-- **`providers/`**: Ethers provider creation and Sapphire wrapper integration
-- **`crypto/`**: Mnemonic generation, seed derivation, and password hashing
-- **`contracts/`**: Contract ABIs and typed contract getters
-- **`clients/`**: Domain clients (factory, logic, keyVault, auth)
-- **`events/`**: Event definitions and receipt parsing
-- **`errors/`**: Consistent error types with stable error codes
-- **`internal/`**: Internal utilities (validation helpers)
-- **`sdk/`**: Main SDK class (Monstera)
-
-### API Design
-
-- **Read operations**: Use plain provider (no wrapper needed)
-- **Write operations**: Automatically use Sapphire-wrapped signer for encrypted transactions
-- **Network switching**: Single config parameter (`mainnet: true` for mainnet, `mainnet: false` for testnet)
-
-## Configuration
-
-### Network Presets
-
-The SDK includes presets for both networks:
-
-- **Testnet**: 
-  - Name: `sapphire-testnet`
-  - Chain ID: `23295` (0x5aff)
-  - RPC URL: `https://testnet.sapphire.oasis.dev`
-  - Explorer: `https://testnet.explorer.sapphire.oasis.io`
-
-- **Mainnet**: 
-  - Name: `sapphire-mainnet`
-  - Chain ID: `23294` (0x5afe)
-  - RPC URL: `https://sapphire.oasis.io`
-  - Explorer: `https://explorer.sapphire.oasis.io`
-
-### Address Overrides
-
-You can override default contract addresses when creating the SDK:
-
-```javascript
-const sdk = Monstera.connect({
-  mainnet: false,
-  signer: 'your_private_key', // Private key string or ethers Signer instance
-  addresses: {
-    factory: '0x...',               // Override factory address
-    passwordAuth: '0x...',          // Override password authenticator
-    walletSignatureAuth: '0x...'    // Override wallet signature authenticator
-  }
-});
-```
-
-**Note:** You can override individual addresses or all of them. Addresses not provided will use the defaults for the selected network.
-
-### Custom RPC URLs
-
-Override the default RPC URL:
-
-```javascript
-const sdk = Monstera.connect({
-  mainnet: false,
-  rpcUrl: 'https://custom-rpc-endpoint.com',
-  signer: 'your_private_key' // Private key string or ethers Signer instance
-});
-
-// Or with address overrides
-const sdkWithOverrides = Monstera.connect({
-  mainnet: false,
-  rpcUrl: 'https://custom-rpc-endpoint.com',
-  addresses: {
-    factory: '0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a',
-    passwordAuth: '0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7',
-    walletSignatureAuth: '0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a'
-  },
-  signer: 'your_private_key' // Private key string or ethers Signer instance
-});
-```
+- **[Node.js Usage](docs/node.md)** - Installation, configuration, and examples for Node.js
+- **[Browser Usage](docs/browser.md)** - ESM and IIFE builds for browsers
+- **[API Reference](docs/api.md)** - Complete API documentation
+- **[Architecture](docs/architecture.md)** - Project structure and development guide
 
 ## Examples
 
-### Browser Examples
+Check out the `examples/` directory for comprehensive examples:
 
-The SDK includes browser examples in `examples/browser/` demonstrating both ESM and IIFE usage:
+- **Node.js**: `examples/nodejs/` - Wallet creation, authentication, signing, and more
+- **Browser**: `examples/browser/` - ESM and IIFE usage examples
 
-- **`browser-esm.html`** - ESM usage with `<script type="module">`
-- **`browser-global.html`** - IIFE global bundle usage
-- **`browser-global-async.html`** - Async loading with queue stub
+## Security
 
-### Node.js Examples
-
-The SDK includes comprehensive Node.js examples in `examples/nodejs/`:
-
-**Wallet Creation:**
-- **`1_createHDWallet.js`** - Create a hierarchical deterministic wallet
-- **`1.2_createWalletWithHook.js`** - Create wallet with initialization hook
-- **`1.3_createWalletCore.js`** - Create wallet core functionality
-- **`1.4_createWalletCustom.js`** - Create wallet with custom logic
-- **`1.5_createWalletWithMnemonic.js`** - Create wallet from provided mnemonic
-
-**Wallet Usage:**
-- **`2_useWallet.js`** - Basic wallet usage examples
-- **`3_useWalletSigAuth.js`** - Wallet signature authentication
-- **`4_getAddress.js`** - Get account addresses
-- **`6.1_signTransaction.js`** - Sign transactions
-- **`6.2_getAccounts.js`** - Get multiple account addresses
-
-**Authentication:**
-- **`authenticator.js`** - Authenticator operations
-- **`updatePassword.js`** - Update wallet password
-- **`updateAuthenticator.js`** - Update authenticator
-- **`passwordAuthMethods.js`** - Password authenticator methods
-- **`walletSigAuth.js`** - Wallet signature authenticator methods
-- **`removeWhitelistedWallet.js`** - Remove from whitelist
-
-**Administration:**
-- **`5_ugradeToNewLogic.js`** - Update wallet logic implementation
-- **`13.2_updateKeyVault.js`** - Update KeyVault implementation
-- **`transferAdmin.js`** - Transfer factory admin
-- **`factoryMethods.js`** - Factory contract methods
-- **`walletLogicMethods.js`** - Wallet logic contract methods
-- **`keyVaultMethods.js`** - Key vault operations
-- **`network-switching.js`** - Switch between testnet and mainnet
-
-### Running Examples
-
-```bash
-# Set up environment variables
-export SIGNER_PRIVATE_KEY=0x...
-
-# Run a Node.js example
-node examples/nodejs/1_createHDWallet.js
-
-# Or run a browser example by opening the HTML file in a browser
-open examples/browser/browser-esm.html
-```
-
-**Note:** Examples use ES Modules. Ensure you're using Node.js 14+ with ESM support, or use a bundler.
-
-## API Reference
-
-### Monstera
-
-Main SDK class for wallet operations.
-
-#### `Monstera.connect(options)`
-
-Create an SDK instance with write capabilities (requires signer).
-
-**Parameters:**
-- `mainnet` (required): `true` for mainnet, `false` for testnet
-- `signer` (required): Private key string (0x-prefixed hex) or ethers Signer instance
-- `rpcUrl` (optional): Custom RPC URL (overrides default)
-- `addresses` (optional): Object with contract addresses to override defaults
-
-**Returns:** `Monstera` instance with write capabilities
-
-#### `Monstera.readonly(options)`
-
-Create a read-only SDK instance (no signer required).
-
-**Parameters:**
-- `mainnet` (required): `true` for mainnet, `false` for testnet
-- `provider` (optional): ethers Provider instance (uses default RPC if not provided)
-- `rpcUrl` (optional): Custom RPC URL (overrides default)
-- `addresses` (optional): Object with contract addresses to override defaults
-
-**Returns:** `Monstera` instance (read-only)
-
-#### Wallet Creation Methods
-
-##### `sdk.createWallet(options)`
-
-Create a new wallet with auto-generated mnemonic.
-
-**Parameters:**
-- `authConfig` (required): Authentication configuration (e.g., password hash as hex string)
-- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
-
-**Returns:**
-```javascript
-{
-  success: boolean,
-  wallet: string,           // Wallet address
-  keyVault: string,         // KeyVault address
-  storage: string,          // Storage address
-  authenticator: string,    // Authenticator address
-  transactionHash: string,  // Transaction hash
-  blockNumber: number,      // Block number
-  gasUsed: string,          // Gas used
-  mnemonic: string          // Generated mnemonic (save securely!)
-}
-```
-
-##### `sdk.createWalletFromMnemonic(options)`
-
-Create a new wallet from a provided mnemonic.
-
-**Parameters:**
-- `authConfig` (required): Authentication configuration (e.g., password hash as hex string)
-- `mnemonic` (required): BIP39 mnemonic phrase
-- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
-
-**Returns:** Same as `createWallet()`
-
-##### `sdk.createWalletWithHook(options)`
-
-Create a wallet with a post-creation hook.
-
-**Parameters:**
-- `authConfig` (required): Authentication configuration
-- `hook` (required): Hook contract address
-- `hookData` (required): Data for the hook
-- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
-
-**Returns:** Same as `createWallet()`
-
-##### `sdk.createWalletCore(options)`
-
-Create a wallet core (KeyVault + Storage only, no WalletLogic proxy).
-
-**Parameters:**
-- `authConfig` (required): Authentication configuration
-- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
-
-**Returns:** Same as `createWallet()`
-
-##### `sdk.createWalletWithCustomLogic(options)`
-
-Create a wallet with a custom logic implementation.
-
-**Parameters:**
-- `authConfig` (required): Authentication configuration
-- `customLogicImplAddr` (required): Custom logic implementation contract address
-- `logicData` (required): Initialization data for custom logic
-- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
-
-**Returns:** Same as `createWallet()`
-
-#### SDK Instance Methods
-
-```javascript
-// Check if SDK instance can perform write operations
-const hasWriteAccess = sdk.hasWriteAccess(); // boolean
-
-// Get the signer address (if available)
-const signerAddress = await sdk.getSignerAddr(); // string | null
-
-// Create an auth proof for wallet signature authentication
-const authProof = await sdk.createAuthProof({
-  signer: walletSigner,        // Wallet or HDNodeWallet instance
-  keyVaultAddr: keyVaultAddr,   // KeyVault address
-  authenticatorAddr: '0x...',      // Optional: authenticator address (defaults to config)
-  deadline: 1234567890,         // Optional: Unix timestamp (defaults to 1h from now)
-  chainId: 23295               // Optional: Chain ID (defaults to config chainId)
-});
-```
-
-#### SDK Clients
-
-The SDK provides access to domain-specific clients:
-
-```javascript
-// Factory client - wallet creation and factory administration
-await sdk.createWallet({ authConfig });
-await sdk.createWalletFromMnemonic({ authConfig, mnemonic });
-await sdk.createWalletWithHook({ authConfig, hook, hookData });
-await sdk.createWalletCore({ authConfig });
-await sdk.createWalletWithCustomLogic({ authConfig, customLogicImplAddr, logicData });
-await sdk.isWallet({ walletAddr });
-await sdk.getAdmin();
-await sdk.getWalletLogicImplAddr();
-await sdk.getKeyVaultAddr({ walletAddr });
-await sdk.getStorageAddr({ walletAddr });
-await sdk.getBeaconAddr();
-await sdk.updateWalletLogicImplAddr({ newLogicAddr });
-await sdk.transferAdmin({ newAdminAddr });
-
-// Logic client - wallet operations and account management
-await sdk.initializeWalletLogic({ walletAddr, keyVaultAddr });
-
-// KeyVault client - key vault operations and signing
-await sdk.getKeyVaultStorageAddr({ keyVaultAddr });
-await sdk.getAuthenticatorAddr({ keyVaultAddr });
-await sdk.getKeyVaultImplAddr({ keyVaultAddr });
-await sdk.isInitialized({ keyVaultAddr });
-await sdk.getAccountAddr({ keyVaultAddr, index });
-await sdk.getAccountAddresses({ keyVaultAddr, fromIndex, count });
-await sdk.signTransaction({ keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId });
-await sdk.signMessage({ keyVaultAddr, authProof, index, message });
-await sdk.sign({ keyVaultAddr, authProof, index, hash });
-await sdk.executeWithAuth({ keyVaultAddr, authProof, implCall });
-await sdk.initialize({ keyVaultAddr, storageAddr, authenticatorAddr, accessToken });
-await sdk.updateKeyVaultImplAddr({ keyVaultAddr, authProof, newImplAddr });
-await sdk.updateAuthenticatorAddr({ keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig });
-
-// Auth client - authenticator management
-const passwordAuth = sdk.getAuthClient('password');
-const walletSigAuth = sdk.getAuthClient('walletSignature');
-const availableTypes = sdk.getAvailableAuthTypes(); // ['password', 'walletSignature']
-```
-
-### Exports
-
-The SDK exports the following:
-
-```javascript
-import {
-  // Main SDK class (default export)
-  Monstera,
-  
-  // Error classes (automatically exported - no manual maintenance required)
-  WalletError,
-  ValidationError,
-  ConfigError,
-  NetworkError,
-  ContractRevertError,
-  EventNotFoundError,
-  EventParseError,
-  SapphireRequiredError,
-  WriteRequiresSignerError
-} from '@monstera_protocol/sdk';
-
-// Access network presets and addresses via static properties
-const networks = Monstera.networks;
-const defaultAddresses = Monstera.defaultAddresses;
-const requiredAddresses = Monstera.requiredAddresses;
-```
-
-**Note:** Error classes are automatically exported from `src/errors/index.js`. Adding a new error class to that file will automatically make it available in the SDK exports.
-
-## Security Considerations
-
-1. **Never expose private keys** in client-side code or logs
-2. **Store mnemonics securely** 
-3. **Use testnet for development** - only use mainnet for production
-4. **Validate contract addresses** before use
-5. **Use environment variables** for sensitive configuration
-
-## Error Handling
-
-The SDK uses consistent error types with stable error codes:
-
-- `WalletError` - Base error class
-- `ValidationError` - Invalid input parameters (code: `INVALID_ARGUMENT`)
-- `ConfigError` - Missing or invalid configuration (code: `MISSING_CONFIG`)
-- `NetworkError` - Network/RPC communication failures (code: `RPC_ERROR`)
-- `ContractRevertError` - Transaction reverted on-chain (code: `TX_REVERTED`)
-- `EventNotFoundError` - Expected event missing from receipt (code: `EVENT_NOT_FOUND`)
-- `EventParseError` - Event found but failed to parse/decode (code: `EVENT_PARSE_ERROR`)
-- `SapphireRequiredError` - Operation requires Sapphire signer (code: `SAPPHIRE_REQUIRED`)
-- `WriteRequiresSignerError` - Write operation requires signer (code: `WRITE_REQUIRES_SIGNER`)
-
-```javascript
-try {
-  await sdk.createWallet({ authConfig: passwordHash });
-} catch (error) {
-  if (error instanceof ValidationError) {
-    console.error('Validation error:', error.message);
-    console.error('Parameter:', error.context.parameter);
-  } else if (error instanceof ContractRevertError) {
-    console.error('Transaction reverted:', error.message);
-    console.error('Transaction hash:', error.context.transactionHash);
-  } else if (error.code === 'RPC_ERROR') {
-    console.error('Network error:', error.message);
-  }
-}
-```
-
-## Development
-
-### Project Structure
-
-```
-src/             # Source code
-  base/          # Base classes (BaseContractClient, SapphireWriteWrapper)
-  config/        # Network configuration
-  providers/     # Provider and Sapphire wrapper
-  crypto/        # Cryptographic utilities
-  contracts/     # Contract interfaces and ABIs
-  clients/       # Domain clients (factory, logic, keyVault, auth)
-  events/        # Event definitions and parsing
-  errors/        # Error types (single source of truth for error exports)
-  internal/      # Internal utilities (validation helpers)
-  sdk/           # Main SDK class (Monstera)
-bin/             # CLI tool (monstera command)
-build/           # Build entry points (browser-global.js)
-dist/            # Build outputs (monstera.mjs, monstera.global.js) - gitignored
-examples/
-  nodejs/        # Node.js examples
-  browser/       # Browser HTML examples
-```
-
-### Building
-
-The SDK uses Rollup to build browser bundles:
-
-```bash
-# Build browser bundles (ESM and IIFE)
-npm run build
-
-# Watch mode for development
-npm run build:watch
-```
-
-This generates:
-- `dist/monstera.mjs` - ESM build for modern browsers
-- `dist/monstera.global.js` - IIFE global bundle for script tags
-
-**Note:** Builds are automatically generated before publishing via `prepublishOnly` script. The `dist/` directory is gitignored.
-
-### Requirements
-
-- Node.js >= 14.0.0 (ESM support required)
-- ethers.js ^6.0.0
-- @oasisprotocol/sapphire-ethers-v6 ^6.0.1
-
-**Note:** This SDK uses ES Modules (ESM). Ensure your project is configured for ESM or use a bundler that supports ESM.
+- ⚠️ **Never expose private keys** in client-side code or logs
+- 🔒 **Store mnemonics securely**
+- 🧪 **Use testnet for development** - only use mainnet for production
+- ✅ **Validate contract addresses** before use
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
-
-This means:
-- ✅ You can use, modify, and distribute this software
-- ✅ You must share the source code when distributing
-- ✅ Any modifications must also be licensed under GPL-3.0
-- ❌ You cannot incorporate this into proprietary software without sharing source
-
-See the [LICENSE](LICENSE) file for the full text.
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+GPL-3.0 - See [LICENSE](LICENSE) for details.
 
 ## Support
 
 - 🐛 [Report Issues](https://github.com/Ariana0699/Wallet_SDK_JavaScript/issues)
-
-## Changelog
-
-See [CHANGELOG.md](./CHANGELOG.md) for a list of changes and version history.
+- 📖 [Changelog](CHANGELOG.md)
+- 🤝 [Contributing](CONTRIBUTING.md)
 
 ## Acknowledgments
 
-- Built for [Oasis Sapphire](https://docs.oasis.io/dapp/sapphire/)
-- Uses [ethers.js](https://docs.ethers.io/) for blockchain interactions
-- Powered by [Sapphire Confidential Computing](https://docs.oasis.io/dapp/sapphire/)
-
+Built for [Oasis Sapphire](https://docs.oasis.io/dapp/sapphire/) with [ethers.js](https://docs.ethers.io/).

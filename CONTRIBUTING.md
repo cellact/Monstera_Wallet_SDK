@@ -34,10 +34,11 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ### Documentation
 
-- Update README.md for user-facing changes
+- Update README.md for user-facing changes (keep it simple - detailed docs go in `docs/`)
 - Add JSDoc comments for new functions
 - Update examples if API changes
-- Document breaking changes
+- Document breaking changes in CHANGELOG.md
+- See [docs/architecture.md](docs/architecture.md) for project structure and development details
 
 ## Pull Request Process
 
