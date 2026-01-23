@@ -15,12 +15,11 @@ import { requireAddress } from '../internal/assert.js';
 import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 
 /**
- * Generate a new mnemonic phrase
+ * Generate a new mnemonic phrase (12 words)
  * 
- * @param {Number} [strength=128] - Entropy strength (128 for 12 words, 256 for 24 words)
  * @returns {String} BIP39 mnemonic phrase
  */
-function generateMnemonic(strength = 128) {
+function generateMnemonic() {
   // Use ethers to generate mnemonic (BIP39 compliant)
   // ethers v6: Create random wallet and extract mnemonic
   const wallet = ethers.Wallet.createRandom();
@@ -175,4 +174,3 @@ export {
   hashPassword,
   createAuthProof
 };
-
