@@ -19,6 +19,9 @@ package-lock.json
 coverage/
 .nyc_output/
 *.test.js
+tests/
+__tests__/
+jest.config.js
 
 # Build artifacts (if you add a build step later)
 dist/
