@@ -24,6 +24,14 @@ npm install @monstera_protocol/sdk
 
 **Note:** This SDK uses ES Modules (ESM). Make sure your project supports ESM or use a bundler that handles ESM.
 
+### CLI Tool
+
+After installation, run the CLI tool to get started:
+
+```bash
+npx monstera
+```
+
 The SDK provides multiple entry points via `package.json` exports:
 - **Default**: `import { Monstera } from '@monstera_protocol/sdk'` → Uses ESM build (`dist/monstera.mjs`) for browsers, or source (`src/index.js`) for Node.js
 - **ESM Build**: `import { Monstera } from '@monstera_protocol/sdk/mjs'` → Direct access to `dist/monstera.mjs`
@@ -201,7 +209,6 @@ The SDK is organized into modular components:
 - **`errors/`**: Consistent error types with stable error codes
 - **`internal/`**: Internal utilities (validation helpers)
 - **`sdk/`**: Main SDK class (Monstera)
-- **`utils/`**: Utility functions
 
 ### API Design
 
@@ -575,7 +582,7 @@ src/             # Source code
   errors/        # Error types (single source of truth for error exports)
   internal/      # Internal utilities (validation helpers)
   sdk/           # Main SDK class (Monstera)
-  utils/         # Utility functions
+bin/             # CLI tool (monstera command)
 build/           # Build entry points (browser-global.js)
 dist/            # Build outputs (monstera.mjs, monstera.global.js) - gitignored
 examples/

@@ -19,7 +19,6 @@
     "README.md",
     "LICENSE",
     "CHANGELOG.md",
-    "scripts",
     "bin"
   ],
   "bin": {
@@ -31,8 +30,7 @@
     "prepublishOnly": "npm run build",
     "test": "jest",
     "test:watch": "jest --watch",
-    "lint": "eslint src/**/*.js",
-    "postinstall": "node ./scripts/postinstall.js"
+    "lint": "eslint src/**/*.js"
   },
   "keywords": [
     "wallet",
