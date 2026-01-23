@@ -2,7 +2,7 @@
  * Unit tests for version utilities
  */
 
-import { describe, test, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, test, expect } from '@jest/globals';
 
 import { 
   compareVersions, 
