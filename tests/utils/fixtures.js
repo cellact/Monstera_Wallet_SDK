@@ -90,3 +90,33 @@ export function randomAddress() {
  * Custom RPC URL for testing
  */
 export const CUSTOM_RPC_URL = 'https://custom-rpc-endpoint.com';
+
+/**
+ * Default testnet RPC URL
+ */
+export const DEFAULT_TESTNET_RPC_URL = 'https://testnet.sapphire.oasis.dev';
+
+/**
+ * Default testnet chain ID
+ */
+export const DEFAULT_TESTNET_CHAIN_ID = '0x5aff';
+
+/**
+ * Default mainnet chain ID
+ */
+export const DEFAULT_MAINNET_CHAIN_ID = '0x5afe';
+
+/**
+ * Creates default auth proof test parameters
+ * @param {Object} overrides - Optional parameter overrides
+ * @returns {Object} Default auth proof parameters
+ */
+export function createDefaultAuthProofParams(overrides = {}) {
+  return {
+    chainId: DEFAULT_TESTNET_CHAIN_ID,
+    authenticatorAddr: VALID_TEST_ADDRESS,
+    keyVaultAddr: VALID_TEST_ADDRESS,
+    deadline: calculateDeadline(1),
+    ...overrides
+  };
+}

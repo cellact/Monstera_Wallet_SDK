@@ -2,22 +2,22 @@
  * Unit tests for wallet functionality
  */
 
-import { describe, test, expect } from '@jest/globals';
+import { describe, test, expect, beforeEach } from '@jest/globals';
+import { ethers, Wallet } from 'ethers';
 import { expectValidMnemonic } from '../../utils/assertions.js';
+import { 
+  TEST_SIGNER,
+  DEFAULT_TESTNET_RPC_URL,
+  createDefaultAuthProofParams,
+  randomAddress
+} from '../../utils/fixtures.js';
+import { getTestConfig } from '../../utils/setup.js';
 import {
   generateMnemonic,
   deriveSeed,
   hashPassword,
   createAuthProof
 } from '../../../src/crypto/wallet.js';
-
-// import { ethers, Wallet } from 'ethers';
-
-// const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-// const RPC_URL = process.env.RPC_URL || "https://testnet.sapphire.oasis.dev";
-// const CHAIN_ID = process.env.CHAIN_ID || "0x5aff";
-// const AUTHENTICATOR_ADDR = process.env.AUTHENTICATOR_ADDR || "";
-// const KEYVAULT_ADDR = process.env.KEYVAULT_ADDR || "";
 
 describe('Wallet Crypto Utilities', () => {
     describe('generateMnemonic', () => {
@@ -53,60 +53,80 @@ describe('Wallet Crypto Utilities', () => {
         });
     });
 
-    // TODO: fix this test 
-    // describe('createAuthProof', () => {
-    //     test('should create an auth proof for a signer and return a string of 65 bytes', () => {
-    //         const provider = new ethers.JsonRpcProvider(RPC_URL);
-    //         const signer = new Wallet(SIGNER_PRIVATE_KEY, provider);
-    //         const nowInSeconds = Math.floor(Date.now() / 1000);
-    //         const deadline = nowInSeconds + 3600; // 1 hour from now
-    //         const chainId = CHAIN_ID;
-    //         const authenticatorAddr = AUTHENTICATOR_ADDR;
-    //         const keyVaultAddr = KEYVAULT_ADDR;
+    describe('createAuthProof', () => {
+        let defaultParams;
+        let testSigner;
 
-    //         const authProof = createAuthProof(signer, chainId, authenticatorAddr, deadline, keyVaultAddr);
-    //         expect(authProof).toBeDefined();
-    //         expect(typeof authProof).toBe('string');
-    //     });
+        beforeEach(() => {
+            defaultParams = createDefaultAuthProofParams();
+            testSigner = new Wallet(TEST_SIGNER);
+        });
 
-    //     test('should throw an error if the signer is not a Wallet or HDNodeWallet', () => {
-    //         expect(() => createAuthProof(null, chainId, authenticatorAddr, deadline, keyVaultAddr)).toThrow('Signer must be a Wallet or HDNodeWallet');
-    //         expect(() => createAuthProof(undefined, chainId, authenticatorAddr, deadline, keyVaultAddr)).toThrow('Signer must be a Wallet or HDNodeWallet');
-    //         expect(() => createAuthProof(123, chainId, authenticatorAddr, deadline, keyVaultAddr)).toThrow('Signer must be a Wallet or HDNodeWallet');
-    //         expect(() => createAuthProof({ signer: signer }, chainId, authenticatorAddr, deadline, keyVaultAddr)).toThrow('Signer must be a Wallet or HDNodeWallet');
-    //         expect(() => createAuthProof('0x211A998C67cc62C57407Ffb1173214F81736cAED', chainId, null, deadline, keyVaultAddr)).toThrow('Signer must be a Wallet or HDNodeWallet');
-    //     });
+        test('should create an auth proof for a signer and return a string', async () => {
+            const { chainId, authenticatorAddr, deadline, keyVaultAddr } = defaultParams;
 
-    //     test('should throw an error if the chainId is not a string or number, or is empty', () => {
-    //         expect(() => createAuthProof(signer, null, '0x1234567890123456789012345678901234567890', deadline, '0x1234567890123456789012345678901234567890')).toThrow('chainId must be a string or number');
-    //         expect(() => createAuthProof(signer, undefined, authenticatorAddr, deadline, keyVaultAddr)).toThrow('chainId must be a string or number');
-    //         expect(() => createAuthProof(signer, 123, authenticatorAddr, deadline, keyVaultAddr)).toThrow('chainId must be a string or number');
-    //         expect(() => createAuthProof(signer, { chainId: chainId }, authenticatorAddr, deadline, keyVaultAddr)).toThrow('chainId must be a string or number');
-    //     });
+            const config = getTestConfig();
+            
+            const provider = new ethers.JsonRpcProvider(DEFAULT_TESTNET_RPC_URL);
+            const signer = new Wallet(config.signerPrivateKey, provider);
 
-    //     test('should throw an error if the authenticatorAddr is not a valid address', () => {
-    //         expect(() => createAuthProof(signer, chainId, null, deadline, keyVaultAddr)).toThrow('authenticatorAddr must be a valid address');
-    //         expect(() => createAuthProof(signer, chainId, undefined, deadline, keyVaultAddr)).toThrow('authenticatorAddr must be a valid address');
-    //         expect(() => createAuthProof(signer, chainId, 123, deadline, keyVaultAddr)).toThrow('authenticatorAddr must be a valid address');
-    //         expect(() => createAuthProof(signer, chainId, { authenticatorAddr: authenticatorAddr }, deadline, keyVaultAddr)).toThrow('authenticatorAddr must be a valid address');
-    //     });
+            const authProof = await createAuthProof(signer, chainId, authenticatorAddr, deadline, keyVaultAddr);
+            expect(authProof).toBeDefined();
+            expect(typeof authProof).toBe('string');
+            expect(authProof.startsWith('0x')).toBe(true);
+        });
 
-    //     test('should throw an error if the keyVaultAddr is not a valid address', () => {
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, deadline, null)).toThrow('keyVaultAddr must be a valid address');
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, deadline, undefined)).toThrow('keyVaultAddr must be a valid address');
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, deadline, 123)).toThrow('keyVaultAddr must be a valid address');
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, deadline, { keyVaultAddr: keyVaultAddr })).toThrow('keyVaultAddr must be a valid address');
-    //     });
+        test('should throw an error if the signer is not a Wallet or HDNodeWallet', async () => {
+            const { chainId, authenticatorAddr, deadline, keyVaultAddr } = defaultParams;
+            
+            await expect(createAuthProof(null, chainId, authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+            await expect(createAuthProof(undefined, chainId, authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+            await expect(createAuthProof(123, chainId, authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+            await expect(createAuthProof({ signer: 'invalid' }, chainId, authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+            await expect(createAuthProof(randomAddress(), chainId, authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+        });
 
-    //     test('should throw an error if the deadline is not a number, or is not an integer', () => {
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, null, keyVaultAddr)).toThrow('Deadline must be an integer (Unix timestamp in seconds)');
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, undefined, keyVaultAddr)).toThrow('Deadline must be an integer (Unix timestamp in seconds)');
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, 123, keyVaultAddr)).toThrow('Deadline must be an integer (Unix timestamp in seconds)');
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, { deadline: deadline }, keyVaultAddr)).toThrow('Deadline must be an integer (Unix timestamp in seconds)');
-    //     });
+        test('should throw an error if the chainId is not a string or number', async () => {
+            const { chainId, authenticatorAddr, deadline, keyVaultAddr } = defaultParams;
+            
+            await expect(createAuthProof(testSigner, null, authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('chainId must be a string or number');
+            await expect(createAuthProof(testSigner, undefined, authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('chainId must be a string or number');
+            await expect(createAuthProof(testSigner, { chainId: chainId }, authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('chainId must be a string or number');
+            await expect(createAuthProof(testSigner, [], authenticatorAddr, deadline, keyVaultAddr)).rejects.toThrow('chainId must be a string or number');
+        });
 
-    //     test('should throw an error if the deadline is in the past', () => {
-    //         expect(() => createAuthProof(signer, chainId, authenticatorAddr, Date.now() - 1000, keyVaultAddr)).toThrow('Deadline must be in the future');
-    //     });
-    // });
+        test('should throw an error if the authenticatorAddr is not a valid address', async () => {
+            const { chainId, authenticatorAddr, deadline, keyVaultAddr } = defaultParams;
+            
+            await expect(createAuthProof(testSigner, chainId, null, deadline, keyVaultAddr)).rejects.toThrow('authenticatorAddr is required and must be a string');
+            await expect(createAuthProof(testSigner, chainId, undefined, deadline, keyVaultAddr)).rejects.toThrow('authenticatorAddr is required and must be a string');
+            await expect(createAuthProof(testSigner, chainId, 123, deadline, keyVaultAddr)).rejects.toThrow('authenticatorAddr is required and must be a string');
+            await expect(createAuthProof(testSigner, chainId, { address: authenticatorAddr }, deadline, keyVaultAddr)).rejects.toThrow('authenticatorAddr is required and must be a string');
+        });
+
+        test('should throw an error if the keyVaultAddr is not a valid address', async () => {
+            const { chainId, authenticatorAddr, deadline, keyVaultAddr } = defaultParams;
+            
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, deadline, null)).rejects.toThrow('keyVaultAddr is required and must be a string');
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, deadline, undefined)).rejects.toThrow('keyVaultAddr is required and must be a string');
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, deadline, 123)).rejects.toThrow('keyVaultAddr is required and must be a string');
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, deadline, { address: keyVaultAddr })).rejects.toThrow('keyVaultAddr is required and must be a string');
+        });
+
+        test('should throw an error if the deadline is not a number or is not an integer', async () => {
+            const { chainId, authenticatorAddr, deadline, keyVaultAddr } = defaultParams;
+            
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, null, keyVaultAddr)).rejects.toThrow('Deadline must be an integer (Unix timestamp in seconds)');
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, undefined, keyVaultAddr)).rejects.toThrow('Deadline must be an integer (Unix timestamp in seconds)');
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, 123.5, keyVaultAddr)).rejects.toThrow('Deadline must be an integer (Unix timestamp in seconds)');
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, { deadline: deadline }, keyVaultAddr)).rejects.toThrow('Deadline must be an integer (Unix timestamp in seconds)');
+        });
+
+        test('should throw an error if the deadline is in the past', async () => {
+            const { chainId, authenticatorAddr, keyVaultAddr } = defaultParams;
+            const pastDeadline = Math.floor(Date.now() / 1000) - 1000; // 1000 seconds ago
+            
+            await expect(createAuthProof(testSigner, chainId, authenticatorAddr, pastDeadline, keyVaultAddr)).rejects.toThrow('Deadline must be in the future');
+        });
+    });
 });

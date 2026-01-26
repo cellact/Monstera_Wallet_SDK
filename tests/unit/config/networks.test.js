@@ -4,7 +4,13 @@
 
 import { describe, test, expect } from '@jest/globals';
 import { expectValidAddress } from '../../utils/assertions.js';
-import { VALID_TEST_ADDRESS, INVALID_TEST_ADDRESS_NO_PREFIX, CUSTOM_RPC_URL } from '../../utils/fixtures.js';
+import { 
+    VALID_TEST_ADDRESS, 
+    INVALID_TEST_ADDRESS_NO_PREFIX, 
+    CUSTOM_RPC_URL, 
+    DEFAULT_TESTNET_CHAIN_ID, 
+    DEFAULT_MAINNET_CHAIN_ID 
+} from '../../utils/fixtures.js';
 import { 
   NETWORKS,
   DEFAULT_ADDRESSES,
@@ -46,7 +52,7 @@ describe('Network Configuration - testnet', () => {
 
         test('testnet network should have correct name, chainId, rpcUrl, and explorerUrl', () => {
             expect(NETWORKS.testnet.name).toBe('sapphire-testnet');
-            expect(NETWORKS.testnet.chainId).toBe(0x5aff);
+            expect(NETWORKS.testnet.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
             expect(NETWORKS.testnet.rpcUrl).toBeDefined();
             expect(NETWORKS.testnet.explorerUrl).toBeDefined();
         });
@@ -79,7 +85,7 @@ describe('Network Configuration - testnet', () => {
             const baseConfig = resolveBaseConfig({ mainnet: false });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
-            expect(baseConfig.chainId).toBe(0x5aff);
+            expect(baseConfig.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
             expect(baseConfig.rpcUrl).toBe(NETWORKS.testnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.testnet);
@@ -89,7 +95,7 @@ describe('Network Configuration - testnet', () => {
             const baseConfig = resolveBaseConfig({ mainnet: false, rpcUrl: CUSTOM_RPC_URL });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
-            expect(baseConfig.chainId).toBe(0x5aff);
+            expect(baseConfig.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
             expect(baseConfig.rpcUrl).toBe(CUSTOM_RPC_URL);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.testnet);
@@ -99,7 +105,7 @@ describe('Network Configuration - testnet', () => {
             const baseConfig = resolveBaseConfig({ mainnet: false, addresses: { factory: VALID_TEST_ADDRESS } });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
-            expect(baseConfig.chainId).toBe(0x5aff);
+            expect(baseConfig.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
             expect(baseConfig.rpcUrl).toBe(NETWORKS.testnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             // Should have factory from override + defaults for others
@@ -121,7 +127,7 @@ describe('Network Configuration - testnet', () => {
             });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
-            expect(baseConfig.chainId).toBe(0x5aff);
+            expect(baseConfig.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
             expect(baseConfig.rpcUrl).toBe(NETWORKS.testnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual({ 
@@ -153,7 +159,7 @@ describe('Network Configuration - mainnet', () => {
 
         test('mainnet network should have correct name, chainId, rpcUrl, and explorerUrl', () => {
             expect(NETWORKS.mainnet.name).toBe('sapphire-mainnet');
-            expect(NETWORKS.mainnet.chainId).toBe(0x5afe);
+            expect(NETWORKS.mainnet.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
             expect(NETWORKS.mainnet.rpcUrl).toBeDefined();
             expect(NETWORKS.mainnet.explorerUrl).toBeDefined();
         });
@@ -184,7 +190,7 @@ describe('Network Configuration - mainnet', () => {
             const baseConfig = resolveBaseConfig({ mainnet: true });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
-            expect(baseConfig.chainId).toBe(0x5afe);
+            expect(baseConfig.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
             expect(baseConfig.rpcUrl).toBe(NETWORKS.mainnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.mainnet);
@@ -194,7 +200,7 @@ describe('Network Configuration - mainnet', () => {
             const baseConfig = resolveBaseConfig({ mainnet: true, rpcUrl: CUSTOM_RPC_URL });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
-            expect(baseConfig.chainId).toBe(0x5afe);
+            expect(baseConfig.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
             expect(baseConfig.rpcUrl).toBe(CUSTOM_RPC_URL);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.mainnet);
@@ -204,7 +210,7 @@ describe('Network Configuration - mainnet', () => {
             const baseConfig = resolveBaseConfig({ mainnet: true, addresses: { factory: VALID_TEST_ADDRESS } });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
-            expect(baseConfig.chainId).toBe(0x5afe);
+            expect(baseConfig.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
             expect(baseConfig.rpcUrl).toBe(NETWORKS.mainnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             // Should have factory from override + defaults for others
@@ -226,7 +232,7 @@ describe('Network Configuration - mainnet', () => {
             });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
-            expect(baseConfig.chainId).toBe(0x5afe);
+            expect(baseConfig.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
             expect(baseConfig.rpcUrl).toBe(NETWORKS.mainnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual({ 

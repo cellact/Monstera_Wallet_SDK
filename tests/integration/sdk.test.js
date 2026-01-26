@@ -9,7 +9,14 @@ import { describe, test, expect, beforeEach } from '@jest/globals';
 import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 import { expectValidAddress } from '../utils/assertions.js';
-import { TEST_SIGNER, VALID_TEST_ADDRESS } from '../utils/fixtures.js';
+import { 
+  TEST_SIGNER, 
+  VALID_TEST_ADDRESS, 
+  CUSTOM_RPC_URL, 
+  DEFAULT_TESTNET_CHAIN_ID, 
+  DEFAULT_MAINNET_CHAIN_ID,
+  DEFAULT_TESTNET_RPC_URL
+} from '../utils/fixtures.js';
 
 describe('SDK Integration', () => {
   describe('Monstera.connect', () => {
@@ -18,7 +25,7 @@ describe('SDK Integration', () => {
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-testnet');
-      expect(sdk.chainId).toBe(0x5aff);
+      expect(sdk.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
       expect(sdk.hasWriteAccess()).toBe(true);
     });
 
@@ -27,7 +34,7 @@ describe('SDK Integration', () => {
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-mainnet');
-      expect(sdk.chainId).toBe(0x5afe);
+      expect(sdk.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
       expect(sdk.hasWriteAccess()).toBe(true);
     });
 
@@ -41,10 +48,9 @@ describe('SDK Integration', () => {
     });
 
     test('should use custom RPC URL', () => {
-      const customRpc = 'https://custom-rpc.example.com';
-      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER, rpcUrl: customRpc });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER, rpcUrl: CUSTOM_RPC_URL });
       
-      expect(sdk.rpcUrl).toBe(customRpc);
+      expect(sdk.rpcUrl).toBe(CUSTOM_RPC_URL);
     });
 
     test('should use custom addresses', () => {
@@ -77,7 +83,7 @@ describe('SDK Integration', () => {
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-testnet');
-      expect(sdk.chainId).toBe(0x5aff);
+      expect(sdk.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
       expect(sdk.hasWriteAccess()).toBe(false);
     });
 
@@ -86,7 +92,7 @@ describe('SDK Integration', () => {
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-mainnet');
-      expect(sdk.chainId).toBe(0x5afe);
+      expect(sdk.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
       expect(sdk.hasWriteAccess()).toBe(false);
     });
 
@@ -100,17 +106,16 @@ describe('SDK Integration', () => {
     });
 
     test('should accept custom provider', () => {
-      const provider = new ethers.JsonRpcProvider('https://testnet.sapphire.oasis.dev');
+      const provider = new ethers.JsonRpcProvider(DEFAULT_TESTNET_RPC_URL);
       const sdk = Monstera.readonly({ mainnet: false, provider });
       
       expect(sdk.provider).toBe(provider);
     });
 
     test('should use custom RPC URL', () => {
-      const customRpc = 'https://custom-rpc.example.com';
-      const sdk = Monstera.readonly({ mainnet: false, rpcUrl: customRpc });
+      const sdk = Monstera.readonly({ mainnet: false, rpcUrl: CUSTOM_RPC_URL });
       
-      expect(sdk.rpcUrl).toBe(customRpc);
+      expect(sdk.rpcUrl).toBe(CUSTOM_RPC_URL);
     });
   });
 
@@ -119,7 +124,7 @@ describe('SDK Integration', () => {
       const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
 
       expect(sdk.network).toBe('sapphire-testnet');
-      expect(sdk.chainId).toBe(0x5aff);
+      expect(sdk.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
       expect(sdk.rpcUrl).toBeDefined();
       expect(sdk.addresses).toBeDefined();
       expect(sdk.provider).toBeDefined();
