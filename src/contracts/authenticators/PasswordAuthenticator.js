@@ -7,7 +7,7 @@
 import { ConfigError } from '../../errors/index.js';
 import { ethers } from 'ethers';
 import { PASSWORD_AUTHENTICATOR_ABI } from '../abi/authenticators/passwordAuthenticator.js';
-  
+
 /**
  * Get password authenticator contract instance
  * 
@@ -16,14 +16,13 @@ import { PASSWORD_AUTHENTICATOR_ABI } from '../abi/authenticators/passwordAuthen
  * @returns {Object} Contract instance
  */
 function getPasswordAuthenticatorContract(signerOrProvider, passwordAuthenticatorAddress) {
-    if (!passwordAuthenticatorAddress) {
-        throw new ConfigError('Password authenticator address is required', 'passwordAuthenticatorAddress');
-    }
+  if (!passwordAuthenticatorAddress) {
+    throw new ConfigError('Password authenticator address is required', 'passwordAuthenticatorAddress');
+  }
 
-    return new ethers.Contract(passwordAuthenticatorAddress, PASSWORD_AUTHENTICATOR_ABI, signerOrProvider);
+  return new ethers.Contract(passwordAuthenticatorAddress, PASSWORD_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
 export {
-    getPasswordAuthenticatorContract,
+  getPasswordAuthenticatorContract,
 };
-  

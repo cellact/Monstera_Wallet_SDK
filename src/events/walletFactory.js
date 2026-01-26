@@ -24,4 +24,3 @@ export default {
     description: 'Emitted when the factory beacon is upgraded'
   }
 };
-

@@ -21,4 +21,3 @@ export default {
     description: 'Emitted when a wallet password is configured'
   }
 };
-

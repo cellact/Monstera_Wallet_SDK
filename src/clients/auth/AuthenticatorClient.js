@@ -69,4 +69,3 @@ class AuthenticatorClient {
 }
 
 export default AuthenticatorClient;
-

@@ -23,4 +23,3 @@ export default {
     description: 'Emitted when the KeyVault implementation is upgraded'
   }
 };
-

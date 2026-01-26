@@ -7,7 +7,7 @@
 import { ConfigError } from '../../errors/index.js';
 import { ethers } from 'ethers';
 import { WALLET_LOGIC_ABI } from '../abi/core/walletLogic.js';
-  
+
 /**
  * Get wallet logic contract instance
  * 

@@ -84,4 +84,3 @@ export {
   parseEvent,
   parseEventFromReceipt
 };
-

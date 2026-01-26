@@ -7,7 +7,7 @@
 import { ConfigError } from '../../errors/index.js';
 import { ethers } from 'ethers';
 import { WALLET_SIGNATURE_AUTHENTICATOR_ABI } from '../abi/authenticators/walletSignatureAuthenticator.js';
-  
+
 /**
  * Get wallet signature authenticator contract instance
  * 
@@ -16,13 +16,13 @@ import { WALLET_SIGNATURE_AUTHENTICATOR_ABI } from '../abi/authenticators/wallet
  * @returns {Object} Contract instance
  */
 function getWalletSignatureAuthenticatorContract(signerOrProvider, walletSignatureAuthenticatorAddress) {
-    if (!walletSignatureAuthenticatorAddress) {
-        throw new ConfigError('Wallet signature authenticator address is required', 'walletSignatureAuthenticatorAddress');
-    }
+  if (!walletSignatureAuthenticatorAddress) {
+    throw new ConfigError('Wallet signature authenticator address is required', 'walletSignatureAuthenticatorAddress');
+  }
 
-    return new ethers.Contract(walletSignatureAuthenticatorAddress, WALLET_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
+  return new ethers.Contract(walletSignatureAuthenticatorAddress, WALLET_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
 export {
-    getWalletSignatureAuthenticatorContract,
+  getWalletSignatureAuthenticatorContract,
 };

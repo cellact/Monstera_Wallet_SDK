@@ -15,4 +15,3 @@ export {
   WriteRequiresSignerError,
   EventParseError
 } from './WalletError.js';
-

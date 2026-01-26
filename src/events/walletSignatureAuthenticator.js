@@ -32,4 +32,3 @@ export default {
     description: 'Emitted when a wallet signature authenticator is configured'
   }
 };
-

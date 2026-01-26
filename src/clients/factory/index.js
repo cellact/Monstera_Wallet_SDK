@@ -7,4 +7,3 @@
 import WalletFactoryClient from './WalletFactoryClient.js';
 
 export default WalletFactoryClient;
-

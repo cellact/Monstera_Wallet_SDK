@@ -134,7 +134,6 @@ function resolveBaseConfig(options) {
   return networkConfig; // { network, chainId, rpcUrl, explorerUrl, addresses }
 }
 
-
 export {
   NETWORKS,
   DEFAULT_ADDRESSES,
