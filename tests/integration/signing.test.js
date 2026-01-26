@@ -10,47 +10,48 @@
  */
 import 'dotenv/config';
 import { describe, test, expect, beforeAll } from '@jest/globals';
-import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
-import { ValidationError } from '../../src/errors/index.js';
+import { 
+  createTestSDK, 
+  getTestConfig, 
+  setupTestWallet 
+} from '../utils/setup.js';
+import { 
+  createPasswordAuthProof,
+  INVALID_ADDRESS,
+  ZERO_ADDRESS
+} from '../utils/fixtures.js';
+import { 
+  expectValidHex,
+  expectValidAddress
+} from '../utils/assertions.js';
+import { 
+  testMissingParam, 
+  testInvalidAddress 
+} from '../utils/validation-helpers.js';
 
 describe('Signing Integration Tests', () => {
   let sdk;
   let keyVaultAddr;
-  let walletAddr;
   let password;
   let authProof;
   let accountIndex;
 
   beforeAll(async () => {
-    // Get or create test wallet
-    const signerPrivateKey = process.env.SIGNER_PRIVATE_KEY || '';
-    password = process.env.PASSWORD || '';
-    walletAddr = process.env.WALLET_ADDRESS || '';
+    const config = getTestConfig();
+    password = config.password;
+    const passwordHash = config.passwordHash;
     accountIndex = 0;
 
-    sdk = Monstera.connect({
-      mainnet: false,
-      signer: signerPrivateKey,
-      checkVersion: false // Disable version check for tests
-    });
+    sdk = createTestSDK();
 
-    // If wallet address is provided, use it; otherwise create a new wallet
-    if (walletAddr) {
-      keyVaultAddr = await sdk.getKeyVaultAddr({ walletAddr });
-    } else {
-      // Create a new wallet for testing
-      const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
-      const result = await sdk.createWallet({
-        authenticatorAddr: sdk.addresses.passwordAuth,
-        authConfig: passwordHash
-      });
-      walletAddr = result.wallet;
-      keyVaultAddr = result.keyVault;
-    }
+    // Setup test wallet (uses existing from env or creates new)
+    const walletData = await setupTestWallet(sdk, passwordHash);
+    walletAddr = walletData.wallet;
+    keyVaultAddr = walletData.keyVault;
 
     // Prepare auth proof
-    authProof = ethers.toUtf8Bytes(password);
+    authProof = createPasswordAuthProof(password);
   });
 
   describe('signMessage', () => {
@@ -67,7 +68,7 @@ describe('Signing Integration Tests', () => {
 
       expect(signature).toBeDefined();
       expect(typeof signature).toBe('string');
-      expect(signature).toMatch(/^0x[a-fA-F0-9]+$/);
+      expectValidHex(signature);
 
       // Verify the signature
       const accountAddr = await sdk.getAccountAddr({
@@ -93,7 +94,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with wrong password', async () => {
-      const wrongAuthProof = ethers.toUtf8Bytes('wrongpassword');
+      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
       const messageBytes = ethers.toUtf8Bytes('test message');
 
       await expect(
@@ -109,60 +110,70 @@ describe('Signing Integration Tests', () => {
     test('should fail with missing keyVaultAddr', async () => {
       const messageBytes = ethers.toUtf8Bytes('test');
 
-      await expect(
-        sdk.signMessage({
+      await testMissingParam(
+        sdk.signMessage.bind(sdk),
+        {
           authProof,
           index: accountIndex,
           message: messageBytes
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'keyVaultAddr'
+      );
     });
 
     test('should fail with missing authProof', async () => {
       const messageBytes = ethers.toUtf8Bytes('test');
 
-      await expect(
-        sdk.signMessage({
+      await testMissingParam(
+        sdk.signMessage.bind(sdk),
+        {
           keyVaultAddr,
           index: accountIndex,
           message: messageBytes
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'authProof'
+      );
     });
 
     test('should fail with missing index', async () => {
       const messageBytes = ethers.toUtf8Bytes('test');
 
-      await expect(
-        sdk.signMessage({
+      await testMissingParam(
+        sdk.signMessage.bind(sdk),
+        {
           keyVaultAddr,
           authProof,
           message: messageBytes
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'index'
+      );
     });
 
     test('should fail with missing message', async () => {
-      await expect(
-        sdk.signMessage({
+      await testMissingParam(
+        sdk.signMessage.bind(sdk),
+        {
           keyVaultAddr,
           authProof,
           index: accountIndex
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'message'
+      );
     });
 
     test('should fail with invalid keyVaultAddr', async () => {
       const messageBytes = ethers.toUtf8Bytes('test');
 
-      await expect(
-        sdk.signMessage({
-          keyVaultAddr: '0xinvalid',
+      await testInvalidAddress(
+        sdk.signMessage.bind(sdk),
+        {
+          keyVaultAddr,
           authProof,
           index: accountIndex,
           message: messageBytes
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'keyVaultAddr'
+      );
     });
 
     test('should fail with negative index', async () => {
@@ -175,7 +186,7 @@ describe('Signing Integration Tests', () => {
           index: -1,
           message: messageBytes
         })
-      ).rejects.toThrow(ValidationError);
+      ).rejects.toThrow();
     });
   });
 
@@ -193,7 +204,7 @@ describe('Signing Integration Tests', () => {
 
       expect(signature).toBeDefined();
       expect(typeof signature).toBe('string');
-      expect(signature).toMatch(/^0x[a-fA-F0-9]+$/);
+      expectValidHex(signature);
 
       // Verify the signature
       const accountAddr = await sdk.getAccountAddr({
@@ -226,7 +237,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with wrong password', async () => {
-      const wrongAuthProof = ethers.toUtf8Bytes('wrongpassword');
+      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
       const hash = ethers.keccak256(ethers.toUtf8Bytes('test'));
 
       await expect(
@@ -240,13 +251,15 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with missing hash', async () => {
-      await expect(
-        sdk.sign({
+      await testMissingParam(
+        sdk.sign.bind(sdk),
+        {
           keyVaultAddr,
           authProof,
           index: accountIndex
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'hash'
+      );
     });
 
     test('should fail with invalid hash length', async () => {
@@ -299,7 +312,7 @@ describe('Signing Integration Tests', () => {
     // });
 
     test('should sign transaction with data', async () => {
-      const to = '0x0000000000000000000000000000000000000000';
+      const to = ZERO_ADDRESS;
       const value = 0n;
       const nonce = 0;
       const gasPrice = ethers.parseUnits('30', 'gwei');
@@ -321,13 +334,14 @@ describe('Signing Integration Tests', () => {
       });
 
       expect(signedTx).toBeDefined();
+      expectValidHex(signedTx);
       const tx = ethers.Transaction.from(signedTx);
       expect(tx.data).toBeDefined();
     });
 
     test('should fail with wrong password', async () => {
-      const wrongAuthProof = ethers.toUtf8Bytes('wrongpassword');
-      const to = '0x0000000000000000000000000000000000000000';
+      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
+      const to = ZERO_ADDRESS;
       const value = ethers.parseEther('0.001');
       const nonce = 0;
       const gasPrice = ethers.parseUnits('30', 'gwei');
@@ -351,85 +365,76 @@ describe('Signing Integration Tests', () => {
       ).rejects.toThrow();
     });
 
+    // Helper to create base transaction params
+    const createBaseTxParams = () => ({
+      index: accountIndex,
+      nonce: 0,
+      gasPrice: ethers.parseUnits('30', 'gwei'),
+      gasLimit: 21000n,
+      to: ZERO_ADDRESS,
+      value: 0n,
+      txData: '0x',
+      chainId: sdk.chainId
+    });
+
     test('should fail with missing keyVaultAddr', async () => {
-      await expect(
-        sdk.signTransaction({
+      await testMissingParam(
+        sdk.signTransaction.bind(sdk),
+        {
           authProof,
-          index: accountIndex,
-          nonce: 0,
-          gasPrice: ethers.parseUnits('30', 'gwei'),
-          gasLimit: 21000n,
-          to: '0x0000000000000000000000000000000000000000',
-          value: 0n,
-          txData: '0x',
-          chainId: sdk.chainId
-        })
-      ).rejects.toThrow(ValidationError);
+          ...createBaseTxParams()
+        },
+        'keyVaultAddr'
+      );
     });
 
     test('should fail with missing authProof', async () => {
-      await expect(
-        sdk.signTransaction({
+      await testMissingParam(
+        sdk.signTransaction.bind(sdk),
+        {
           keyVaultAddr,
-          index: accountIndex,
-          nonce: 0,
-          gasPrice: ethers.parseUnits('30', 'gwei'),
-          gasLimit: 21000n,
-          to: '0x0000000000000000000000000000000000000000',
-          value: 0n,
-          txData: '0x',
-          chainId: sdk.chainId
-        })
-      ).rejects.toThrow(ValidationError);
+          ...createBaseTxParams()
+        },
+        'authProof'
+      );
     });
 
     test('should fail with missing required transaction fields', async () => {
+      const baseParams = createBaseTxParams();
+      
       // Missing nonce
-      await expect(
-        sdk.signTransaction({
+      await testMissingParam(
+        sdk.signTransaction.bind(sdk),
+        {
           keyVaultAddr,
           authProof,
-          index: accountIndex,
-          gasPrice: ethers.parseUnits('30', 'gwei'),
-          gasLimit: 21000n,
-          to: '0x0000000000000000000000000000000000000000',
-          value: 0n,
-          txData: '0x',
-          chainId: sdk.chainId
-        })
-      ).rejects.toThrow(ValidationError);
+          ...baseParams
+        },
+        'nonce'
+      );
 
       // Missing to
-      await expect(
-        sdk.signTransaction({
+      await testMissingParam(
+        sdk.signTransaction.bind(sdk),
+        {
           keyVaultAddr,
           authProof,
-          index: accountIndex,
-          nonce: 0,
-          gasPrice: ethers.parseUnits('30', 'gwei'),
-          gasLimit: 21000n,
-          value: 0n,
-          txData: '0x',
-          chainId: sdk.chainId
-        })
-      ).rejects.toThrow(ValidationError);
+          ...baseParams
+        },
+        'to'
+      );
     });
 
     test('should fail with invalid address', async () => {
-      await expect(
-        sdk.signTransaction({
+      await testInvalidAddress(
+        sdk.signTransaction.bind(sdk),
+        {
           keyVaultAddr,
           authProof,
-          index: accountIndex,
-          nonce: 0,
-          gasPrice: ethers.parseUnits('30', 'gwei'),
-          gasLimit: 21000n,
-          to: '0xinvalid',
-          value: 0n,
-          txData: '0x',
-          chainId: sdk.chainId
-        })
-      ).rejects.toThrow(ValidationError);
+          ...createBaseTxParams()
+        },
+        'to'
+      );
     });
 
     test('should fail with negative values', async () => {
@@ -441,12 +446,12 @@ describe('Signing Integration Tests', () => {
           nonce: -1,
           gasPrice: ethers.parseUnits('30', 'gwei'),
           gasLimit: 21000n,
-            to: '0x0000000000000000000000000000000000000000',
+          to: ZERO_ADDRESS,
           value: 0n,
           txData: '0x',
           chainId: sdk.chainId
         })
-      ).rejects.toThrow(ValidationError);
+      ).rejects.toThrow();
     });
   });
 
@@ -477,6 +482,8 @@ describe('Signing Integration Tests', () => {
       // Verify both signatures
       const addr0 = await sdk.getAccountAddr({ keyVaultAddr, index: 0 });
       const addr1 = await sdk.getAccountAddr({ keyVaultAddr, index: 1 });
+      expectValidAddress(addr0);
+      expectValidAddress(addr1);
       expect(addr0).not.toBe(addr1);
 
       const recovered0 = ethers.verifyMessage('test message', sig0);

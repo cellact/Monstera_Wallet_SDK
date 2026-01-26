@@ -3,7 +3,8 @@
  */
 
 import { describe, test, expect } from '@jest/globals';
-
+import { expectValidAddress, expectValidHex } from '../../utils/assertions.js';
+import { VALID_TEST_ADDRESS, INVALID_TEST_ADDRESS_NO_PREFIX } from '../../utils/fixtures.js';
 import { 
   isAddress,
   requireAddress,
@@ -14,24 +15,21 @@ import {
   requireNonNegativeInteger,
   requirePositiveInteger
 } from '../../../src/internal/assert.js';
-
 import { ethers } from 'ethers';
-
 
 describe('Assert Utilities', () => {
     describe('isAddress', () => {
         test('returns true for valid address string', () => {
-            const address = '0x1234567890123456789012345678901234567890';
-            expect(isAddress(address)).toBe(true);
+            expectValidAddress(VALID_TEST_ADDRESS); // Validate test data
+            expect(isAddress(VALID_TEST_ADDRESS)).toBe(true);
         });
 
         test('returns false for invalid address string', () => {
-            const address = '12345678901234567890123456789012345678901';
-            expect(isAddress(address)).toBe(false);
+            expect(isAddress(INVALID_TEST_ADDRESS_NO_PREFIX)).toBe(false);
         });
 
         test('returns false for address object', () => {
-            const address = { address: '0x1234567890123456789012345678901234567890' };
+            const address = { address: VALID_TEST_ADDRESS };
             expect(isAddress(address)).toBe(false);
         });
 
@@ -48,8 +46,8 @@ describe('Assert Utilities', () => {
 
     describe('requireAddress', () => {
         test('does not throw error for valid address string', () => {
-            const address = '0x1234567890123456789012345678901234567890';
-            expect(() => requireAddress(address)).not.toThrow();
+            expectValidAddress(VALID_TEST_ADDRESS); // Validate test data
+            expect(() => requireAddress(VALID_TEST_ADDRESS)).not.toThrow();
         });
 
         test('throws error for undefined address', () => {
@@ -61,21 +59,20 @@ describe('Assert Utilities', () => {
         });
 
         test('throws error for non string address', () => {
-            const address = { address: '0x1234567890123456789012345678901234567890' };
+            const address = { address: VALID_TEST_ADDRESS };
             expect(() => requireAddress(address)).toThrow('address is required and must be a string');
         });
 
         test('throws error for invalid address string', () => {
-            const address = '12345678901234567890123456789012345678901';
-            expect(() => requireAddress(address)).toThrow('address must be a valid Ethereum address');
+            expect(() => requireAddress(INVALID_TEST_ADDRESS_NO_PREFIX)).toThrow('address must be a valid Ethereum address');
         });
        
     });
 
     describe('requireBytes', () => {
         test('does not throw error for valid bytes string', () => {
-            const bytes = '0x1234567890123456789012345678901234567890';
-            expect(() => requireBytes(bytes)).not.toThrow();
+            expectValidHex(VALID_TEST_ADDRESS); // Validate test data (address is also valid hex)
+            expect(() => requireBytes(VALID_TEST_ADDRESS)).not.toThrow();
         });
 
         test('does not throw error for valid bytes Uint8Array', () => {
@@ -92,12 +89,11 @@ describe('Assert Utilities', () => {
         });
 
         test('throws error for invalid bytes string', () => {
-            const bytes = '12345678901234567890123456789012345678901';
-            expect(() => requireBytes(bytes)).toThrow('bytes must be a valid hex string (0x...) or Uint8Array');
+            expect(() => requireBytes(INVALID_TEST_ADDRESS_NO_PREFIX)).toThrow('bytes must be a valid hex string (0x...) or Uint8Array');
         });
 
         test('throws error for non string bytes', () => {
-            const bytes = { bytes: '0x1234567890123456789012345678901234567890' };
+            const bytes = { bytes: VALID_TEST_ADDRESS };
             expect(() => requireBytes(bytes)).toThrow('must be a string (hex) or Uint8Array');
         });
     });

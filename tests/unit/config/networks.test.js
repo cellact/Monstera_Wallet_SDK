@@ -3,7 +3,8 @@
  */
 
 import { describe, test, expect } from '@jest/globals';
-
+import { expectValidAddress } from '../../utils/assertions.js';
+import { VALID_TEST_ADDRESS, INVALID_TEST_ADDRESS_NO_PREFIX, CUSTOM_RPC_URL } from '../../utils/fixtures.js';
 import { 
   NETWORKS,
   DEFAULT_ADDRESSES,
@@ -63,8 +64,11 @@ describe('Network Configuration - testnet', () => {
         });
 
         test('should have factory, passwordAuth, walletSignatureAuth address for testnet that match the expected values', () => {
+            expectValidAddress(DEFAULT_ADDRESSES.testnet.factory);
             expect(DEFAULT_ADDRESSES.testnet.factory).toBe('0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a');
+            expectValidAddress(DEFAULT_ADDRESSES.testnet.passwordAuth);
             expect(DEFAULT_ADDRESSES.testnet.passwordAuth).toBe('0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7');
+            expectValidAddress(DEFAULT_ADDRESSES.testnet.walletSignatureAuth);
             expect(DEFAULT_ADDRESSES.testnet.walletSignatureAuth).toBe('0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a');
             expect(DEFAULT_ADDRESSES.testnet.walletSignatureAuth).not.toBeNull();
         });
@@ -82,17 +86,17 @@ describe('Network Configuration - testnet', () => {
         });
 
         test('should take a object with false mainnet and return a network config object for testnet (rpcUrl override, addresses defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: false, rpcUrl: 'https://custom-rpc-endpoint.com' });
+            const baseConfig = resolveBaseConfig({ mainnet: false, rpcUrl: CUSTOM_RPC_URL });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
             expect(baseConfig.chainId).toBe(0x5aff);
-            expect(baseConfig.rpcUrl).toBe('https://custom-rpc-endpoint.com');
+            expect(baseConfig.rpcUrl).toBe(CUSTOM_RPC_URL);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.testnet);
         });
 
         test('should take a object with false mainnet and return a network config object for testnet (1 address override, rpcUrl defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: false, addresses: { factory: '0x1234567890123456789012345678901234567890' } });
+            const baseConfig = resolveBaseConfig({ mainnet: false, addresses: { factory: VALID_TEST_ADDRESS } });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
             expect(baseConfig.chainId).toBe(0x5aff);
@@ -100,20 +104,31 @@ describe('Network Configuration - testnet', () => {
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             // Should have factory from override + defaults for others
             expect(baseConfig.addresses).toStrictEqual({
-                factory: '0x1234567890123456789012345678901234567890',
+                factory: VALID_TEST_ADDRESS,
                 passwordAuth: DEFAULT_ADDRESSES.testnet.passwordAuth,
                 walletSignatureAuth: DEFAULT_ADDRESSES.testnet.walletSignatureAuth
             });
         });
 
         test('should take a object with false mainnet and return a network config object for testnet (all addresses override, rpcUrl defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: false, addresses: { factory: '0x1234567890123456789012345678901234567890', passwordAuth: '0x1234567890123456789012345678901234567890', walletSignatureAuth: '0x1234567890123456789012345678901234567890' } });
+            const baseConfig = resolveBaseConfig({ 
+                mainnet: false, 
+                addresses: { 
+                    factory: VALID_TEST_ADDRESS, 
+                    passwordAuth: VALID_TEST_ADDRESS, 
+                    walletSignatureAuth: VALID_TEST_ADDRESS 
+                } 
+            });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
             expect(baseConfig.chainId).toBe(0x5aff);
             expect(baseConfig.rpcUrl).toBe(NETWORKS.testnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
-            expect(baseConfig.addresses).toStrictEqual({ factory: '0x1234567890123456789012345678901234567890', passwordAuth: '0x1234567890123456789012345678901234567890', walletSignatureAuth: '0x1234567890123456789012345678901234567890' });
+            expect(baseConfig.addresses).toStrictEqual({ 
+                factory: VALID_TEST_ADDRESS, 
+                passwordAuth: VALID_TEST_ADDRESS, 
+                walletSignatureAuth: VALID_TEST_ADDRESS 
+            });
         });
 
         test('throws error if mainnet is not a boolean', () => {
@@ -125,7 +140,7 @@ describe('Network Configuration - testnet', () => {
         });
 
         test('throws error if override addresses are invalid (factory is not a valid address)', () => {
-            expect(() => resolveBaseConfig({ mainnet: false, addresses: { factory: '0x12345678901234567890123456789012345678901' } })).toThrow('Invalid address format for factory: 0x12345678901234567890123456789012345678901');
+            expect(() => resolveBaseConfig({ mainnet: false, addresses: { factory: INVALID_TEST_ADDRESS_NO_PREFIX } })).toThrow(`Invalid address format for factory: ${INVALID_TEST_ADDRESS_NO_PREFIX}`);
         });
     });
 });
@@ -176,17 +191,17 @@ describe('Network Configuration - mainnet', () => {
         });
 
         test('should take a object with true mainnet and return a network config object for mainnet (rpcUrl override, addresses defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: true, rpcUrl: 'https://custom-rpc-endpoint.com' });
+            const baseConfig = resolveBaseConfig({ mainnet: true, rpcUrl: CUSTOM_RPC_URL });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
             expect(baseConfig.chainId).toBe(0x5afe);
-            expect(baseConfig.rpcUrl).toBe('https://custom-rpc-endpoint.com');
+            expect(baseConfig.rpcUrl).toBe(CUSTOM_RPC_URL);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.mainnet);
         });
 
         test('should take a object with true mainnet and return a network config object for mainnet (1 address override, rpcUrl defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: true, addresses: { factory: '0x1234567890123456789012345678901234567890' } });
+            const baseConfig = resolveBaseConfig({ mainnet: true, addresses: { factory: VALID_TEST_ADDRESS } });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
             expect(baseConfig.chainId).toBe(0x5afe);
@@ -194,20 +209,31 @@ describe('Network Configuration - mainnet', () => {
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             // Should have factory from override + defaults for others
             expect(baseConfig.addresses).toStrictEqual({
-                factory: '0x1234567890123456789012345678901234567890',
+                factory: VALID_TEST_ADDRESS,
                 passwordAuth: DEFAULT_ADDRESSES.mainnet.passwordAuth,
                 walletSignatureAuth: DEFAULT_ADDRESSES.mainnet.walletSignatureAuth
             });
         });
 
         test('should take a object with true mainnet and return a network config object for mainnet (all addresses override, rpcUrl defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: true, addresses: { factory: '0x1234567890123456789012345678901234567890', passwordAuth: '0x1234567890123456789012345678901234567890', walletSignatureAuth: '0x1234567890123456789012345678901234567890' } });
+            const baseConfig = resolveBaseConfig({ 
+                mainnet: true, 
+                addresses: { 
+                    factory: VALID_TEST_ADDRESS, 
+                    passwordAuth: VALID_TEST_ADDRESS, 
+                    walletSignatureAuth: VALID_TEST_ADDRESS 
+                } 
+            });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
             expect(baseConfig.chainId).toBe(0x5afe);
             expect(baseConfig.rpcUrl).toBe(NETWORKS.mainnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
-            expect(baseConfig.addresses).toStrictEqual({ factory: '0x1234567890123456789012345678901234567890', passwordAuth: '0x1234567890123456789012345678901234567890', walletSignatureAuth: '0x1234567890123456789012345678901234567890' });
+            expect(baseConfig.addresses).toStrictEqual({ 
+                factory: VALID_TEST_ADDRESS, 
+                passwordAuth: VALID_TEST_ADDRESS, 
+                walletSignatureAuth: VALID_TEST_ADDRESS 
+            });
         });
 
         test('throws error if mainnet is not a boolean', () => {
@@ -219,7 +245,7 @@ describe('Network Configuration - mainnet', () => {
         });
 
         test('throws error if override addresses are invalid (factory is not a valid address)', () => {
-            expect(() => resolveBaseConfig({ mainnet: true, addresses: { factory: '0x12345678901234567890123456789012345678901' } })).toThrow('Invalid address format for factory: 0x12345678901234567890123456789012345678901');
+            expect(() => resolveBaseConfig({ mainnet: true, addresses: { factory: INVALID_TEST_ADDRESS_NO_PREFIX } })).toThrow(`Invalid address format for factory: ${INVALID_TEST_ADDRESS_NO_PREFIX}`);
         });
     });
 });

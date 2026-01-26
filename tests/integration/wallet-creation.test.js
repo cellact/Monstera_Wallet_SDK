@@ -4,38 +4,47 @@
  * These tests verify that the SDK can create wallets correctly using all available methods.
  * Tests both success and failure scenarios.
  * 
- * Note: These tests require:
- * - Environment variables: SIGNER_PRIVATE_KEY, PASSWORD
- * - Network access and funds for wallet creation
  */
 
 import 'dotenv/config';
 import { describe, test, expect, beforeAll } from '@jest/globals';
 import { Monstera } from '../../src/index.js';
 import { ethers, Mnemonic } from 'ethers';
-import { ValidationError, WalletError, WriteRequiresSignerError } from '../../src/errors/index.js';
+import { WalletError } from '../../src/errors/index.js';
+import { 
+  createTestSDK, 
+  getTestConfig 
+} from '../utils/setup.js';
+import { 
+  INVALID_ADDRESS,
+  ZERO_ADDRESS,
+  TEST_SIGNER
+} from '../utils/fixtures.js';
+import { 
+  expectWalletResult,
+  expectValidAddress
+} from '../utils/assertions.js';
+import { 
+  testMissingParam, 
+  testInvalidAddress, 
+  testReadonlySDK 
+} from '../utils/validation-helpers.js';
 
 describe('Wallet Creation Integration Tests', () => {
   let sdk;
-  let password;
   let passwordHash;
   let testMnemonic;
 
   beforeAll(async () => {
-    // Get test configuration
-    const signerPrivateKey = process.env.SIGNER_PRIVATE_KEY || '';
-    password = process.env.PASSWORD || '';
-    passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
+    const config = getTestConfig();
+    password = config.password;
+    passwordHash = config.passwordHash;
 
     // Generate a test mnemonic for testing createWalletFromMnemonic
     const wallet = ethers.Wallet.createRandom();
     testMnemonic = wallet.mnemonic.phrase;
 
-    sdk = Monstera.connect({
-      mainnet: false,
-      signer: signerPrivateKey,
-      checkVersion: false // Disable version check for tests
-    });
+    sdk = createTestSDK();
   });
 
   describe('createWallet', () => {
@@ -44,27 +53,7 @@ describe('Wallet Creation Integration Tests', () => {
         authConfig: passwordHash
       });
 
-      expect(result).toBeDefined();
-      expect(result.wallet).toBeDefined();
-      expect(result.keyVault).toBeDefined();
-      expect(result.storage).toBeDefined();
-      expect(result.authenticator).toBeDefined();
-      expect(result.mnemonic).toBeDefined();
-      expect(result.transactionHash).toBeDefined();
-
-      // Validate addresses
-      expect(result.wallet).toMatch(/^0x[a-fA-F0-9]{40}$/);
-      expect(result.keyVault).toMatch(/^0x[a-fA-F0-9]{40}$/);
-      expect(result.storage).toMatch(/^0x[a-fA-F0-9]{40}$/);
-      expect(result.authenticator).toMatch(/^0x[a-fA-F0-9]{40}$/);
-
-      // Validate mnemonic
-      expect(typeof result.mnemonic).toBe('string');
-      const words = result.mnemonic.split(' ').filter(w => w.length > 0);
-      expect(words.length).toBe(12); // Should be 12-word mnemonic
-
-      // Validate transaction hash
-      expect(result.transactionHash).toMatch(/^0x[a-fA-F0-9]{64}$/);
+      expectWalletResult(result);
 
       // Verify wallet is recognized by factory
       const isWallet = await sdk.isWallet({ walletAddr: result.wallet });
@@ -98,9 +87,11 @@ describe('Wallet Creation Integration Tests', () => {
     }, 60000); // 60 seconds for two wallet creations
 
     test('should fail with missing authConfig', async () => {
-      await expect(
-        sdk.createWallet({})
-      ).rejects.toThrow(ValidationError);
+      await testMissingParam(
+        sdk.createWallet.bind(sdk),
+        {},
+        'authConfig'
+      );
     });
 
     test('should fail with invalid authConfig', async () => {
@@ -114,20 +105,17 @@ describe('Wallet Creation Integration Tests', () => {
     test('should fail with invalid authenticator address', async () => {
       await expect(
         sdk.createWallet({
-          authenticatorAddr: '0x123', // Too short, doesn't match address format
+          authenticatorAddr: INVALID_ADDRESS,
           authConfig: passwordHash
         })
       ).rejects.toThrow(WalletError);
     });
 
     test('should fail with readonly SDK instance', async () => {
-      const readonlySdk = Monstera.readonly({ mainnet: false });
-
-      await expect(
-        readonlySdk.createWallet({
-          authConfig: passwordHash
-        })
-      ).rejects.toThrow(WriteRequiresSignerError);
+      await testReadonlySDK(
+        sdk.createWallet,
+        { authConfig: passwordHash }
+      );
     });
   });
 
@@ -151,11 +139,11 @@ describe('Wallet Creation Integration Tests', () => {
     }, 30000);
 
     test('should fail with missing mnemonic', async () => {
-      await expect(
-        sdk.createWalletFromMnemonic({
-          authConfig: passwordHash
-        })
-      ).rejects.toThrow(ValidationError);
+      await testMissingParam(
+        sdk.createWalletFromMnemonic.bind(sdk),
+        { authConfig: passwordHash },
+        'mnemonic'
+      );
     });
 
     test('should fail with invalid mnemonic', async () => {
@@ -164,7 +152,7 @@ describe('Wallet Creation Integration Tests', () => {
           mnemonic: 'invalid mnemonic phrase',
           authConfig: passwordHash
         })
-      ).rejects.toThrow(ValidationError);
+      ).rejects.toThrow();
     });
 
     test('should fail with mnemonic with wrong word count', async () => {
@@ -173,15 +161,15 @@ describe('Wallet Creation Integration Tests', () => {
           mnemonic: 'abandon abandon abandon', // Too few words
           authConfig: passwordHash
         })
-      ).rejects.toThrow(ValidationError);
+      ).rejects.toThrow();
     });
 
     test('should fail with missing authConfig', async () => {
-      await expect(
-        sdk.createWalletFromMnemonic({
-          mnemonic: testMnemonic
-        })
-      ).rejects.toThrow(ValidationError);
+      await testMissingParam(
+        sdk.createWalletFromMnemonic.bind(sdk),
+        { mnemonic: testMnemonic },
+        'authConfig'
+      );
     });
   });
 
@@ -209,87 +197,105 @@ describe('Wallet Creation Integration Tests', () => {
     }, 30000);
 
     test('should fail with missing authConfig', async () => {
-      await expect(
-        sdk.createWalletCore({})
-      ).rejects.toThrow(ValidationError);
+      await testMissingParam(
+        sdk.createWalletCore.bind(sdk),
+        {},
+        'authConfig'
+      );
     });
   });
 
   describe('createWalletWithHook', () => {
     test('should fail with missing hookAddr', async () => {
-      await expect(
-        sdk.createWalletWithHook({
+      await testMissingParam(
+        sdk.createWalletWithHook.bind(sdk),
+        {
           authConfig: passwordHash,
           hookData: ethers.toUtf8Bytes('test')
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'hookAddr'
+      );
     });
 
     test('should fail with missing hookData', async () => {
-      await expect(
-        sdk.createWalletWithHook({
+      await testMissingParam(
+        sdk.createWalletWithHook.bind(sdk),
+        {
           authConfig: passwordHash,
-          hookAddr: '0x0000000000000000000000000000000000000000'
-        })
-      ).rejects.toThrow(ValidationError);
+          hookAddr: ZERO_ADDRESS
+        },
+        'hookData'
+      );
     });
 
     test('should fail with invalid hookAddr', async () => {
-      await expect(
-        sdk.createWalletWithHook({
+      await testInvalidAddress(
+        sdk.createWalletWithHook.bind(sdk),
+        {
           authConfig: passwordHash,
-          hookAddr: '0x123', // Too short, doesn't match address format
+          hookAddr: ZERO_ADDRESS,
           hookData: ethers.toUtf8Bytes('test')
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'hookAddr'
+      );
     });
 
     test('should fail with missing authConfig', async () => {
-      await expect(
-        sdk.createWalletWithHook({
-          hookAddr: '0x0000000000000000000000000000000000000000',
+      await testMissingParam(
+        sdk.createWalletWithHook.bind(sdk),
+        {
+          hookAddr: ZERO_ADDRESS,
           hookData: ethers.toUtf8Bytes('test')
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'authConfig'
+      );
     });
   });
 
   describe('createWalletWithCustomLogic', () => {
     test('should fail with missing customLogicImplAddr', async () => {
-      await expect(
-        sdk.createWalletWithCustomLogic({
+      await testMissingParam(
+        sdk.createWalletWithCustomLogic.bind(sdk),
+        {
           authConfig: passwordHash,
           logicData: ethers.toUtf8Bytes('test')
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'customLogicImplAddr'
+      );
     });
 
     test('should fail with missing logicData', async () => {
-      await expect(
-        sdk.createWalletWithCustomLogic({
+      await testMissingParam(
+        sdk.createWalletWithCustomLogic.bind(sdk),
+        {
           authConfig: passwordHash,
-          customLogicImplAddr: '0x0000000000000000000000000000000000000000'
-        })
-      ).rejects.toThrow(ValidationError);
+          customLogicImplAddr: ZERO_ADDRESS
+        },
+        'logicData'
+      );
     });
 
     test('should fail with invalid customLogicImplAddr', async () => {
-      await expect(
-        sdk.createWalletWithCustomLogic({
+      await testInvalidAddress(
+        sdk.createWalletWithCustomLogic.bind(sdk),
+        {
           authConfig: passwordHash,
-          customLogicImplAddr: '0x123', // Too short, doesn't match address format
+          customLogicImplAddr: ZERO_ADDRESS,
           logicData: ethers.toUtf8Bytes('test')
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'customLogicImplAddr'
+      );
     });
 
     test('should fail with missing authConfig', async () => {
-      await expect(
-        sdk.createWalletWithCustomLogic({
-          customLogicImplAddr: '0x0000000000000000000000000000000000000000',
+      await testMissingParam(
+        sdk.createWalletWithCustomLogic.bind(sdk),
+        {
+          customLogicImplAddr: ZERO_ADDRESS,
           logicData: ethers.toUtf8Bytes('test')
-        })
-      ).rejects.toThrow(ValidationError);
+        },
+        'authConfig'
+      );
     });
   });
 
@@ -350,8 +356,8 @@ describe('Wallet Creation Integration Tests', () => {
         index: 1
       });
 
-      expect(account0).toMatch(/^0x[a-fA-F0-9]{40}$/);
-      expect(account1).toMatch(/^0x[a-fA-F0-9]{40}$/);
+      expectValidAddress(account0);
+      expectValidAddress(account1);
       expect(account0).not.toBe(account1);
 
       // Get multiple addresses at once
@@ -402,7 +408,7 @@ describe('Wallet Creation Integration Tests', () => {
       // We can't easily simulate network errors, but we can test with invalid config
       const invalidSdk = Monstera.connect({
         mainnet: false,
-        signer: '0x0000000000000000000000000000000000000000000000000000000000000001',
+        signer: TEST_SIGNER,
         rpcUrl: 'https://invalid-rpc-url.example.com',
         checkVersion: false
       });

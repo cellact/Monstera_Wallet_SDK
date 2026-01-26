@@ -3,7 +3,7 @@
  */
 
 import { describe, test, expect } from '@jest/globals';
-
+import { expectValidMnemonic } from '../../utils/assertions.js';
 import {
   generateMnemonic,
   deriveSeed,
@@ -21,18 +21,9 @@ import {
 
 describe('Wallet Crypto Utilities', () => {
     describe('generateMnemonic', () => {
-        test('should generate a new mnemonic with 12 words and return a string', () => {
-            const mnemonic = generateMnemonic();
-            expect(mnemonic).toBeDefined();
-            expect(typeof mnemonic).toBe('string');
-            
-            const words = mnemonic.split(' ').filter(word => word.length > 0);
-            expect(words.length).toBe(12);
-        });
-
         test('should generate a valid mnemonic with 12 words', () => {
             const mnemonic = generateMnemonic();
-            expect(mnemonic.trim().length).toBeGreaterThan(0);
+            expectValidMnemonic(mnemonic, 12);
         });
     });
 

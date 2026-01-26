@@ -8,12 +8,13 @@
 import { describe, test, expect, beforeEach } from '@jest/globals';
 import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
+import { expectValidAddress } from '../utils/assertions.js';
+import { TEST_SIGNER, VALID_TEST_ADDRESS } from '../utils/fixtures.js';
 
 describe('SDK Integration', () => {
   describe('Monstera.connect', () => {
     test('should create SDK instance with signer for testnet', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: false, signer });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-testnet');
@@ -22,8 +23,7 @@ describe('SDK Integration', () => {
     });
 
     test('should create SDK instance with signer for mainnet', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: true, signer });
+      const sdk = Monstera.connect({ mainnet: true, signer: TEST_SIGNER });
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-mainnet');
@@ -32,8 +32,7 @@ describe('SDK Integration', () => {
     });
 
     test('should initialize all clients', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: false, signer });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
       
       expect(sdk.factory).toBeDefined();
       expect(sdk.logic).toBeDefined();
@@ -42,21 +41,19 @@ describe('SDK Integration', () => {
     });
 
     test('should use custom RPC URL', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const customRpc = 'https://custom-rpc.example.com';
-      const sdk = Monstera.connect({ mainnet: false, signer, rpcUrl: customRpc });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER, rpcUrl: customRpc });
       
       expect(sdk.rpcUrl).toBe(customRpc);
     });
 
     test('should use custom addresses', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
       const customAddresses = {
-        factory: '0x1234567890123456789012345678901234567890'
+        factory: VALID_TEST_ADDRESS
       };
-      const sdk = Monstera.connect({ mainnet: false, signer, addresses: customAddresses });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER, addresses: customAddresses });
       
-      expect(sdk.addresses.factory).toBe('0x1234567890123456789012345678901234567890');
+      expect(sdk.addresses.factory).toBe(VALID_TEST_ADDRESS);
       // Should still have defaults for other addresses
       expect(sdk.addresses.passwordAuth).toBeDefined();
       expect(sdk.addresses.walletSignatureAuth).toBeDefined();
@@ -67,8 +64,7 @@ describe('SDK Integration', () => {
     });
 
     test('should disable version checking when checkVersion is false', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: false, signer, checkVersion: false });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER, checkVersion: false });
       
       expect(sdk).toBeDefined();
       // Version check should be disabled (no way to verify directly, but SDK should still work)
@@ -120,8 +116,7 @@ describe('SDK Integration', () => {
 
   describe('SDK Instance Properties', () => {
     test('should expose network properties', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: false, signer });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
 
       expect(sdk.network).toBe('sapphire-testnet');
       expect(sdk.chainId).toBe(0x5aff);
@@ -150,8 +145,7 @@ describe('SDK Integration', () => {
 
   describe('SDK Utility Methods', () => {
     test('hasWriteAccess should return true for connect()', async () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: false, signer });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
       
       expect(sdk.hasWriteAccess()).toBe(true);
     });
@@ -163,13 +157,12 @@ describe('SDK Integration', () => {
     });
 
     test('getSignerAddr should return address for connect()', async () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: false, signer });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
       
       const address = await sdk.getSignerAddr();
       expect(address).toBeDefined();
       expect(typeof address).toBe('string');
-      expect(address).toMatch(/^0x[a-fA-F0-9]{40}$/);
+      expectValidAddress(address);
     });
 
     test('getSignerAddr should return null for readonly()', async () => {
@@ -180,15 +173,13 @@ describe('SDK Integration', () => {
     });
 
     test('getAuthClient should return password auth client', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: false, signer });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
       const passwordAuth = sdk.getAuthClient('password');
       expect(passwordAuth).toBeDefined();
     });
 
     test('getAvailableAuthTypes should return array of auth types', () => {
-      const signer = '0x0000000000000000000000000000000000000000000000000000000000000001';
-      const sdk = Monstera.connect({ mainnet: false, signer });
+      const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
       const authTypes = sdk.getAvailableAuthTypes();
       expect(authTypes).toBeDefined();
       expect(Array.isArray(authTypes)).toBe(true);

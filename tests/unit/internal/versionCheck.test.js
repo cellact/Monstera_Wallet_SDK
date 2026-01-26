@@ -3,27 +3,22 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from '@jest/globals';
-
+import { setupConsoleWarnMock } from '../../utils/mocks.js';
 import { 
   checkVersion, 
   fetchLatestVersion, 
   checkAndWarnVersion 
 } from '../../../src/internal/versionCheck.js';
 
-// Mock console.warn to test warnings
-const originalWarn = console.warn;
-let warnCalls = [];
+// Console.warn mock setup
+let mockConsole;
 
 beforeEach(() => {
-  warnCalls = [];
-  console.warn = (...args) => {
-    warnCalls.push(args);
-    originalWarn(...args);
-  };
+  mockConsole = setupConsoleWarnMock();
 });
 
 afterEach(() => {
-  console.warn = originalWarn;
+  mockConsole.restore();
 });
 
 describe('Version Check Functions', () => {
@@ -87,7 +82,7 @@ describe('Version Check Functions', () => {
       // Should not warn (and should not make network calls)
       // We can't easily verify fetchLatestVersion wasn't called in ESM,
       // but we can verify no warnings were shown
-      expect(warnCalls.length).toBe(0);
+      expect(mockConsole.warnCalls.length).toBe(0);
     });
 
     // Note: Testing warning behavior for different version types requires mocking fetchLatestVersion.

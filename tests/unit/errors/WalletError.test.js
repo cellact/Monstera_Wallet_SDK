@@ -3,7 +3,8 @@
  */
 
 import { describe, test, expect } from '@jest/globals';
-
+import { expectValidTxHash } from '../../utils/assertions.js';
+import { TEST_TX_HASH } from '../../utils/fixtures.js';
 import {
   WalletError,
   ValidationError,
@@ -193,9 +194,9 @@ describe('WalletError', () => {
     });
 
     test('should create ContractRevertError with transactionHash', () => {
-      const txHash = '0x1234567890123456789012345678901234567890123456789012345678901234';
-      const error = new ContractRevertError('Transaction reverted', txHash);
-      expect(error.context.transactionHash).toBe(txHash);
+      const error = new ContractRevertError('Transaction reverted', TEST_TX_HASH);
+      expect(error.context.transactionHash).toBe(TEST_TX_HASH);
+      expectValidTxHash(error.context.transactionHash);
     });
 
     test('should create ContractRevertError with receipt', () => {
@@ -226,9 +227,9 @@ describe('WalletError', () => {
     });
 
     test('should create EventNotFoundError with transactionHash', () => {
-      const txHash = '0x1234567890123456789012345678901234567890123456789012345678901234';
-      const error = new EventNotFoundError('WalletCreated', txHash);
-      expect(error.context.transactionHash).toBe(txHash);
+      const error = new EventNotFoundError('WalletCreated', TEST_TX_HASH);
+      expect(error.context.transactionHash).toBe(TEST_TX_HASH);
+      expectValidTxHash(error.context.transactionHash);
     });
 
     test('should be instance of WalletError', () => {
@@ -305,9 +306,9 @@ describe('WalletError', () => {
     });
 
     test('should create EventParseError with transactionHash', () => {
-      const txHash = '0x1234567890123456789012345678901234567890123456789012345678901234';
-      const error = new EventParseError('WalletCreated', txHash);
-      expect(error.context.transactionHash).toBe(txHash);
+      const error = new EventParseError('WalletCreated', TEST_TX_HASH);
+      expect(error.context.transactionHash).toBe(TEST_TX_HASH);
+      expectValidTxHash(error.context.transactionHash);
     });
 
     test('should create EventParseError with originalError', () => {
