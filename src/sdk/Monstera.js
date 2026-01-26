@@ -6,7 +6,10 @@
  */
 
 // Internal config
-import { DEFAULT_ADDRESSES, NETWORKS, REQUIRED_ADDRESSES, resolveBaseConfig } from '../config/networks.js';
+import MonsteraConfig from '../config/monstera.js';
+
+// Internal SDK modules
+import MonsteraUtils from './MonsteraUtils.js';
 
 // Internal clients
 import WalletFactoryClient from '../clients/factory/index.js';
@@ -21,14 +24,6 @@ import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 // Internal errors
 import { ValidationError } from '../errors/index.js';
 
-// Internal version check
-import { checkAndWarnVersion } from '../internal/versionCheck.js';
-
-// Node.js built-in modules (for version reading)
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { readFileSync } from 'fs';
-
 /**
  * Monstera Wallet SDK
  * 
@@ -40,13 +35,9 @@ class Monstera {
   // Constructor
   // ============================================================================
 
-  // Static cache for version check (to avoid multiple checks)
-  static _versionCheckPromise = null;
-  static _versionCheckDone = false;
-  
   constructor(config) {
     this.config = config;
-    this.version = Monstera.version;
+    this.version = MonsteraConfig.version;
 
     // Initialize read provider (for read operations)
     this.readProvider = config.provider ?? createProvider(config.rpcUrl);
@@ -62,8 +53,8 @@ class Monstera {
 
     // Check version in background (non-blocking, cached)
     // Skip if disabled in config or already checked
-    if (config?.checkVersion !== false && !Monstera._versionCheckDone) {
-      Monstera._checkVersionOnce();
+    if (config?.checkVersion !== false && !MonsteraUtils.versionCheckDone) {
+      MonsteraUtils.checkVersionOnce(this.version);
     }
   }
 
@@ -96,7 +87,7 @@ class Monstera {
       );
     }
   
-    const base = resolveBaseConfig(options);
+    const base = MonsteraConfig.resolveBaseConfig(options);
   
     return new Monstera({
       ...base,
@@ -120,7 +111,7 @@ class Monstera {
    * @returns {Monstera} SDK instance
    */
   static readonly(options) {
-    const base = resolveBaseConfig(options);
+    const base = MonsteraConfig.resolveBaseConfig(options);
   
     // Option A: allow passing provider explicitly
     const provider = options?.provider ?? null;
@@ -135,30 +126,6 @@ class Monstera {
     });
   }
 
-  /**
-   * Check version once per process (cached)
-   * @private
-   * @static
-   */
-  static _checkVersionOnce() {
-    // If check is already in progress, don't start another
-    if (Monstera._versionCheckPromise) {
-      return;
-    }
-
-    // Mark as done immediately to prevent multiple checks
-    Monstera._versionCheckDone = true;
-
-    // Start async check (fire and forget)
-    Monstera._versionCheckPromise = checkAndWarnVersion(Monstera.version)
-      .catch(() => {
-        // Silently fail - version check should never break SDK usage
-      })
-      .finally(() => {
-        Monstera._versionCheckPromise = null;
-      });
-  }
-
   // ============================================================================
   // Static Properties (Class-Level Constants)
   // ============================================================================
@@ -169,31 +136,7 @@ class Monstera {
    * @readonly
    */
   static get version() {
-    // In browser builds, version is injected at build time
-    // @ts-ignore
-    if (typeof __MONSTERA_VERSION__ !== 'undefined') {
-      // @ts-ignore
-      return __MONSTERA_VERSION__;
-    }
-    // Node.js environment - read package.json directly
-    try {
-      if (typeof window === 'undefined' && typeof import.meta !== 'undefined') {
-        // Get the directory of this file (src/sdk/)
-        const currentFile = fileURLToPath(import.meta.url);
-        const currentDir = dirname(currentFile);
-        
-        // Resolve to package.json (go up two levels: src/sdk -> src -> root)
-        const packageJsonPath = join(currentDir, '..', '..', 'package.json');
-        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-        return packageJson.version;
-      }
-    } catch (e) {
-      // Log error for debugging (only in development)
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn('Failed to load SDK version from package.json:', e.message);
-      }
-    }
-    return 'unknown';
+    return MonsteraConfig.version;
   }
   
   /**
@@ -202,7 +145,7 @@ class Monstera {
    * @readonly
    */
   static get networks() {
-    return NETWORKS;
+    return MonsteraConfig.networks;
   }
 
   /**
@@ -211,7 +154,7 @@ class Monstera {
    * @readonly
    */
   static get defaultAddresses() {
-    return DEFAULT_ADDRESSES;
+    return MonsteraConfig.defaultAddresses;
   }
 
   /**
@@ -220,7 +163,7 @@ class Monstera {
    * @readonly
    */
   static get requiredAddresses() {
-    return REQUIRED_ADDRESSES;
+    return MonsteraConfig.requiredAddresses;
   }
 
   // ============================================================================

@@ -5,8 +5,6 @@
  * with default RPC URLs and contract addresses.
  */
 
-import { ConfigError, ValidationError } from '../errors/index.js';
-
 /**
  * Network configuration presets
  */
@@ -43,12 +41,6 @@ const DEFAULT_ADDRESSES = {
 };
 
 /**
- * Required contract addresses for SDK initialization
- * All of these must be present and valid for the SDK to function.
- */
-const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth'];
-
-/**
  * Build network configuration from network name
  * 
  * @param {Object} config - Network configuration
@@ -77,66 +69,8 @@ function buildNetworkConfig(config) {
   };
 }
 
-/**
- * Validate required contract addresses
- * 
- * @param {Object} addresses - Contract addresses to validate
- * @param {Array<String>} required - List of required address keys
- * @throws {Error} If required addresses are missing
- */
-function validateAddresses(addresses, required) {
-  if (!required || !Array.isArray(required) || required.length === 0) {
-    throw new ConfigError('Required addresses list must be a non-empty array', 'required');
-  }
-
-  const missing = required.filter(key => !addresses[key]);
-  
-  if (missing.length > 0) {
-    throw new ConfigError(
-      `Missing required contract addresses: ${missing.join(', ')}. ` +
-      `Please provide addresses in config or set defaults.`,
-      missing.join(', ')
-    );
-  }
-
-  // Validate address format (basic check)
-  for (const [key, address] of Object.entries(addresses)) {
-    if (address && !/^0x[a-fA-F0-9]{40}$/.test(address)) {
-      throw new ValidationError(`Invalid address format for ${key}: ${address}`, key, address);
-    }
-  }
-}
-
-/**
- * Resolve and validate SDK configuration.
- * 
- * Internal helper: merges network presets + address defaults, validates required addresses,
- * and returns a normalized config object used by the Monstera constructor.
- * 
- * @param {Object} options
- * @param {Boolean} options.mainnet - true for mainnet, false for testnet
- * @throws {Error} If network or required addresses are invalid/missing.
- */
-function resolveBaseConfig(options) {
-  const { mainnet, rpcUrl, addresses } = options || {};
-
-  if (typeof mainnet !== 'boolean') {
-    throw new ConfigError('mainnet is required and must be a boolean (true for mainnet, false for testnet)', 'mainnet');
-  }
-
-  // Convert boolean to network string
-  const network = mainnet ? 'mainnet' : 'testnet';
-
-  const networkConfig = buildNetworkConfig({ network, rpcUrl, addresses });
-
-  validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
-
-  return networkConfig; // { network, chainId, rpcUrl, explorerUrl, addresses }
-}
-
 export {
   NETWORKS,
   DEFAULT_ADDRESSES,
-  REQUIRED_ADDRESSES,
-  resolveBaseConfig
+  buildNetworkConfig
 };
