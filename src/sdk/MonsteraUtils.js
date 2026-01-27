@@ -5,7 +5,6 @@
  * These are pure functions or instance-independent helpers.
  */
 
-// Internal version check
 import { checkAndWarnVersion } from '../internal/versionCheck.js';
 
 /**

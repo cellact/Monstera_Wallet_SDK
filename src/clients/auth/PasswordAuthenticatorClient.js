@@ -5,16 +5,9 @@
  * Handles password-based authentication and configuration.
  */
 
-// Internal base classes
 import BaseContractClient from '../../base/BaseContractClient.js';
-
-// Internal contracts
 import { getPasswordAuthenticatorContract } from '../../contracts/authenticators/PasswordAuthenticator.js';
-
-// Internal events
 import { PasswordAuthenticatorEvents } from '../../events/index.js';
-
-// Internal utilities
 import { requireAddress, requireBytes } from '../../internal/assert.js';
 
 class PasswordAuthenticatorClient extends BaseContractClient {

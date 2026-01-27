@@ -3,6 +3,7 @@
  * 
  * Central registry for all contract events organized by contract
  */
+
 import WalletSignatureAuthenticatorEvents from './walletSignatureAuthenticator.js';
 import WalletFactoryEvents from './walletFactory.js';
 import PasswordAuthenticatorEvents from './passwordAuthenticator.js';

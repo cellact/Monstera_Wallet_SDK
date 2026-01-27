@@ -4,14 +4,9 @@
  * Handles mnemonic generation, seed derivation, and auth config encoding
  */
 
-// External libraries
 import crypto from 'crypto';
 import { ethers, HDNodeWallet, Wallet } from 'ethers';
-
-// Internal utilities
 import { requireAddress } from '../internal/assert.js';
-
-// Internal errors
 import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 
 /**

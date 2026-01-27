@@ -5,11 +5,8 @@
  * Makes it easy to add new authenticator types without modifying the main SDK.
  */
 
-// Internal clients
 import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
 import WalletSignatureAuthenticatorClient from './WalletSignatureAuthenticatorClient.js';
-
-// Internal errors
 import { ValidationError } from '../../errors/index.js';
 
 class AuthenticatorClient {

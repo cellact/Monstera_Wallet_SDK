@@ -5,16 +5,9 @@
  * Handles wallet creation and factory administration.
  */
 
-// Internal base classes
 import BaseContractClient from '../../base/BaseContractClient.js';
-
-// Internal contracts
 import { getWalletFactoryContract } from '../../contracts/core/walletFactory.js';
-
-// Internal events
 import { WalletFactoryEvents } from '../../events/index.js';
-
-// Internal utilities
 import { generateMnemonic, deriveSeed } from '../../crypto/wallet.js';
 import { requireAddress, requireBytes, requireMnemonic } from '../../internal/assert.js';
 

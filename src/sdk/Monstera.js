@@ -5,23 +5,14 @@
  * Provides clean API for read and write operations.
  */
 
-// Internal config
 import MonsteraConfig from '../config/monstera.js';
-
-// Internal SDK modules
 import MonsteraUtils from './MonsteraUtils.js';
-
-// Internal clients
 import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
-
-// Internal utilities
 import { createAuthProof } from '../crypto/wallet.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
-
-// Internal errors
 import { ValidationError } from '../errors/index.js';
 
 /**

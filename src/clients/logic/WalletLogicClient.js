@@ -5,16 +5,9 @@
  * Handles wallet operations, signing, and account management.
  */
 
-// Internal base classes
 import BaseContractClient from '../../base/BaseContractClient.js';
-
-// Internal contracts
 import { getWalletLogicContract } from '../../contracts/core/walletLogic.js';
-
-// Internal events
 import { KeyVaultEvents } from '../../events/index.js';
-
-// Internal utilities
 import { requireAddress, requireBytes, requireNonNegativeInteger } from '../../internal/assert.js';
 
 class WalletLogicClient extends BaseContractClient {

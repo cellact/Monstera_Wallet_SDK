@@ -5,16 +5,9 @@
  * Handles wallet signature authentication, whitelist management, and configuration.
  */
 
-// Internal base classes
 import BaseContractClient from '../../base/BaseContractClient.js';
-
-// Internal contracts
 import { getWalletSignatureAuthenticatorContract } from '../../contracts/authenticators/WalletSignatureAuthenticator.js';
-
-// Internal events
 import { WalletSignatureAuthenticatorEvents } from '../../events/index.js';
-
-// Internal utilities
 import { requireAddress, requireBytes } from '../../internal/assert.js';
 
 class WalletSignatureAuthenticatorClient extends BaseContractClient {

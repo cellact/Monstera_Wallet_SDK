@@ -5,7 +5,6 @@
  * for encrypted transaction support.
  */
 
-// Internal errors
 import { ConfigError, SapphireRequiredError, ValidationError } from '../errors/index.js';
 import { ethers } from 'ethers';
 import { wrapEthersSigner } from '@oasisprotocol/sapphire-ethers-v6';
