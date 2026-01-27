@@ -9,13 +9,9 @@
  * Validation helpers are available via delegation to assert.js
  */
 
-// Internal base classes
 import SapphireWriteWrapper from './SapphireWriteWrapper.js';
-
-// Internal utilities
 import { requireAddress } from '../internal/assert.js';
-
-// Internal errors
+import MonsteraConfig from '../config/monstera.js';
 import { WalletError, WriteRequiresSignerError } from '../errors/index.js';
 
 class BaseContractClient {
@@ -165,12 +161,8 @@ class BaseContractClient {
     const context = {};
     
     // Exclude sensitive parameters that should never appear in error context
-    const sensitiveParams = [
-      'authConfig', 'authProof', 'currentPassword', 'newPasswordHash',
-      'seed', 'mnemonic', 'hookData', 'logicData', 'txData', 'data',
-      'message', 'hash', 'privateKey', 'password'
-    ];
-    
+    const sensitiveParams = MonsteraConfig.SENSITIVE_PARAMS;
+  
     // Include all parameters except sensitive ones
     for (const key in options) {
       if (options.hasOwnProperty(key) && !sensitiveParams.includes(key)) {

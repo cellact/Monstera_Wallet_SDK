@@ -8,17 +8,9 @@
  * - SDK configuration resolution
  */
 
-// Internal config
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
-
-// Internal errors
 import { ConfigError, ValidationError } from '../errors/index.js';
-
-// Internal assertions
 import { isAddress } from '../internal/assert.js';
-
-
-// Node.js built-in modules (for version reading)
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFileSync } from 'fs';
@@ -157,6 +149,24 @@ class MonsteraConfig {
         throw new ValidationError(`Invalid address format for ${key}: ${address}`, key, address);
       }
     }
+  }
+
+  /**
+   * Sensitive parameter names that should never appear in error context or logs
+   * 
+   * These parameters contain secrets, private keys, or other sensitive data
+   * that must be filtered from error messages, logs, and debugging output.
+   * 
+   * @private
+   * @static
+   * @readonly
+   */
+  static get SENSITIVE_PARAMS() {
+    return [
+      'authConfig', 'authProof', 'currentPassword', 'newPasswordHash',
+      'seed', 'mnemonic', 'hookData', 'logicData', 'txData', 'data',
+      'message', 'hash', 'privateKey', 'password'
+    ];
   }
 }
 
