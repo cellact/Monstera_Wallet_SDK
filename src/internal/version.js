@@ -5,7 +5,7 @@
 /**
  * Parse semantic version string into components
  * @param {string} version - Semantic version string
- * @returns {Object} Parsed version object with {major, minor, patch, prerelease, build}
+ * @returns {Record<string, number|string|null>} Parsed version object with {major, minor, patch, prerelease, build, raw}
  */
 export function parseVersion(version) {
     if (typeof version !== 'string') {

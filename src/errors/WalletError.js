@@ -5,6 +5,12 @@
  * - Descriptive error messages
  * - Stable error codes for programmatic handling
  * - Contextual information (function, parameters, etc.)
+ * 
+ * @typedef {import('../types/index.js').TransactionHash} TransactionHash
+ * 
+ * @param {string} message - Error message
+ * @param {string} code - Error code
+ * @param {Record<string, unknown>} [context={}] - Additional context information
  */
 class WalletError extends Error {
   constructor(message, code, context = {}) {
@@ -21,7 +27,7 @@ class WalletError extends Error {
 
   /**
    * Get error details as object
-   * @returns {Object}
+   * @returns {Record<string, unknown>} Error details object
    */
   toJSON() {
     return {
@@ -35,7 +41,7 @@ class WalletError extends Error {
 
   /**
    * Get human-readable error message
-   * @returns {String}
+   * @returns {string} Human-readable error message
    */
   toString() {
     let str = `${this.name}: ${this.message}`;
@@ -54,6 +60,10 @@ class WalletError extends Error {
 
 /**
  * Validation errors - Invalid input parameters
+ * 
+ * @param {string} message - Error message
+ * @param {string} parameter - Parameter name that failed validation
+ * @param {unknown} [value=null] - Invalid parameter value
  */
 class ValidationError extends WalletError {
   constructor(message, parameter, value = null) {
@@ -72,6 +82,9 @@ class ValidationError extends WalletError {
 
 /**
  * Configuration errors - Missing or invalid configuration
+ * 
+ * @param {string} message - Error message
+ * @param {string} [missingField=null] - Missing configuration field name
  */
 class ConfigError extends WalletError {
   constructor(message, missingField = null) {
@@ -89,6 +102,10 @@ class ConfigError extends WalletError {
 
 /**
  * Network/RPC errors - Network communication failures
+ * 
+ * @param {string} message - Error message
+ * @param {string} [rpcUrl=null] - RPC URL that failed
+ * @param {Error} [originalError=null] - Original error that occurred
  */
 class NetworkError extends WalletError {
   constructor(message, rpcUrl = null, originalError = null) {
@@ -108,6 +125,10 @@ class NetworkError extends WalletError {
 
 /**
  * Contract revert errors - Transaction reverted on-chain
+ * 
+ * @param {string} message - Error message
+ * @param {TransactionHash} [transactionHash=null] - Transaction hash that reverted
+ * @param {Record<string, unknown>} [receipt=null] - Transaction receipt
  */
 class ContractRevertError extends WalletError {
   constructor(message, transactionHash = null, receipt = null) {
@@ -126,6 +147,9 @@ class ContractRevertError extends WalletError {
 
 /**
  * Event not found errors - Expected event missing from receipt
+ * 
+ * @param {string} eventName - Name of the expected event
+ * @param {TransactionHash} [transactionHash=null] - Transaction hash where event was expected
  */
 class EventNotFoundError extends WalletError {
   constructor(eventName, transactionHash = null) {
@@ -144,6 +168,8 @@ class EventNotFoundError extends WalletError {
 
 /**
  * Sapphire required errors - Operation requires Sapphire provider
+ * 
+ * @param {string} [message] - Error message (optional, defaults to standard message)
  */
 class SapphireRequiredError extends WalletError {
   constructor(message) {
@@ -160,6 +186,8 @@ class SapphireRequiredError extends WalletError {
 
 /**
  * Write operation requires signer error
+ * 
+ * @param {string} [operation='operation'] - Name of the operation that requires signer
  */
 class WriteRequiresSignerError extends WalletError {
   constructor(operation = 'operation') {
@@ -177,6 +205,10 @@ class WriteRequiresSignerError extends WalletError {
 
 /**
  * Event parse errors - Event found but failed to parse/decode
+ * 
+ * @param {string} eventName - Name of the event that failed to parse
+ * @param {TransactionHash} [transactionHash=null] - Transaction hash containing the event
+ * @param {Error} [originalError=null] - Original parsing error
  */
 class EventParseError extends WalletError {
     constructor(eventName, transactionHash = null, originalError = null) {

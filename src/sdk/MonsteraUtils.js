@@ -23,8 +23,9 @@ class MonsteraUtils {
    * This is a utility function that can be called independently of SDK instances.
    * It checks for SDK updates and warns users if a newer version is available.
    * 
-   * @param {String} currentVersion - Current SDK version
    * @static
+   * @param {string} currentVersion - Current SDK version
+   * @returns {void}
    */
   static checkVersionOnce(currentVersion) {
     // If check is already in progress, don't start another
@@ -48,7 +49,7 @@ class MonsteraUtils {
   /**
    * Check if version check has been done
    * @static
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   static get versionCheckDone() {
     return MonsteraUtils._versionCheckDone;

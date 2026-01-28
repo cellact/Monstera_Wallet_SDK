@@ -3,6 +3,20 @@
  * 
  * Client for interacting with KeyVault contract methods.
  * Handles key vault operations, signing, and account management.
+ * 
+ * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
+ * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../../types/index.js').SignTransactionOptions} SignTransactionOptions
+ * @typedef {import('../../types/index.js').SignMessageOptions} SignMessageOptions
+ * @typedef {import('../../types/index.js').SignHashOptions} SignHashOptions
+ * @typedef {import('../../types/index.js').InitializeOptions} InitializeOptions
+ * @typedef {import('../../types/index.js').UpdateAuthenticatorOptions} UpdateAuthenticatorOptions
+ * @typedef {import('../../types/index.js').InitializeResult} InitializeResult
+ * @typedef {import('../../types/index.js').UpdateAuthenticatorAddrResult} UpdateAuthenticatorAddrResult
+ * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
+ * @typedef {import('../../types/index.js').Address} Address
+ * @typedef {import('../../types/index.js').Bytes} Bytes
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -16,9 +30,9 @@ class KeyVaultClient extends BaseContractClient {
   // ============================================================================
   
   /**
-   * @param {Object} readProvider - Ethers provider for read operations
-   * @param {Object} writeSigner - Ethers signer for write operations
-   * @param {Object} config - Configuration object
+   * @param {EthersProvider} readProvider - Ethers provider for read operations
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
+   * @param {NetworkConfig} config - Configuration object
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -31,9 +45,9 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Get the storage contract address holding the keys
    * 
-   * @param {Object} options - Get storage address options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<String>} Storage contract address
+   * @param {Record<string, unknown>} options - Get storage address options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getStorageAddr(options = {}) {
@@ -41,37 +55,41 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeRead(
-      () => keyVault.storage_(),
-      'get storage address',
-      options
+      {
+        operation: () => keyVault.storage_(),
+        methodName: 'get storage address',
+        ...options
+      }
     );
   }
 
   /**
    * Get the current authenticator contract address for a wallet 
    * 
-   * @param {Object} options - Get authenticator options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<String>} Authenticator address
+   * @param {Record<string, unknown>} options - Get authenticator options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<Address>} Authenticator address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getAuthenticatorAddr(options = {}) {
     const { keyVaultAddr } = options;
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
-    return this.executeRead(
-      () => keyVault.authenticator(),
-      'get authenticator',
-      options
+    return this.executeRead( 
+      {
+        operation: () => keyVault.authenticator(),
+        methodName: 'get authenticator',
+        ...options
+      }
     );
   }
 
   /**
    * Get the current KeyVaultImplementation contract address
    * 
-   * @param {Object} options - Get implementation options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<String>} Implementation address
+   * @param {Record<string, unknown>} options - Get implementation options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<Address>} Implementation address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getKeyVaultImplAddr(options = {}) {
@@ -79,18 +97,20 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeRead(
-      () => keyVault.implementation(),
-      'get key vault implementation',
-      options
+      {
+        operation: () => keyVault.implementation(),
+        methodName: 'get key vault implementation',
+        ...options
+      }
     );
   }
 
   /**
    * Check if a given keyVault is initialized 
    * 
-   * @param {Object} options - Check if keyVault is initialized options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<Boolean>} True if keyVault is initialized, false otherwise
+   * @param {Record<string, unknown>} options - Check if keyVault is initialized options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<boolean>} True if keyVault is initialized, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async isInitialized(options = {}) {
@@ -98,19 +118,21 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeRead(
-      () => keyVault.initialized(),
-      'check if key vault is initialized',
-      options
+      {
+        operation: () => keyVault.initialized(),
+        methodName: 'check if key vault is initialized',
+        ...options
+      }
     );
   }
 
   /**
    * Get one of a wallet's account addresses for a given index
    * 
-   * @param {Object} options - Get account address options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Number} options.index - Account index (uint32)
-   * @returns {Promise<String>} Account address
+   * @param {Record<string, unknown>} options - Get account address options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {number} options.index - Account index (uint32)
+   * @returns {Promise<Address>} Account address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if index is invalid
    */
   async getAccountAddr(options = {}) {
@@ -120,20 +142,22 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeRead(
-      () => keyVault.getAccountAddress(index),
-      'get account address',
-      options
+      {
+        operation: () => keyVault.getAccountAddress(index),
+        methodName: 'get account address',
+        ...options
+      }
     );
   }
 
   /**
    * Get multiple account addresses from a wallet for a given range of indexes
    * 
-   * @param {Object} options - Get account addresses options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Number} options.fromIndex - From index (uint32)
-   * @param {Number} options.count - Count (uint32)
-   * @returns {Promise<Array<String>>} Array of account addresses
+   * @param {Record<string, unknown>} options - Get account addresses options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {number} options.fromIndex - From index (uint32)
+   * @param {number} options.count - Count (uint32)
+   * @returns {Promise<Address[]>} Array of account addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if fromIndex/count are invalid
    */
   async getAccountAddresses(options = {}) {
@@ -144,27 +168,19 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
     
     return this.executeRead(
-      () => keyVault.getAccountAddresses(fromIndex, count),
-      'get account addresses',
-      options
+      {
+        operation: () => keyVault.getAccountAddresses(fromIndex, count),
+        methodName: 'get account addresses',
+        ...options
+      }
     );
   }
 
   /**
    * Sign a raw transaction (authenticated function)
    * 
-   * @param {Object} options - Sign transaction options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
-   * @param {Number|BigInt} options.index - Account index
-   * @param {Number|BigInt} options.nonce - Nonce
-   * @param {Number|BigInt} options.gasPrice - Gas price
-   * @param {Number|BigInt} options.gasLimit - Gas limit
-   * @param {String} options.to - To address
-   * @param {Number|BigInt} options.value - Value
-   * @param {Bytes} options.txData - Transaction data (bytes)
-   * @param {Number|BigInt} options.chainId - Chain ID
-   * @returns {Promise<String>} Signed transaction
+   * @param {SignTransactionOptions} options - Sign transaction options
+   * @returns {Promise<Bytes>} Signed transaction
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signTransaction(options = {}) {
@@ -182,20 +198,18 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeRead(
-      () => keyVault.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId),
-      'sign transaction',
-      options
+      {
+        operation: () => keyVault.signTransaction(authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId),
+        methodName: 'sign transaction',
+        ...options
+      }
     );
   }
 
   /**
    * Sign an EIP-191 message (authenticated function)
    * 
-   * @param {Object} options - Sign message options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {Number|BigInt} options.index - Account index (uint32)
-   * @param {Bytes} options.message - Message to sign (bytes)
+   * @param {SignMessageOptions} options - Sign message options
    * @returns {Promise<Bytes>} Signed message (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -208,20 +222,18 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeRead(
-      () => keyVault.signMessage(authProof, index, message),
-      'sign message',
-      options
+      {
+        operation: () => keyVault.signMessage(authProof, index, message),
+        methodName: 'sign message',
+        ...options
+      }
     );
   }
 
   /**
    * Sign a 32-byte hash (authenticated function)
    * 
-   * @param {Object} options - Sign hash options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {Number|BigInt} options.index - Account index (uint32)
-   * @param {Bytes32} options.hash - Hash to sign (bytes32)
+   * @param {SignHashOptions} options - Sign hash options
    * @returns {Promise<Bytes>} Signed hash (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -234,17 +246,19 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeRead(
-      () => keyVault.sign(authProof, index, hash),
-      'sign hash',
-      options
+      {
+        operation: () => keyVault.sign(authProof, index, hash),
+        methodName: 'sign hash',
+        ...options
+      }
     );
   }
 
   /**
    * Execute a function with an auth proof (authenticated function)
    * 
-   * @param {Object} options - Execute function options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
+   * @param {Record<string, unknown>} options - Execute function options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
    * @param {Bytes} options.implCall - Implementation call (bytes)
    * @returns {Promise<Bytes>} Execute function result (bytes)
@@ -258,9 +272,11 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeRead(
-      () => keyVault.executeWithAuth(authProof, implCall),
-      'execute with auth',
-      options
+      {
+        operation: () => keyVault.executeWithAuth(authProof, implCall),
+        methodName: 'execute with auth',
+        ...options
+      }
     );
   }
 
@@ -271,12 +287,8 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Initialize a KeyVault contract
    * 
-   * @param {Object} options - Initialize key vault options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {String} options.storageAddr - WalletStorage contract address 
-   * @param {String} options.authenticatorAddr - Authenticator contract address
-   * @param {Bytes32} options.accessToken - Secret token for storage access (bytes32)
-   * @returns {Promise<Object>} Initialize key vault result
+   * @param {InitializeOptions} options - Initialize key vault options
+   * @returns {Promise<InitializeResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -290,21 +302,21 @@ class KeyVaultClient extends BaseContractClient {
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
-    return this.executeWrite(
-      () => keyVault.initialize(storageAddr, authenticatorAddr, accessToken),
-      'initialize key vault',
-      options
-    );
+    return this.executeWrite({
+      operation: () => keyVault.initialize(storageAddr, authenticatorAddr, accessToken),
+      methodName: 'initialize key vault',
+      ...options
+    });
   }
 
   /**
    * Update the keyVaultImplementation contract address (authenticated function)
    * 
-   * @param {Object} options - Update keyVaultImplementation options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
+   * @param {Record<string, unknown>} options - Update keyVaultImplementation options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {String} options.newImplAddr - New keyVaultImplementation contract address
-   * @returns {Promise<Object>} Update keyVaultImplementation result
+   * @param {Address} options.newImplAddr - New keyVaultImplementation contract address
+   * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -318,14 +330,14 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeWrite(
-      () => keyVault.upgradeImplementation(authProof, newImplAddr),
-      'upgrade key vault implementation',
       {
-        ...options,
+        operation: () => keyVault.upgradeImplementation(authProof, newImplAddr),
+        methodName: 'upgrade key vault implementation',
         parseEvents: [{
           eventDef: KeyVaultEvents.ImplementationUpgraded,
           contract: keyVault
-        }]
+        }],
+        ...options
       }
     );
   }
@@ -333,12 +345,8 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Update the authenticator (Authenticated function)
    * 
-   * @param {Object} options - Update authenticator options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {String} options.newAuthenticatorAddr - New authenticator contract address
-   * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
-   * @returns {Promise<Object>} Update authenticator result
+   * @param {UpdateAuthenticatorOptions} options - Update authenticator options
+   * @returns {Promise<UpdateAuthenticatorAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -353,14 +361,14 @@ class KeyVaultClient extends BaseContractClient {
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeWrite(
-      () => keyVault.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig),
-      'change authenticator',
       {
-        ...options,
+        operation: () => keyVault.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig),
+        methodName: 'change authenticator',
         parseEvents: [{
           eventDef: KeyVaultEvents.AuthenticatorChanged,
           contract: keyVault
-        }]
+        }],
+        ...options
       }
     );
   }

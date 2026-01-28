@@ -3,6 +3,39 @@
  * 
  * Main SDK class for interacting with Monstera wallet contracts.
  * Provides clean API for read and write operations.
+ * 
+ * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
+ * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../types/index.js').NetworkPresets} NetworkPresets
+ * @typedef {import('../types/index.js').WriteConnectOptions} WriteConnectOptions
+ * @typedef {import('../types/index.js').ReadConnectOptions} ReadConnectOptions
+ * @typedef {import('../types/index.js').InitializeOptions} InitializeOptions
+ * @typedef {import('../types/index.js').InitializeResult} InitializeResult
+ * @typedef {import('../types/index.js').ConfigurePasswordResult} ConfigurePasswordResult
+ * @typedef {import('../types/index.js').ConfigureWalletSignatureResult} ConfigureWalletSignatureResult
+ * @typedef {import('../types/index.js').WalletCreationResult} WalletCreationResult
+ * @typedef {import('../types/index.js').CreateWalletWithHookOptions} CreateWalletWithHookOptions
+ * @typedef {import('../types/index.js').CreateWalletWithCustomLogicOptions} CreateWalletWithCustomLogicOptions
+ * @typedef {import('../types/index.js').SignTransactionOptions} SignTransactionOptions
+ * @typedef {import('../types/index.js').SignMessageOptions} SignMessageOptions
+ * @typedef {import('../types/index.js').SignHashOptions} SignHashOptions
+ * @typedef {import('../types/index.js').UpdateWalletLogicImplAddrResult} UpdateWalletLogicImplAddrResult
+ * @typedef {import('../types/index.js').UpdateResult} UpdateResult
+ * @typedef {import('../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
+ * @typedef {import('../types/index.js').UpdateAuthenticatorOptions} UpdateAuthenticatorOptions
+ * @typedef {import('../types/index.js').UpdateAuthenticatorAddrResult} UpdateAuthenticatorAddrResult
+ * @typedef {import('../types/index.js').UpdatePasswordResult} UpdatePasswordResult
+ * @typedef {import('../types/index.js').AddToWhitelistResult} AddToWhitelistResult
+ * @typedef {import('../types/index.js').RemoveFromWhitelistResult} RemoveFromWhitelistResult
+ * @typedef {import('../types/index.js').CreateAuthProofOptions} CreateAuthProofOptions
+ * @typedef {import('../types/index.js').Address} Address
+ * @typedef {import('../types/index.js').Bytes} Bytes
+ * @typedef {import('../types/index.js').Bytes32} Bytes32
+ * @typedef {import('../types/index.js').Mnemonic} Mnemonic
+ * @typedef {import('../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../types/index.js').AuthenticatorClientInstance} AuthenticatorClientInstance
+ * @typedef {import('../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -26,6 +59,9 @@ class Monstera {
   // Constructor
   // ============================================================================
 
+  /**
+   * @param {MonsteraConfigOptions} config - SDK configuration
+   */
   constructor(config) {
     this.config = config;
     this.version = MonsteraConfig.version;
@@ -58,13 +94,7 @@ class Monstera {
    * 
    * Creates and configures an SDK client. Signer is required for write operations.
    * 
-   * @param {Object} options
-   * @param {Boolean} options.mainnet - true for mainnet, false for testnet
-   * @param {import('ethers').Signer | string} options.signer
-   *        A Signer. If you pass a private key string, it must be a 0x-prefixed hex key.
-   * @param {String} [options.rpcUrl] - Optional custom RPC URL (defaults to network preset).
-   * @param {Object} [options.addresses] - Optional contract address overrides.
-   * @param {Boolean} [options.checkVersion=true] - Enable automatic version checking (default: true)
+   * @param {WriteConnectOptions} options - Connect options
    * @returns {Monstera} SDK instance
    */
   static connect(options) {
@@ -93,12 +123,7 @@ class Monstera {
    * 
    * Creates and configures an SDK client. Provider supports read operations only.
    * 
-   * @param {Object} options
-   * @param {Boolean} options.mainnet - true for mainnet, false for testnet
-   * @param {import('ethers').Provider} options.provider - A Provider (optional)
-   * @param {String} [options.rpcUrl] - Optional custom RPC URL (defaults to network preset).
-   * @param {Object} [options.addresses] - Optional contract address overrides.
-   * @param {Boolean} [options.checkVersion=true] - Enable automatic version checking (default: true)
+   * @param {ReadConnectOptions} options - Readonly options
    * @returns {Monstera} SDK instance
    */
   static readonly(options) {
@@ -125,6 +150,7 @@ class Monstera {
    * Version of the SDK
    * @static
    * @readonly
+   * @returns {string} SDK version string
    */
   static get version() {
     return MonsteraConfig.version;
@@ -134,6 +160,7 @@ class Monstera {
    * Network presets for testnet and mainnet
    * @static
    * @readonly
+   * @returns {NetworkPresets} Network configuration presets
    */
   static get networks() {
     return MonsteraConfig.networks;
@@ -143,6 +170,7 @@ class Monstera {
    * Default contract addresses for testnet and mainnet
    * @static
    * @readonly
+   * @returns {DefaultContractAddresses} Default contract addresses by network
    */
   static get defaultAddresses() {
     return MonsteraConfig.defaultAddresses;
@@ -152,6 +180,7 @@ class Monstera {
    * Required contract addresses for the SDK to function
    * @static
    * @readonly
+   * @returns {string[]} Array of required address keys
    */
   static get requiredAddresses() {
     return MonsteraConfig.requiredAddresses;
@@ -164,30 +193,35 @@ class Monstera {
   /**
    * Network name for the configured network
    * @readonly
+   * @returns {string} Network name
    */
   get network() { return this.config.network; }
 
   /**
    * Chain ID for the configured network
    * @readonly
+   * @returns {number} Chain ID
    */
   get chainId() { return this.config.chainId; }
 
   /**
    * RPC URL for the configured network
    * @readonly
+   * @returns {string} RPC URL
    */
   get rpcUrl() { return this.config.rpcUrl; }
 
   /**
    * Contract addresses for the configured network
    * @readonly
+   * @returns {ContractAddresses} Contract addresses
    */
   get addresses() { return this.config.addresses; }
 
   /**
    * Provider instance (if provided)
    * @readonly
+   * @returns {EthersProvider|null} Provider instance or null
    */
   get provider() { return this.config.provider; }
 
@@ -197,7 +231,7 @@ class Monstera {
 
   /**
    * Check if SDK instance can perform write operations
-   * @returns {Boolean}
+   * @returns {boolean}
    */
   hasWriteAccess() {
     return this.writeSigner !== null;
@@ -205,7 +239,7 @@ class Monstera {
 
   /**
    * Get the signer address (if available)
-   * @returns {Promise<String|null>}
+   * @returns {Promise<Address|null>}
    */
   async getSignerAddr() {
     if (!this.writeSigner) return null;
@@ -215,8 +249,8 @@ class Monstera {
   /**
    * Get a specific authenticator client by type
    * 
-   * @param {String} type - Authenticator type ('walletSignature', 'password', etc.)
-   * @returns {Object} Authenticator client instance
+   * @param {string} type - Authenticator type ('walletSignature', 'password', etc.)
+   * @returns {AuthenticatorClientInstance} Authenticator client instance
    * @throws {ValidationError} If authenticator type is not found
    */
   getAuthClient(type) {
@@ -226,7 +260,7 @@ class Monstera {
   /**
    * Get all registered authenticator types
    * 
-   * @returns {Array<String>} Array of authenticator type names
+   * @returns {string[]} Array of authenticator type names
    */
   getAvailableAuthTypes() {
     return this.auth.getAvailableTypes();
@@ -235,13 +269,8 @@ class Monstera {
   /**
    * Create an auth proof for a wallet
    * 
-   * @param {Object} options - Create auth proof options
-   * @param {Object} options.signer - Signer (Wallet or HDNodeWallet) trying to authenticate
-   * @param {String} options.keyVaultAddr - KeyVault address of the wallet trying to authenticate
-   * @param {String} options.authenticatorAddr - Wallet signature authenticator contract address (optional, defaults to the one in the config)
-   * @param {Number} options.deadline - Deadline for the auth proof (optional, defaults to 1h from now)
-   * @param {String} options.chainId - Chain ID (optional, defaults to the one in the config)
-   * @returns {Promise<String>} Auth proof (bytes)
+   * @param {CreateAuthProofOptions} options - Create auth proof options
+   * @returns {Promise<Bytes>} Auth proof (bytes)
    */
   async createAuthProof(options = {}) {
     const { signer, keyVaultAddr } = options;
@@ -275,12 +304,8 @@ class Monstera {
   /**
    * Initialize a KeyVault contract
    * 
-   * @param {Object} options - Initialize key vault options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {String} options.storageAddr - WalletStorage contract address 
-   * @param {String} options.authenticatorAddr - Authenticator contract address
-   * @param {Bytes32} options.accessToken - Secret token for storage access (bytes32)
-   * @returns {Promise<Object>} Initialize key vault result
+   * @param {InitializeOptions} options - Initialize key vault options
+   * @returns {Promise<InitializeResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -292,10 +317,10 @@ class Monstera {
   /**
    * Initialize a wallet logic with a new keyVault 
    * 
-   * @param {Object} options - Initialize wallet logic options
-   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<Object>} Initialize wallet logic result
+   * @param {Record<string, unknown>} options - Initialize wallet logic options
+   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<InitializeResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -311,10 +336,10 @@ class Monstera {
   /**
    * Configure password
    * 
-   * @param {Object} options - Configure password options
-   * @param {String} options.keyVaultAddr - KeyVault contract address
+   * @param {Record<string, unknown>} options - Configure password options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
    * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the password hash (keccak256 of password)
-   * @returns {Promise<Object>} Configure wallet result
+   * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -327,10 +352,10 @@ class Monstera {
   /**
    * Configure the wallet signature authenticator
    * 
-   * @param {Object} options - Configure options
-   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Record<string, unknown>} options - Configure options
+   * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the whitelist addresses 
-   * @returns {Promise<Object>} Configure wallet result
+   * @returns {Promise<ConfigureWalletSignatureResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -352,10 +377,10 @@ class Monstera {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {Record<string, unknown>} options - Wallet creation options
    * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -373,11 +398,11 @@ class Monstera {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {Record<string, unknown>} options - Wallet creation options
    * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {String} options.mnemonic - Mnemonic phrase (BIP39)
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {Mnemonic} options.mnemonic - Mnemonic phrase (BIP39)
+   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -398,12 +423,8 @@ class Monstera {
    * The hook is called after the wallet is created.
    * The hook contract must implement IWalletCreationHook interface.
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
-   * @param {String} options.hookAddr - Hook contract address
-   * @param {Bytes} options.hookData - Data for the hook
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {CreateWalletWithHookOptions} options - Wallet creation options
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -423,10 +444,10 @@ class Monstera {
    * Use this when you want to interact with KeyVault directly,
    * or when deploying your own custom logic contract separately.
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {Record<string, unknown>} options - Wallet creation options
    * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -448,12 +469,8 @@ class Monstera {
    * - Custom logic wallets are NOT affected by admin beacon updates
    * - Each wallet gets its own independent clone
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
-   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {String} options.customLogicImplAddr - Custom logic implementation contract address (must implement IWalletLogic)
-   * @param {Bytes} options.logicData - Initialization data for your custom logic
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {CreateWalletWithCustomLogicOptions} options - Wallet creation options
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -472,9 +489,9 @@ class Monstera {
   /**
    * Check if an address is a wallet created by this factory
    * 
-   * @param {Object} options - Is wallet options
-   * @param {String} options.walletAddr - Wallet address to check
-   * @returns {Promise<Boolean>} True if address is a wallet created by this factory, false otherwise
+   * @param {Record<string, unknown>} options - Is wallet options
+   * @param {Address} options.walletAddr - Wallet address to check
+   * @returns {Promise<boolean>} True if address is a wallet created by this factory, false otherwise
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
   async isWallet(options = {}) {
@@ -484,8 +501,8 @@ class Monstera {
   /**
    * Get the admin address
    * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Admin address
+   * @param {Record<string, unknown>} [options={}] - Options object
+   * @returns {Promise<Address>} Admin address
    */
   async getAdmin(options = {}) {
     return this.factory.getAdmin(options);
@@ -494,8 +511,8 @@ class Monstera {
   /**
    * Get current WalletLogic implementation (current walletLogic contract address)
    * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Current WalletLogic implementation
+   * @param {Record<string, unknown>} [options={}] - Options object
+   * @returns {Promise<Address>} Current WalletLogic implementation
    */
   async getWalletLogicImplAddr(options = {}) {
     return this.factory.getWalletLogicImplAddr(options);
@@ -504,9 +521,9 @@ class Monstera {
   /**
    * Get the keyVault contract address for a wallet
    * 
-   * @param {Object} options - KeyVault options
-   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} KeyVault contract address
+   * @param {Record<string, unknown>} options - KeyVault options
+   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @returns {Promise<Address>} KeyVault contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
   async getKeyVaultAddr(options = {}) {
@@ -516,9 +533,9 @@ class Monstera {
   /**
    * Get the storage contract address for a wallet
    * 
-   * @param {Object} options - Storage options
-   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} Storage contract address
+   * @param {Record<string, unknown>} options - Storage options
+   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
   async getStorageAddr(options = {}) {
@@ -530,8 +547,8 @@ class Monstera {
    * 
    * The beacon controlling WalletLogic updates
    * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Beacon address
+   * @param {Record<string, unknown>} [options={}] - Options object
+   * @returns {Promise<Address>} Beacon address
    */
   async getBeaconAddr(options = {}) {
     return this.factory.getBeaconAddr(options);
@@ -542,9 +559,9 @@ class Monstera {
   /**
    * Get the storage contract address holding the keys
    * 
-   * @param {Object} options - Get storage address options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<String>} Storage contract address
+   * @param {Record<string, unknown>} options - Get storage address options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getKeyVaultStorageAddr(options = {}) {
@@ -554,9 +571,9 @@ class Monstera {
   /**
    * Get the current authenticator contract address for a wallet 
    * 
-   * @param {Object} options - Get authenticator options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<String>} Authenticator address
+   * @param {Record<string, unknown>} options - Get authenticator options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<Address>} Authenticator address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getAuthenticatorAddr(options = {}) {
@@ -566,9 +583,9 @@ class Monstera {
   /**
    * Get the current KeyVaultImplementation contract address
    * 
-   * @param {Object} options - Get implementation options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<String>} Implementation address
+   * @param {Record<string, unknown>} options - Get implementation options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<Address>} Implementation address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getKeyVaultImplAddr(options = {}) {
@@ -578,9 +595,9 @@ class Monstera {
   /**
    * Check if a given keyVault is initialized 
    * 
-   * @param {Object} options - Check if keyVault is initialized options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<Boolean>} True if keyVault is initialized, false otherwise
+   * @param {Record<string, unknown>} options - Check if keyVault is initialized options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<boolean>} True if keyVault is initialized, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async isInitialized(options = {}) {
@@ -590,10 +607,10 @@ class Monstera {
   /**
    * Get one of a wallet's account addresses for a given index
    * 
-   * @param {Object} options - Get account address options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Number} options.index - Account index (uint32)
-   * @returns {Promise<String>} Account address
+   * @param {Record<string, unknown>} options - Get account address options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {number} options.index - Account index (uint32)
+   * @returns {Promise<Address>} Account address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if index is invalid
    */
   async getAccountAddr(options = {}) {
@@ -603,11 +620,11 @@ class Monstera {
   /**
    * Get multiple account addresses from a wallet for a given range of indexes
    * 
-   * @param {Object} options - Get account addresses options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Number} options.fromIndex - From index (uint32)
-   * @param {Number} options.count - Count (uint32)
-   * @returns {Promise<Array<String>>} Array of account addresses
+   * @param {Record<string, unknown>} options - Get account addresses options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {number} options.fromIndex - From index (uint32)
+   * @param {number} options.count - Count (uint32)
+   * @returns {Promise<Address[]>} Array of account addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if fromIndex/count are invalid
    */
   async getAccountAddresses(options = {}) {
@@ -619,18 +636,8 @@ class Monstera {
   /**
    * Sign a raw transaction (authenticated function)
    * 
-   * @param {Object} options - Sign transaction options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
-   * @param {Number|BigInt} options.index - Account index
-   * @param {Number|BigInt} options.nonce - Nonce
-   * @param {Number|BigInt} options.gasPrice - Gas price
-   * @param {Number|BigInt} options.gasLimit - Gas limit
-   * @param {String} options.to - To address
-   * @param {Number|BigInt} options.value - Value
-   * @param {Bytes} options.txData - Transaction data (bytes)
-   * @param {Number|BigInt} options.chainId - Chain ID
-   * @returns {Promise<String>} Signed transaction
+   * @param {SignTransactionOptions} options - Sign transaction options
+   * @returns {Promise<Bytes>} Signed transaction
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signTransaction(options = {}) {
@@ -640,11 +647,7 @@ class Monstera {
   /**
    * Sign an EIP-191 message (authenticated function)
    * 
-   * @param {Object} options - Sign message options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {Number|BigInt} options.index - Account index (uint32)
-   * @param {Bytes} options.message - Message to sign (bytes)
+   * @param {SignMessageOptions} options - Sign message options
    * @returns {Promise<Bytes>} Signed message (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -655,11 +658,7 @@ class Monstera {
   /**
    * Sign a 32-byte hash (authenticated function)
    * 
-   * @param {Object} options - Sign hash options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {Number|BigInt} options.index - Account index (uint32)
-   * @param {Bytes32} options.hash - Hash to sign (bytes32)
+   * @param {SignHashOptions} options - Sign hash options
    * @returns {Promise<Bytes>} Signed hash (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -670,8 +669,8 @@ class Monstera {
   /**
    * Execute a function with an auth proof (authenticated function)
    * 
-   * @param {Object} options - Execute function options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
+   * @param {Record<string, unknown>} options - Execute function options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
    * @param {Bytes} options.implCall - Implementation call (bytes)
    * @returns {Promise<Bytes>} Execute function result (bytes)
@@ -686,9 +685,9 @@ class Monstera {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Object} options - Check if wallet is configured options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
+   * @param {Record<string, unknown>} options - Check if wallet is configured options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async isPasswordConfigured(options = {}) {
@@ -698,10 +697,10 @@ class Monstera {
   /**
    * Verify password
    * 
-   * @param {Object} options - Verify password options
-   * @param {String} options.keyVaultAddr - KeyVault contract address
+   * @param {Record<string, unknown>} options - Verify password options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
    * @param {Bytes} options.authProof - The raw password bytes (utf8 encoded string)
-   * @returns {Promise<Boolean>} True if password is valid, false otherwise
+   * @returns {Promise<boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async isPasswordValid(options = {}) {
@@ -711,9 +710,9 @@ class Monstera {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Object} options - Is configured options
-   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
-   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
+   * @param {Record<string, unknown>} options - Is configured options
+   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
+   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async isWalletSignatureConfigured(options = {}) {
@@ -723,10 +722,10 @@ class Monstera {
   /**
    * Check if an address is whitelisted for a wallet
    * 
-   * @param {Object} options - Is whitelisted options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @param {String} options.addressToCheck - Address to check if it is whitelisted
-   * @returns {Promise<Boolean>} True if address is whitelisted, false otherwise
+   * @param {Record<string, unknown>} options - Is whitelisted options
+   * @param {Address} options.keyVaultAddr - Key vault address 
+   * @param {Address} options.addressToCheck - Address to check if it is whitelisted
+   * @returns {Promise<boolean>} True if address is whitelisted, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async isWhitelisted(options = {}) {
@@ -736,9 +735,9 @@ class Monstera {
   /**
    * Get all whitelisted addresses for a wallet
    * 
-   * @param {Object} options - Get whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @returns {Promise<Array<String>>} Whitelist addresses
+   * @param {Record<string, unknown>} options - Get whitelist options
+   * @param {Address} options.keyVaultAddr - Key vault address 
+   * @returns {Promise<Address[]>} Whitelist addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getWhitelist(options = {}) {
@@ -748,7 +747,7 @@ class Monstera {
   /**
    * Get the EIP-712 domain separator
    * 
-   * @param {Object} [options={}] - Options object
+   * @param {Record<string, unknown>} [options={}] - Options object
    * @returns {Promise<Bytes32>} EIP-712 domain separator
    */
   async getDomainSeparator(options = {}) {
@@ -758,10 +757,10 @@ class Monstera {
   /**
    * Verify a signature
    * 
-   * @param {Object} options - Verify options
-   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Record<string, unknown>} options - Verify options
+   * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature), Signature is over EIP-712 typed data: WalletAuth(wallet, deadline)
-   * @returns {Promise<Boolean>} True if signature is valid, false otherwise
+   * @returns {Promise<boolean>} True if signature is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async isWalletSignatureValid(options = {}) {
@@ -779,9 +778,9 @@ class Monstera {
    * 
    * This updates the orchestration layer, not the key security.
    * 
-   * @param {Object} options - Update logic options
-   * @param {String} options.newLogicAddr - New walletLogic contract address
-   * @returns {Promise<Object>} Update logic result
+   * @param {Record<string, unknown>} options - Update logic options
+   * @param {Address} options.newLogicAddr - New walletLogic contract address
+   * @returns {Promise<UpdateWalletLogicImplAddrResult>}
    * @throws {ValidationError} If newLogicAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -794,9 +793,9 @@ class Monstera {
   /**
    * Transfer admin ownership role to a new address (Admin function)
    * 
-   * @param {Object} options - Transfer admin options
-   * @param {String} options.newAdminAddr - New admin address
-   * @returns {Promise<Object>} Transfer admin result
+   * @param {Record<string, unknown>} options - Transfer admin options
+   * @param {Address} options.newAdminAddr - New admin address
+   * @returns {Promise<UpdateResult>}
    * @throws {ValidationError} If newAdminAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -810,11 +809,11 @@ class Monstera {
   /**
    * Update the keyVaultImplementation contract address (authenticated function)
    * 
-   * @param {Object} options - Update keyVaultImplementation options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
+   * @param {Record<string, unknown>} options - Update keyVaultImplementation options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
    * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {String} options.newImplAddr - New keyVaultImplementation contract address
-   * @returns {Promise<Object>} Update keyVaultImplementation result
+   * @param {Address} options.newImplAddr - New keyVaultImplementation contract address
+   * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -827,12 +826,8 @@ class Monstera {
   /**
    * Update the authenticator contract address (Authenticated function)
    * 
-   * @param {Object} options - Update authenticator options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
-   * @param {String} options.newAuthenticatorAddr - New authenticator contract address
-   * @param {Bytes} options.newAuthConfig - New authentication configuration (bytes)
-   * @returns {Promise<Object>} Update authenticator result
+   * @param {UpdateAuthenticatorOptions} options - Update authenticator options
+   * @returns {Promise<UpdateAuthenticatorAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -847,11 +842,11 @@ class Monstera {
   /**
    * Update the password of a wallet
    * 
-   * @param {Object} options - Update password options
-   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
+   * @param {Record<string, unknown>} options - Update password options
+   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
    * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
    * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
-   * @returns {Promise<Object>} Update password result
+   * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -864,11 +859,11 @@ class Monstera {
   /**
    * Add a new address to the whitelist
    * 
-   * @param {Object} options - Add to whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Record<string, unknown>} options - Add to whitelist options
+   * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {String} options.addressToAdd - Address to add to the whitelist
-   * @returns {Promise<Object>} Transaction receipt
+   * @param {Address} options.addressToAdd - Address to add to the whitelist
+   * @returns {Promise<AddToWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -881,11 +876,11 @@ class Monstera {
   /**
    * Remove an address from the whitelist
    * 
-   * @param {Object} options - Remove from whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Record<string, unknown>} options - Remove from whitelist options
+   * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {String} options.addressToRemove - Address to remove from the whitelist
-   * @returns {Promise<Object>} Transaction receipt
+   * @param {Address} options.addressToRemove - Address to remove from the whitelist
+   * @returns {Promise<RemoveFromWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts

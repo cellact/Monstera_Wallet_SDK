@@ -6,6 +6,11 @@
  * - SDK version reading
  * - SDK-specific configuration constants
  * - SDK configuration resolution
+ * 
+ * @typedef {import('../types/index.js').NetworkPresets} NetworkPresets
+ * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
  */
 
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
@@ -31,6 +36,7 @@ class MonsteraConfig {
    * Version of the SDK
    * @static
    * @readonly
+   * @returns {string} SDK version string
    */
   static get version() {
     // In browser builds, version is injected at build time
@@ -64,6 +70,7 @@ class MonsteraConfig {
    * Network presets for testnet and mainnet
    * @static
    * @readonly
+   * @returns {NetworkPresets} Network configuration presets
    */
   static get networks() {
     return NETWORKS;
@@ -73,6 +80,7 @@ class MonsteraConfig {
    * Default contract addresses for testnet and mainnet
    * @static
    * @readonly
+   * @returns {DefaultContractAddresses} Default contract addresses by network
    */
   static get defaultAddresses() {
     return DEFAULT_ADDRESSES;
@@ -82,6 +90,7 @@ class MonsteraConfig {
    * Required contract addresses for the SDK to function
    * @static
    * @readonly
+   * @returns {string[]} Array of required address keys
    */
   static get requiredAddresses() {
     return REQUIRED_ADDRESSES;
@@ -93,11 +102,11 @@ class MonsteraConfig {
    * Internal helper: merges network presets + address defaults, validates required addresses,
    * and returns a normalized config object used by the Monstera constructor.
    * 
-   * @param {Object} options
-   * @param {Boolean} options.mainnet - true for mainnet, false for testnet
-   * @param {String} [options.rpcUrl] - Optional custom RPC URL
-   * @param {Object} [options.addresses] - Optional contract address overrides
-   * @returns {Object} Normalized config object { network, chainId, rpcUrl, explorerUrl, addresses }
+   * @param {Record<string, unknown>} options
+   * @param {boolean} options.mainnet - true for mainnet, false for testnet
+   * @param {string} [options.rpcUrl] - Optional custom RPC URL
+   * @param {Partial<ContractAddresses>} [options.addresses] - Optional contract address overrides
+   * @returns {NetworkConfig}
    * @throws {ConfigError} If network or required addresses are invalid/missing
    * @static
    */
@@ -115,7 +124,7 @@ class MonsteraConfig {
 
     MonsteraConfig._validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
 
-    return networkConfig; // { network, chainId, rpcUrl, explorerUrl, addresses }
+    return networkConfig;
   }
 
   /**
@@ -123,8 +132,8 @@ class MonsteraConfig {
    * 
    * @private
    * @static
-   * @param {Object} addresses - Contract addresses to validate
-   * @param {Array<String>} required - List of required address keys
+   * @param {Record<string, unknown>} addresses - Contract addresses to validate
+   * @param {string[]} required - List of required address keys
    * @throws {ConfigError} If required addresses are missing
    * @throws {ValidationError} If address format is invalid
    */
@@ -160,6 +169,7 @@ class MonsteraConfig {
    * @private
    * @static
    * @readonly
+   * @returns {string[]} Array of sensitive parameter names
    */
   static get SENSITIVE_PARAMS() {
     return [

@@ -3,6 +3,15 @@
  * 
  * Client for interacting with PasswordAuthenticator contract methods.
  * Handles password-based authentication and configuration.
+ * 
+ * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
+ * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../../types/index.js').ConfigurePasswordResult} ConfigurePasswordResult
+ * @typedef {import('../../types/index.js').UpdatePasswordResult} UpdatePasswordResult
+ * @typedef {import('../../types/index.js').Address} Address
+ * @typedef {import('../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../types/index.js').Bytes32} Bytes32
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -16,9 +25,9 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   // ============================================================================
   
   /**
-   * @param {Object} readProvider - Ethers provider for read operations
-   * @param {Object} writeSigner - Ethers signer for write operations
-   * @param {Object} config - Configuration object
+   * @param {EthersProvider} readProvider - Ethers provider for read operations
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
+   * @param {NetworkConfig} config - Configuration object
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -31,9 +40,9 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Object} options - Check if wallet is configured options
-   * @param {String} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
+   * @param {Record<string, unknown>} options - Check if wallet is configured options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async isConfigured(options = {}) {
@@ -43,11 +52,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
     return this.executeRead(
-      () => passwordAuth.isConfigured(keyVaultAddr),
-      'check if wallet is configured',
       {
-        ...options,
-        authenticatorAddress: this.config.addresses.passwordAuth
+        operation: () => passwordAuth.isConfigured(keyVaultAddr),
+        methodName: 'check if wallet is configured',
+        ...options
       }
     );
   }
@@ -55,10 +63,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Verify password
    * 
-   * @param {Object} options - Verify password options
-   * @param {String} options.keyVaultAddr - KeyVault contract address
+   * @param {Record<string, unknown>} options - Verify password options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
    * @param {Bytes} options.authProof - The raw password bytes (utf8 encoded string)
-   * @returns {Promise<Boolean>} True if password is valid, false otherwise
+   * @returns {Promise<boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async verify(options = {}) {
@@ -69,11 +77,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
     return this.executeRead(
-      () => passwordAuth.verify(keyVaultAddr, authProof),
-      'verify password',
       {
-        ...options,
-        authenticatorAddress: this.config.addresses.passwordAuth
+        operation: () => passwordAuth.verify(keyVaultAddr, authProof),
+        methodName: 'verify password',
+        ...options
       }
     );
   }
@@ -85,11 +92,11 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Update the password of a wallet
    * 
-   * @param {Object} options - Update password options
-   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
+   * @param {Record<string, unknown>} options - Update password options
+   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
    * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
    * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
-   * @returns {Promise<Object>} Update password result
+   * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -104,15 +111,15 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
     const result = await this.executeWrite(
-      () => passwordAuth.changePassword(keyVaultAddr, currentPassword, newPasswordHash),
-      'change password',
       {
-        ...options,
+        operation: () => passwordAuth.changePassword(keyVaultAddr, currentPassword, newPasswordHash),
+        methodName: 'change password',
         parseEvents: [{
           eventDef: PasswordAuthenticatorEvents.PasswordChanged,
           contract: passwordAuth
         }],
-        authenticatorAddress: this.config.addresses.passwordAuth
+        extraData: { authenticatorAddress: this.config.addresses.passwordAuth },
+        ...options
       }
     );
     
@@ -128,10 +135,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Configure password
    * 
-   * @param {Object} options - Configure password options
-   * @param {String} options.keyVaultAddr - KeyVault contract address
+   * @param {Record<string, unknown>} options - Configure password options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
    * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the password hash (keccak256 of password)
-   * @returns {Promise<Object>} Configure wallet result
+   * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -145,19 +152,18 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
     
     return this.executeWrite(
-      () => passwordAuth.configure(keyVaultAddr, authConfig),
-      'configure password',
       {
-        ...options,
+        operation: () => passwordAuth.configure(keyVaultAddr, authConfig),
+        methodName: 'configure password',
         parseEvents: [{
           eventDef: PasswordAuthenticatorEvents.PasswordConfigured,
           contract: passwordAuth
-        }],
-        authenticatorAddress: this.config.addresses.passwordAuth
+        }],  
+        extraData: { authenticatorAddress: this.config.addresses.passwordAuth },
+        ...options
       }
     );
   }
-
 }
 
 export default PasswordAuthenticatorClient;

@@ -2,6 +2,10 @@
  * Receipt Decoding Utilities
  * 
  * Generic event parsing logic for transaction receipts
+ * 
+ * @typedef {import('../types/index.js').TransactionHash} TransactionHash
+ * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
+ * @typedef {import('../types/index.js').EthersContract} EthersContract
  */
 
 import { ValidationError, EventParseError } from '../errors/index.js';
@@ -9,11 +13,11 @@ import { ValidationError, EventParseError } from '../errors/index.js';
 /**
  * Generic event parser
  * 
- * @param {Object} receipt - Transaction receipt
- * @param {Object} contract - Contract instance with interface
- * @param {String} eventName - Name of the event to parse
- * @param {Object} fieldMapping - Map of contract args to return fields
- * @returns {Object|null} Parsed event data or null if not found
+ * @param {TransactionReceipt} receipt - Transaction receipt
+ * @param {EthersContract} contract - Contract instance with interface
+ * @param {string} eventName - Name of the event to parse
+ * @param {Record<string, string>} fieldMapping - Map of contract args to return fields
+ * @returns {Record<string, unknown>|null} Parsed event data or null if not found
  */
 function parseEvent(receipt, contract, eventName, fieldMapping) {
   if (!receipt || !receipt.logs) {
@@ -63,10 +67,10 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
 /**
  * Parse an event from a transaction receipt using an event definition
  * 
- * @param {Object} eventDef - Event definition object (e.g., WalletFactoryEvents.WalletCreated)
- * @param {Object} receipt - Transaction receipt
- * @param {Object} contract - Contract instance
- * @returns {Object|null} Parsed event data or null if not found
+ * @param {Record<string, unknown>} eventDef - Event definition object (e.g., WalletFactoryEvents.WalletCreated)
+ * @param {TransactionReceipt} receipt - Transaction receipt
+ * @param {EthersContract} contract - Contract instance
+ * @returns {Record<string, unknown>|null} Parsed event data or null if not found
  */
 function parseEventFromReceipt(eventDef, receipt, contract) {
   if (!eventDef || !eventDef.eventName || !eventDef.fieldMapping) {

@@ -1,10 +1,14 @@
+/**
+ * @typedef {import('../types/index.js').VersionCheckResult} VersionCheckResult
+ */
+
 import { compareVersions, getVersionType } from './version.js';
 
 /**
  * Check if current version is outdated
  * @param {string} currentVersion - Current SDK version
  * @param {string} latestVersion - Latest available version
- * @returns {Object} Check result with status and recommendations
+ * @returns {Promise<VersionCheckResult>}
  */
 export async function checkVersion(currentVersion, latestVersion) {
   const comparison = compareVersions(currentVersion, latestVersion);

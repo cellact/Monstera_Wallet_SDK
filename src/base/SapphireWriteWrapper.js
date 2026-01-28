@@ -11,6 +11,9 @@
  * Note: The signer is already wrapped with Sapphire at creation time
  * (via createWriteSigner in providers/sapphire.js). This wrapper focuses
  * on execution, receipt handling, and result normalization.
+ * 
+ * @typedef {import('../types/index.js').TransactionResult} TransactionResult
+ * @typedef {import('../types/index.js').ExecuteWriteOptions} ExecuteWriteOptions
  */
 
 import { parseEventFromReceipt } from '../events/index.js';
@@ -26,14 +29,10 @@ class SapphireWriteWrapper {
   /**
    * Execute a write transaction through Sapphire-wrapped signer
    * 
-   * @param {Function} txFn - Function that returns a transaction promise (e.g., () => contract.method(...))
-   * @param {Object} options - Execution options
-   * @param {Object} options.writeSigner - The write signer (must be Sapphire-wrapped)
-   * @param {Array<Object>} [options.parseEvents] - Array of event definitions to parse: [{ eventDef, contract }]
-   * @param {Boolean} [options.requireEvents=true] - Whether to throw if events are not found
-   * @param {Object} [options.extraData] - Additional data to include in result
-   * @param {String} [options.methodName] - Method name for error context
-   * @returns {Promise<Object>} Transaction result with receipt and parsed events
+   * @template TResult extends TransactionResult
+   * @param {() => Promise<any>} txFn - Function that returns a transaction promise (e.g., () => contract.method(...))   
+   * @param {ExecuteWriteOptions} options - Options for the write transaction
+   * @returns {Promise<TResult>}
    */
   static async execute(txFn, options = {}) {
     const {
@@ -102,9 +101,9 @@ class SapphireWriteWrapper {
    * Translate provider/contract errors to SDK errors
    * 
    * @private
-   * @param {String} methodName - Name of the method that threw the error
+   * @param {string} methodName - Name of the method that threw the error
    * @param {Error} err - Original error
-   * @param {Object} context - Additional context (optional)
+   * @param {Record<string, unknown>} context - Additional context (optional)
    * @returns {WalletError} Wrapped error with descriptive message
    */
   static _translateError(methodName, err, context = {}) {

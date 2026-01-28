@@ -3,6 +3,10 @@
  * 
  * Handles provider creation and Sapphire wrapper integration
  * for encrypted transaction support.
+ * 
+ * @typedef {import('../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../types/index.js').EthersSigner} EthersSigner
+ * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  */
 
 import { ConfigError, SapphireRequiredError, ValidationError } from '../errors/index.js';
@@ -12,8 +16,8 @@ import { wrapEthersSigner } from '@oasisprotocol/sapphire-ethers-v6';
 /**
  * Create a provider for the given RPC URL
  * 
- * @param {String} rpcUrl - RPC URL
- * @returns {Object} Ethers provider instance
+ * @param {string} rpcUrl - RPC URL
+ * @returns {EthersProvider} Ethers provider instance
  */
 function createProvider(rpcUrl) {
   if (!rpcUrl) {
@@ -26,8 +30,8 @@ function createProvider(rpcUrl) {
 /**
  * Wrap signer for Sapphire encrypted transactions
  * 
- * @param {Object} signer - Ethers signer instance
- * @returns {Object} Wrapped signer with Sapphire encryption
+ * @param {EthersSigner} signer - Ethers signer instance
+ * @returns {WrappedEthersSigner} Wrapped signer with Sapphire encryption
  */
 function wrapSigner(signer) {
   try {
@@ -43,9 +47,9 @@ function wrapSigner(signer) {
 /**
  * Create signer for write operations (with Sapphire wrapper)
  * 
- * @param {String|Object} signer - Private key string or Signer instance
- * @param {String} rpcUrl - RPC URL (required if signer is a private key)
- * @returns {Object} Wrapped signer for encrypted transactions
+ * @param {string|EthersSigner} signer - Private key string or Signer instance
+ * @param {string} rpcUrl - RPC URL (required if signer is a private key)
+ * @returns {WrappedEthersSigner} Wrapped signer for encrypted transactions
  */
 function createWriteSigner(providedSigner, rpcUrl) {
   let signer;

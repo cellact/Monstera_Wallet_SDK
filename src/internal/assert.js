@@ -3,6 +3,9 @@
  * 
  * Pure validation functions that can be used anywhere in the SDK.
  * These throw errors on validation failure.
+ * 
+ * @typedef {import('../types/index.js').Address} Address
+ * @typedef {import('../types/index.js').Mnemonic} Mnemonic
  */
 
 import { ValidationError } from '../errors/index.js';
@@ -11,8 +14,8 @@ import { Mnemonic } from 'ethers';
 /**
  * Check if a value is a valid Ethereum address
  * 
- * @param {String} value - Value to check
- * @returns {Boolean} True if valid address
+ * @param {string} value - Value to check
+ * @returns {boolean} True if valid address
  */
 function isAddress(value) {
   return typeof value === 'string' && /^0x[a-fA-F0-9]{40}$/.test(value);
@@ -21,8 +24,8 @@ function isAddress(value) {
 /**
  * Require an address value
  * 
- * @param {String} value - Value to validate
- * @param {String} name - Parameter name for error message
+ * @param {string} value - Value to validate
+ * @param {string} name - Parameter name for error message
  * @throws {Error} If value is not provided or is not a valid address string
  */
 function requireAddress(value, name = 'address') {
@@ -37,8 +40,8 @@ function requireAddress(value, name = 'address') {
 /**
  * Require a bytes value
  * 
- * @param {String|Uint8Array} value - Value to validate
- * @param {String} name - Parameter name for error message
+ * @param {string|Uint8Array} value - Value to validate
+ * @param {string} name - Parameter name for error message
  * @throws {Error} If value is not provided or is not a valid bytes string or Uint8Array
  */
 function requireBytes(value, name = 'bytes') {
@@ -70,8 +73,8 @@ function requireBytes(value, name = 'bytes') {
 /**
  * Require a string value
  * 
- * @param {String} value - Value to validate
- * @param {String} name - Parameter name for error message
+ * @param {string} value - Value to validate
+ * @param {string} name - Parameter name for error message
  * @throws {Error} If value is not provided or is not a valid string
  */
 function requireString(value, name = 'string') {
@@ -83,8 +86,8 @@ function requireString(value, name = 'string') {
 /**
  * Require a valid BIP39 mnemonic phrase (12 or 24 words)
  * 
- * @param {String} value - Value to validate
- * @param {String} name - Parameter name for error message
+ * @param {Mnemonic} value - Value to validate
+ * @param {string} name - Parameter name for error message
  * @throws {Error} If value is not a valid BIP39 mnemonic
  */
 function requireMnemonic(value, name = 'mnemonic') {
@@ -125,12 +128,12 @@ function requireMnemonic(value, name = 'mnemonic') {
 /**
  * Require a number value (supports both Number and BigInt)
  * 
- * @param {Number|BigInt} value - Value to validate
- * @param {String} name - Parameter name for error message
- * @param {Object} options - Validation options
- * @param {Boolean} [options.allowZero=true] - Allow zero
- * @param {Boolean} [options.allowNegative=false] - Allow negative numbers
- * @param {Boolean} [options.requireInteger=false] - Require integer
+ * @param {number|BigInt} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @param {Record<string, unknown>} options - Validation options
+ * @param {boolean} [options.allowZero=true] - Allow zero
+ * @param {boolean} [options.allowNegative=false] - Allow negative numbers
+ * @param {boolean} [options.requireInteger=false] - Require integer
  * @throws {Error} If value is not a valid number or BigInt or is not provided
  */
 function requireNumber(value, name = 'number', options = {}) {
@@ -175,8 +178,8 @@ function requireNumber(value, name = 'number', options = {}) {
 /**
  * Require a non-negative integer (supports both Number and BigInt)
  * 
- * @param {Number|BigInt} value - Value to validate
- * @param {String} name - Parameter name for error message
+ * @param {number|BigInt} value - Value to validate
+ * @param {string} name - Parameter name for error message
  * @throws {Error} If value is not a non-negative integer
  */
 function requireNonNegativeInteger(value, name = 'number') {
@@ -186,8 +189,8 @@ function requireNonNegativeInteger(value, name = 'number') {
 /**
  * Require a positive integer (supports both Number and BigInt)
  * 
- * @param {Number|BigInt} value - Value to validate
- * @param {String} name - Parameter name for error message
+ * @param {number|BigInt} value - Value to validate
+ * @param {string} name - Parameter name for error message
  * @throws {Error} If value is not a positive integer
  */
 function requirePositiveInteger(value, name = 'number') {

@@ -3,6 +3,16 @@
  * 
  * Client for interacting with WalletSignatureAuthenticator contract methods.
  * Handles wallet signature authentication, whitelist management, and configuration.
+ * 
+ * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
+ * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../../types/index.js').ConfigureWalletSignatureResult} ConfigureWalletSignatureResult
+ * @typedef {import('../../types/index.js').RemoveFromWhitelistResult} RemoveFromWhitelistResult
+ * @typedef {import('../../types/index.js').AddToWhitelistResult} AddToWhitelistResult
+ * @typedef {import('../../types/index.js').Address} Address
+ * @typedef {import('../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../types/index.js').Bytes32} Bytes32
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -16,9 +26,9 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   // ============================================================================
   
   /**
-   * @param {Object} readProvider - Ethers provider for read operations
-   * @param {Object} writeSigner - Ethers signer for write operations
-   * @param {Object} config - Configuration object
+   * @param {EthersProvider} readProvider - Ethers provider for read operations
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
+   * @param {NetworkConfig} config - Configuration object
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -31,9 +41,9 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Object} options - Is configured options
-   * @param {String} options.keyVaultAddr - KeyVault address of the wallet
-   * @returns {Promise<Boolean>} True if wallet is configured, false otherwise
+   * @param {Record<string, unknown>} options - Is configured options
+   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
+   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async isConfigured(options = {}) {
@@ -43,11 +53,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
     
     return this.executeRead(
-      () => walletSigAuth.isConfigured(keyVaultAddr),
-      'check if wallet is configured',
       {
-        ...options,
-        authenticatorAddress: this.config.addresses.walletSignatureAuth
+        operation: () => walletSigAuth.isConfigured(keyVaultAddr),
+        methodName: 'check if wallet is configured',
+        ...options
       }
     );
   }
@@ -55,10 +64,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Check if an address is whitelisted for a wallet
    * 
-   * @param {Object} options - Is whitelisted options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @param {String} options.addressToCheck - Address to check if it is whitelisted
-   * @returns {Promise<Boolean>} True if address is whitelisted, false otherwise
+   * @param {Record<string, unknown>} options - Is whitelisted options
+   * @param {Address} options.keyVaultAddr - Key vault address 
+   * @param {Address} options.addressToCheck - Address to check if it is whitelisted
+   * @returns {Promise<boolean>} True if address is whitelisted, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async isWhitelisted(options = {}) {
@@ -69,11 +78,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeRead(
-      () => walletSigAuth.isWhitelisted(keyVaultAddr, addressToCheck),
-      'check if address is whitelisted',
       {
-        ...options,
-        authenticatorAddress: this.config.addresses.walletSignatureAuth
+        operation: () => walletSigAuth.isWhitelisted(keyVaultAddr, addressToCheck),
+        methodName: 'check if address is whitelisted',
+        ...options
       }
     );
   }
@@ -81,9 +89,9 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Get all whitelisted addresses for a wallet
    * 
-   * @param {Object} options - Get whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
-   * @returns {Promise<Array<String>>} Whitelist addresses
+   * @param {Record<string, unknown>} options - Get whitelist options
+   * @param {Address} options.keyVaultAddr - Key vault address 
+   * @returns {Promise<Address[]>} Whitelist addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
   async getWhitelist(options = {}) {
@@ -93,11 +101,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeRead(
-      () => walletSigAuth.getWhitelist(keyVaultAddr),
-      'get whitelist',
       {
-        ...options,
-        authenticatorAddress: this.config.addresses.walletSignatureAuth
+        operation: () => walletSigAuth.getWhitelist(keyVaultAddr),
+        methodName: 'get whitelist',
+        ...options
       }
     );
   }
@@ -105,18 +112,17 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Get the EIP-712 domain separator
    * 
-   * @param {Object} [options={}] - Options object
+   * @param {Record<string, unknown>} [options={}] - Options object
    * @returns {Promise<Bytes32>} EIP-712 domain separator
    */
   async getDomainSeparator(options = {}) {
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
-    return this.executeRead(
-      () => walletSigAuth.domainSeparator(),
-      'get domain separator',
+    return this.executeRead( 
       {
-        ...options,
-        authenticatorAddress: this.config.addresses.walletSignatureAuth
+        operation: () => walletSigAuth.domainSeparator(),
+        methodName: 'get domain separator',
+        ...options
       }
     );
   }
@@ -124,10 +130,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Verify a signature
    * 
-   * @param {Object} options - Verify options
-   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Record<string, unknown>} options - Verify options
+   * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature), Signature is over EIP-712 typed data: WalletAuth(wallet, deadline)
-   * @returns {Promise<Boolean>} True if signature is valid, false otherwise
+   * @returns {Promise<boolean>} True if signature is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */ 
   async verify(options = {}) {
@@ -138,11 +144,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeRead(
-      () => walletSigAuth.verify(keyVaultAddr, authProof),
-      'verify signature',
       {
-        ...options,
-        authenticatorAddress: this.config.addresses.walletSignatureAuth
+        operation: () => walletSigAuth.verify(keyVaultAddr, authProof),
+        methodName: 'verify signature',
+        ...options
       }
     );
   }
@@ -154,11 +159,11 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Add a new address to the whitelist
    * 
-   * @param {Object} options - Add to whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Record<string, unknown>} options - Add to whitelist options
+   * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {String} options.addressToAdd - Address to add to the whitelist
-   * @returns {Promise<Object>} Transaction receipt
+   * @param {Address} options.addressToAdd - Address to add to the whitelist
+   * @returns {Promise<AddToWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -173,15 +178,15 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeWrite(
-      () => walletSigAuth.addToWhitelist(keyVaultAddr, authProof, addressToAdd),
-      'add to whitelist',
       {
-        ...options,
+        operation: () => walletSigAuth.addToWhitelist(keyVaultAddr, authProof, addressToAdd),
+        methodName: 'add to whitelist',
         parseEvents: [{
           eventDef: WalletSignatureAuthenticatorEvents.AddressAdded,
           contract: walletSigAuth
         }],
-        authenticatorAddress: this.config.addresses.walletSignatureAuth
+        extraData: { authenticatorAddress: this.config.addresses.walletSignatureAuth },
+        ...options
       }
     );
   }
@@ -189,10 +194,10 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Configure the wallet signature authenticator
    * 
-   * @param {Object} options - Configure options
-   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Record<string, unknown>} options - Configure options
+   * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the whitelist addresses 
-   * @returns {Promise<Object>} Configure wallet result
+   * @returns {Promise<ConfigureWalletSignatureResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -206,15 +211,15 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeWrite(
-      () => walletSigAuth.configure(keyVaultAddr, authConfig),
-      'configure wallet signature authenticator',
       {
-        ...options,
+        operation: () => walletSigAuth.configure(keyVaultAddr, authConfig),
+        methodName: 'configure wallet signature authenticator',
         parseEvents: [{
           eventDef: WalletSignatureAuthenticatorEvents.WalletConfigured,
           contract: walletSigAuth
         }],
-        authenticatorAddress: this.config.addresses.walletSignatureAuth
+        extraData: { authenticatorAddress: this.config.addresses.walletSignatureAuth },
+        ...options
       }
     );
   }
@@ -222,11 +227,11 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Remove an address from the whitelist
    * 
-   * @param {Object} options - Remove from whitelist options
-   * @param {String} options.keyVaultAddr - Key vault address 
+   * @param {Record<string, unknown>} options - Remove from whitelist options
+   * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {String} options.addressToRemove - Address to remove from the whitelist
-   * @returns {Promise<Object>} Transaction receipt
+   * @param {Address} options.addressToRemove - Address to remove from the whitelist
+   * @returns {Promise<RemoveFromWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -241,19 +246,18 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
     return this.executeWrite(
-      () => walletSigAuth.removeFromWhitelist(keyVaultAddr, authProof, addressToRemove),
-      'remove from whitelist',
       {
-        ...options,
+        operation: () => walletSigAuth.removeFromWhitelist(keyVaultAddr, authProof, addressToRemove),
+        methodName: 'remove from whitelist',
         parseEvents: [{
           eventDef: WalletSignatureAuthenticatorEvents.AddressRemoved,
           contract: walletSigAuth
         }],
-        authenticatorAddress: this.config.addresses.walletSignatureAuth
+        extraData: { authenticatorAddress: this.config.addresses.walletSignatureAuth },
+        ...options
       }
     );
   }
-
 }
 
 export default WalletSignatureAuthenticatorClient;

@@ -3,6 +3,18 @@
  * 
  * Client for interacting with WalletFactory contract methods.
  * Handles wallet creation and factory administration.
+ * 
+ * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
+ * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../../types/index.js').WalletCreationResult} WalletCreationResult
+ * @typedef {import('../../types/index.js').CreateWalletWithHookOptions} CreateWalletWithHookOptions
+ * @typedef {import('../../types/index.js').CreateWalletWithCustomLogicOptions} CreateWalletWithCustomLogicOptions
+ * @typedef {import('../../types/index.js').UpdateResult} UpdateResult
+ * @typedef {import('../../types/index.js').UpdateWalletLogicImplAddrResult} UpdateWalletLogicImplAddrResult
+ * @typedef {import('../../types/index.js').Address} Address
+ * @typedef {import('../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -17,9 +29,9 @@ class WalletFactoryClient extends BaseContractClient {
   // ============================================================================
   
   /**
-   * @param {Object} readProvider - Ethers provider for read operations
-   * @param {Object} writeSigner - Ethers signer for write operations
-   * @param {Object} config - Configuration object
+   * @param {EthersProvider} readProvider - Ethers provider for read operations
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
+   * @param {NetworkConfig} config - Configuration object
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -34,8 +46,8 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * @private
    * @returns {Object} Object containing mnemonic and seed
-   * @returns {String} returns.mnemonic - Generated mnemonic phrase
-   * @returns {String} returns.seed - Derived seed from mnemonic
+   * @returns {Mnemonic} returns.mnemonic - Generated mnemonic phrase
+   * @returns {Bytes} returns.seed - Derived seed from mnemonic
    */
   _prepareWalletCreation() {
     // Off-chain: Generate mnemonic
@@ -54,8 +66,8 @@ class WalletFactoryClient extends BaseContractClient {
    * If no authenticator contract address is provided, defaults to PasswordAuthenticator.
    * 
    * @private
-   * @param {String} [authenticatorAddr] - Optional authenticator contract address
-   * @returns {String} Authenticator address (provided or default)
+   * @param {Address} [authenticatorAddr] - Optional authenticator contract address
+   * @returns {Address} Authenticator address (provided or default)
    */
   _resolveAuthenticator(authenticatorAddr) {
     return authenticatorAddr || this.config.addresses.passwordAuth;
@@ -68,9 +80,9 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Check if an address is a wallet created by this factory
    * 
-   * @param {Object} options - Is wallet options
-   * @param {String} options.walletAddr - Wallet address to check
-   * @returns {Promise<Boolean>} True if address is a wallet created by this factory, false otherwise
+   * @param {Record<string, unknown>} options - Is wallet options
+   * @param {Address} options.walletAddr - Wallet address to check
+   * @returns {Promise<boolean>} True if address is a wallet created by this factory, false otherwise
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
   async isWallet(options = {}) {
@@ -80,11 +92,10 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
     return this.executeRead(
-      () => factory.isWallet(walletAddr),
-      'check if address is wallet',
       {
-        ...options,
-        factoryAddress: this.config.addresses.factory
+        operation: () => factory.isWallet(walletAddr),
+        methodName: 'check if address is wallet',
+        ...options
       }
     );
   }
@@ -92,18 +103,17 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Get the admin address
    * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Admin address
+   * @param {Record<string, unknown>} [options={}] - Options object
+   * @returns {Promise<Address>} Admin address
    */
   async getAdmin(options = {}) {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
     return this.executeRead(
-      () => factory.admin(),
-      'get admin',
       {
-        ...options,
-        factoryAddress: this.config.addresses.factory
+        operation: () => factory.admin(),
+        methodName: 'get admin',
+        ...options
       }
     );
   }
@@ -111,18 +121,17 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Get current WalletLogic implementation (current walletLogic contract address)
    * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Current WalletLogic implementation
+   * @param {Record<string, unknown>} [options={}] - Options object
+   * @returns {Promise<Address>} Current WalletLogic implementation
    */
   async getWalletLogicImplAddr(options = {}) {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
     return this.executeRead(
-      () => factory.implementation(),
-      'get wallet logic implementation',
       {
-        ...options,
-        factoryAddress: this.config.addresses.factory
+        operation: () => factory.implementation(),
+        methodName: 'get wallet logic implementation',
+        ...options
       }
     );
   }
@@ -130,9 +139,9 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Get the keyVault contract address for a wallet
    * 
-   * @param {Object} options - KeyVault options
-   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} KeyVault contract address
+   * @param {Record<string, unknown>} options - KeyVault options
+   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @returns {Promise<Address>} KeyVault contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
   async getKeyVaultAddr(options = {}) {
@@ -142,11 +151,10 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
     return this.executeRead(
-      () => factory.walletKeyVault(walletAddr),
-      'get wallet key vault address',
       {
-        ...options,
-        factoryAddress: this.config.addresses.factory
+        operation: () => factory.walletKeyVault(walletAddr),
+        methodName: 'get wallet key vault address',
+        ...options
       }
     );
   }
@@ -154,9 +162,9 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Get the storage contract address for a wallet
    * 
-   * @param {Object} options - Storage options
-   * @param {String} options.walletAddr - Wallet proxy address (from createWallet)
-   * @returns {Promise<String>} Storage contract address
+   * @param {Record<string, unknown>} options - Storage options
+   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
   async getStorageAddr(options = {}) {
@@ -166,11 +174,10 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
     return this.executeRead(
-      () => factory.walletStorage(walletAddr),
-      'get storage address',
       {
-        ...options,
-        factoryAddress: this.config.addresses.factory
+        operation: () => factory.walletStorage(walletAddr),
+        methodName: 'get storage address',
+        ...options
       }
     );
   }
@@ -180,18 +187,17 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * The beacon controlling WalletLogic updates
    * 
-   * @param {Object} [options={}] - Options object
-   * @returns {Promise<String>} Beacon address
+   * @param {Record<string, unknown>} [options={}] - Options object
+   * @returns {Promise<Address>} Beacon address
    */
   async getBeaconAddr(options = {}) {
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
     return this.executeRead(
-      () => factory.beacon(),
-      'get beacon address',
       {
-        ...options,
-        factoryAddress: this.config.addresses.factory
+        operation: () => factory.beacon(),
+        methodName: 'get beacon address',
+        ...options
       }
     );
   }
@@ -208,10 +214,10 @@ class WalletFactoryClient extends BaseContractClient {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {Record<string, unknown>} options - Wallet creation options
    * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -227,17 +233,19 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
     return this.executeWrite(
-      () => factory.createWallet(seed, authenticatorAddr, authConfig),
-      'create wallet',
       {
-        ...options,
+        operation: () => factory.createWallet(seed, authenticatorAddr, authConfig),
+        methodName: 'create wallet',
         parseEvents: [{
           eventDef: WalletFactoryEvents.WalletCreated,
           contract: factory
         }],
-        extraData: { mnemonic },
-        factoryAddress: this.config.addresses.factory,
-        authenticatorAddr
+        extraData: {
+          mnemonic, 
+          factoryAddress: this.config.addresses.factory, 
+          authenticatorAddr
+        },
+        ...options
       }
     );
   }
@@ -250,11 +258,11 @@ class WalletFactoryClient extends BaseContractClient {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {Record<string, unknown>} options - Wallet creation options
    * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {String} options.mnemonic - Mnemonic phrase (BIP39)
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {Mnemonic} options.mnemonic - Mnemonic phrase (BIP39)
+   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -271,17 +279,19 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
     return this.executeWrite(
-      () => factory.createWallet(seed, authenticatorAddr, authConfig),
-      'create wallet',
       {
-        ...options,
+        operation: () => factory.createWallet(seed, authenticatorAddr, authConfig),
+        methodName: 'create wallet',
         parseEvents: [{
           eventDef: WalletFactoryEvents.WalletCreated,
           contract: factory
         }],
-        extraData: { mnemonic },
-        factoryAddress: this.config.addresses.factory,
-        authenticatorAddr
+        extraData: { 
+          mnemonic, 
+          factoryAddress: this.config.addresses.factory, 
+          authenticatorAddr 
+        },
+        ...options
       }
     );
   }
@@ -297,12 +307,8 @@ class WalletFactoryClient extends BaseContractClient {
    * The hook is called after the wallet is created.
    * The hook contract must implement IWalletCreationHook interface.
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
-   * @param {String} options.hookAddr - Hook contract address
-   * @param {Bytes} options.hookData - Data for the hook
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {CreateWalletWithHookOptions} options - Wallet creation options
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -319,17 +325,19 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
     return this.executeWrite(
-      () => factory.createWalletWithHook(seed, authenticatorAddr, authConfig, hookAddr, hookData),
-      'create wallet with hook',
       {
-        ...options,
+        operation: () => factory.createWalletWithHook(seed, authenticatorAddr, authConfig, hookAddr, hookData),
+        methodName: 'create wallet with hook',
         parseEvents: [{
           eventDef: WalletFactoryEvents.WalletCreated,
           contract: factory
         }],
-        extraData: { mnemonic },
-        factoryAddress: this.config.addresses.factory,
-        authenticatorAddr
+        extraData: { 
+          mnemonic, 
+          factoryAddress: this.config.addresses.factory, 
+          authenticatorAddr 
+        },
+        ...options
       }
     );
   }
@@ -344,10 +352,10 @@ class WalletFactoryClient extends BaseContractClient {
    * Use this when you want to interact with KeyVault directly,
    * or when deploying your own custom logic contract separately.
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {Record<string, unknown>} options - Wallet creation options
    * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @returns {Promise<WalletCreationResult>} 
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -362,17 +370,19 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
     return this.executeWrite(
-      () => factory.createWalletCore(seed, authenticatorAddr, authConfig),
-      'create wallet core',
       {
-        ...options,
+        operation: () => factory.createWalletCore(seed, authenticatorAddr, authConfig),
+        methodName: 'create wallet core',
         parseEvents: [{
           eventDef: WalletFactoryEvents.WalletCreated,
           contract: factory
         }],
-        extraData: { mnemonic },
-        factoryAddress: this.config.addresses.factory,
-        authenticatorAddr
+        extraData: { 
+          mnemonic, 
+          factoryAddress: this.config.addresses.factory, 
+          authenticatorAddr 
+        },
+        ...options
       }
     );
   }
@@ -389,12 +399,8 @@ class WalletFactoryClient extends BaseContractClient {
    * - Custom logic wallets are NOT affected by admin beacon updates
    * - Each wallet gets its own independent clone
    * 
-   * @param {Object} options - Wallet creation options
-   * @param {String} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
-   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {String} options.customLogicImplAddr - Custom logic implementation contract address (must implement IWalletLogic)
-   * @param {Bytes} options.logicData - Initialization data for your custom logic
-   * @returns {Promise<Object>} Creation result with wallet address, authenticator address, tx hash, and mnemonic
+   * @param {CreateWalletWithCustomLogicOptions} options - Wallet creation options
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -410,18 +416,20 @@ class WalletFactoryClient extends BaseContractClient {
     const { mnemonic, seed } = this._prepareWalletCreation();
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 
-    return this.executeWrite(
-      () => factory.createWalletWithCustomLogic(seed, authenticatorAddr, authConfig, customLogicImplAddr, logicData),
-      'create wallet with custom logic',
+    return this.executeWrite( 
       {
-        ...options,
+        operation: () => factory.createWalletWithCustomLogic(seed, authenticatorAddr, authConfig, customLogicImplAddr, logicData),
+        methodName: 'create wallet with custom logic',
         parseEvents: [{
           eventDef: WalletFactoryEvents.WalletCreated,
           contract: factory
         }],
-        extraData: { mnemonic },
-        factoryAddress: this.config.addresses.factory,
-        authenticatorAddr
+        extraData: { 
+          mnemonic, 
+          factoryAddress: this.config.addresses.factory, 
+          authenticatorAddr 
+        },
+        ...options
       }
     );
   }
@@ -431,9 +439,9 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * This updates the orchestration layer, not the key security.
    * 
-   * @param {Object} options - Update logic options
-   * @param {String} options.newLogicAddr - New walletLogic contract address
-   * @returns {Promise<Object>} Update logic result
+   * @param {Record<string, unknown>} options - Update logic options
+   * @param {Address} options.newLogicAddr - New walletLogic contract address
+   * @returns {Promise<UpdateWalletLogicImplAddrResult>}
    * @throws {ValidationError} If newLogicAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -446,15 +454,15 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 
     return this.executeWrite(
-      () => factory.upgradeLogic(newLogicAddr),
-      'update wallet logic',
       {
-        ...options,
+        operation: () => factory.upgradeLogic(newLogicAddr),
+        methodName: 'update wallet logic',
         parseEvents: [{
           eventDef: WalletFactoryEvents.BeaconUpgraded,
           contract: factory
         }],
-        factoryAddress: this.config.addresses.factory
+        extraData: { factoryAddress: this.config.addresses.factory },
+        ...options
       }
     );
   }
@@ -462,9 +470,9 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Transfer admin ownership role to a new address (Admin function)
    * 
-   * @param {Object} options - Transfer admin options
-   * @param {String} options.newAdminAddr - New admin address
-   * @returns {Promise<Object>} Transfer admin result
+   * @param {Record<string, unknown>} options - Transfer admin options
+   * @param {Address} options.newAdminAddr - New admin address
+   * @returns {Promise<UpdateResult>}
    * @throws {ValidationError} If newAdminAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -476,12 +484,18 @@ class WalletFactoryClient extends BaseContractClient {
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 
     return this.executeWrite(
-      () => factory.transferAdmin(newAdminAddr),
-      'transfer admin',
       {
-        ...options,
-        extraData: { newAdmin: newAdminAddr },
-        factoryAddress: this.config.addresses.factory
+        operation: () => factory.transferAdmin(newAdminAddr),
+        methodName: 'transfer admin',
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.AdminTransferred,
+          contract: factory
+        }],
+        extraData: { 
+          newAdmin: newAdminAddr, 
+          factoryAddress: this.config.addresses.factory 
+        },
+        ...options
       }
     );
   }

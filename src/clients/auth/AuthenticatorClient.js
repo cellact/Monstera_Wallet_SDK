@@ -3,6 +3,11 @@
  * 
  * Registry/factory for all authenticator clients.
  * Makes it easy to add new authenticator types without modifying the main SDK.
+ * 
+ * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
+ * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../../types/index.js').AuthenticatorClientInstance} AuthenticatorClientInstance
  */
 
 import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
@@ -15,9 +20,9 @@ class AuthenticatorClient {
   // ============================================================================
   
   /**
-   * @param {Object} readProvider - Ethers provider for read operations
-   * @param {Object} writeSigner - Ethers signer for write operations
-   * @param {Object} config - Configuration object
+   * @param {EthersProvider} readProvider - Ethers provider for read operations
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
+   * @param {NetworkConfig} config - Configuration object
    */
   constructor(readProvider, writeSigner, config) {
     this.readProvider = readProvider;
@@ -40,8 +45,8 @@ class AuthenticatorClient {
   /**
    * Get a specific authenticator client by type
    * 
-   * @param {String} type - Authenticator type ('walletSignature', 'password', etc.)
-   * @returns {Object} Authenticator client instance
+   * @param {string} type - Authenticator type ('walletSignature', 'password', etc.)
+   * @returns {AuthenticatorClientInstance} Authenticator client instance
    * @throws {ValidationError} If authenticator type is not found
    */
   getClient(type) {
@@ -58,7 +63,7 @@ class AuthenticatorClient {
   /**
    * Get all registered authenticator types
    * 
-   * @returns {Array<String>} Array of authenticator type names
+   * @returns {string[]} Array of authenticator type names
    */
   getAvailableTypes() {
     return Object.keys(this).filter(key => !['readProvider', 'writeSigner', 'config'].includes(key));

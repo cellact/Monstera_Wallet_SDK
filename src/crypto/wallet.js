@@ -2,6 +2,12 @@
  * Wallet Crypto Utilities
  * 
  * Handles mnemonic generation, seed derivation, and auth config encoding
+ * 
+ * @typedef {import('../types/index.js').Mnemonic} Mnemonic
+ * @typedef {import('../types/index.js').Bytes} Bytes
+ * @typedef {import('../types/index.js').Address} Address
+ * @typedef {import('../types/index.js').EthersWallet} EthersWallet
+ * @typedef {import('../types/index.js').EthersHDNodeWallet} EthersHDNodeWallet
  */
 
 import crypto from 'crypto';
@@ -12,7 +18,7 @@ import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 /**
  * Generate a new mnemonic phrase (12 words)
  * 
- * @returns {String} BIP39 mnemonic phrase
+ * @returns {Mnemonic} BIP39 mnemonic phrase
  */
 function generateMnemonic() {
   // Use ethers to generate mnemonic (BIP39 compliant)
@@ -25,9 +31,9 @@ function generateMnemonic() {
 /**
  * Derive seed from mnemonic using PBKDF2
  * 
- * @param {String} mnemonic - BIP39 mnemonic phrase
- * @param {String} [password=''] - Optional password for seed derivation
- * @param {Number} [iterations=2048] - PBKDF2 iterations
+ * @param {Mnemonic} mnemonic - BIP39 mnemonic phrase
+ * @param {string} [password=''] - Optional password for seed derivation
+ * @param {number} [iterations=2048] - PBKDF2 iterations
  * @returns {Buffer} Derived seed (64 bytes)
  */
 function deriveSeed(mnemonic, password = '', iterations = 2048) {
@@ -49,8 +55,8 @@ function deriveSeed(mnemonic, password = '', iterations = 2048) {
 /**
  * Hash password using keccak256
  * 
- * @param {String} password - Password to hash
- * @returns {String} Keccak256 hash as hex string (0x prefixed)
+ * @param {string} password - Password to hash
+ * @returns {Bytes} Keccak256 hash as hex string (0x prefixed)
  */
 function hashPassword(password) {
   if (!password || typeof password !== 'string') {
@@ -64,12 +70,12 @@ function hashPassword(password) {
 /**
  * Create auth proof (EIP-712 authentication proof)
  * 
- * @param {Object} signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
- * @param {String} chainId - Chain ID
- * @param {String} authenticatorAddr - Wallet signature authenticator contract address
- * @param {Number} deadline - Deadline for the auth proof
- * @param {String} keyVaultAddr - Key vault address
- * @returns {String} Auth proof (bytes)
+ * @param {EthersWallet | EthersHDNodeWallet} signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
+ * @param {string | number} chainId - Chain ID
+ * @param {Address} authenticatorAddr - Wallet signature authenticator contract address
+ * @param {number} deadline - Deadline for the auth proof (Unix timestamp in seconds)
+ * @param {Address} keyVaultAddr - Key vault address
+ * @returns {Promise<Bytes>} Auth proof (bytes)
  */
 async function createAuthProof(signer, chainId, authenticatorAddr, deadline, keyVaultAddr) {
   

@@ -3,6 +3,9 @@
  * 
  * Defines network presets for Oasis Sapphire testnet and mainnet
  * with default RPC URLs and contract addresses.
+ * 
+ * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
  */
 
 /**
@@ -43,11 +46,11 @@ const DEFAULT_ADDRESSES = {
 /**
  * Build network configuration from network name
  * 
- * @param {Object} config - Network configuration
+ * @param {Record<string, unknown>} config - Network configuration
  * @param {'testnet'|'mainnet'} config.network - Network name (guaranteed to be valid)
- * @param {String} config.rpcUrl - RPC URL (optional, uses default if not provided)
- * @param {Object} config.addresses - Contract addresses (optional)
- * @returns {Object} Network configuration object
+ * @param {string} [config.rpcUrl] - RPC URL (optional, uses default if not provided)
+ * @param {Partial<ContractAddresses>} [config.addresses] - Contract addresses (optional)
+ * @returns {NetworkConfig}
  */
 function buildNetworkConfig(config) {
   const { network, rpcUrl, addresses } = config;

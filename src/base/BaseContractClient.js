@@ -7,6 +7,14 @@
  * - Error wrapping
  * 
  * Validation helpers are available via delegation to assert.js
+ * 
+ * @typedef {import('../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
+ * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../types/index.js').Address} Address
+ * @typedef {import('../types/index.js').TransactionResult} TransactionResult
+ * @typedef {import('../types/index.js').ExecuteReadInputOptions} ExecuteReadInputOptions
+ * @typedef {import('../types/index.js').ExecuteWriteInputOptions} ExecuteWriteInputOptions
  */
 
 import SapphireWriteWrapper from './SapphireWriteWrapper.js';
@@ -20,9 +28,9 @@ class BaseContractClient {
   // ============================================================================
   
   /**
-   * @param {Object} readProvider - Ethers provider for read operations
-   * @param {Object} writeSigner - Ethers signer for write operations
-   * @param {Object} config - Configuration object
+   * @param {EthersProvider} readProvider - Ethers provider for read operations
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
+   * @param {NetworkConfig} config - Configuration object
    */
   constructor(readProvider, writeSigner, config) {
     this.readProvider = readProvider;
@@ -39,9 +47,10 @@ class BaseContractClient {
    * 
    * Validates the address and returns a contract instance for read operations.
    * 
-   * @param {Function} contractGetter - Function to get contract (e.g., getWalletFactoryContract)
-   * @param {String} contractAddress - Contract address (will be validated)
-   * @returns {Object} Contract instance
+   * @template TContract
+   * @param {(provider: EthersProvider, address: string) => TContract} contractGetter
+   * @param {Address} contractAddress
+   * @returns {TContract}
    */
   getReadContract(contractGetter, contractAddress) {
     requireAddress(contractAddress, 'address');
@@ -53,9 +62,10 @@ class BaseContractClient {
    * 
    * Validates the address and returns a contract instance for write operations.
    * 
-   * @param {Function} contractGetter - Function to get contract (e.g., getWalletFactoryContract)
-   * @param {String} contractAddress - Contract address (will be validated)
-   * @returns {Object} Contract instance
+   * @template TContract
+   * @param {(signer: WrappedEthersSigner, address: string) => TContract} contractGetter
+   * @param {Address} contractAddress
+   * @returns {TContract}
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    */
   getWriteContract(contractGetter, contractAddress) {
@@ -76,32 +86,27 @@ class BaseContractClient {
    * Reduces boilerplate by automatically wrapping errors with context.
    * Use this for all read operations to ensure consistent error handling.
    * 
-   * @param {Function} operation - Async function to execute (e.g., () => contract.method())
-   * @param {String} methodName - Name of the method for error context
-   * @param {Object} [options={}] - Options object for error context
-   * @returns {Promise<*>} Operation result
+   * Any additional properties in options (besides operation, methodName) 
+   * are included in the error context.
+   * 
+   * @template TResult
+   * @param {ExecuteReadInputOptions} options - Complete options for the read operation
+   * @returns {Promise<TResult>}
    * 
    * @example
-   * // Before:
-   * try {
-   *   const result = await contract.method();
-   *   return result;
-   * } catch (error) {
-   *   throw this.wrapError('method name', error, options);
-   * }
-   * 
-   * // After:
-   * return this.executeRead(
-   *   () => contract.method(),
-   *   'method name',
-   *   options
-   * );
+   * return this.executeRead({
+   *   operation: () => contract.method(),
+   *   methodName: 'method name',
+   *   keyVaultAddr: '0x...' // included in error context
+   * });
    */
-  async executeRead(operation, methodName, options = {}) {
+  async executeRead(options) {
+    const { operation, methodName, ...errorContext } = options;
+
     try {
       return await operation();
     } catch (error) {
-      throw this.wrapError(methodName, error, options);
+      throw this.wrapError(methodName, error, errorContext);
     }
   }
 
@@ -111,23 +116,24 @@ class BaseContractClient {
    * Reduces boilerplate by automatically handling transaction sending and error wrapping.
    * Use this for all write operations to ensure consistent error handling.
    * 
-   * @param {Function} operation - Async function that returns transaction (e.g., () => contract.method())
-   * @param {String} methodName - Name of the method for error context
-   * @param {Object} [options={}] - Transaction and error context options
-   * @param {Array<Object>} [options.parseEvents] - Array of event definitions to parse
-   * @param {Boolean} [options.requireEvents=true] - Whether to throw if events are not found
-   * @param {Object} [options.extraData] - Additional data to include in result
-   * @returns {Promise<Object>} Transaction result with receipt and parsed events
+   * Any additional properties in options (besides operation, methodName, parseEvents, requireEvents, extraData) 
+   * are included in the error context.
+   * 
+   * @template TResult extends TransactionResult
+   * @param {ExecuteWriteInputOptions} options - Complete options for the write operation
+   * @returns {Promise<TResult>}
    * 
    * @example
-   * return this.executeWrite(
-   *   () => contract.method(),
-   *   'method name',
-   *   { parseEvents: [...], extraData: {...}, ...options }
-   * );
+   * return this.executeWrite({
+   *   operation: () => contract.method(),
+   *   methodName: 'method name',
+   *   parseEvents: [...],
+   *   extraData: {...},
+   *   walletAddress: '0x...' // included in error context
+   * });
    */
-  async executeWrite(operation, methodName, options = {}) {
-    const { parseEvents, requireEvents, extraData, ...errorContext } = options;
+  async executeWrite(options) {
+    const { operation, methodName, parseEvents, requireEvents, extraData, ...errorContext } = options;
     
     try {
       return await SapphireWriteWrapper.execute(operation, {
@@ -154,19 +160,19 @@ class BaseContractClient {
    * - All input parameters (filtered for sensitive data) 
    * - Contract addresses and other context provided in options
    * 
-   * @param {Object} options - Method options object (may include contract addresses, etc.)
-   * @returns {Object} Standardized context object
+   * @param {Record<string, unknown>} options - Method options object (may include contract addresses, etc.)
+   * @returns {Record<string, unknown>} Standardized context object
    */
   buildErrorContext(options = {}) {
     const context = {};
     
     // Exclude sensitive parameters that should never appear in error context
-    const sensitiveParams = MonsteraConfig.SENSITIVE_PARAMS;
+    const sensitiveParams = MonsteraConfig.SENSITIVE_PARAMS || [];
   
     // Include all parameters except sensitive ones
-    for (const key in options) {
-      if (options.hasOwnProperty(key) && !sensitiveParams.includes(key)) {
-        context[key] = options[key];
+    for (const [key, value] of Object.entries(options)) {
+      if (!sensitiveParams.includes(key)) {
+        context[key] = value;
       }
     }
     
@@ -182,9 +188,9 @@ class BaseContractClient {
    * Delegates to SapphireWriteWrapper for consistent error translation.
    * Supports both new pattern (options object) and legacy pattern (context object).
    * 
-   * @param {String} methodName - Name of the method that threw the error
+   * @param {string} methodName - Name of the method that threw the error
    * @param {Error} err - Original error
-   * @param {Object} optionsOrContext - Method options object (for automatic context extraction) or context object (legacy)
+   * @param {Record<string, unknown>} optionsOrContext - Method options object (for automatic context extraction) or context object (legacy)
    * @returns {WalletError} Wrapped error with descriptive message
    */
   wrapError(methodName, err, optionsOrContext = {}) {
@@ -197,7 +203,7 @@ class BaseContractClient {
     
     // If already a WalletError, just add context
     if (err instanceof WalletError) {
-      Object.assign(err.context, context);
+      err.context = { ...(err.context || {}), ...context };
       return err;
     }
     
