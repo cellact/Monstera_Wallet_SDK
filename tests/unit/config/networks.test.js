@@ -5,17 +5,13 @@
 import { describe, test, expect } from '@jest/globals';
 import { expectValidAddress } from '../../utils/assertions.js';
 import { 
-    VALID_TEST_ADDRESS, 
-    INVALID_TEST_ADDRESS_NO_PREFIX, 
-    CUSTOM_RPC_URL, 
-    DEFAULT_TESTNET_CHAIN_ID, 
-    DEFAULT_MAINNET_CHAIN_ID 
+    VALID_TEST_ADDRESS,
+    CUSTOM_RPC_URL
 } from '../../utils/fixtures.js';
 import { 
   NETWORKS,
   DEFAULT_ADDRESSES,
-  REQUIRED_ADDRESSES,
-  resolveBaseConfig
+  buildNetworkConfig
 } from '../../../src/config/networks.js';
 
 describe('Network Configuration - shared by testnet and mainnet', () => {
@@ -31,15 +27,9 @@ describe('Network Configuration - shared by testnet and mainnet', () => {
         });
     });
 
-    describe('Required Addresses', () => {
-        test('should be an array', () => {
-            expect(Array.isArray(REQUIRED_ADDRESSES)).toBe(true);
-        });
-
-        test('should have factory, passwordAuth, walletSignatureAuth addresses', () => {
-            expect(REQUIRED_ADDRESSES).toContain('factory');
-            expect(REQUIRED_ADDRESSES).toContain('passwordAuth');
-            expect(REQUIRED_ADDRESSES).toContain('walletSignatureAuth');
+    describe('buildNetworkConfig', () => {
+        test('should be a function', () => {
+            expect(typeof buildNetworkConfig).toBe('function');
         });
     });
 });
@@ -52,7 +42,7 @@ describe('Network Configuration - testnet', () => {
 
         test('testnet network should have correct name, chainId, rpcUrl, and explorerUrl', () => {
             expect(NETWORKS.testnet.name).toBe('sapphire-testnet');
-            expect(NETWORKS.testnet.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
+            expect(NETWORKS.testnet.chainId).toBe(23295); // 0x5aff
             expect(NETWORKS.testnet.rpcUrl).toBeDefined();
             expect(NETWORKS.testnet.explorerUrl).toBeDefined();
         });
@@ -80,32 +70,32 @@ describe('Network Configuration - testnet', () => {
         });
     });
 
-    describe('Resolve Base Config', () => {
-        test('should take a object with false mainnet and return a network config object for testnet (no rpcUrl or addresses override)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: false });
+    describe('buildNetworkConfig', () => {
+        test('should build testnet config with defaults (no rpcUrl or addresses override)', () => {
+            const baseConfig = buildNetworkConfig({ network: 'testnet' });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
-            expect(baseConfig.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
+            expect(baseConfig.chainId).toBe(23295); // 0x5aff
             expect(baseConfig.rpcUrl).toBe(NETWORKS.testnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.testnet);
         });
 
-        test('should take a object with false mainnet and return a network config object for testnet (rpcUrl override, addresses defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: false, rpcUrl: CUSTOM_RPC_URL });
+        test('should build testnet config with rpcUrl override', () => {
+            const baseConfig = buildNetworkConfig({ network: 'testnet', rpcUrl: CUSTOM_RPC_URL });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
-            expect(baseConfig.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
+            expect(baseConfig.chainId).toBe(23295); // 0x5aff
             expect(baseConfig.rpcUrl).toBe(CUSTOM_RPC_URL);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.testnet);
         });
 
-        test('should take a object with false mainnet and return a network config object for testnet (1 address override, rpcUrl defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: false, addresses: { factory: VALID_TEST_ADDRESS } });
+        test('should build testnet config with partial address override', () => {
+            const baseConfig = buildNetworkConfig({ network: 'testnet', addresses: { factory: VALID_TEST_ADDRESS } });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
-            expect(baseConfig.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
+            expect(baseConfig.chainId).toBe(23295); // 0x5aff
             expect(baseConfig.rpcUrl).toBe(NETWORKS.testnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             // Should have factory from override + defaults for others
@@ -116,9 +106,9 @@ describe('Network Configuration - testnet', () => {
             });
         });
 
-        test('should take a object with false mainnet and return a network config object for testnet (all addresses override, rpcUrl defaults)', () => {
-            const baseConfig = resolveBaseConfig({ 
-                mainnet: false, 
+        test('should build testnet config with all addresses override', () => {
+            const baseConfig = buildNetworkConfig({ 
+                network: 'testnet', 
                 addresses: { 
                     factory: VALID_TEST_ADDRESS, 
                     passwordAuth: VALID_TEST_ADDRESS, 
@@ -127,7 +117,7 @@ describe('Network Configuration - testnet', () => {
             });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-testnet');
-            expect(baseConfig.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
+            expect(baseConfig.chainId).toBe(23295); // 0x5aff
             expect(baseConfig.rpcUrl).toBe(NETWORKS.testnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual({ 
@@ -137,16 +127,14 @@ describe('Network Configuration - testnet', () => {
             });
         });
 
-        test('throws error if mainnet is not a boolean', () => {
-            expect(() => resolveBaseConfig({ mainnet: 'testnet' })).toThrow('mainnet is required and must be a boolean (true for mainnet, false for testnet)');
-        });
-
-        test('throws error if override addresses are missing required addresses (factory is null)', () => {
-            expect(() => resolveBaseConfig({ mainnet: false, addresses: { factory: null } })).toThrow('Missing required contract addresses: factory. Please provide addresses in config or set defaults.');
-        });
-
-        test('throws error if override addresses are invalid (factory is not a valid address)', () => {
-            expect(() => resolveBaseConfig({ mainnet: false, addresses: { factory: INVALID_TEST_ADDRESS_NO_PREFIX } })).toThrow(`Invalid address format for factory: ${INVALID_TEST_ADDRESS_NO_PREFIX}`);
+        test('should merge addresses correctly (override + defaults)', () => {
+            const baseConfig = buildNetworkConfig({ 
+                network: 'testnet',
+                addresses: { factory: VALID_TEST_ADDRESS }
+            });
+            expect(baseConfig.addresses.factory).toBe(VALID_TEST_ADDRESS);
+            expect(baseConfig.addresses.passwordAuth).toBe(DEFAULT_ADDRESSES.testnet.passwordAuth);
+            expect(baseConfig.addresses.walletSignatureAuth).toBe(DEFAULT_ADDRESSES.testnet.walletSignatureAuth);
         });
     });
 });
@@ -159,7 +147,7 @@ describe('Network Configuration - mainnet', () => {
 
         test('mainnet network should have correct name, chainId, rpcUrl, and explorerUrl', () => {
             expect(NETWORKS.mainnet.name).toBe('sapphire-mainnet');
-            expect(NETWORKS.mainnet.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
+            expect(NETWORKS.mainnet.chainId).toBe(23294); // 0x5afe
             expect(NETWORKS.mainnet.rpcUrl).toBeDefined();
             expect(NETWORKS.mainnet.explorerUrl).toBeDefined();
         });
@@ -185,32 +173,32 @@ describe('Network Configuration - mainnet', () => {
         // });
     });
 
-    describe('Resolve Base Config', () => {
-        test('should take a object with true mainnet and return a network config object for mainnet (no rpcUrl or addresses override)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: true });
+    describe('buildNetworkConfig', () => {
+        test('should build mainnet config with defaults (no rpcUrl or addresses override)', () => {
+            const baseConfig = buildNetworkConfig({ network: 'mainnet' });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
-            expect(baseConfig.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
+            expect(baseConfig.chainId).toBe(23294); // 0x5afe
             expect(baseConfig.rpcUrl).toBe(NETWORKS.mainnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.mainnet);
         });
 
-        test('should take a object with true mainnet and return a network config object for mainnet (rpcUrl override, addresses defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: true, rpcUrl: CUSTOM_RPC_URL });
+        test('should build mainnet config with rpcUrl override', () => {
+            const baseConfig = buildNetworkConfig({ network: 'mainnet', rpcUrl: CUSTOM_RPC_URL });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
-            expect(baseConfig.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
+            expect(baseConfig.chainId).toBe(23294); // 0x5afe
             expect(baseConfig.rpcUrl).toBe(CUSTOM_RPC_URL);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.mainnet);
         });
 
-        test('should take a object with true mainnet and return a network config object for mainnet (1 address override, rpcUrl defaults)', () => {
-            const baseConfig = resolveBaseConfig({ mainnet: true, addresses: { factory: VALID_TEST_ADDRESS } });
+        test('should build mainnet config with partial address override', () => {
+            const baseConfig = buildNetworkConfig({ network: 'mainnet', addresses: { factory: VALID_TEST_ADDRESS } });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
-            expect(baseConfig.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
+            expect(baseConfig.chainId).toBe(23294); // 0x5afe
             expect(baseConfig.rpcUrl).toBe(NETWORKS.mainnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             // Should have factory from override + defaults for others
@@ -221,9 +209,9 @@ describe('Network Configuration - mainnet', () => {
             });
         });
 
-        test('should take a object with true mainnet and return a network config object for mainnet (all addresses override, rpcUrl defaults)', () => {
-            const baseConfig = resolveBaseConfig({ 
-                mainnet: true, 
+        test('should build mainnet config with all addresses override', () => {
+            const baseConfig = buildNetworkConfig({ 
+                network: 'mainnet', 
                 addresses: { 
                     factory: VALID_TEST_ADDRESS, 
                     passwordAuth: VALID_TEST_ADDRESS, 
@@ -232,7 +220,7 @@ describe('Network Configuration - mainnet', () => {
             });
             expect(baseConfig).toBeDefined();
             expect(baseConfig.network).toBe('sapphire-mainnet');
-            expect(baseConfig.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
+            expect(baseConfig.chainId).toBe(23294); // 0x5afe
             expect(baseConfig.rpcUrl).toBe(NETWORKS.mainnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
             expect(baseConfig.addresses).toStrictEqual({ 
@@ -242,16 +230,14 @@ describe('Network Configuration - mainnet', () => {
             });
         });
 
-        test('throws error if mainnet is not a boolean', () => {
-            expect(() => resolveBaseConfig({ mainnet: 'testnet' })).toThrow('mainnet is required and must be a boolean (true for mainnet, false for testnet)');
-        });
-
-        test('throws error if override addresses are missing required addresses (factory is null)', () => {
-            expect(() => resolveBaseConfig({ mainnet: true, addresses: { factory: null } })).toThrow('Missing required contract addresses: factory. Please provide addresses in config or set defaults.');
-        });
-
-        test('throws error if override addresses are invalid (factory is not a valid address)', () => {
-            expect(() => resolveBaseConfig({ mainnet: true, addresses: { factory: INVALID_TEST_ADDRESS_NO_PREFIX } })).toThrow(`Invalid address format for factory: ${INVALID_TEST_ADDRESS_NO_PREFIX}`);
+        test('should merge addresses correctly (override + defaults)', () => {
+            const baseConfig = buildNetworkConfig({ 
+                network: 'mainnet',
+                addresses: { factory: VALID_TEST_ADDRESS }
+            });
+            expect(baseConfig.addresses.factory).toBe(VALID_TEST_ADDRESS);
+            expect(baseConfig.addresses.passwordAuth).toBeNull();
+            expect(baseConfig.addresses.walletSignatureAuth).toBeNull();
         });
     });
 });
