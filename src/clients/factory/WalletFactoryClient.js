@@ -239,9 +239,7 @@ class WalletFactoryClient extends BaseContractClient {
           contract: factory
         }],
         extraData: {
-          mnemonic, 
-          factoryAddress: this.config.addresses.factory, 
-          authenticatorAddr
+          mnemonic 
         },
         ...options
       }
@@ -282,9 +280,7 @@ class WalletFactoryClient extends BaseContractClient {
           contract: factory
         }],
         extraData: { 
-          mnemonic, 
-          factoryAddress: this.config.addresses.factory, 
-          authenticatorAddr 
+          mnemonic 
         },
         ...options
       }
@@ -328,9 +324,7 @@ class WalletFactoryClient extends BaseContractClient {
           contract: factory
         }],
         extraData: { 
-          mnemonic, 
-          factoryAddress: this.config.addresses.factory, 
-          authenticatorAddr 
+          mnemonic 
         },
         ...options
       }
@@ -371,9 +365,7 @@ class WalletFactoryClient extends BaseContractClient {
           contract: factory
         }],
         extraData: { 
-          mnemonic, 
-          factoryAddress: this.config.addresses.factory, 
-          authenticatorAddr 
+          mnemonic
         },
         ...options
       }
@@ -418,9 +410,7 @@ class WalletFactoryClient extends BaseContractClient {
           contract: factory
         }],
         extraData: { 
-          mnemonic, 
-          factoryAddress: this.config.addresses.factory, 
-          authenticatorAddr 
+          mnemonic
         },
         ...options
       }
@@ -454,7 +444,6 @@ class WalletFactoryClient extends BaseContractClient {
           eventDef: WalletFactoryEvents.BeaconUpgraded,
           contract: factory
         }],
-        extraData: { factoryAddress: this.config.addresses.factory },
         ...options
       }
     );
