@@ -1,8 +1,20 @@
 /**
  * Type Definitions for Monstera SDK
- * 
- * Comprehensive JSDoc type definitions for all SDK methods, options, and return types.
- * These types provide better IDE autocomplete, type checking, and documentation.
+ *
+ * Central JSDoc types: base types are defined once and extended via intersection
+ * to avoid repetition and keep the file maintainable.
+ */
+
+// ============================================================================
+// Utility Types (primitives used across the SDK)
+// ============================================================================
+
+/**
+ * @typedef {string} Bytes - Hex string representing bytes
+ * @typedef {string} Bytes32 - Hex string representing 32 bytes
+ * @typedef {string} Address - Ethereum address (0x-prefixed hex string, 42 characters)
+ * @typedef {string} TransactionHash - Transaction hash (0x-prefixed hex string, 66 characters)
+ * @typedef {string} Mnemonic - BIP39 mnemonic phrase (12 or 24 words)
  */
 
 // ============================================================================
@@ -16,30 +28,12 @@
  * @typedef {import('ethers').Wallet} EthersWallet - Ethers.js Wallet type
  * @typedef {import('ethers').HDNodeWallet} EthersHDNodeWallet - Ethers.js HDNodeWallet type
  * @typedef {import('ethers').TransactionReceipt} TransactionReceipt - Ethers.js TransactionReceipt type
- * @typedef {EthersSigner} WrappedEthersSigner - Sapphire-wrapped Ethers signer (returned by wrapEthersSigner from @oasisprotocol/sapphire-ethers-v6)
+ * @typedef {EthersSigner} WrappedEthersSigner - Sapphire-wrapped Ethers signer (from @oasisprotocol/sapphire-ethers-v6 wrapEthersSigner)
  */
 
 // ============================================================================
-// Configuration Types
+// Contract & Network Base Types
 // ============================================================================
-
-/**
- * @typedef {Object} WriteConnectOptions
- * @property {boolean} mainnet - true for mainnet, false for testnet
- * @property {EthersSigner | string} signer - Ethers Signer instance or private key string (0x-prefixed hex)
- * @property {string} [rpcUrl] - Optional custom RPC URL (defaults to network preset)
- * @property {Partial<ContractAddresses>} [addresses] - Optional contract address overrides
- * @property {boolean} [checkVersion=true] - Enable automatic version checking (default: true)
- */
-
-/**
- * @typedef {Object} ReadConnectOptions
- * @property {boolean} mainnet - true for mainnet, false for testnet
- * @property {EthersProvider} [provider] - Optional ethers Provider instance
- * @property {string} [rpcUrl] - Optional custom RPC URL (defaults to network preset)
- * @property {Partial<ContractAddresses>} [addresses] - Optional contract address overrides
- * @property {boolean} [checkVersion=true] - Enable automatic version checking (default: true)
- */
 
 /**
  * @typedef {Object} ContractAddresses
@@ -55,54 +49,77 @@
  */
 
 /**
- * @typedef {Object} NetworkConfig
- * @property {string} network - Network name ('sapphire-testnet' or 'sapphire-mainnet')
- * @property {number} chainId - Chain ID
- * @property {string} rpcUrl - RPC URL
- * @property {string} explorerUrl - Block explorer URL
- * @property {ContractAddresses} addresses - Contract addresses for the network
- */
-
-/**
- * Extended configuration for Monstera SDK instance.
- * Extends NetworkConfig with optional signer, provider, and version check settings.
- * 
- * @typedef {NetworkConfig & {
- *   signer?: EthersSigner | string;
- *   provider?: EthersProvider;
- *   checkVersion?: boolean;
- * }} MonsteraConfigOptions
- */
-
-/**
- * Network preset configuration for a single network
- * @typedef {Object} NetworkPreset
- * @property {string} name - Network name ('sapphire-testnet' or 'sapphire-mainnet')
- * @property {number} chainId - Chain ID
+ * Base network fields shared by preset and full config.
+ * @typedef {Object} NetworkBase
+ * @property {number | string} chainId - Chain ID (number or string)
  * @property {string} rpcUrl - RPC URL
  * @property {string} explorerUrl - Block explorer URL
  */
 
 /**
- * Network presets for testnet and mainnet
+ * Network preset for a single network (no contract addresses).
+ * @typedef {NetworkBase & { name: string }} NetworkPreset
+ */
+
+/**
+ * Full network configuration including contract addresses.
+ * @typedef {NetworkBase & { network: string; addresses: ContractAddresses }} NetworkConfig
+ */
+
+/**
  * @typedef {Object} NetworkPresets
  * @property {NetworkPreset} testnet - Testnet network configuration
  * @property {NetworkPreset} mainnet - Mainnet network configuration
  */
 
-
 // ============================================================================
-// Transaction Result Types
+// Connect Options (shared base, then write/read)
 // ============================================================================
 
 /**
- * Base transaction result type returned by executeWrite.
- * 
- * All write operations return at minimum these 4 fields.
- * Specific result types extend this with additional fields from:
- * - Parsed events (e.g., wallet, keyVault, added, removed)
- * - Extra data (e.g., mnemonic, newAdmin, implementation)
- * 
+ * Options shared by write and read connect flows.
+ * @typedef {Object} BaseConnectOptions
+ * @property {boolean} mainnet - true for mainnet, false for testnet
+ * @property {string} [rpcUrl] - Optional custom RPC URL (defaults to network preset)
+ * @property {Partial<ContractAddresses>} [addresses] - Optional contract address overrides
+ * @property {boolean} [checkVersion=true] - Enable automatic version checking (default: true)
+ */
+
+/**
+ * @typedef {BaseConnectOptions & { signer: EthersSigner | string }} WriteConnectOptions
+ * @property {EthersSigner | string} signer - Ethers Signer instance or private key string (0x-prefixed hex)
+ */
+
+/**
+ * @typedef {BaseConnectOptions & { provider?: EthersProvider }} ReadConnectOptions
+ * @property {EthersProvider} [provider] - Optional ethers Provider instance
+ */
+
+// ============================================================================
+// Monstera Constructor Config
+// ============================================================================
+
+/**
+ * Optional overrides when constructing Monstera with a resolved NetworkConfig.
+ * @typedef {Object} MonsteraConfigExtension
+ * @property {EthersSigner | string} [signer] - Ethers Signer or private key (0x-prefixed hex)
+ * @property {EthersProvider} [provider] - Ethers Provider instance
+ * @property {boolean} [checkVersion=true] - Enable automatic version checking (default: true)
+ */
+
+/**
+ * Full config for Monstera SDK constructor. Extends NetworkConfig with optional signer, provider, and version check.
+ * @typedef {NetworkConfig & MonsteraConfigExtension} MonsteraConfigOptions
+ */
+
+// ============================================================================
+// Transaction Result Base & Extensions
+// ============================================================================
+
+/**
+ * Base transaction result returned by executeWrite. All write results include these four fields.
+ * Specific result types extend this with parsed event data and extraData.
+ *
  * @typedef {Object} TransactionResult
  * @property {boolean} success - Whether the transaction succeeded
  * @property {TransactionHash} transactionHash - Transaction hash
@@ -110,128 +127,30 @@
  * @property {string} gasUsed - Gas used (as string)
  */
 
-/**
- * Extends TransactionResult with additional fields from parsed events and extraData.
- * @typedef {Object} WalletCreationResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {Address} wallet - Wallet proxy address (from parsed event)
- * @property {Address} keyVault - KeyVault contract address (from parsed event)
- * @property {Address} storage - WalletStorage contract address (from parsed event)
- * @property {Address} authenticator - Authenticator contract address (from parsed event)
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Mnemonic} mnemonic - Generated mnemonic phrase (BIP39) from extraData - save securely!
- */
+/** @typedef {TransactionResult & { wallet: Address; keyVault: Address; storage: Address; authenticator: Address; mnemonic: Mnemonic }} WalletCreationResult */
 
-/**
- * Extends TransactionResult. No additional fields.
- * @typedef {Object} InitializeResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- */
+/** @typedef {TransactionResult} InitializeResult */
 
-/**
- * Extends TransactionResult with additional fields from parsed events.
- * @typedef {Object} ConfigurePasswordResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} wallet - Wallet address (from parsed event)
- */
+/** @typedef {TransactionResult & { wallet: Address }} ConfigurePasswordResult */
 
-/**
- * Extends TransactionResult with additional fields from parsed events.
- * @typedef {Object} ConfigureWalletSignatureResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} wallet - Wallet address (from parsed event)
- * @property {Address[]} initialWhitelist - Array of addresses that were added to the whitelist (from parsed event)
- */
+/** @typedef {TransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigureWalletSignatureResult */
 
-/**
- * Extends TransactionResult with optional additional fields.
- * @typedef {Object} UpdateResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} [newAdmin] - New admin address (for transferAdmin)
- * @property {Address} [implementation] - New implementation address (for upgrades)
- */
+/** @typedef {TransactionResult & { newAdmin?: Address; implementation?: Address }} UpdateResult */
 
-/**
- * Extends TransactionResult with additional fields from parsed events.
- * @typedef {Object} UpdatePasswordResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} [walletAddr] - Wallet address (from parsed event, is keyVaultAddr)
- */
+/** @typedef {TransactionResult & { walletAddr?: Address }} UpdatePasswordResult */
 
-/**
- * Extends TransactionResult with additional fields from parsed events.
- * @typedef {Object} UpdateWalletLogicImplAddrResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} oldImpl - Old implementation address (from parsed event)
- * @property {Address} newImpl - New implementation address (from parsed event)
- */
+/** @typedef {TransactionResult & { oldImpl: Address; newImpl: Address }} UpdateWalletLogicImplAddrResult */
 
-/**
- * Extends TransactionResult with additional fields from parsed events.
- * @typedef {Object} UpdateKeyVaultImplAddrResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} oldImpl - Old implementation address (from parsed event)
- * @property {Address} newImpl - New implementation address (from parsed event)
- */
+/** @typedef {TransactionResult & { oldImpl: Address; newImpl: Address }} UpdateKeyVaultImplAddrResult */
 
-/**
- * Extends TransactionResult with additional fields from parsed events.
- * @typedef {Object} UpdateAuthenticatorAddrResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} oldAuth - Old authenticator address (from parsed event)
- * @property {Address} newAuth - New authenticator address (from parsed event)
- */
+/** @typedef {TransactionResult & { oldAuth: Address; newAuth: Address }} UpdateAuthenticatorAddrResult */
 
-/**
- * Extends TransactionResult with additional fields from parsed events.
- * @typedef {Object} AddToWhitelistResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} wallet - Wallet address (from parsed event)
- * @property {Address} added - Address that was added to whitelist (from parsed event)
- */
+/** @typedef {TransactionResult & { wallet: Address; added: Address }} AddToWhitelistResult */
 
-/**
- * Extends TransactionResult with additional fields from parsed events.
- * @typedef {Object} RemoveFromWhitelistResult
- * @property {boolean} success - Whether the transaction succeeded
- * @property {TransactionHash} transactionHash - Transaction hash
- * @property {number} blockNumber - Block number where transaction was mined
- * @property {string} gasUsed - Gas used (as string)
- * @property {Address} wallet - Wallet address (from parsed event)
- * @property {Address} removed - Address that was removed from whitelist (from parsed event)
- */
+/** @typedef {TransactionResult & { wallet: Address; removed: Address }} RemoveFromWhitelistResult */
 
 // ============================================================================
-// Write Wrapper Option Types
+// Write / Read Wrapper Option Types
 // ============================================================================
 
 /**
@@ -245,40 +164,32 @@
  */
 
 /**
- * Complete options for BaseContractClient.executeWrite() (caller-facing).
- * All parameters are provided in a single options object.
- * 
- * Additional properties beyond the listed ones (e.g., keyVaultAddr, walletAddress) 
- * are automatically included in error context for better debugging.
- * 
- * @typedef {Object} ExecuteWriteInputOptions
+ * Base options for executeWrite/executeRead (operation + methodName).
+ * @typedef {Object} ExecuteInputOptionsBase
  * @property {() => Promise<any>} operation - Async function that returns a transaction
  * @property {string} methodName - Name of the method for error context
- * @property {Array<ParseEventOptions>} [parseEvents] - Array of event definitions to parse
- * @property {boolean} [requireEvents=true] - Whether to throw if events are not found
- * @property {Record<string, unknown>} [extraData] - Additional data to include in result
+ */
+
+/**
+ * Complete options for BaseContractClient.executeWrite(). Extends ExecuteInputOptionsBase with parse/extra options.
+ * Additional properties (e.g. keyVaultAddr, walletAddress) are included in error context for debugging.
+ *
+ * @typedef {ExecuteInputOptionsBase & {
+ *   parseEvents?: Array<ParseEventOptions>;
+ *   requireEvents?: boolean;
+ *   extraData?: Record<string, unknown>;
+ * }} ExecuteWriteInputOptions
+ */
+
+/**
+ * Complete options for BaseContractClient.executeRead(). Additional properties are included in error context.
+ * @typedef {ExecuteInputOptionsBase} ExecuteReadInputOptions
  */
 
 /**
  * @typedef {Object} ParseEventOptions
- * @property {Record<string, unknown>} eventDef - Event definition object (with eventName and fieldMapping)
- * @property {import('ethers').Contract} contract - Contract instance to parse events from
- */
-
-// ============================================================================
-// Read Wrapper Option Types
-// ============================================================================
-
-/**
- * Complete options for BaseContractClient.executeRead() (caller-facing).
- * All parameters are provided in a single options object.
- * 
- * Additional properties beyond the listed ones (e.g., keyVaultAddr, walletAddress) 
- * are automatically included in error context for better debugging.
- * 
- * @typedef {Object} ExecuteReadInputOptions
- * @property {() => Promise<any>} operation - Async function that returns a transaction
- * @property {string} methodName - Name of the method for error context
+ * @property {Record<string, unknown>} eventDef - Event definition (eventName and fieldMapping)
+ * @property {EthersContract} contract - Contract instance to parse events from
  */
 
 // ============================================================================
@@ -286,19 +197,18 @@
 // ============================================================================
 
 /**
- * @typedef {Object} CreateWalletWithHookOptions
+ * Options shared by createWalletWithHook and createWalletWithCustomLogic.
+ * @typedef {Object} CreateWalletBaseOptions
  * @property {Bytes} authConfig - Configuration data for the authenticator (bytes)
- * @property {Address} hookAddr - Hook contract address
- * @property {Bytes} hookData - Data for the hook (bytes)
  * @property {Address} [authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
  */
 
 /**
- * @typedef {Object} CreateWalletWithCustomLogicOptions
- * @property {Bytes} authConfig - Configuration data for the authenticator (bytes)
- * @property {Address} customLogicImplAddr - Custom logic implementation contract address
- * @property {Bytes} logicData - Initialization data for custom logic (bytes)
- * @property {Address} [authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+ * @typedef {CreateWalletBaseOptions & { hookAddr: Address; hookData: Bytes }} CreateWalletWithHookOptions
+ */
+
+/**
+ * @typedef {CreateWalletBaseOptions & { customLogicImplAddr: Address; logicData: Bytes }} CreateWalletWithCustomLogicOptions
  */
 
 // ============================================================================
@@ -314,87 +224,67 @@
  */
 
 // ============================================================================
-// Signing Option Types
+// Signing Context Base Types (keyVault vs wallet, then transaction/message/hash)
 // ============================================================================
 
 /**
- * @typedef {Object} SignTransactionOptions
+ * Base for signing options that target a KeyVault by address.
+ * @typedef {Object} KeyVaultSigningBase
  * @property {Address} keyVaultAddr - KeyVault contract address
  * @property {Bytes} authProof - Authentication proof (bytes)
- * @property {number|BigInt} index - Account index
- * @property {number|BigInt} nonce - Transaction nonce
- * @property {number|BigInt} gasPrice - Gas price
- * @property {number|BigInt} gasLimit - Gas limit
- * @property {Address} to - Recipient address
- * @property {number|BigInt} value - Transaction value (in wei)
- * @property {Bytes} txData - Transaction data (bytes)
- * @property {number|BigInt} chainId - Chain ID
+ * @property {number|bigint} index - Account index (uint32)
  */
 
 /**
- * @typedef {Object} SignMessageOptions
- * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes} authProof - Authentication proof (bytes)
- * @property {number|BigInt} index - Account index (uint32)
- * @property {Bytes} message - Message to sign (bytes)
- */
-
-/**
- * @typedef {Object} SignHashOptions
- * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes} authProof - Authentication proof (bytes)
- * @property {number|BigInt} index - Account index (uint32)
- * @property {Bytes32} hash - Hash to sign (bytes32)
- */
-
-/**
- * @typedef {Object} SignTransactionWalletOptions
+ * Base for signing options that target a wallet proxy (from createWallet).
+ * @typedef {Object} WalletSigningBase
  * @property {Address} walletAddr - Wallet proxy address (from createWallet)
  * @property {Bytes} authProof - Authentication proof (bytes)
- * @property {number|BigInt} index - Account index
- * @property {number|BigInt} nonce - Transaction nonce
- * @property {number|BigInt} gasPrice - Gas price
- * @property {number|BigInt} gasLimit - Gas limit
- * @property {Address} to - Recipient address
- * @property {number|BigInt} value - Transaction value (in wei)
- * @property {Bytes} data - Transaction data (bytes)
- * @property {number|BigInt} chainId - Chain ID
+ * @property {number|bigint} index - Account index (uint32)
  */
 
 /**
- * @typedef {Object} SignMessageWalletOptions
- * @property {Address} walletAddr - Wallet proxy address (from createWallet)
- * @property {Bytes} authProof - Authentication proof (bytes)
- * @property {number|BigInt} index - Account index (uint32)
- * @property {Bytes} message - Message to sign (bytes)
+ * @typedef {KeyVaultSigningBase & { nonce: number|bigint; gasPrice: number|bigint; gasLimit: number|bigint; to: Address; value: number|bigint; txData: Bytes; chainId: number|bigint }} SignTransactionOptions
  */
 
 /**
- * @typedef {Object} SignHashWalletOptions
- * @property {Address} walletAddr - Wallet proxy address (from createWallet)
- * @property {Bytes} authProof - Authentication proof (bytes)
- * @property {number|BigInt} index - Account index (uint32)
- * @property {Bytes32} hash - Hash to sign (bytes32)
+ * @typedef {KeyVaultSigningBase & { message: Bytes }} SignMessageOptions
+ */
+
+/**
+ * @typedef {KeyVaultSigningBase & { hash: Bytes32 }} SignHashOptions
+ */
+
+/**
+ * @typedef {WalletSigningBase & { nonce: number|bigint; gasPrice: number|bigint; gasLimit: number|bigint; to: Address; value: number|bigint; data: Bytes; chainId: number|bigint }} SignTransactionWalletOptions
+ */
+
+/**
+ * @typedef {WalletSigningBase & { message: Bytes }} SignMessageWalletOptions
+ */
+
+/**
+ * @typedef {WalletSigningBase & { hash: Bytes32 }} SignHashWalletOptions
  */
 
 // ============================================================================
-// Update Option Types
+// Update Authenticator Option Types
 // ============================================================================
 
 /**
- * @typedef {Object} UpdateAuthenticatorOptions
- * @property {Address} keyVaultAddr - KeyVault contract address
+ * Base fields for updating authenticator (keyVault vs wallet variant).
+ * @typedef {Object} UpdateAuthenticatorBase
  * @property {Bytes} authProof - Authentication proof (bytes)
  * @property {Address} newAuthenticatorAddr - New authenticator contract address
  * @property {Bytes} newAuthConfig - New authentication configuration (bytes)
  */
 
 /**
- * @typedef {Object} UpdateAuthenticatorWalletOptions
- * @property {Address} walletAddr - Wallet proxy address (from createWallet)
- * @property {Bytes} authProof - Authentication proof (bytes)
- * @property {Address} newAuthenticatorAddr - New authenticator contract address
- * @property {Bytes} newAuthConfig - New authentication configuration (bytes)
+ * @typedef {UpdateAuthenticatorBase & { keyVaultAddr: Address }} UpdateAuthenticatorOptions
+ */
+
+/**
+ * @typedef {UpdateAuthenticatorBase & { walletAddr: Address }} UpdateAuthenticatorWalletOptions
  */
 
 // ============================================================================
@@ -403,11 +293,11 @@
 
 /**
  * @typedef {Object} CreateAuthProofOptions
- * @property {import('ethers').Wallet | import('ethers').HDNodeWallet} signer - Signer (Wallet or HDNodeWallet) trying to authenticate
- * @property {Address} keyVaultAddr - KeyVault address of the wallet trying to authenticate
- * @property {Address} [authenticatorAddr] - Wallet signature authenticator contract address (optional, defaults to the one in the config)
- * @property {number} [deadline] - Deadline for the auth proof (optional, defaults to 1h from now, Unix timestamp)
- * @property {number} [chainId] - Chain ID (optional, defaults to the one in the config)
+ * @property {EthersWallet | EthersHDNodeWallet} signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
+ * @property {Address} keyVaultAddr - KeyVault address of the wallet to authenticate
+ * @property {Address} [authenticatorAddr] - Wallet signature authenticator address (optional, defaults to config)
+ * @property {number} [deadline] - Deadline for the auth proof (optional, Unix timestamp, default 1h from now)
+ * @property {number | string} [chainId] - Chain ID (optional, defaults to config)
  */
 
 // ============================================================================
@@ -430,20 +320,8 @@
 // ============================================================================
 
 /**
- * Union type for authenticator client instances
+ * Union type for authenticator client instances.
  * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default} AuthenticatorClientInstance
- */
-
-// ============================================================================
-// Utility Types
-// ============================================================================
-
-/**
- * @typedef {String} Bytes - Hex string representing bytes
- * @typedef {String} Bytes32 - Hex string representing 32 bytes
- * @typedef {String} Address - Ethereum address (0x-prefixed hex string, 42 characters)
- * @typedef {String} TransactionHash - Transaction hash (0x-prefixed hex string, 66 characters)
- * @typedef {String} Mnemonic - BIP39 mnemonic phrase (12 or 24 words)
  */
 
 // Export empty object to make this a valid ES module
