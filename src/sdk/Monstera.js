@@ -41,6 +41,11 @@
  * @typedef {import('../types/index.js').ConfigurePasswordDualFactorResult} ConfigurePasswordDualFactorResult
  * @typedef {import('../types/index.js').UpdateGuardianResult} UpdateGuardianResult
  * @typedef {import('../types/index.js').TransferAdminResult} TransferAdminResult
+ * @typedef {import('../types/index.js').KeyMetadataResult} KeyMetadataResult
+ * @typedef {import('../types/index.js').SignWithImportedKeyOptions} SignWithImportedKeyOptions
+ * @typedef {import('../types/index.js').SignSolanaOptions} SignSolanaOptions
+ * @typedef {import('../types/index.js').ImportKeyOptions} ImportKeyOptions
+ * @typedef {import('../types/index.js').SetChainBaseKeysOptions} SetChainBaseKeysOptions
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -706,6 +711,92 @@ class Monstera {
     return this.keyVault.executeWithAuth(options);
   }
 
+  /**
+   * Get all imported key IDs (V2)
+   *
+   * @param {Record<string, unknown>} options - Get imported key IDs options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @returns {Promise<Bytes32[]>} Array of imported key IDs
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   */
+  async getImportedKeyIds(options = {}) {
+    return this.keyVault.getImportedKeyIds(options);
+  }
+
+  /**
+   * Get metadata for an imported key (V2)
+   *
+   * @param {Record<string, unknown>} options - Get key metadata options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes32} options.keyId - Imported key ID
+   * @returns {Promise<KeyMetadataResult>} Key metadata (curve, chain, active, labelHash)
+   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   */
+  async getKeyMetadata(options = {}) {
+    return this.keyVault.getKeyMetadata(options);
+  }
+
+  /**
+   * Check if a key exists (V2)
+   *
+   * @param {Record<string, unknown>} options - Key exists options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes32} options.keyId - Key ID to check
+   * @returns {Promise<boolean>} True if key exists, false otherwise
+   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   */
+  async keyExists(options = {}) {
+    return this.keyVault.keyExists(options);
+  }
+
+  /**
+   * Sign a hash with an imported key (V2, authenticated view)
+   *
+   * @param {SignWithImportedKeyOptions} options - Sign with imported key options
+   * @returns {Promise<Bytes>} Signature (format depends on curve)
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async signWithImportedKey(options = {}) {
+    return this.keyVault.signWithImportedKey(options);
+  }
+
+  /**
+   * Get the address for an imported key (V2)
+   *
+   * @param {Record<string, unknown>} options - Get imported key address options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes32} options.keyId - Imported key ID
+   * @returns {Promise<Bytes>} Address (Ethereum address, Solana pubkey, etc. as bytes)
+   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   */
+  async getImportedKeyAddr(options = {}) {
+    return this.keyVault.getImportedKeyAddr(options);
+  }
+
+  /**
+   * Get Solana address at HD index (V2)
+   *
+   * @param {Record<string, unknown>} options - Get Solana address options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {number} options.index - HD index (uint32)
+   * @returns {Promise<Bytes>} Solana public key (bytes)
+   * @throws {ValidationError} If keyVaultAddr or index is missing or invalid
+   */
+  async getSolanaAddr(options = {}) {
+    return this.keyVault.getSolanaAddr(options);
+  }
+
+  /**
+   * Sign a Solana message (V2, authenticated view)
+   *
+   * @param {SignSolanaOptions} options - Sign Solana options
+   * @returns {Promise<Bytes>} Signature
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async signSolana(options = {}) {
+    return this.keyVault.signSolana(options);
+  }
+
   // --- Auth Reads ---
 
   /**
@@ -909,6 +1000,67 @@ class Monstera {
    */
   async updateAuthenticatorAddr(options = {}) {
     return this.keyVault.updateAuthenticatorAddr(options);
+  }
+
+  /**
+   * Import an external private key (V2)
+   *
+   * @param {ImportKeyOptions} options - Import key options
+   * @returns {Promise<TransactionResult & { keyId: Bytes32; curve: number; chain: number }>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async importKey(options = {}) {
+    return this.keyVault.importKey(options);
+  }
+
+  /**
+   * Deactivate an imported key (V2, soft delete)
+   *
+   * @param {Record<string, unknown>} options - Deactivate key options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes} options.authProof - Authentication proof
+   * @param {Bytes32} options.keyId - Key ID to deactivate
+   * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async deactivateKey(options = {}) {
+    return this.keyVault.deactivateKey(options);
+  }
+
+  /**
+   * Reactivate a previously deactivated key (V2)
+   *
+   * @param {Record<string, unknown>} options - Activate key options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes} options.authProof - Authentication proof
+   * @param {Bytes32} options.keyId - Key ID to activate
+   * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async activateKey(options = {}) {
+    return this.keyVault.activateKey(options);
+  }
+
+  /**
+   * Set base keys for a chain's HD derivation (V2)
+   *
+   * @param {SetChainBaseKeysOptions} options - Set chain base keys options
+   * @returns {Promise<TransactionResult>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   */
+  async setChainBaseKeys(options = {}) {
+    return this.keyVault.setChainBaseKeys(options);
   }
 
   // --- Auth Writes ---

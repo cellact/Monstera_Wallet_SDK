@@ -277,6 +277,56 @@
  */
 
 // ============================================================================
+// KeyVault V2: Imported Keys & Multi-Chain
+// ============================================================================
+
+/**
+ * Result of getKeyMetadata (imported key metadata from WalletStorageV2).
+ * @typedef {Object} KeyMetadataResult
+ * @property {number} curve - Curve type (enum)
+ * @property {number} chain - Chain type (enum)
+ * @property {boolean} active - Whether the key is active
+ * @property {string} labelHash - Keccak256 hash of the label (bytes32 as hex)
+ */
+
+/**
+ * Options for signWithImportedKey (V2).
+ * @typedef {Object} SignWithImportedKeyOptions
+ * @property {Address} keyVaultAddr - KeyVault contract address
+ * @property {Bytes} authProof - Authentication proof
+ * @property {Bytes32} keyId - Imported key ID
+ * @property {Bytes32} digest - 32-byte hash to sign
+ */
+
+/**
+ * Options for signSolana (V2). Same shape as SignMessageOptions (keyVault + auth + index + message).
+ * @typedef {KeyVaultSigningBase & { message: Bytes }} SignSolanaOptions
+ */
+
+/**
+ * Options for importKey (V2).
+ * @typedef {Object} ImportKeyOptions
+ * @property {Address} keyVaultAddr - KeyVault contract address
+ * @property {Bytes} authProof - Authentication proof
+ * @property {Bytes32} keyId - Unique identifier for the key
+ * @property {Bytes} privateKey - Private key to import
+ * @property {Bytes} [publicKey] - Optional public key (defaults to 0x)
+ * @property {number} curve - Curve type (enum: 0=SECP256K1, 1=ED25519, etc.)
+ * @property {number} chain - Chain type (enum: 0=ETHEREUM, 1=SOLANA, etc.)
+ * @property {string} label - Human-readable label for the key
+ */
+
+/**
+ * Options for setChainBaseKeys (V2).
+ * @typedef {Object} SetChainBaseKeysOptions
+ * @property {Address} keyVaultAddr - KeyVault contract address
+ * @property {Bytes} authProof - Authentication proof
+ * @property {number} chain - Chain type (enum: 0=ETHEREUM, 1=SOLANA, etc.)
+ * @property {Bytes} basePrivateKey - Base private key for HD derivation
+ * @property {Bytes} baseChainCode - Base chain code for HD derivation
+ */
+
+// ============================================================================
 // Update Authenticator Option Types
 // ============================================================================
 
