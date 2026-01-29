@@ -568,6 +568,18 @@ class Monstera {
     return this.factory.getBeaconAddr(options);
   }
 
+  /**
+   * Get the secret vault address for a wallet
+   * 
+   * @param {Record<string, unknown>} options - Secret vault options
+   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @returns {Promise<Address>} Secret vault contract address
+   * @throws {ValidationError} If walletAddr is missing or invalid
+   */
+  async getSecretVaultAddr(options = {}) {
+    return this.factory.getSecretVaultAddr(options);
+  }
+
   // --- KeyVault Reads ---
 
   /**

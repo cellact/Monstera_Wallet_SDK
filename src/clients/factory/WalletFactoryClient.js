@@ -202,6 +202,29 @@ class WalletFactoryClient extends BaseContractClient {
     );
   }
 
+  /**
+   * Get the secret vault address mapped to a wallet
+   * 
+   * @param {Record<string, unknown>} options - Secret vault options
+   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @returns {Promise<Address>} Secret vault contract address
+   * @throws {ValidationError} If walletAddr is missing or invalid
+   */
+  async getSecretVaultAddr(options = {}) {
+    const { walletAddr } = options;
+    requireAddress(walletAddr, 'walletAddr');
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.walletSecretVault(walletAddr),
+        methodName: 'get secret vault address',
+        ...options
+      }
+    );
+  }
+
   // ============================================================================
   // Write Methods
   // ============================================================================
