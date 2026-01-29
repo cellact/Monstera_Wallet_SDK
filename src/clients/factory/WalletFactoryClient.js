@@ -10,7 +10,7 @@
  * @typedef {import('../../types/index.js').WalletCreationResult} WalletCreationResult
  * @typedef {import('../../types/index.js').CreateWalletWithHookOptions} CreateWalletWithHookOptions
  * @typedef {import('../../types/index.js').CreateWalletWithCustomLogicOptions} CreateWalletWithCustomLogicOptions
- * @typedef {import('../../types/index.js').UpdateResult} UpdateResult
+ * @typedef {import('../../types/index.js').TransferAdminResult} TransferAdminResult
  * @typedef {import('../../types/index.js').UpdateWalletLogicImplAddrResult} UpdateWalletLogicImplAddrResult
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes} Bytes
@@ -465,7 +465,7 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * @param {Record<string, unknown>} options - Transfer admin options
    * @param {Address} options.newAdminAddr - New admin address
-   * @returns {Promise<UpdateResult>}
+   * @returns {Promise<TransferAdminResult>}
    * @throws {ValidationError} If newAdminAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -480,10 +480,7 @@ class WalletFactoryClient extends BaseContractClient {
       {
         operation: () => factory.transferAdmin(newAdminAddr),
         methodName: 'transfer admin',
-        parseEvents: [{
-          eventDef: WalletFactoryEvents.AdminTransferred,
-          contract: factory
-        }],
+        requireEvents: false,
         extraData: { 
           newAdmin: newAdminAddr, 
           factoryAddress: this.config.addresses.factory 

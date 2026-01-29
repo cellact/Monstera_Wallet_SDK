@@ -19,7 +19,8 @@ export default {
   BeaconUpgraded: {
     eventName: 'BeaconUpgraded',
     fieldMapping: {
-      implementation: 'implementation'
+      oldImpl: 'oldImpl',
+      newImpl: 'newImpl'
     },
     description: 'Emitted when the factory beacon is upgraded'
   }

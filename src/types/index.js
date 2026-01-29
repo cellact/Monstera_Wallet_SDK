@@ -138,6 +138,8 @@
 
 /** @typedef {TransactionResult & { newAdmin?: Address; implementation?: Address }} UpdateResult */
 
+/** @typedef {TransactionResult & { newAdmin?: Address; factoryAddress?: Address }} TransferAdminResult */
+
 /** @typedef {TransactionResult & { walletAddr?: Address }} UpdatePasswordResult */
 
 /** @typedef {TransactionResult & { oldImpl: Address; newImpl: Address }} UpdateWalletLogicImplAddrResult */
