@@ -24,7 +24,7 @@ import { readFileSync } from 'fs';
  * Required contract addresses for SDK initialization
  * All of these must be present and valid for the SDK to function.
  */
-const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth'];
+const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth', 'dualFactorAuth'];
 
 /**
  * Monstera SDK Configuration

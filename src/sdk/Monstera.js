@@ -38,6 +38,8 @@
  * @typedef {import('../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
  * @typedef {import('../types/index.js').CreateWalletBaseOptions} CreateWalletBaseOptions
  * @typedef {import('../types/index.js').CreateWalletFromMnemonicOptions} CreateWalletFromMnemonicOptions
+ * @typedef {import('../types/index.js').ConfigurePasswordDualFactorResult} ConfigurePasswordDualFactorResult
+ * @typedef {import('../types/index.js').UpdateGuardianResult} UpdateGuardianResult
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -365,6 +367,22 @@ class Monstera {
    */
   async configureWalletSignature(options = {}) {
     return this.auth.walletSignature.configure(options);
+  }
+
+  /**
+   * Configure password dual factor
+   * 
+   * @param {Record<string, unknown>} options - Configure dual factor options
+   * @param {Address} options.keyVaultAddr - Key vault address 
+   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config = abi.encode(bytes32 passwordHash, address guardian)
+   * @returns {Promise<ConfigurePasswordDualFactorResult>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async configureDualFactor(options = {}) {
+    return this.auth.dualFactor.configure(options);
   }
 
   // ============================================================================
@@ -762,6 +780,54 @@ class Monstera {
     return this.auth.walletSignature.verify(options);
   }
 
+  /**
+   * Check if a wallet is configured with password dual factor
+   * 
+   * @param {Record<string, unknown>} options - Check if wallet is configured options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   */
+  async isDualFactorConfigured(options = {}) {
+    return this.auth.dualFactor.isConfigured(options);
+  }
+
+  /**
+   * Verify password with dual factor auth proof
+   * 
+   * @param {Record<string, unknown>} options - Verify password options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
+   * @returns {Promise<boolean>} True if password is valid, false otherwise
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+   async isPasswordDualFactorValid(options = {}) {
+    return this.auth.dualFactor.verify(options);
+  }
+
+  /**
+   * Get the guardian of a wallet
+   * 
+   * @param {Record<string, unknown>} options - Get guardian options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<Address>} Guardian address
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   */
+  async getGuardian(options = {}) {
+    return this.auth.dualFactor.getGuardian(options);
+  }
+
+  /**
+   * Get the EIP-712 domain separator for dual factor
+   * 
+   * @param {Record<string, unknown>} [options={}] - Options object
+   * @returns {Promise<Bytes32>} EIP-712 domain separator
+   */
+  async getDomainSeparatorDualFactor(options = {}) {
+    return this.auth.dualFactor.getDomainSeparator(options);
+  }
+
+
   // ============================================================================
   // Write Methods
   // ============================================================================
@@ -885,6 +951,39 @@ class Monstera {
     return this.auth.walletSignature.removeFromWhitelist(options);
   }
 
+  /**
+   * Update the password of a wallet using valid dual factor auth proof
+   * 
+   * @param {Record<string, unknown>} options - Update password options
+   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
+   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
+   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
+   * @returns {Promise<UpdatePasswordResult>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async updatePasswordDualFactor(options = {}) {
+    return this.auth.dualFactor.updatePassword(options);
+  }
+
+  /**
+   * Update the guardian of a wallet
+   * 
+   * @param {Record<string, unknown>} options - Update guardian options
+   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
+   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
+   * @param {Address} options.newGuardian - New guardian address
+   * @returns {Promise<UpdateGuardianResult>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async updateGuardian(options = {}) {
+    return this.auth.dualFactor.updateGuardian(options);
+  }
 }
 
 export default Monstera;

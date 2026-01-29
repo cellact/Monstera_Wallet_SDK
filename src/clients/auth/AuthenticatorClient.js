@@ -12,6 +12,7 @@
 
 import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
 import WalletSignatureAuthenticatorClient from './WalletSignatureAuthenticatorClient.js';
+import DualFactorAuthenticatorClient from './DualFactorAuthenticatorClient.js';
 import { ValidationError } from '../../errors/index.js';
 
 class AuthenticatorClient {
@@ -36,6 +37,7 @@ class AuthenticatorClient {
     // 3. Add it here: this.newAuthType = new NewAuthenticatorClient(...)
     this.walletSignature = new WalletSignatureAuthenticatorClient(readProvider, writeSigner, config);
     this.password = new PasswordAuthenticatorClient(readProvider, writeSigner, config);
+    this.dualFactor = new DualFactorAuthenticatorClient(readProvider, writeSigner, config);
   }
 
   // ============================================================================

@@ -8,12 +8,14 @@ import WalletSignatureAuthenticatorEvents from './walletSignatureAuthenticator.j
 import WalletFactoryEvents from './walletFactory.js';
 import PasswordAuthenticatorEvents from './passwordAuthenticator.js';
 import KeyVaultEvents from './keyVault.js';
+import DualFactorAuthenticatorEvents from './dualFactorAuthenticator.js';
 import { parseEventFromReceipt } from './decodeReceipt.js';
 
 export {
   WalletSignatureAuthenticatorEvents,
   WalletFactoryEvents,
   PasswordAuthenticatorEvents,
+  DualFactorAuthenticatorEvents,
   KeyVaultEvents,
   parseEventFromReceipt
 };

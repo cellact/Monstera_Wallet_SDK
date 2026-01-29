@@ -40,6 +40,7 @@
  * @property {Address} factory - WalletFactory contract address
  * @property {Address} passwordAuth - PasswordAuthenticator contract address
  * @property {Address} walletSignatureAuth - WalletSignatureAuthenticator contract address
+ * @property {Address} dualFactorAuth - DualFactorAuthenticator contract address
  */
 
 /**
@@ -133,6 +134,8 @@
 
 /** @typedef {TransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigureWalletSignatureResult */
 
+/** @typedef {TransactionResult & { wallet: Address; guardian: Address }} ConfigurePasswordDualFactorResult */
+
 /** @typedef {TransactionResult & { newAdmin?: Address; implementation?: Address }} UpdateResult */
 
 /** @typedef {TransactionResult & { walletAddr?: Address }} UpdatePasswordResult */
@@ -146,6 +149,8 @@
 /** @typedef {TransactionResult & { wallet: Address; added: Address }} AddToWhitelistResult */
 
 /** @typedef {TransactionResult & { wallet: Address; removed: Address }} RemoveFromWhitelistResult */
+
+/** @typedef {TransactionResult & { wallet: Address; newGuardian: Address }} UpdateGuardianResult */
 
 // ============================================================================
 // Write / Read Wrapper Option Types
@@ -323,7 +328,7 @@
 
 /**
  * Union type for authenticator client instances.
- * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default} AuthenticatorClientInstance
+ * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default} AuthenticatorClientInstance
  */
 
 // Export empty object to make this a valid ES module
