@@ -178,6 +178,8 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Sign a raw transaction (authenticated function)
    * 
+   * @dev Delegates to KeyVault which enforces authentication.
+   * 
    * @param {SignTransactionWalletOptions} options - Sign transaction options
    * @returns {Promise<Bytes>} Signed transaction
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -208,6 +210,8 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Sign an EIP-191 message (authenticated function)
    * 
+   * @dev Delegates to KeyVault which enforces authentication.
+   * 
    * @param {SignMessageWalletOptions} options - Sign message options
    * @returns {Promise<Bytes>} Signed message
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -231,6 +235,8 @@ class WalletLogicClient extends BaseContractClient {
 
   /**
    * Sign a 32-byte hash (authenticated function)
+   * 
+   * @dev Delegates to KeyVault which enforces authentication.
    * 
    * @param {SignHashWalletOptions} options - Sign hash options
    * @returns {Promise<Bytes>} Signed hash
@@ -286,6 +292,8 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Update the authenticator (authenticated function)
    * 
+   * @dev Delegates to KeyVault which enforces authentication.
+   * 
    * @param {UpdateAuthenticatorWalletOptions} options - Update authenticator options
    * @returns {Promise<UpdateResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -317,6 +325,8 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Update the keyVaultImplementation (authenticated function)
    * 
+   * @dev Delegates to KeyVault which enforces authentication.
+   * 
    * @param {Record<string, unknown>} options - Update keyVault implementation options
    * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
@@ -342,7 +352,6 @@ class WalletLogicClient extends BaseContractClient {
           eventDef: KeyVaultEvents.ImplementationUpgraded, // Is actually a KeyVault contract event
           contract: walletLogic
         }],
-        extraData: { newImplAddr: newImplAddr },
         ...options
       }
     );
