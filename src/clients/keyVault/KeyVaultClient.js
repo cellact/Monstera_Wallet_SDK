@@ -12,7 +12,7 @@
  * @typedef {import('../../types/index.js').SignHashOptions} SignHashOptions
  * @typedef {import('../../types/index.js').InitializeOptions} InitializeOptions
  * @typedef {import('../../types/index.js').UpdateAuthenticatorOptions} UpdateAuthenticatorOptions
- * @typedef {import('../../types/index.js').InitializeResult} InitializeResult
+ * @typedef {import('../../types/index.js').TransactionResult} TransactionResult
  * @typedef {import('../../types/index.js').UpdateAuthenticatorAddrResult} UpdateAuthenticatorAddrResult
  * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
  * @typedef {import('../../types/index.js').Address} Address
@@ -288,7 +288,7 @@ class KeyVaultClient extends BaseContractClient {
    * Initialize a KeyVault contract
    * 
    * @param {InitializeOptions} options - Initialize key vault options
-   * @returns {Promise<InitializeResult>}
+   * @returns {Promise<TransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts

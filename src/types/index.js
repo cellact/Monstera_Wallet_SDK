@@ -129,8 +129,6 @@
 
 /** @typedef {TransactionResult & { wallet: Address; keyVault: Address; storage: Address; authenticator: Address; mnemonic: Mnemonic }} WalletCreationResult */
 
-/** @typedef {TransactionResult} InitializeResult */
-
 /** @typedef {TransactionResult & { wallet: Address }} ConfigurePasswordResult */
 
 /** @typedef {TransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigureWalletSignatureResult */

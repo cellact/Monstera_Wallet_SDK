@@ -11,7 +11,7 @@
  * @typedef {import('../types/index.js').WriteConnectOptions} WriteConnectOptions
  * @typedef {import('../types/index.js').ReadConnectOptions} ReadConnectOptions
  * @typedef {import('../types/index.js').InitializeOptions} InitializeOptions
- * @typedef {import('../types/index.js').InitializeResult} InitializeResult
+ * @typedef {import('../types/index.js').TransactionResult} TransactionResult
  * @typedef {import('../types/index.js').ConfigurePasswordResult} ConfigurePasswordResult
  * @typedef {import('../types/index.js').ConfigureWalletSignatureResult} ConfigureWalletSignatureResult
  * @typedef {import('../types/index.js').WalletCreationResult} WalletCreationResult
@@ -307,7 +307,7 @@ class Monstera {
    * Initialize a KeyVault contract
    * 
    * @param {InitializeOptions} options - Initialize key vault options
-   * @returns {Promise<InitializeResult>}
+   * @returns {Promise<TransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -322,7 +322,7 @@ class Monstera {
    * @param {Record<string, unknown>} options - Initialize wallet logic options
    * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
    * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @returns {Promise<InitializeResult>}
+   * @returns {Promise<TransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
