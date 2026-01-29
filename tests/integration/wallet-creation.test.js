@@ -32,6 +32,7 @@ import {
 
 describe('Wallet Creation Integration Tests', () => {
   let sdk;
+  let password;
   let passwordHash;
   let testMnemonic;
 

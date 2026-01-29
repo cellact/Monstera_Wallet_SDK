@@ -32,6 +32,7 @@ import {
 
 describe('Signing Integration Tests', () => {
   let sdk;
+  let walletAddr;
   let keyVaultAddr;
   let password;
   let authProof;

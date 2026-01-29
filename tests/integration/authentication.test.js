@@ -40,6 +40,7 @@ describe('Authentication Integration Tests', () => {
   let keyVaultAddr;
   let testWallet; // For wallet signature auth tests
   let testWalletAddr;
+  let walletAddr;
 
   beforeAll(async () => {
     const config = getTestConfig();
