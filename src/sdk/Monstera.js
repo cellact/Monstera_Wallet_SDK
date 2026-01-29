@@ -36,6 +36,8 @@
  * @typedef {import('../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../types/index.js').AuthenticatorClientInstance} AuthenticatorClientInstance
  * @typedef {import('../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
+ * @typedef {import('../types/index.js').CreateWalletBaseOptions} CreateWalletBaseOptions
+ * @typedef {import('../types/index.js').CreateWalletFromMnemonicOptions} CreateWalletFromMnemonicOptions
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -377,9 +379,7 @@ class Monstera {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {Record<string, unknown>} options - Wallet creation options
-   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {CreateWalletBaseOptions} options - Wallet creation options
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -398,10 +398,7 @@ class Monstera {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {Record<string, unknown>} options - Wallet creation options
-   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {Mnemonic} options.mnemonic - Mnemonic phrase (BIP39)
-   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {CreateWalletFromMnemonicOptions} options - Wallet creation options
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -444,9 +441,7 @@ class Monstera {
    * Use this when you want to interact with KeyVault directly,
    * or when deploying your own custom logic contract separately.
    * 
-   * @param {Record<string, unknown>} options - Wallet creation options
-   * @param {Bytes} options.authConfig - Configuration data for the authenticator (bytes)
-   * @param {Address} [options.authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+   * @param {CreateWalletBaseOptions} options - Wallet creation options
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
