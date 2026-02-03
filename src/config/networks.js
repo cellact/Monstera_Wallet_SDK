@@ -32,7 +32,7 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    factory: '0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a',
+    factory: '0x69c334Efb7ac2fe1E61192A795EedBE2189cE6D2',
     passwordAuth: '0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7',
     walletSignatureAuth: '0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a',
     dualFactorAuth: '0x1cfd73f5D99f78d4F220cc75Af3083d6094ddCAC'

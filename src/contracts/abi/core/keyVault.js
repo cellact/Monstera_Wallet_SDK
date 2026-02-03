@@ -14,6 +14,11 @@ export const KEYVAULT_ABI = [
   },
   {
     "inputs": [],
+    "name": "ChainNotConfigured",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "DelegateCallFailed",
     "type": "error"
   },
@@ -29,7 +34,17 @@ export const KEYVAULT_ABI = [
   },
   {
     "inputs": [],
+    "name": "InvalidCallData",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "InvalidImplementation",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "KeyNotFound",
     "type": "error"
   },
   {
@@ -76,6 +91,75 @@ export const KEYVAULT_ABI = [
     "type": "event"
   },
   {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "KeyActivated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "KeyDeactivated",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum WalletStorageV2.CurveType",
+        "name": "curve",
+        "type": "uint8"
+      },
+      {
+        "indexed": false,
+        "internalType": "enum WalletStorageV2.ChainType",
+        "name": "chain",
+        "type": "uint8"
+      }
+    ],
+    "name": "KeyImported",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "authProof",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "activateKey",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "authenticator",
     "outputs": [
@@ -107,6 +191,24 @@ export const KEYVAULT_ABI = [
       }
     ],
     "name": "changeAuthenticator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "authProof",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "deactivateKey",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -179,6 +281,113 @@ export const KEYVAULT_ABI = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getImportedKeyAddress",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "addr",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getImportedKeyIds",
+    "outputs": [
+      {
+        "internalType": "bytes32[]",
+        "name": "",
+        "type": "bytes32[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getKeyMetadata",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "enum WalletStorageV2.CurveType",
+            "name": "curve",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum WalletStorageV2.KeySource",
+            "name": "source",
+            "type": "uint8"
+          },
+          {
+            "internalType": "enum WalletStorageV2.ChainType",
+            "name": "chain",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint64",
+            "name": "createdAt",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint32",
+            "name": "hdIndex",
+            "type": "uint32"
+          },
+          {
+            "internalType": "bool",
+            "name": "active",
+            "type": "bool"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "labelHash",
+            "type": "bytes32"
+          }
+        ],
+        "internalType": "struct WalletStorageV2.KeyMetadata",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "index",
+        "type": "uint32"
+      }
+    ],
+    "name": "getSolanaAddress",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "pubkey",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "implementation",
     "outputs": [
@@ -194,6 +403,49 @@ export const KEYVAULT_ABI = [
   {
     "inputs": [
       {
+        "internalType": "bytes",
+        "name": "authProof",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes",
+        "name": "privateKey",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "publicKey",
+        "type": "bytes"
+      },
+      {
+        "internalType": "enum WalletStorageV2.CurveType",
+        "name": "curve",
+        "type": "uint8"
+      },
+      {
+        "internalType": "enum WalletStorageV2.ChainType",
+        "name": "chain",
+        "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "label",
+        "type": "string"
+      }
+    ],
+    "name": "importKey",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address",
         "name": "_storage",
         "type": "address"
@@ -201,11 +453,6 @@ export const KEYVAULT_ABI = [
       {
         "internalType": "address",
         "name": "_authenticator",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "_implementation",
         "type": "address"
       },
       {
@@ -230,6 +477,53 @@ export const KEYVAULT_ABI = [
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      }
+    ],
+    "name": "keyExists",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "authProof",
+        "type": "bytes"
+      },
+      {
+        "internalType": "enum WalletStorageV2.ChainType",
+        "name": "chain",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bytes",
+        "name": "basePrivateKey",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes",
+        "name": "baseChainCode",
+        "type": "bytes"
+      }
+    ],
+    "name": "setChainBaseKeys",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -303,6 +597,35 @@ export const KEYVAULT_ABI = [
         "type": "uint32"
       },
       {
+        "internalType": "bytes",
+        "name": "message",
+        "type": "bytes"
+      }
+    ],
+    "name": "signSolana",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "authProof",
+        "type": "bytes"
+      },
+      {
+        "internalType": "uint32",
+        "name": "index",
+        "type": "uint32"
+      },
+      {
         "internalType": "uint256",
         "name": "nonce",
         "type": "uint256"
@@ -350,11 +673,40 @@ export const KEYVAULT_ABI = [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "authProof",
+        "type": "bytes"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "keyId",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "digest",
+        "type": "bytes32"
+      }
+    ],
+    "name": "signWithImportedKey",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "storage_",
     "outputs": [
       {
-        "internalType": "contract WalletStorage",
+        "internalType": "contract WalletStorageV2",
         "name": "",
         "type": "address"
       }

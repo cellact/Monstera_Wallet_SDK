@@ -345,6 +345,25 @@ export const WALLET_FACTORY_ABI = [
         "type": "address"
       }
     ],
+    "name": "walletSecretVault",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
     "name": "walletStorage",
     "outputs": [
       {
