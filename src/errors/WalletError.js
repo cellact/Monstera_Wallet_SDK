@@ -131,11 +131,13 @@ class NetworkError extends WalletError {
  * @param {Record<string, unknown>} [receipt=null] - Transaction receipt
  */
 class ContractRevertError extends WalletError {
-  constructor(message, transactionHash = null, receipt = null) {
+  constructor(message, revertData = null, revertReason = null, transactionHash = null, receipt = null) {
     super(
       message,
       'TX_REVERTED',
       {
+        revertData,
+        revertReason,
         transactionHash,
         receipt,
         function: 'transaction'

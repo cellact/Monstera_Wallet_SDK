@@ -87,6 +87,8 @@ class SapphireWriteWrapper {
 
       return result;
     } catch (error) {
+      // Log raw error from ethers/provider before _translateError wraps it as WalletError
+      // console.warn('\nRaw error (before wrap):', error); // TODO: make this a debug log
       // Re-throw WalletError as-is
       if (error instanceof WalletError) {
         throw error;
@@ -107,6 +109,7 @@ class SapphireWriteWrapper {
    * @returns {WalletError} Wrapped error with descriptive message
    */
   static _translateError(methodName, err, context = {}) {
+    // console.warn('\nError in _translateError:', err); // TODO: make this a debug log
     const message = err.message || String(err);
     
     // Detect error types from ethers/contract errors
@@ -117,7 +120,9 @@ class SapphireWriteWrapper {
       // Contract revert
       return new ContractRevertError(
         `Transaction reverted: ${message}`,
-        context.transactionHash || err.transactionHash,
+        err.data, // revertData 
+        err.reason, // revertReason
+        context.transactionHash || err.receipt.hash,
         context.receipt || err.receipt
       );
     }
