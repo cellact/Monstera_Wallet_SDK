@@ -24,6 +24,7 @@ import {
   EventNotFoundError,
   WriteRequiresSignerError
 } from '../errors/index.js';
+import log from '../internal/logger.js';
 
 class SapphireWriteWrapper {
   /**
@@ -53,9 +54,11 @@ class SapphireWriteWrapper {
       // Note: The contract instance passed to txFn should already be using
       // a Sapphire-wrapped signer (created via createWriteSigner)
       const tx = await txFn();
+      log.debug('tx submitted', tx.hash);
       
       // Wait for transaction receipt
       const receipt = await tx.wait();
+      log.info('Write succeeded:', methodName, receipt.hash);
 
       // Parse events if provided
       const parsedEvents = {};
@@ -65,6 +68,7 @@ class SapphireWriteWrapper {
           const eventData = parseEventFromReceipt(eventDef, receipt, contract);
           
           if (requireEvents && !eventData) {
+            log.warn('Expected event not found in receipt:', eventName, receipt.hash);
             throw new EventNotFoundError(eventName, receipt.hash);
           }
           
@@ -88,7 +92,7 @@ class SapphireWriteWrapper {
       return result;
     } catch (error) {
       // Log raw error from ethers/provider before _translateError wraps it as WalletError
-      // console.warn('\nRaw error (before wrap):', error); // TODO: make this a debug log
+      log.debug('Raw error (before wrap):', error);
       // Re-throw WalletError as-is
       if (error instanceof WalletError) {
         throw error;
@@ -109,7 +113,6 @@ class SapphireWriteWrapper {
    * @returns {WalletError} Wrapped error with descriptive message
    */
   static _translateError(methodName, err, context = {}) {
-    // console.warn('\nError in _translateError:', err); // TODO: make this a debug log
     const message = err.message || String(err);
     
     // Detect error types from ethers/contract errors

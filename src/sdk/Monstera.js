@@ -50,6 +50,7 @@
 
 import MonsteraConfig from '../config/monstera.js';
 import MonsteraUtils from './MonsteraUtils.js';
+import log from '../internal/logger.js';
 import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
@@ -119,37 +120,52 @@ class Monstera {
     }
   
     const base = MonsteraConfig.resolveBaseConfig(options);
-  
+    const logLevel = options?.logLevel ?? (options?.debug === true ? 'debug' : 'error');
+    log.setLevel(logLevel);
+
     return new Monstera({
       ...base,
       signer,      // write-capable identity
       provider: null,
-      checkVersion: options?.checkVersion
+      checkVersion: options?.checkVersion,
+      logLevel
     });
   }
-  
+
   /**
    * Connect to Monstera on a given network
-   * 
+   *
    * Creates and configures an SDK client. Provider supports read operations only.
-   * 
+   *
    * @param {ReadConnectOptions} options - Readonly options
    * @returns {Monstera} SDK instance
    */
   static readonly(options) {
     const base = MonsteraConfig.resolveBaseConfig(options);
-  
+    const logLevel = options?.logLevel ?? (options?.debug === true ? 'debug' : 'error');
+    log.setLevel(logLevel);
+
     // Option A: allow passing provider explicitly
     const provider = options?.provider ?? null;
-  
+
     // If you want readonly to work with no provider passed, just rely on base.rpcUrl
     // because your constructor already does getReadProvider(this.rpcUrl).
     return new Monstera({
       ...base,
       provider,   // optional
       signer: null,
-      checkVersion: options?.checkVersion
+      checkVersion: options?.checkVersion,
+      logLevel
     });
+  }
+
+  /**
+   * Set the SDK log level. Affects the shared logger used by all Monstera code.
+   *
+   * @param {'error' | 'warn' | 'info' | 'debug'} level - Minimum level to emit (error < warn < info < debug)
+   */
+  setLogLevel(level) {
+    log.setLevel(level);
   }
 
   // ============================================================================

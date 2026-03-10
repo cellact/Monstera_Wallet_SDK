@@ -84,6 +84,8 @@
  * @property {string} [rpcUrl] - Optional custom RPC URL (defaults to network preset)
  * @property {Partial<ContractAddresses>} [addresses] - Optional contract address overrides
  * @property {boolean} [checkVersion=true] - Enable automatic version checking (default: true)
+ * @property {'error'|'warn'|'info'|'debug'} [logLevel='error'] - Log level. Default 'error'. Use debug: true as shorthand for logLevel 'debug'.
+ * @property {boolean} [debug] - If true, equivalent to logLevel 'debug'. Ignored if logLevel is set.
  */
 
 /**
@@ -106,6 +108,7 @@
  * @property {EthersSigner | string} [signer] - Ethers Signer or private key (0x-prefixed hex)
  * @property {EthersProvider} [provider] - Ethers Provider instance
  * @property {boolean} [checkVersion=true] - Enable automatic version checking (default: true)
+ * @property {'error'|'warn'|'info'|'debug'} [logLevel='error'] - Log level (default: 'error')
  */
 
 /**

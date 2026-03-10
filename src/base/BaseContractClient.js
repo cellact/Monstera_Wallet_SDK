@@ -21,6 +21,7 @@ import SapphireWriteWrapper from './SapphireWriteWrapper.js';
 import { requireAddress } from '../internal/assert.js';
 import MonsteraConfig from '../config/monstera.js';
 import { WalletError, WriteRequiresSignerError } from '../errors/index.js';
+import log from '../internal/logger.js';
 
 class BaseContractClient {
   // ============================================================================
@@ -54,6 +55,7 @@ class BaseContractClient {
    */
   getReadContract(contractGetter, contractAddress) {
     requireAddress(contractAddress, 'address');
+    log.debug('getReadContract:', contractAddress);
     return contractGetter(this.readProvider, contractAddress);
   }
 
@@ -70,7 +72,9 @@ class BaseContractClient {
    */
   getWriteContract(contractGetter, contractAddress) {
     requireAddress(contractAddress, 'address');
+    log.debug('getWriteContract:', contractAddress);
     if (!this.writeSigner) {
+      log.warn('Write signer missing, throwing WriteRequiresSignerError');
       throw new WriteRequiresSignerError('write operation');
     }
     return contractGetter(this.writeSigner, contractAddress);
@@ -104,6 +108,7 @@ class BaseContractClient {
     const { operation, methodName, ...errorContext } = options;
 
     try {
+      log.info('Executing read:', methodName);
       return await operation();
     } catch (error) {
       throw this.wrapError(methodName, error, errorContext);
@@ -136,6 +141,7 @@ class BaseContractClient {
     const { operation, methodName, parseEvents, requireEvents, extraData, ...errorContext } = options;
     
     try {
+      log.info('Executing write:', methodName);
       return await SapphireWriteWrapper.execute(operation, {
         writeSigner: this.writeSigner,
         parseEvents,
