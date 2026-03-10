@@ -14,6 +14,7 @@ import crypto from 'crypto';
 import { ethers, HDNodeWallet, Wallet } from 'ethers';
 import { requireAddress } from '../internal/assert.js';
 import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
+import log from '../internal/logger.js';
 
 /**
  * Generate a new mnemonic phrase (12 words)
@@ -21,10 +22,13 @@ import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
  * @returns {Mnemonic} BIP39 mnemonic phrase
  */
 function generateMnemonic() {
+  log.info('Generating new mnemonic...');
+
   // Use ethers to generate mnemonic (BIP39 compliant)
   // ethers v6: Create random wallet and extract mnemonic
   const wallet = ethers.Wallet.createRandom();
-  
+  log.debug('Length of new mnemonic generated:', wallet.mnemonic.phrase.length);
+
   return wallet.mnemonic.phrase;
 }
 
@@ -37,9 +41,12 @@ function generateMnemonic() {
  * @returns {Buffer} Derived seed (64 bytes)
  */
 function deriveSeed(mnemonic, password = '', iterations = 2048) {
+  log.info('Deriving seed from mnemonic...');
+
   // Normalize mnemonic (remove extra whitespace)
   const normalizedMnemonic = mnemonic.trim().toLowerCase().replace(/\s+/g, ' ');
-  
+  log.debug('Length of normalized mnemonic:', normalizedMnemonic.length);
+
   // Use PBKDF2 to derive seed (same as Hardhat script)
   const seed = crypto.pbkdf2Sync(
     normalizedMnemonic,
@@ -48,7 +55,8 @@ function deriveSeed(mnemonic, password = '', iterations = 2048) {
     64,   // key length (512 bits = 64 bytes)
     'sha512'
   );
-  
+  log.debug('Derived seed length:', seed.length);
+
   return seed;
 }
 
@@ -101,6 +109,9 @@ async function createAuthProof(signer, chainId, authenticatorAddr, deadline, key
   if (deadline < nowInSeconds) {
     throw new ValidationError('Deadline must be in the future', 'deadline', deadline);
   }
+
+  log.info('Creating auth proof');
+  log.debug('KeyVault address:', { keyVaultAddr } + 'authenticator address:', { authenticatorAddr } + 'chain ID:', { chainId } + 'deadline:', { deadline });
   
   // build EIP-712 domain
   const domain = {

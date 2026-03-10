@@ -14,6 +14,7 @@ import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
 import WalletSignatureAuthenticatorClient from './WalletSignatureAuthenticatorClient.js';
 import DualFactorAuthenticatorClient from './DualFactorAuthenticatorClient.js';
 import { ValidationError } from '../../errors/index.js';
+import log from '../../internal/logger.js';
 
 class AuthenticatorClient {
   // ============================================================================
@@ -52,6 +53,7 @@ class AuthenticatorClient {
    * @throws {ValidationError} If authenticator type is not found
    */
   getClient(type) {
+    log.debug('AuthenticatorClient: getClient', { type });
     if (!this[type]) {
       throw new ValidationError(
         `Authenticator client type '${type}' not found. Available types: ${Object.keys(this).join(', ')}`,

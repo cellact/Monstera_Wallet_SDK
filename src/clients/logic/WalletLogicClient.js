@@ -22,6 +22,7 @@ import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletLogicContract } from '../../contracts/core/walletLogic.js';
 import { KeyVaultEvents } from '../../events/index.js';
 import { requireAddress, requireBytes, requireNonNegativeInteger } from '../../internal/assert.js';
+import log from '../../internal/logger.js';
 
 class WalletLogicClient extends BaseContractClient {
   // ============================================================================
@@ -51,6 +52,9 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getKeyVaultAddr(options = {}) {
     const { walletAddr } = options;
+    log.info('WalletLogic: getKeyVaultAddr');
+    log.debug('Getting keyVault address for:', { walletAddr });
+
     const logic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
@@ -72,6 +76,9 @@ class WalletLogicClient extends BaseContractClient {
    */
   async get_key_vault_addr(options = {}) {
     const { walletAddr } = options;
+    log.info('WalletLogic: get_key_vault_addr');
+    log.debug('Getting keyVault address for:', { walletAddr });
+
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
@@ -93,6 +100,9 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getAuthenticatorAddr(options = {}) {
     const { walletAddr } = options;
+    log.info('WalletLogic: getAuthenticatorAddr');
+    log.debug('Getting authenticator address for:', { walletAddr });
+
     const logic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
@@ -114,6 +124,9 @@ class WalletLogicClient extends BaseContractClient {
    */
   async isInitialized(options = {}) {
     const { walletAddr } = options;
+    log.info('WalletLogic: isInitialized');
+    log.debug('Checking if wallet ' + walletAddr + ' is initialized');
+
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
     return this.executeRead(
@@ -137,6 +150,8 @@ class WalletLogicClient extends BaseContractClient {
   async getAccountAddr(options = {}) {
     const { walletAddr, index } = options;
     requireNonNegativeInteger(index, 'index');
+    log.info('WalletLogic: getAccountAddr');
+    log.debug('Getting account address for wallet ' + walletAddr + ' at index ' + index);
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -163,6 +178,8 @@ class WalletLogicClient extends BaseContractClient {
     const { walletAddr, fromIndex, count } = options;
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
+    log.info('WalletLogic: getAccountAddresses');
+    log.debug('Getting account addresses for wallet ' + walletAddr + ' from index ' + fromIndex + ' to index ' + (fromIndex + count));
     
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -195,6 +212,8 @@ class WalletLogicClient extends BaseContractClient {
     requireNonNegativeInteger(value, 'value');
     requireBytes(data, 'data');
     requireNonNegativeInteger(chainId, 'chainId');
+    log.info('WalletLogic: signTransaction');
+    log.debug('Signing transaction for wallet ' + walletAddr + ' at index ' + index + ' to address ' + to); // TODO: log the options leaving out sensitive data 
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -221,6 +240,8 @@ class WalletLogicClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
+    log.info('WalletLogic: signMessage');
+    log.debug('Signing Ethereum EIP-191 message for wallet ' + walletAddr + ' at index ' + index); // TODO: log the options leaving out sensitive data 
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -247,6 +268,8 @@ class WalletLogicClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
+    log.info('WalletLogic: sign');
+    log.debug('Signing hash for wallet ' + walletAddr + ' at index ' + index); // TODO: log the options leaving out sensitive data 
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -277,6 +300,8 @@ class WalletLogicClient extends BaseContractClient {
   async initialize(options = {}) {
     const { walletAddr, keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
+    log.info('WalletLogic: initialize');
+    log.debug('Initialize wallet logic for wallet ' + walletAddr + ' with keyVault ' + keyVaultAddr);
 
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
   
@@ -306,7 +331,9 @@ class WalletLogicClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');
-
+    log.info('WalletLogic: updateAuthenticatorAddr');
+    log.debug('Updating authenticator for wallet ' + walletAddr + ' to ' + newAuthenticatorAddr); // TODO: log the options leaving out sensitive data 
+    
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
 
     return this.executeWrite(
@@ -341,6 +368,8 @@ class WalletLogicClient extends BaseContractClient {
     const { walletAddr, authProof, newImplAddr } = options;
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
+    log.info('WalletLogic: updateKeyVaultImplAddr');
+    log.debug('Updating keyVault implementation for wallet ' + walletAddr + ' to ' + newImplAddr); // TODO: log the options leaving out sensitive data 
 
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
 
