@@ -51,7 +51,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('DualFactorAuthenticator: isConfigured');
-    log.debug('Checking if ' + keyVaultAddr + ' is configured');
+    log.debug('Checking if keyVault is configured', { keyVaultAddr });
 
     const dualFactorAuth = this.getReadContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
 
@@ -78,7 +78,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     log.info('DualFactorAuthenticator: verify');
-    log.debug('Verifying auth proof for ' + keyVaultAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Verifying auth proof for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data 
 
     const dualFactorAuth = this.getReadContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
 
@@ -103,7 +103,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('DualFactorAuthenticator: getGuardian');
-    log.debug('Getting guardian for ' + keyVaultAddr);
+    log.debug('Getting guardian for keyVault', { keyVaultAddr });
 
     const dualFactorAuth = this.getReadContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
 
@@ -159,7 +159,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireBytes(newPasswordHash, 'newPasswordHash');
     log.info('DualFactorAuthenticator: updatePassword');
-    log.debug('Updating password for ' + keyVaultAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Updating password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data 
 
     const dualFactorAuth = this.getWriteContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
 
@@ -202,7 +202,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authConfig, 'authConfig');
     log.info('DualFactorAuthenticator: configure');
-    log.debug('Configuring password dual factor for ' + keyVaultAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Configuring password dual factor for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data 
 
     const dualFactorAuth = this.getWriteContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
     
@@ -239,7 +239,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(newGuardian, 'newGuardian');
     log.info('DualFactorAuthenticator: updateGuardian');
-    log.debug('Updating guardian for ' + keyVaultAddr + ' to ' + newGuardian); // TODO: log the options leaving out sensitive data 
+    log.debug('Updating guardian for keyVault to new address', { keyVaultAddr, newGuardian }); // TODO: log the options leaving out sensitive data 
 
     const dualFactorAuth = this.getWriteContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
     

@@ -51,7 +51,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('WalletSignatureAuthenticator: isConfigured');
-    log.debug('Checking if ' + keyVaultAddr + ' is configured');
+    log.debug('Checking if keyVault is configured', { keyVaultAddr });
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
     
@@ -78,7 +78,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(addressToCheck, 'addressToCheck');
     log.info('WalletSignatureAuthenticator: isWhitelisted');
-    log.debug('Checking if ' + addressToCheck + ' is whitelisted for ' + keyVaultAddr);
+    log.debug('Checking if address is whitelisted for keyVault', { keyVaultAddr, addressToCheck });
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
@@ -103,7 +103,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('WalletSignatureAuthenticator: getWhitelist');
-    log.debug('Getting whitelist for ' + keyVaultAddr);
+    log.debug('Getting whitelist for keyVault', { keyVaultAddr });
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
@@ -150,7 +150,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     log.info('WalletSignatureAuthenticator: verify');
-    log.debug('Verifying auth proof for ' + keyVaultAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Verifying auth proof for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
@@ -186,7 +186,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(addressToAdd, 'addressToAdd');
     log.info('WalletSignatureAuthenticator: addToWhitelist');
-    log.debug('Adding ' + addressToAdd + ' to whitelist for ' + keyVaultAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Adding address to whitelist for keyVault', { keyVaultAddr, addressToAdd }); // TODO: log the options leaving out sensitive data
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
@@ -221,7 +221,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authConfig, 'authConfig');
     log.info('WalletSignatureAuthenticator: configure');
-    log.debug('Configuring wallet signature authenticator for ' + keyVaultAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Configuring wallet signature authenticator for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
@@ -258,7 +258,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(addressToRemove, 'addressToRemove');
     log.info('WalletSignatureAuthenticator: removeFromWhitelist');
-    log.debug('Removing ' + addressToRemove + ' from whitelist for ' + keyVaultAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Removing address from whitelist for keyVault', { keyVaultAddr, addressToRemove }); // TODO: log the options leaving out sensitive data
 
     const walletSigAuth = this.getWriteContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 

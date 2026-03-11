@@ -53,7 +53,7 @@ class WalletLogicClient extends BaseContractClient {
   async getKeyVaultAddr(options = {}) {
     const { walletAddr } = options;
     log.info('WalletLogic: getKeyVaultAddr');
-    log.debug('Getting keyVault address for:', { walletAddr });
+    log.debug('Getting keyVault address for wallet', { walletAddr });
 
     const logic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -77,7 +77,7 @@ class WalletLogicClient extends BaseContractClient {
   async get_key_vault_addr(options = {}) {
     const { walletAddr } = options;
     log.info('WalletLogic: get_key_vault_addr');
-    log.debug('Getting keyVault address for:', { walletAddr });
+    log.debug('Getting keyVault address for wallet', { walletAddr });
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -101,7 +101,7 @@ class WalletLogicClient extends BaseContractClient {
   async getAuthenticatorAddr(options = {}) {
     const { walletAddr } = options;
     log.info('WalletLogic: getAuthenticatorAddr');
-    log.debug('Getting authenticator address for:', { walletAddr });
+    log.debug('Getting authenticator address for wallet', { walletAddr });
 
     const logic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -125,7 +125,7 @@ class WalletLogicClient extends BaseContractClient {
   async isInitialized(options = {}) {
     const { walletAddr } = options;
     log.info('WalletLogic: isInitialized');
-    log.debug('Checking if wallet ' + walletAddr + ' is initialized');
+    log.debug('Checking if wallet is initialized', { walletAddr });
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -151,7 +151,7 @@ class WalletLogicClient extends BaseContractClient {
     const { walletAddr, index } = options;
     requireNonNegativeInteger(index, 'index');
     log.info('WalletLogic: getAccountAddr');
-    log.debug('Getting account address for wallet ' + walletAddr + ' at index ' + index);
+    log.debug('Getting account address for wallet at index', { walletAddr, index });
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -179,7 +179,7 @@ class WalletLogicClient extends BaseContractClient {
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
     log.info('WalletLogic: getAccountAddresses');
-    log.debug('Getting account addresses for wallet ' + walletAddr + ' from index ' + fromIndex + ' to index ' + (fromIndex + count));
+    log.debug('Getting account addresses for wallet for index range', { walletAddr, fromIndex, count });
     
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -213,7 +213,7 @@ class WalletLogicClient extends BaseContractClient {
     requireBytes(data, 'data');
     requireNonNegativeInteger(chainId, 'chainId');
     log.info('WalletLogic: signTransaction');
-    log.debug('Signing transaction for wallet ' + walletAddr + ' at index ' + index + ' to address ' + to); // TODO: log the options leaving out sensitive data 
+    log.debug('Signing transaction for wallet at index to address', { walletAddr, index, to }); // TODO: log the options leaving out sensitive data 
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -241,7 +241,7 @@ class WalletLogicClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
     log.info('WalletLogic: signMessage');
-    log.debug('Signing Ethereum EIP-191 message for wallet ' + walletAddr + ' at index ' + index); // TODO: log the options leaving out sensitive data 
+    log.debug('Signing Ethereum EIP-191 message for wallet at index', { walletAddr, index }); // TODO: log the options leaving out sensitive data 
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -269,7 +269,7 @@ class WalletLogicClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(hash, 'hash');
     log.info('WalletLogic: sign');
-    log.debug('Signing hash for wallet ' + walletAddr + ' at index ' + index); // TODO: log the options leaving out sensitive data 
+    log.debug('Signing Ethereum hash for wallet at index', { walletAddr, index }); // TODO: log the options leaving out sensitive data 
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
 
@@ -301,7 +301,7 @@ class WalletLogicClient extends BaseContractClient {
     const { walletAddr, keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('WalletLogic: initialize');
-    log.debug('Initialize wallet logic for wallet ' + walletAddr + ' with keyVault ' + keyVaultAddr);
+    log.debug('Initializing wallet logic with keyVault', { walletAddr, keyVaultAddr });
 
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
   
@@ -332,7 +332,7 @@ class WalletLogicClient extends BaseContractClient {
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');
     log.info('WalletLogic: updateAuthenticatorAddr');
-    log.debug('Updating authenticator for wallet ' + walletAddr + ' to ' + newAuthenticatorAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Updating authenticator for wallet to new address', { walletAddr, newAuthenticatorAddr }); // TODO: log the options leaving out sensitive data 
     
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
 
@@ -369,7 +369,7 @@ class WalletLogicClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
     log.info('WalletLogic: updateKeyVaultImplAddr');
-    log.debug('Updating keyVault implementation for wallet ' + walletAddr + ' to ' + newImplAddr); // TODO: log the options leaving out sensitive data 
+    log.debug('Updating keyVault implementation for wallet', { walletAddr, newImplAddr }); // TODO: log the options leaving out sensitive data 
 
     const walletLogic = this.getWriteContract(getWalletLogicContract, walletAddr);
 

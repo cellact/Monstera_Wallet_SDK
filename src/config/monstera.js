@@ -16,6 +16,7 @@
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
 import { ConfigError, ValidationError } from '../errors/index.js';
 import { isAddress } from '../internal/assert.js';
+import log from '../internal/logger.js';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { readFileSync } from 'fs';
@@ -121,6 +122,8 @@ class MonsteraConfig {
     const network = mainnet ? 'mainnet' : 'testnet';
 
     const networkConfig = buildNetworkConfig({ network, rpcUrl, addresses });
+
+    log.debug('resolveBaseConfig', { mainnet, network });
 
     MonsteraConfig._validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
 

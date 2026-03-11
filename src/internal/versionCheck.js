@@ -3,6 +3,7 @@
  */
 
 import { compareVersions, getVersionType } from './version.js';
+import log from './logger.js';
 
 /**
  * Check if current version is outdated
@@ -11,6 +12,7 @@ import { compareVersions, getVersionType } from './version.js';
  * @returns {Promise<VersionCheckResult>}
  */
 export async function checkVersion(currentVersion, latestVersion) {
+  log.debug('Checking SDK version', { currentVersion, latestVersion });
   const comparison = compareVersions(currentVersion, latestVersion);
   const versionType = getVersionType(currentVersion, latestVersion);
   
@@ -32,6 +34,7 @@ export async function checkVersion(currentVersion, latestVersion) {
  * @returns {Promise<string|null>} Latest version or null if fetch fails
  */
 export async function fetchLatestVersion() {
+  log.debug('fetchLatestVersion', {});
   // Only check in Node.js (browser has CORS issues with npm registry)
   if (typeof window === 'undefined') {
     try {
@@ -42,6 +45,7 @@ export async function fetchLatestVersion() {
       const data = await response.json();
       return data.version;
     } catch (error) {
+      log.warn('Failed to fetch latest version', { error: error.message });
       // Silently fail - don't spam console in case of network issues
       return null;
     }
@@ -65,6 +69,7 @@ export async function checkAndWarnVersion(currentVersion) {
   const latestVersion = await fetchLatestVersion();
   
   if (!latestVersion) {
+    log.debug('checkAndWarnVersion', { skipped: true, reason: 'no latest version' });
     return; // Failed to fetch, silently skip
   }
 
@@ -74,14 +79,12 @@ export async function checkAndWarnVersion(currentVersion) {
   if (result.isOutdated) {
     // Only warn for major/minor updates (not patch/prerelease)
     if (result.versionType === 'major' || result.versionType === 'minor') {
-      console.warn(
-        `\n⚠️  Monstera SDK Update Available\n` +
-        `   You are running version ${currentVersion}, but version ${latestVersion} is available.\n` +
-        `   This is a ${result.versionType} update that may include important fixes and improvements.\n` +
-        `   \n` +
-        `   To update, run:\n` +
-        `   npm install @monstera_protocol/sdk@latest\n`
-      );
+      log.warn('Monstera SDK update available', {
+        currentVersion,
+        latestVersion,
+        versionType: result.versionType,
+        recommendation: 'npm install @monstera_protocol/sdk@latest'
+      });
     }
   }
 }

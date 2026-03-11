@@ -54,11 +54,11 @@ class SapphireWriteWrapper {
       // Note: The contract instance passed to txFn should already be using
       // a Sapphire-wrapped signer (created via createWriteSigner)
       const tx = await txFn();
-      log.debug('tx submitted', tx.hash);
-      
+      log.debug('tx submitted', { hash: tx.hash });
+
       // Wait for transaction receipt
       const receipt = await tx.wait();
-      log.info('Write succeeded:', methodName, receipt.hash);
+      log.info('Write succeeded', { methodName, hash: receipt.hash });
 
       // Parse events if provided
       const parsedEvents = {};
@@ -68,7 +68,7 @@ class SapphireWriteWrapper {
           const eventData = parseEventFromReceipt(eventDef, receipt, contract);
           
           if (requireEvents && !eventData) {
-            log.warn('Expected event not found in receipt:', eventName, receipt.hash);
+            log.warn('Expected event not found in receipt', { eventName, receiptHash: receipt.hash });
             throw new EventNotFoundError(eventName, receipt.hash);
           }
           
@@ -92,7 +92,7 @@ class SapphireWriteWrapper {
       return result;
     } catch (error) {
       // Log raw error from ethers/provider before _translateError wraps it as WalletError
-      log.debug('Raw error (before wrap):', error);
+      log.debug('Raw error (before wrap)', { error: error });
       // Re-throw WalletError as-is
       if (error instanceof WalletError) {
         throw error;

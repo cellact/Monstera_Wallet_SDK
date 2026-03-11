@@ -9,6 +9,7 @@
  */
 
 import { ValidationError, EventParseError } from '../errors/index.js';
+import log from '../internal/logger.js';
 
 /**
  * Generic event parser
@@ -27,9 +28,9 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
   const iface = contract.interface;
 
   // Find the event log
-  const eventLog = receipt.logs.find((log) => {
+  const eventLog = receipt.logs.find((logEntry) => {
     try {
-      const parsed = iface.parseLog(log);
+      const parsed = iface.parseLog(logEntry);
       return parsed?.name === eventName;
     } catch {
       return false;
@@ -37,6 +38,7 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
   });
 
   if (!eventLog) {
+    log.debug('parseEvent: event not found in receipt', { eventName, receiptHash: receipt?.hash });
     return null;
   }
 
@@ -56,6 +58,7 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
 
     return result;
   } catch (error) {
+    log.debug('parseEvent: parse failed', { eventName, receiptHash: receipt?.hash, error: error?.message });
     throw new EventParseError(
       eventName,
       receipt?.hash || null,

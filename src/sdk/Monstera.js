@@ -78,10 +78,10 @@ class Monstera {
     this.version = MonsteraConfig.version;
 
     // Initialize read provider (for read operations)
-    this.readProvider = config.provider ?? createProvider(config.rpcUrl);
+    this.readProvider = config.provider ?? createProvider(config.rpcUrl, 'read');
     
     // Initialize write signer (for write operations with Sapphire wrapper)
-    this.writeSigner = config.signer ? createWriteSigner(config.signer, config.rpcUrl) : null;
+    this.writeSigner = config.signer ? createWriteSigner(config.signer, config.rpcUrl, 'write') : null;
 
     // Wire domain clients
     this.factory = new WalletFactoryClient(this.readProvider, this.writeSigner, config);
