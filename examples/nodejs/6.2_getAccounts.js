@@ -3,11 +3,11 @@
  * 
  * Run: node examples/nodejs/6.2_getAccounts.js
  * 
- * Shows the first 3 account addresses so you can fund them on Amoy.
- * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
  *   WALLET_ADDRESS=0x... (your wallet address)
+ * 
+ * Shows the first 3 account addresses so you can fund them on Amoy.
  * 
  */
 import 'dotenv/config';

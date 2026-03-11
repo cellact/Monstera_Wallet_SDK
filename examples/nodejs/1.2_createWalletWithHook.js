@@ -1,5 +1,6 @@
 /**
  * Step 1.2: Create a new HD wallet with a post-creation hook
+ * 
  * Run: node examples/nodejs/1.2_createWalletWithHook.js
  * 
  * Required env vars:

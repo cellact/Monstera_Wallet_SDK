@@ -1,5 +1,6 @@
 /**
  * Step 1: Create a HD wallet
+ * 
  * Run: node examples/nodejs/1_createHDWallet.js
  * 
  * Required env vars:

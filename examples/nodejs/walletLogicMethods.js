@@ -18,7 +18,6 @@
  * the WalletLogic contract. For better performance, use KeyVaultClient
  * methods directly (e.g., monstera.getKeyVaultAddr() instead of monstera.logic.getKeyVaultAddr()).
  */
-
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 

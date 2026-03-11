@@ -1,6 +1,5 @@
 /**
  * Authenticator Client Methods
- * 
  * Demonstrates how to access authenticator clients through the SDK.
  * 
  * Run: node examples/nodejs/authenticator.js

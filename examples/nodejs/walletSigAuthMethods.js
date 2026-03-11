@@ -19,7 +19,6 @@
  * Note: Whitelist management methods (addToWhitelist, removeFromWhitelist,
  * getWhitelist) are demonstrated in other example files.
  */
-
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 import { ethers, Wallet } from 'ethers';

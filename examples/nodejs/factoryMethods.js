@@ -14,10 +14,10 @@
  * 4. Get storage contract address for a wallet.
  * 
  */
-
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 
+// ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 

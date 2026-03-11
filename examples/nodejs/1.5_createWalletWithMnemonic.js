@@ -1,5 +1,6 @@
 /**
  * Step 1: Create a HD wallet from a provided mnemonic
+ * 
  * Run: node examples/nodejs/1.5_createWalletWithMnemonic.js
  * 
  * Required env vars:

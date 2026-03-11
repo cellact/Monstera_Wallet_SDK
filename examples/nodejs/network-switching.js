@@ -4,7 +4,6 @@
  * Demonstrates how to switch between testnet and mainnet
  * with the same SDK instance or create new instances.
  */
-
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 
@@ -54,4 +53,3 @@ async function networkSwitchingExample() {
 
 // Run example
 networkSwitchingExample().catch(console.error);
-

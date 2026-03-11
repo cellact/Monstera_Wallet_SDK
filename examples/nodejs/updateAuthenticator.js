@@ -13,12 +13,12 @@
  * 1. Get the current authenticator
  * 2. Update the authenticator to a new one
  * 3. Verify the new authenticator is used
- * 
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
+// ============ CONFIGURATION ============
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const PASSWORD = process.env.PASSWORD || "";

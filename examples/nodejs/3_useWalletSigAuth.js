@@ -3,6 +3,11 @@
  * 
  * Run: node examples/nodejs/3_useWalletSigAuth.js
  * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
+ *   ALLOWED_1_KEY=0x... (private key for first allowed address)
+ *   ALLOWED_2_KEY=0x... (private key for second allowed address)
+ * 
  * Tests:
  * 1. Create wallet with whitelist of allowed signers
  * 2. Try access with NOT allowed account → fail
@@ -10,11 +15,6 @@
  * 4. Try access with allowed account #2 → success
  * 5. Add new account to whitelist
  * 6. Try with newly allowed account → success
- * 
- * Required env vars:
- *   SIGNER_PRIVATE_KEY=0x... (private key for deploying/creating wallet)
- *   ALLOWED_1_KEY=0x... (private key for first allowed address)
- *   ALLOWED_2_KEY=0x... (private key for second allowed address)
  */
 
 import 'dotenv/config';

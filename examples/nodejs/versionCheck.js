@@ -1,5 +1,6 @@
 /**
  * Version Checking Example
+ * 
  * Run: node examples/nodejs/versionCheck.js
  * 
  * This example demonstrates:
@@ -7,10 +8,12 @@
  * 2. How to manually check for updates
  * 3. How to disable automatic version checking
  */
-
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 import { checkAndWarnVersion } from '../../src/internal/versionCheck.js';
+
+// ============ CONFIGURATION ============
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000001';
 
 async function demonstrateAutomaticVersionCheck() {
   console.log('='.repeat(60));
@@ -19,8 +22,6 @@ async function demonstrateAutomaticVersionCheck() {
   console.log('\nWhen you create an SDK instance, it automatically checks for updates.');
   console.log('If a major or minor update is available, you\'ll see a warning.\n');
 
-  const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000001';
-  
   const monstera = Monstera.connect({
     mainnet: false,
     signer: SIGNER_PRIVATE_KEY
@@ -39,8 +40,6 @@ async function demonstrateDisableVersionCheck() {
   console.log('='.repeat(60));
   console.log('\nYou can disable automatic version checking by setting checkVersion: false\n');
 
-  const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000001';
-  
   const monstera = Monstera.connect({
     mainnet: false,
     signer: SIGNER_PRIVATE_KEY,

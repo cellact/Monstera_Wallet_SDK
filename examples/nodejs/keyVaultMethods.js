@@ -23,7 +23,6 @@
  * 10. execute a function with an auth proof
  * 
  */
-
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';

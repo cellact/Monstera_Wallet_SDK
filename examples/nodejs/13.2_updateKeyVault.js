@@ -3,13 +3,13 @@
  * 
  * Run: node examples/nodejs/13.2_updateKeyVault.js
  * 
- * This demonstrates that KeyVaultImplementation IS updateable!
- * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
  *   WALLET_ADDRESS=0x... (your wallet address)
  *   PASSWORD=mysecretpassword123
  *   NEW_KEYVAULT_IMPL_ADDRESS=0x... (your new keyVault implementation address)
+ * 
+ * This demonstrates that KeyVaultImplementation IS updateable!
  * 
  * Tests:
  * 1. Get the current keyVault implementation
@@ -22,6 +22,7 @@ import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
+// ============ CONFIGURATION ============
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const PASSWORD = process.env.PASSWORD || "";

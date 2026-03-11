@@ -19,7 +19,6 @@
  * 3. Verify the transfer was successful
  * 4. (Optional) Verify existing wallets still work after admin transfer
  */
-
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 

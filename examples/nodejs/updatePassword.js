@@ -3,13 +3,13 @@
  * 
  * Run: node examples/nodejs/updatePassword.js
  * 
- * This demonstrates that the password can be updated!
- * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
  *   WALLET_ADDRESS=0x... (your wallet address)
  *   PASSWORD=mysecretpassword123
  *   NEW_PASSWORD=mynewpassword123
+ * 
+ * This demonstrates that the password can be updated!
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';

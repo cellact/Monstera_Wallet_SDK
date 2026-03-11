@@ -3,6 +3,13 @@
  * 
  * Run: node examples/nodejs/6.1_signTransaction.js
  * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (your private key)
+ *   WALLET_ADDRESS=0x... (your wallet address)
+ *   PASSWORD=mysecretpassword123
+ *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology
+ *   COUNTER_BYTECODE=0x... (your counter contract bytecode)
+ * 
  * This demonstrates THE KEY SECURITY FEATURE:
  * - Private key NEVER leaves Sapphire enclave
  * - Transaction is built on Amoy, signed on Sapphire, broadcast on Amoy
@@ -17,13 +24,6 @@
  *   - Wallet on Sapphire testnet (WALLET_ADDRESS)
  *   - Password for the wallet (PASSWORD)
  *   - MATIC on the wallet's account[0] on Amoy
- * 
- * Required env vars:
- *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   WALLET_ADDRESS=0x... (your wallet address)
- *   PASSWORD=mysecretpassword123
- *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology
- *   COUNTER_BYTECODE=0x... (your counter contract bytecode)
  * 
  */
 import 'dotenv/config';
