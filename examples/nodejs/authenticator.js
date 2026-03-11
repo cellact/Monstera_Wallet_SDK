@@ -17,17 +17,17 @@ const monstera = Monstera.readonly({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("Authenticator Client Methods");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${monstera.network}`);
 
   // ============ STEP 1: Get all available authenticator types ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Get all available authenticator types");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     const availableTypes = monstera.getAvailableAuthTypes();
@@ -41,9 +41,9 @@ async function main() {
   }
 
   // ============ STEP 2: Get specific authenticator clients ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Get specific authenticator clients by type");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // Get password authenticator client
   try {
@@ -76,14 +76,14 @@ async function main() {
   }
 
   // ============ SUMMARY ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("SUMMARY");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("   ✅ Successfully retrieved all available authenticator types");
   console.log("   ✅ Successfully retrieved password authenticator client");
   console.log("   ✅ Successfully retrieved wallet signature authenticator client");
   console.log("   ✅ Correctly handled invalid authenticator type");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 // Run example

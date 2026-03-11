@@ -27,17 +27,17 @@ const sdk = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("WalletFactory - Full Test Suite");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${sdk.network}`);
 
   // ============ STEP 1: Check if an address is a wallet created by this factory ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Check if an address is a wallet created by this factory");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     // Check if an address is a wallet created by this factory
@@ -56,9 +56,9 @@ async function main() {
   }
 
   // ============ STEP 2: Get current WalletLogic implementation. ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Get current WalletLogic implementation.");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     // Get current WalletLogic contract address
@@ -75,9 +75,9 @@ async function main() {
   }
 
   // ============ STEP 3: Get beacon address. ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 3: Get beacon address.");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     // Get beacon address
@@ -94,9 +94,9 @@ async function main() {
   }
 
   // ============ STEP 4: Get storage contract address for a wallet. ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 4: Get storage contract address for a wallet.");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     // Get storage contract address for a wallet

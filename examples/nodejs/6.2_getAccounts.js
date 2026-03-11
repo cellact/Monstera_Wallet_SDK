@@ -23,9 +23,9 @@ const sdk = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("Step 6.2: Get Account Addresses for Funding");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   if (!WALLET_ADDRESS) {
     console.error("ERROR: Set WALLET_ADDRESS env var");
@@ -45,9 +45,9 @@ async function main() {
   console.log(`  └── KeyVault:   ${keyVault}`);
   console.log(`      └── Auth:   ${auth}`);
 
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("ACCOUNT ADDRESSES (fund these on Amoy)");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   for (let i = 0; i < 3; i++) {
     const addr = await sdk.getAccountAddr({
@@ -57,12 +57,12 @@ async function main() {
     console.log(`\n   Account ${i}: ${addr}`);
   }
 
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("FAUCETS");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("   Polygon Amoy: https://faucet.polygon.technology/");
   console.log("   Alchemy Amoy: https://www.alchemy.com/faucets/polygon-amoy");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 main()

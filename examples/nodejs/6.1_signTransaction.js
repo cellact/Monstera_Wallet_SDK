@@ -46,9 +46,9 @@ const sdk = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("Step 6: Cross-Chain Transaction (Sapphire → Amoy)");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("\n🔐 Private key NEVER leaves Sapphire enclave!");
 
   // Verify configuration
@@ -62,9 +62,9 @@ async function main() {
   console.log("\nSapphire Wallet:", SAPPHIRE_WALLET_ADDRESS);
 
   // ============ Connect to Sapphire Wallet ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Connect to Sapphire Wallet");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // Get account address and KeyVault
   const keyVaultAddr = await sdk.getKeyVaultAddr({
@@ -80,9 +80,9 @@ async function main() {
   console.log(`   Account ${ACCOUNT_INDEX}: ${accountAddress}`);
 
   // ============ Check Balance on Amoy ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Check Balance on Amoy");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const balance = await amoyProvider.getBalance(accountAddress);
   console.log(`   Balance: ${ethers.formatEther(balance)} MATIC`);
@@ -98,9 +98,9 @@ async function main() {
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
   // ============ Deploy Counter on Amoy ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 3: Deploy Counter on Amoy (via Sapphire signing)");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // Counter contract ABI
   const COUNTER_ABI = [
@@ -207,9 +207,9 @@ async function main() {
   console.log(`   Initial count: ${await counter.count()}`);
 
   // ============ Sign increment() via Sapphire ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 4: Call increment() (via Sapphire signing)");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const counterInterface = new ethers.Interface(COUNTER_ABI);
   const txData = counterInterface.encodeFunctionData("increment", []);
@@ -245,9 +245,9 @@ async function main() {
   console.log(`   New count: ${newCount}`);
 
   // ============ Second Transaction ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 5: Call incrementBy(5)");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const txData2 = counterInterface.encodeFunctionData("incrementBy", [5]);
   const nonce2 = await amoyProvider.getTransactionCount(accountAddress);
@@ -275,9 +275,9 @@ async function main() {
   console.log(`   Final count: ${finalCount}`);
 
   // ============ SUMMARY ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("SUCCESS!");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log(`
   Sapphire Wallet: ${SAPPHIRE_WALLET_ADDRESS}
   KeyVault:        ${keyVaultAddr}
@@ -292,7 +292,7 @@ async function main() {
   ✅ Only signed bytes were sent to Amoy
   ✅ Authentication enforced by KeyVault
   `);
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 main()

@@ -33,9 +33,9 @@ const monstera = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("Transfer Admin Ownership");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   if (!NEW_ADMIN_ADDRESS) {
     console.error("ERROR: Set NEW_ADMIN_ADDRESS env var");
@@ -47,9 +47,9 @@ async function main() {
   console.log(`   New Admin Address: ${NEW_ADMIN_ADDRESS}`);
 
   // ============ STEP 1: Verify caller is admin ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Verify caller is admin");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     const currentAdmin = await monstera.getAdmin();
@@ -72,9 +72,9 @@ async function main() {
   }
 
   // ============ STEP 2: Transfer admin ownership ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Transfer admin ownership to new address");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("\n   This transfers admin control of the WalletFactory contract.\n");
 
   try {
@@ -94,9 +94,9 @@ async function main() {
   }
 
   // ============ STEP 3: Verify the transfer ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 3: Verify the transfer was successful");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     const newAdmin = await monstera.getAdmin();
@@ -117,9 +117,9 @@ async function main() {
 
   // ============ STEP 4: Verify existing wallets still work (optional) ============
   if (WALLET_ADDRESS) {
-    console.log("\n" + "=".repeat(70));
+    console.log("\n" + "=".repeat(60));
     console.log("STEP 4: Verify existing wallets still work");
-    console.log("=".repeat(70));
+    console.log("=".repeat(60));
     console.log("\n   Admin transfer does not affect existing wallets.\n");
 
     try {
@@ -143,9 +143,9 @@ async function main() {
   }
 
   // ============ SUMMARY ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("SUMMARY");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("   ✅ Verified caller is admin");
   console.log("   ✅ Transferred admin ownership");
   console.log("   ✅ Verified transfer was successful");
@@ -154,7 +154,7 @@ async function main() {
   }
   console.log("\n   ⚠️  IMPORTANT: The new admin now has control over");
   console.log("      WalletFactory updates and admin transfers.");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 main()

@@ -33,9 +33,9 @@ const sdk = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("Step 5: Update WalletLogic (Admin)");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // Verify caller is admin
   const admin = await sdk.getAdmin();
@@ -53,16 +53,16 @@ async function main() {
   console.log("\nCurrent WalletLogic:", oldImpl);
 
   // ============ STEP 1: Deploy New WalletLogic ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Deploy New WalletLogic");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   console.log("deployment not implemented here - Deploy new WalletLogic contract first and get the address");
 
   // ============ STEP 2: Update Beacon ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Update Beacon (affects all wallets)");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const result = await sdk.updateWalletLogicImplAddr({
     newLogicAddr: NEW_LOGIC_ADDRESS
@@ -78,9 +78,9 @@ async function main() {
 
   // ============ STEP 3: Verify Wallet Still Works ============
   if (WALLET_ADDRESS) {
-    console.log("\n" + "=".repeat(70));
+    console.log("\n" + "=".repeat(60));
     console.log("STEP 3: Verify Existing Wallet Works");
-    console.log("=".repeat(70));
+    console.log("=".repeat(60));
 
     try {
       // Get KeyVault (should still work)
@@ -105,9 +105,9 @@ async function main() {
   }
 
   // ============ SUMMARY ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("ADMIN UPDATE COMPLETE");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log(`
   What was updated:
   ─────────────────
@@ -122,7 +122,7 @@ async function main() {
   ✅ Authenticators (per-wallet)
   
   `);
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 main()

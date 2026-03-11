@@ -32,17 +32,17 @@ const monstera = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("WalletLogic Client Methods");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${monstera.network}`);
 
   // ============ STEP 1: Access WalletLogic client methods directly ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Access WalletLogic client methods directly");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("\n   Note: You can access WalletLogic client methods via monstera.logic");
   console.log("   However, most read methods are also available via KeyVaultClient");
   console.log("   and that's the preferred way to call them.\n");
@@ -61,9 +61,9 @@ async function main() {
   }
 
   // ============ STEP 2: Initialize wallet logic with new key vault ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Initialize wallet logic with new key vault");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("\n   This is the main WalletLogic write method.");
   console.log("   It connects a wallet proxy to a new KeyVault contract.\n");
 
@@ -92,15 +92,15 @@ async function main() {
   }
 
   // ============ SUMMARY ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("SUMMARY");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("   ✅ Demonstrated accessing WalletLogic client directly");
   console.log("   ✅ Initialized wallet logic with new key vault");
   console.log("\n   💡 Remember: Most read methods are available via");
   console.log("      KeyVaultClient (monstera.getKeyVaultAddr(), etc.)");
   console.log("      and that's the preferred way to use them.");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 // Run example

@@ -34,9 +34,9 @@ const monstera = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("WalletSignatureAuthenticator Client Methods");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   if (!ALLOWED_1_KEY) {
     console.error("ERROR: Set ALLOWED_1_KEY env var");
@@ -52,9 +52,9 @@ async function main() {
   console.log(`   Whitelisted Address: ${allowedSigner.address}`);
 
   // ============ STEP 1: Create new wallet ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Create new wallet");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // Prepare whitelist config
   const whitelist = [allowedSigner.address];
@@ -76,9 +76,9 @@ async function main() {
   }
 
   // ============ STEP 2: Check if wallet signature authenticator is configured ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Check if wallet signature authenticator is configured");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   let isConfigured = false;
   try {
@@ -98,9 +98,9 @@ async function main() {
   }
 
   // ============ STEP 3: Get the EIP-712 domain separator ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 3: Get the EIP-712 domain separator");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     const domainSeparator = await monstera.getDomainSeparator();
@@ -112,9 +112,9 @@ async function main() {
   }
 
   // ============ STEP 4: Configure the wallet signature authenticator ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 4: Configure the wallet signature authenticator");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("\n   This sets up the whitelist for wallet signature authentication.\n");
 
   // Only configure if not already configured
@@ -139,9 +139,9 @@ async function main() {
   }
 
   // ============ STEP 5: Verify a wallet signature ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 5: Verify a wallet signature");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("\n   Creates an auth proof and verifies it.\n");
 
   try {
@@ -175,9 +175,9 @@ async function main() {
   }
 
   // ============ SUMMARY ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("SUMMARY");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("   ✅ Checked if wallet signature authenticator is configured");
   console.log("   ✅ Retrieved EIP-712 domain separator");
   if (!isConfigured) {
@@ -186,7 +186,7 @@ async function main() {
     console.log("   ⏭️  Skipped configuration (already configured)");
   }
   console.log("   ✅ Verified wallet signature");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 main()

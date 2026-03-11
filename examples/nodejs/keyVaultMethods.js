@@ -43,9 +43,9 @@ const sdk = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("Step X: KeyVault method examples");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // Prepare auth proof (raw password bytes)
   const authProof = ethers.toUtf8Bytes(PASSWORD);
@@ -61,9 +61,9 @@ async function main() {
   }
 
   // ============ STEP 1: Get storage contract holding the keys ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Get storage contract holding the keys");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // const storageAddr = await sdk.getStorageAddr({
   const storageAddr = await sdk.getKeyVaultStorageAddr({
@@ -77,9 +77,9 @@ async function main() {
   }
 
   // ============ STEP 2: Get authenticator contract address ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Get authenticator contract address");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const authenticatorAddr = await sdk.getAuthenticatorAddr({
     keyVaultAddr: keyVaultAddr
@@ -91,9 +91,9 @@ async function main() {
   }
 
   // ============ STEP 3: Get KeyVaultImplementation contract address ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 3: Get KeyVaultImplementation contract address");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const keyVaultImplAddr = await sdk.getKeyVaultImplAddr({
     keyVaultAddr: keyVaultAddr
@@ -105,9 +105,9 @@ async function main() {
   }
 
   // ============ STEP 4: Check if a keyVault is initialized ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 4: Check if a keyVault is initialized");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const isInitialized = await sdk.isInitialized({
     keyVaultAddr: keyVaultAddr
@@ -119,9 +119,9 @@ async function main() {
   }
 
   // ============ STEP 5: Get the account address from the keyVault contract ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 5: Get the account address (index 0) from the keyVault contract");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const accountAddress = await sdk.getAccountAddr({
     keyVaultAddr: keyVaultAddr,
@@ -134,9 +134,9 @@ async function main() {
   }
 
   // ============ STEP 6: Get multiple account addresses from the keyVault contract ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 6: Get multiple account addresses (indexes 0-4) from the keyVault contract");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const accountAddresses = await sdk.getAccountAddresses({
     keyVaultAddr: keyVaultAddr,
@@ -153,9 +153,9 @@ async function main() {
   }
 
   // ============ STEP 7: Sign a transaction with the keyVault contract ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 7: Sign a transaction");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   console.log(`   Deploying Counter contract...`);
 
@@ -281,9 +281,9 @@ async function main() {
   console.log(`   Initial count: ${await counter.count()}`);
 
   // ============ STEP 8: Sign a 32-byte hash with the keyVault contract ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 8: Sign a 32-byte hash");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const hash = ethers.keccak256(ethers.toUtf8Bytes("Hello from TheWallet!"));
 
@@ -300,9 +300,9 @@ async function main() {
   }
 
   // ============ STEP 9: Sign an EIP-191 message with the keyVault contract ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 9: Sign an EIP-191 message with the keyVault contract");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   const message = "Hello from TheWallet!";
 
@@ -319,9 +319,9 @@ async function main() {
   }
 
   // ============ STEP 10: Execute a function with an auth proof with the keyVault contract ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 10: Execute a function with an auth proof");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // Example delegate contract (we'd deploy one, but for testing use a placeholder)
   const delegateContract = "0x1234567890123456789012345678901234567890";
@@ -683,16 +683,16 @@ async function main() {
   console.log(`yParity: ${yParity}`);
 
   // ============ SUMMARY ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("SUMMARY");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log(`   Wallet: ${WALLET_ADDRESS}`);
   console.log(`   KeyVault: ${keyVaultAddr}`);
   console.log(`   Storage: ${storageAddr}`);
   console.log(`   Authenticator: ${authenticatorAddr}`);
   console.log(`   KeyVaultImplementation: ${keyVaultImplAddr}`);
   console.log(`   Account Address (index 0): ${accountAddress}`);
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 main()

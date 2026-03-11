@@ -31,9 +31,9 @@ const sdk = Monstera.connect({
 });
 
 async function main() {
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log("Step X: Remove Whitelisted Wallet");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   if (!ALLOWED_1_KEY || !ALLOWED_2_KEY) {
     console.error("ERROR: Set ALLOWED_1_KEY and ALLOWED_2_KEY env vars");
@@ -50,9 +50,9 @@ async function main() {
   console.log(`   ✅ Allowed #2:     ${allowed2Signer.address}`);
 
   // ============ STEP 1: Create Wallet with Whitelist ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Create Wallet with Whitelist");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   // Encode whitelist config (only allowed1 and allowed2)
   const whitelist = [allowed1Signer.address, allowed2Signer.address];
@@ -71,9 +71,9 @@ async function main() {
 //   const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
 
   // ============ STEP 2: Try Allowed #1 → Should Succeed ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Try Allowed #1 → Should SUCCEED");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     const authProof = await sdk.createAuthProof({
@@ -104,9 +104,9 @@ async function main() {
   }
 
   // ============ STEP 3: Try Allowed #2 → Should Succeed ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 3: Try Allowed #2 → Should SUCCEED");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     const authProof = await sdk.createAuthProof({
@@ -128,9 +128,9 @@ async function main() {
   }
 
   // ============ STEP 4: Remove Allowed #2 from Whitelist ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 4: Remove Allowed #2 from Whitelist");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     // Use allowed1 to remove allowed2 from the whitelist
@@ -157,9 +157,9 @@ async function main() {
   }
 
   // ============ STEP 5: Try Newly Removed → Should NOW Fail ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("STEP 5: Try Removed Account → Should NOW FAIL");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 
   try {
     const authProof = await sdk.createAuthProof({
@@ -178,9 +178,9 @@ async function main() {
   }
 
   // ============ SUMMARY ============
-  console.log("\n" + "=".repeat(70));
+  console.log("\n" + "=".repeat(60));
   console.log("SUMMARY");
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
   console.log(`   WalletSignatureAuthenticator: ${sdk.addresses.walletSignatureAuth}`);
   console.log(`   Wallet: ${result.wallet}`);
   console.log(`   KeyVault: ${result.keyVault}`);
@@ -192,7 +192,7 @@ async function main() {
   currentWhitelist.forEach((addr, i) => {
     console.log(`      ${i + 1}. ${addr}`);
   });
-  console.log("=".repeat(70));
+  console.log("=".repeat(60));
 }
 
 main()
