@@ -1,20 +1,32 @@
 /**
- * Network Switching Example
+ * Network switching
  * 
- * Demonstrates how to switch between testnet and mainnet
- * with the same SDK instance or create new instances.
+ * Run: node examples/nodejs/network-switching.js
+ * 
+ * Required env vars:
+ *   SIGNER_PRIVATE_KEY=0x... (for signer; can be omitted for read-only)
+ * 
+ * Demonstrates how to switch between testnet and mainnet by creating
+ * SDK instances with different configs.
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 
-async function networkSwitchingExample() {
-  console.log('=== Network Switching Example ===\n');
+// ============ CONFIGURATION ============
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 
-  // Example 1: Testnet configuration
-  console.log('1. Creating testnet SDK instance...');
+async function networkSwitchingExample() {
+  console.log("=".repeat(60));
+  console.log("Network switching");
+  console.log("=".repeat(60));
+
+  // ============ STEP 1: Testnet configuration ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 1: Testnet configuration");
+  console.log("=".repeat(60));
   const testnetSdk = Monstera.connect({
     mainnet: false,
-    signer: process.env.SIGNER_PRIVATE_KEY
+    signer: SIGNER_PRIVATE_KEY
   });
 
   console.log('Testnet Network:', testnetSdk.network);
@@ -22,11 +34,13 @@ async function networkSwitchingExample() {
   console.log('Testnet RPC:', testnetSdk.rpcUrl);
   console.log();
 
-  // Example 2: Mainnet configuration
-  console.log('2. Creating mainnet SDK instance...');
+  // ============ STEP 2: Mainnet configuration ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 2: Mainnet configuration");
+  console.log("=".repeat(60));
   const mainnetSdk = Monstera.connect({
     mainnet: true,
-    signer: process.env.SIGNER_PRIVATE_KEY
+    signer: SIGNER_PRIVATE_KEY
   });
 
   console.log('Mainnet Network:', mainnetSdk.network);
@@ -34,12 +48,14 @@ async function networkSwitchingExample() {
   console.log('Mainnet RPC:', mainnetSdk.rpcUrl);
   console.log();
 
-  // Example 3: Custom RPC URL (for local development or custom endpoints)
-  console.log('3. Creating SDK with custom RPC URL...');
+  // ============ STEP 3: Custom RPC URL ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 3: Custom RPC URL");
+  console.log("=".repeat(60));
   const customSdk = Monstera.connect({
     mainnet: false,
     rpcUrl: 'https://custom-rpc-endpoint.com', // Override default RPC
-    signer: process.env.SIGNER_PRIVATE_KEY
+    signer: SIGNER_PRIVATE_KEY
   });
 
   console.log('Custom RPC:', customSdk.rpcUrl);

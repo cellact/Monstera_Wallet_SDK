@@ -1,5 +1,5 @@
 /**
- * Step 1: Create a HD wallet from a provided mnemonic
+ * Step 1.5: Create HD wallet from mnemonic
  * 
  * Run: node examples/nodejs/1.5_createWalletWithMnemonic.js
  * 
@@ -30,10 +30,13 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step 1: Create a HD Wallet");
+  console.log("Step 1.5: Create HD wallet from mnemonic");
   console.log("=".repeat(60));
 
-  // Get the signer address
+  // ============ STEP 1: Get signer address ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 1: Get signer address");
+  console.log("=".repeat(60));
   const signerAddress = await sdk.getSignerAddr();
   console.log(`   Signer address: ${signerAddress}`);
   if (!signerAddress) {
@@ -41,13 +44,17 @@ async function main() {
     process.exit(1);
   }
 
-  // Prepare auth config (password hash for PasswordAuthenticator)
-  console.log("\n2. Preparing auth config...");
+  // ============ STEP 2: Prepare auth config ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 2: Prepare auth config");
+  console.log("=".repeat(60));
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
 
-  // Create wallet
-  console.log("\n3. Creating wallet stack...");
+  // ============ STEP 3: Create wallet stack ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 3: Create wallet stack");
+  console.log("=".repeat(60));
   console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
   const result = await sdk.createWalletFromMnemonic({
     authenticatorAddr: sdk.addresses.passwordAuth,

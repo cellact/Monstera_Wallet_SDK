@@ -24,8 +24,8 @@ import { Monstera } from '../../src/index.js';
 import { ethers, Wallet } from 'ethers';
 
 // ============ CONFIGURATION ============
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY;
 
 // Initialize SDK
 const monstera = Monstera.connect({
@@ -88,9 +88,9 @@ async function main() {
     console.log(`   ✅ Is Configured: ${isConfigured ? "Yes" : "No"}`);
     
     if (!isConfigured) {
-      console.log("\n   ℹ️  Wallet is not configured. Will configure in Step 4.");
+      console.log("\n   ℹ️  Wallet is not configured. Will configure in next section.");
     } else {
-      console.log("\n   ℹ️  Wallet is already configured. Step 4 will be skipped.");
+      console.log("\n   ℹ️  Wallet is already configured. Next section will be skipped.");
     }
   } catch (error) {
     console.error(`   ❌ Error: ${error.message}`);

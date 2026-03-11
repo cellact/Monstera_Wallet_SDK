@@ -7,18 +7,21 @@
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
  *   WALLET_ADDRESS=0x... (your wallet address)
  *   PASSWORD=mysecretpassword123
- *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology
- *   COUNTER_BYTECODE=0x... (your counter contract bytecode)
+ * 
+ * Optional env vars:
+ *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology (default)
+ *   COUNTER_BYTECODE=0x... (default)
  * 
  * This demonstrates THE KEY SECURITY FEATURE:
  * - Private key NEVER leaves Sapphire enclave
  * - Transaction is built on Amoy, signed on Sapphire, broadcast on Amoy
  * 
- * Flow:
- * 1. Get account address from Sapphire wallet
- * 2. Deploy Counter contract on Amoy (signed via Sapphire)
- * 3. Call increment() on Amoy (signed via Sapphire)
- * 4. Verify count increased
+ * Steps:
+ * 1. Connect to Sapphire wallet, get account address
+ * 2. Check balance on Amoy
+ * 3. Deploy Counter contract on Amoy (signed via Sapphire)
+ * 4. Call increment() on Amoy (signed via Sapphire)
+ * 5. Call incrementBy(5) on Amoy (signed via Sapphire)
  * 
  * Required:
  *   - Wallet on Sapphire testnet (WALLET_ADDRESS)
@@ -31,10 +34,10 @@ import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
-const SAPPHIRE_WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
-const PASSWORD = process.env.PASSWORD || "";
+const SAPPHIRE_WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const PASSWORD = process.env.PASSWORD;
 const ACCOUNT_INDEX = 0;
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const AMOY_RPC_URL = process.env.AMOY_RPC_URL || "https://rpc-amoy.polygon.technology";
 const AMOY_CHAIN_ID = 80002;
 const COUNTER_BYTECODE = process.env.COUNTER_BYTECODE || "0x6080806040523461001657610163908161001c8239f35b600080fdfe608080604052600436101561001357600080fd5b600090813560e01c90816303df179c146100c65750806306661abd146100a95763d09de08a1461004257600080fd5b346100a657806003193601126100a65780546000198114610092576001018082556040519081527f38ac789ed44572701765277c4d0970f2db1c1a571ed39e84358095ae4eaa542060203392a280f35b634e487b7160e01b82526011600452602482fd5b80fd5b50346100a657806003193601126100a65760209054604051908152f35b90503461012957602036600319011261012957815460043581018091116101155780835581527f38ac789ed44572701765277c4d0970f2db1c1a571ed39e84358095ae4eaa542060203392a280f35b634e487b7160e01b83526011600452602483fd5b5080fdfea264697066735822122027ffb7296a96af125559a72a946250ff78075f9534148f0c7f37996c4dc8f68e64736f6c63430008180033";
@@ -47,7 +50,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step 6: Cross-Chain Transaction (Sapphire → Amoy)");
+  console.log("Step 6.1: Cross-Chain Transaction (Sapphire → Amoy)");
   console.log("=".repeat(60));
   console.log("\n🔐 Private key NEVER leaves Sapphire enclave!");
 
@@ -61,7 +64,7 @@ async function main() {
   const amoyProvider = new ethers.JsonRpcProvider(AMOY_RPC_URL);
   console.log("\nSapphire Wallet:", SAPPHIRE_WALLET_ADDRESS);
 
-  // ============ Connect to Sapphire Wallet ============
+  // ============ STEP 1: Connect to Sapphire Wallet ============
   console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Connect to Sapphire Wallet");
   console.log("=".repeat(60));
@@ -79,7 +82,7 @@ async function main() {
   console.log(`   KeyVault: ${keyVaultAddr}`);
   console.log(`   Account ${ACCOUNT_INDEX}: ${accountAddress}`);
 
-  // ============ Check Balance on Amoy ============
+  // ============ STEP 2: Check Balance on Amoy ============
   console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Check Balance on Amoy");
   console.log("=".repeat(60));
@@ -97,7 +100,7 @@ async function main() {
   // Prepare auth proof
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
-  // ============ Deploy Counter on Amoy ============
+  // ============ STEP 3: Deploy Counter on Amoy (via Sapphire signing) ============
   console.log("\n" + "=".repeat(60));
   console.log("STEP 3: Deploy Counter on Amoy (via Sapphire signing)");
   console.log("=".repeat(60));
@@ -206,7 +209,7 @@ async function main() {
   const counter = new ethers.Contract(counterAddress, COUNTER_ABI, amoyProvider);
   console.log(`   Initial count: ${await counter.count()}`);
 
-  // ============ Sign increment() via Sapphire ============
+  // ============ STEP 4: Call increment() (via Sapphire signing) ============
   console.log("\n" + "=".repeat(60));
   console.log("STEP 4: Call increment() (via Sapphire signing)");
   console.log("=".repeat(60));
@@ -244,7 +247,7 @@ async function main() {
   const newCount = await counter.count();
   console.log(`   New count: ${newCount}`);
 
-  // ============ Second Transaction ============
+  // ============ STEP 5: Call incrementBy(5) ============
   console.log("\n" + "=".repeat(60));
   console.log("STEP 5: Call incrementBy(5)");
   console.log("=".repeat(60));

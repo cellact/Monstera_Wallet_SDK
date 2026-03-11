@@ -1,5 +1,5 @@
 /**
- * Step X: Update the password of a wallet
+ * Update password
  * 
  * Run: node examples/nodejs/updatePassword.js
  * 
@@ -16,10 +16,10 @@ import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
-const PASSWORD = process.env.PASSWORD || "";
-const NEW_PASSWORD = process.env.NEW_PASSWORD || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const PASSWORD = process.env.PASSWORD;
+const NEW_PASSWORD = process.env.NEW_PASSWORD;
 
 const sdk = Monstera.connect({
   mainnet: false,
@@ -28,7 +28,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step X: Update Password");
+  console.log("Update password");
   console.log("=".repeat(60));
 
   if (!WALLET_ADDRESS) {
@@ -37,9 +37,9 @@ async function main() {
   }
   console.log("Updating password for wallet:", WALLET_ADDRESS);
 
-  // ============ Step 1: Check if wallet is configured ============
+  // ============ STEP 1: Check if wallet is configured ============
   console.log("\n" + "=".repeat(60));
-  console.log("Step 1: Check if wallet is configured");
+  console.log("STEP 1: Check if wallet is configured");
   console.log("=".repeat(60));
 
   // Get KeyVault info
@@ -60,9 +60,9 @@ async function main() {
   // Prepare auth proof
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
-  // ============ Step 2: Update password ============
+  // ============ STEP 2: Update password ============
   console.log("\n" + "=".repeat(60));
-  console.log("Step 2: Update password");
+  console.log("STEP 2: Update password");
   console.log("=".repeat(60));
 
   // Prepare new password hash
@@ -79,9 +79,9 @@ async function main() {
   console.log("   Block Number:", result.blockNumber);
   console.log("=".repeat(60));
 
-  // ============ Step 3: Verify Wallet Still Works ============
+  // ============ STEP 3: Verify wallet still works ============
   console.log("\n" + "=".repeat(60));
-  console.log("Step 3: Verify wallet can be used with new password");
+  console.log("STEP 3: Verify wallet can be used with new password");
   console.log("=".repeat(60));
 
   // Prepare auth proof

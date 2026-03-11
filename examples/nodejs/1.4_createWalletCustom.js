@@ -29,21 +29,27 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step 1: Create a HD Wallet");
+  console.log("Step 1.4: Create HD wallet with custom logic");
   console.log("=".repeat(60));
 
-  // Prepare auth config (password hash for PasswordAuthenticator)
-  console.log("\n2. Preparing auth config...");
+  // ============ STEP 1: Prepare auth config ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 1: Prepare auth config");
+  console.log("=".repeat(60));
   const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
 
-  // Prepare logic data (initialization data for your custom logic)
-  console.log("\n2. Preparing logic data...");
+  // ============ STEP 2: Prepare logic data ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 2: Prepare logic data");
+  console.log("=".repeat(60));
   const logicData = ethers.toUtf8Bytes("some data");
   console.log("   Logic data:", logicData.slice(0, 20) + "...");
 
-  // Create wallet
-  console.log("\n3. Creating wallet stack...");
+  // ============ STEP 3: Create wallet stack ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 3: Create wallet stack");
+  console.log("=".repeat(60));
   console.log("   This deploys: WalletStorage + KeyVault + CustomLogicProxy");
   const result = await sdk.createWalletWithCustomLogic({
     authenticatorAddr: sdk.addresses.passwordAuth,

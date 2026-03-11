@@ -8,12 +8,12 @@
  *   ALLOWED_1_KEY=0x... (private key for first allowed address)
  *   ALLOWED_2_KEY=0x... (private key for second allowed address)
  * 
- * Tests:
+ * Steps:
  * 1. Create wallet with whitelist of allowed signers
- * 2. Try access with NOT allowed account → fail
- * 3. Try access with allowed account #1 → success
- * 4. Try access with allowed account #2 → success
- * 5. Add new account to whitelist
+ * 2. Try with NOT allowed account → fail
+ * 3. Try with allowed account #1 → success
+ * 4. Try with allowed account #2 → success
+ * 5. Add previously NOT allowed account to whitelist
  * 6. Try with newly allowed account → success
  */
 
@@ -22,11 +22,9 @@ import { Monstera } from '../../src/index.js';
 import { ethers, Wallet } from 'ethers';
 
 // ============ CONFIGURATION ============
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-
-// Private keys for test accounts
-const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY || "";
-const ALLOWED_2_KEY = process.env.ALLOWED_2_KEY || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY;
+const ALLOWED_2_KEY = process.env.ALLOWED_2_KEY;
 
 const sdk = Monstera.connect({
   mainnet: false,

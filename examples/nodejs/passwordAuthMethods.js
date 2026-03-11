@@ -1,5 +1,5 @@
 /**
- * Step X: Change the password of a wallet
+ * Password authenticator methods
  * 
  * Run: node examples/nodejs/passwordAuthMethods.js
  * 
@@ -13,9 +13,9 @@ import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
-const PASSWORD = process.env.PASSWORD || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const PASSWORD = process.env.PASSWORD;
 
 const sdk = Monstera.connect({
   mainnet: false,
@@ -24,7 +24,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step X: Configure Password");
+  console.log("Password authenticator methods");
   console.log("=".repeat(60));
 
   if (!WALLET_ADDRESS) {
@@ -33,9 +33,9 @@ async function main() {
   }
   console.log("Configuring password for wallet:", WALLET_ADDRESS);
 
-  // ============ Step 1: Check if wallet is configured ============
+  // ============ STEP 1: Check if wallet is configured ============
   console.log("\n" + "=".repeat(60));
-  console.log("Step 1: Check if wallet is configured");
+  console.log("STEP 1: Check if wallet is configured");
   console.log("=".repeat(60));
 
   // Get KeyVault info
@@ -53,9 +53,9 @@ async function main() {
     process.exit(1);
   }
 
-  // ============ Step 2: Configure password ============
+  // ============ STEP 2: Configure password ============
   console.log("\n" + "=".repeat(60));
-  console.log("Step 2: Configure password");
+  console.log("STEP 2: Configure password");
   console.log("=".repeat(60));
 
   // prepare password hash (keccak256 of password)
@@ -71,9 +71,9 @@ async function main() {
   console.log("   Gas Used:", result.gasUsed);
   console.log("   Block Number:", result.blockNumber);
 
-  // ============ Step 3: Verify password ============
+  // ============ STEP 3: Verify password ============
   console.log("\n" + "=".repeat(60));
-  console.log("Step 3: Verify password");
+  console.log("STEP 3: Verify password");
   console.log("=".repeat(60));
 
   // prepare raw password bytes (utf8 encoded string)

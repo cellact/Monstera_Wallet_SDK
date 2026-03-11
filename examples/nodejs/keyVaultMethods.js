@@ -1,5 +1,5 @@
 /**
- * Step X: KeyVault method examples
+ * KeyVault methods
  * 
  * Run: node examples/nodejs/keyVaultMethods.js
  * 
@@ -7,20 +7,22 @@
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
  *   WALLET_ADDRESS=0x... (your wallet address)
  *   PASSWORD=mysecretpassword123
- *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology
- *   COUNTER_BYTECODE=0x... (your counter contract bytecode)
  * 
- * Tests:
- * 1. get the storage contract address holding the keys
- * 2. get the authenticator contract address
- * 3. get the implementation contract address
- * 4. check if a keyVault is initialized
- * 5. get the account address 
- * 6. get multiple account addresses 
- * 7. sign a transaction
- * 8. sign a 32-byte hash 
- * 9. sign an EIP-191 message 
- * 10. execute a function with an auth proof
+ * Optional env vars:
+ *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology (default)
+ *   COUNTER_BYTECODE=0x... (default)
+ * 
+ * Steps:
+ * 1. Get storage contract address holding the keys
+ * 2. Get authenticator contract address
+ * 3. Get KeyVaultImplementation contract address
+ * 4. Check if keyVault is initialized
+ * 5. Get account address (index 0)
+ * 6. Get multiple account addresses (indexes 0-4)
+ * 7. Sign a transaction
+ * 8. Sign a 32-byte hash
+ * 9. Sign an EIP-191 message
+ * 10. Execute a function with an auth proof
  * 
  */
 import 'dotenv/config';
@@ -28,9 +30,9 @@ import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
-const PASSWORD = process.env.PASSWORD || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const PASSWORD = process.env.PASSWORD;
 const ACCOUNT_INDEX = 0;
 const AMOY_RPC_URL = process.env.AMOY_RPC_URL || "https://rpc-amoy.polygon.technology";
 const AMOY_CHAIN_ID = 80002;
@@ -44,7 +46,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step X: KeyVault method examples");
+  console.log("KeyVault methods");
   console.log("=".repeat(60));
 
   // Prepare auth proof (raw password bytes)

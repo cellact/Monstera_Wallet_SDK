@@ -11,11 +11,10 @@
  * 
  * This demonstrates that KeyVaultImplementation IS updateable!
  * 
- * Tests:
- * 1. Get the current keyVault implementation
- * 2. Deploy a new keyVault implementation (this is not implemented here)
- * 3. Update the keyVault implementation to a new one
- * 4. Verify the new keyVaultImplementation contract is used
+ * Steps:
+ * 1. Get current KeyVault address and implementation
+ * 2. Deploy new KeyVault implementation (deploy elsewhere; pass address via NEW_KEYVAULT_IMPL_ADDRESS)
+ * 3. Update KeyVault implementation (and verify new impl is used)
  * 
  */
 import 'dotenv/config';
@@ -23,10 +22,10 @@ import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const PASSWORD = process.env.PASSWORD || "";
-const NEW_KEYVAULT_IMPL_ADDRESS = process.env.NEW_KEYVAULT_IMPL_ADDRESS || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const PASSWORD = process.env.PASSWORD;
+const NEW_KEYVAULT_IMPL_ADDRESS = process.env.NEW_KEYVAULT_IMPL_ADDRESS;
 
 const sdk = Monstera.connect({
   mainnet: false,

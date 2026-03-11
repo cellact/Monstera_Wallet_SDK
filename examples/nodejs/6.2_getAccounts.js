@@ -14,8 +14,8 @@ import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 
 // ============ CONFIGURATION ============
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 
 const sdk = Monstera.connect({
   mainnet: false,

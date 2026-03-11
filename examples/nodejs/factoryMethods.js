@@ -1,5 +1,5 @@
 /**
- * Test WalletFactory methods
+ * Wallet factory methods
  * 
  * Run: node examples/nodejs/factoryMethods.js
  * 
@@ -7,11 +7,11 @@
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
  *   WALLET_ADDRESS=0x... (your wallet address)
  * 
- * Tests:
+ * Steps:
  * 1. Check if an address is a wallet created by this factory
- * 2. Get current WalletLogic implementation.
- * 3. Get beacon address.
- * 4. Get storage contract address for a wallet.
+ * 2. Get current WalletLogic implementation
+ * 3. Get beacon address
+ * 4. Get storage contract address for a wallet
  * 
  */
 import 'dotenv/config';
@@ -28,7 +28,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("WalletFactory - Full Test Suite");
+  console.log("Wallet factory methods");
   console.log("=".repeat(60));
 
   console.log("\n📋 Configuration:");

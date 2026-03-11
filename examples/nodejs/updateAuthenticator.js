@@ -7,11 +7,13 @@
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
  *   WALLET_ADDRESS=0x... (your wallet address)
  *   PASSWORD=mysecretpassword123
- *   NEW_AUTHENTICATOR_ADDRESS=0x... (your new authenticator address)
  * 
- * Tests:
- * 1. Get the current authenticator
- * 2. Update the authenticator to a new one
+ * Optional env vars:
+ *   NEW_AUTHENTICATOR_ADDRESS=0x... (your new authenticator address; defaults to PasswordAuthenticator)
+ * 
+ * Steps:
+ * 1. Get current authenticator
+ * 2. Update authenticator to new address
  * 3. Verify the new authenticator is used
  */
 import 'dotenv/config';
@@ -19,9 +21,9 @@ import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 
 // ============ CONFIGURATION ============
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const PASSWORD = process.env.PASSWORD || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const PASSWORD = process.env.PASSWORD;
 const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7";
 
 const sdk = Monstera.connect({
@@ -31,7 +33,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step X: Update Authenticator");
+  console.log("Update authenticator");
   console.log("=".repeat(60));
 
   if (!WALLET_ADDRESS) {
@@ -95,7 +97,7 @@ async function main() {
 
   // ============ STEP 3: Verify the new authenticator is used ============
   console.log("\n" + "=".repeat(60));
-  console.log("STEP 3: Update Authenticator is successful");
+  console.log("STEP 3: Verify the new authenticator is used");
   console.log("=".repeat(60));
 
   const currentAuthenticator = await sdk.getAuthenticatorAddr({

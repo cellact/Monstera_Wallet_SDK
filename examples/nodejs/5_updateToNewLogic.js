@@ -4,18 +4,19 @@
  * Run: node examples/nodejs/5_updateToNewLogic.js
  * 
  * Required env vars:
- *   SIGNER_PRIVATE_KEY=0x... (your private key)
- *   WALLET_ADDRESS=0x... (your wallet address)
- *   ADMIN_ADDRESS=0x... (your admin address)
- *   NEW_LOGIC_ADDRESS=0x... (your new wallet logic implementation contract address)
+ *   SIGNER_PRIVATE_KEY=0x... (your private key - must be current admin)
+ *   ADMIN_ADDRESS=0x... (your admin address; used to verify caller is admin)
+ *   NEW_LOGIC_ADDRESS=0x... (new WalletLogic implementation - deploy elsewhere first, then pass address)
  * 
- * This demonstrates ADMIN-controlled updates:
- * - Deploys new WalletLogic contract (needs to be done elsewhere first and get the address)
- * - Updates the beacon (all wallets use new logic instantly)
- * - Keys in WalletStorage remain untouched
- * - KeyVault (auth layer) remains untouched
+ * Optional env vars:
+ *   WALLET_ADDRESS=0x... (to verify an existing wallet still works after update)
  * 
- * Note: This does NOT update KeyVault (that's user-controlled)
+ * Steps:
+ * 1. Deploy new WalletLogic (done elsewhere; pass address via NEW_LOGIC_ADDRESS)
+ * 2. Update beacon (all wallets use new logic instantly)
+ * 3. Verify existing wallet still works (if WALLET_ADDRESS set)
+ * 
+ * What is NOT touched: KeyVault (user-controlled), WalletStorage, Authenticators.
  * 
  */
 import 'dotenv/config';
@@ -23,9 +24,9 @@ import { Monstera } from '../../src/index.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || ""; // Optional: to verify update
-const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS || "";
-const NEW_LOGIC_ADDRESS = process.env.NEW_LOGIC_ADDRESS || "";
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const ADMIN_ADDRESS = process.env.ADMIN_ADDRESS;
+const NEW_LOGIC_ADDRESS = process.env.NEW_LOGIC_ADDRESS;
 
 const sdk = Monstera.connect({
   mainnet: false,

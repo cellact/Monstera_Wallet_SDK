@@ -8,17 +8,17 @@
  *   WALLET_ADDRESS=0x...
  *   PASSWORD=mysecretpassword123
  * 
- * Optional (for verification):
- *   MNEMONIC="word1 word2 ..."
+ * Optional env vars:
+ *   MNEMONIC="word1 word2 ..." (to verify account addresses match ethers.js)
  * 
- * Tests:
- * 1. Get keyVault contract address for a wallet.
- * 2. Get authenticator contract address for a wallet.
- * 3. Get account addresses
- * 4. Verify against ethers.js
- * 5. Sign a message
- * 6. Sign a hash
- * 7. Wrong password test
+ * Steps:
+ * 1. Get KeyVault and show wallet stack
+ * 2. Get account addresses
+ * 3. Verify against ethers.js (optional, if MNEMONIC set)
+ * 4. Sign a message
+ * 5. Sign a hash
+ * 6. Wrong password test
+ * 7. Security architecture summary
  */
 
 import 'dotenv/config';
@@ -26,16 +26,14 @@ import { Monstera } from '../../src/index.js';
 import { ethers, HDNodeWallet, Mnemonic } from 'ethers';
 
 // ============ CONFIGURATION ============
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
-const PASSWORD = process.env.PASSWORD || "";
-const MNEMONIC = process.env.MNEMONIC || "";
-const RPC_URL = process.env.RPC_URL || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
+const PASSWORD = process.env.PASSWORD;
+const MNEMONIC = process.env.MNEMONIC;
 
 const sdk = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY,
-  rpcUrl: RPC_URL,   // optional
 });
 
 async function main() {
@@ -49,7 +47,10 @@ async function main() {
     process.exit(1);
   }
 
-  // Show architecture info
+  // ============ STEP 1: Get KeyVault and show wallet stack ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 1: Get KeyVault and show wallet stack");
+  console.log("=".repeat(60));
   const keyVaultAddr = await sdk.getKeyVaultAddr({ 
     walletAddr: WALLET_ADDRESS 
   });
@@ -64,12 +65,11 @@ async function main() {
   // Prepare auth proof (raw password bytes)
   const authProof = ethers.toUtf8Bytes(PASSWORD);
 
-  // ============ PUBLIC FUNCTIONS ============
+  // ============ STEP 2: Get account addresses ============
   console.log("\n" + "=".repeat(60));
-  console.log("PUBLIC FUNCTIONS (no auth needed)");
+  console.log("STEP 2: Get account addresses");
   console.log("=".repeat(60));
-
-  console.log("\n1. Getting account addresses...");
+  console.log("\n   Getting account addresses...");
   for (let i = 0; i < 5; i++) {
     const addr = await sdk.getAccountAddr({
       keyVaultAddr: keyVaultAddr,
@@ -78,9 +78,12 @@ async function main() {
     console.log(`   Account ${i}: ${addr}`);
   }
 
-  // Verify against ethers.js
+  // ============ STEP 3: Verify against ethers.js ============
   if (MNEMONIC) {
-    console.log("\n2. Verifying against ethers.js...");
+    console.log("\n" + "=".repeat(60));
+    console.log("STEP 3: Verify against ethers.js");
+    console.log("=".repeat(60));
+    console.log("\n   Verifying against ethers.js...");
     const mnemonic = Mnemonic.fromPhrase(MNEMONIC);
     for (let i = 0; i < 3; i++) {
       const ethersWallet = HDNodeWallet.fromMnemonic(mnemonic, `m/44'/60'/0'/0/${i}`);
@@ -92,16 +95,17 @@ async function main() {
       console.log(`   Account ${i}: ${match ? "✅ MATCH" : "❌ MISMATCH"}`);
     }
   } else {
-    console.log("\n2. Skipping ethers.js verification (no MNEMONIC provided)");
+    console.log("\n" + "=".repeat(60));
+    console.log("STEP 3: Verify against ethers.js");
+    console.log("=".repeat(60));
+    console.log("\n   Skipping ethers.js verification (no MNEMONIC provided)");
   }
 
-  // ============ AUTHENTICATED FUNCTIONS ============
+  // ============ STEP 4: Sign message ============
   console.log("\n" + "=".repeat(60));
-  console.log("AUTHENTICATED FUNCTIONS (need password)");
+  console.log("STEP 4: Sign message");
   console.log("=".repeat(60));
-
-  // Sign a message
-  console.log("\n3. Signing a message...");
+  console.log("\n   Signing a message...");
   const message = "Hello from TheWallet!";
   try {
     const result = await sdk.signMessage({
@@ -126,8 +130,11 @@ async function main() {
     console.log(`   ❌ Error: ${error.message}`);
   }
 
-  // Sign a hash
-  console.log("\n4. Signing a raw hash...");
+  // ============ STEP 5: Sign hash ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 5: Sign hash");
+  console.log("=".repeat(60));
+  console.log("\n   Signing a raw hash...");
   const hash = ethers.keccak256(ethers.toUtf8Bytes("Some data"));
   try {
     const result = await sdk.sign({
@@ -150,12 +157,11 @@ async function main() {
     console.log(`   ❌ Error: ${error.message}`);
   }
 
-  // ============ WRONG PASSWORD TEST ============
+  // ============ STEP 6: Wrong password test ============
   console.log("\n" + "=".repeat(60));
-  console.log("SECURITY TEST: Wrong Password");
+  console.log("STEP 6: Wrong password test");
   console.log("=".repeat(60));
-
-  console.log("\n5. Trying with wrong password...");
+  console.log("\n   Trying with wrong password...");
   const wrongAuthProof = ethers.toUtf8Bytes("wrongpassword");
   try {
     await sdk.signMessage({
@@ -169,9 +175,9 @@ async function main() {
     console.log("   ✅ Correctly rejected: AuthenticationFailed");
   }
 
-  // ============ SUMMARY ============
+  // ============ STEP 7: Security architecture summary ============
   console.log("\n" + "=".repeat(60));
-  console.log("SECURITY ARCHITECTURE");
+  console.log("STEP 7: Security architecture summary");
   console.log("=".repeat(60));
   console.log(`
   Call Flow:

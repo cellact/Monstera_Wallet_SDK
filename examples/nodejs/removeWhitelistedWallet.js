@@ -1,5 +1,5 @@
 /**
- * Step X: Remove Whitelisted Wallet
+ * Remove from whitelist
  * 
  * Run: node examples/nodejs/removeWhitelistedWallet.js
  * 
@@ -8,12 +8,12 @@
  *   ALLOWED_1_KEY=0x... (your private key for the first allowed address)
  *   ALLOWED_2_KEY=0x... (your private key for the second allowed address)
  * 
- * Tests:
- * 1. Create a wallet with a whitelist
- * 2. Try with allowed account #1 → should succeed
- * 3. Try with allowed account #2 → should succeed
- * 2. Remove previously allowed account #2 from the whitelist
- * 5. Try with removed account #2 → should fail
+ * Steps:
+ * 1. Create wallet with whitelist (allowed #1 and #2)
+ * 2. Try with allowed account #1 → succeed
+ * 3. Try with allowed account #2 → succeed
+ * 4. Remove allowed account #2 from whitelist
+ * 5. Try with removed account #2 → fail
  * 
  */
 import 'dotenv/config';
@@ -21,9 +21,9 @@ import { Monstera } from '../../src/index.js';
 import { ethers, Wallet } from 'ethers';
 
 // ============ CONFIGURATION ============
-const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
-const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY || "";
-const ALLOWED_2_KEY = process.env.ALLOWED_2_KEY || "";
+const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY;
+const ALLOWED_2_KEY = process.env.ALLOWED_2_KEY;
 
 const sdk = Monstera.connect({
   mainnet: false,
@@ -32,7 +32,7 @@ const sdk = Monstera.connect({
 
 async function main() {
   console.log("=".repeat(60));
-  console.log("Step X: Remove Whitelisted Wallet");
+  console.log("Remove from whitelist");
   console.log("=".repeat(60));
 
   if (!ALLOWED_1_KEY || !ALLOWED_2_KEY) {
