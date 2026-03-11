@@ -21,16 +21,15 @@ import { Monstera } from '../../src/index.js';
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 
+const sdk = Monstera.connect({
+  mainnet: false,
+  signer: SIGNER_PRIVATE_KEY
+});
+
 async function main() {
   console.log("=".repeat(70));
   console.log("WalletFactory - Full Test Suite");
   console.log("=".repeat(70));
-
-  // Initialize SDK
-  const sdk = Monstera.connect({
-    mainnet: false, // or true for mainnet
-    signer: SIGNER_PRIVATE_KEY
-  });
 
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${sdk.network}`);

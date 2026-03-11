@@ -27,7 +27,6 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY || "";
 const NEW_ADMIN_ADDRESS = process.env.NEW_ADMIN_ADDRESS || "";
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 
-// Initialize SDK
 const monstera = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY

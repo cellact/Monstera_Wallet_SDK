@@ -26,16 +26,15 @@ const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 const NEW_KEYVAULT_ADDRESS = process.env.NEW_KEYVAULT_ADDRESS;
 
+const monstera = Monstera.connect({
+  mainnet: false,
+  signer: SIGNER_PRIVATE_KEY
+});
+
 async function main() {
   console.log("=".repeat(70));
   console.log("WalletLogic Client Methods");
   console.log("=".repeat(70));
-
-  // Initialize SDK
-  const monstera = Monstera.connect({
-    mainnet: false,
-    signer: SIGNER_PRIVATE_KEY
-  });
 
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${monstera.network}`);

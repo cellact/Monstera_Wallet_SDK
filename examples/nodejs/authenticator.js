@@ -12,15 +12,14 @@
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 
+const monstera = Monstera.readonly({
+  mainnet: false
+});
+
 async function main() {
   console.log("=".repeat(70));
   console.log("Authenticator Client Methods");
   console.log("=".repeat(70));
-
-  // Initialize SDK
-  const monstera = Monstera.readonly({
-    mainnet: false
-  });
 
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${monstera.network}`);
