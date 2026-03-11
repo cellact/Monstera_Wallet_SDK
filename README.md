@@ -10,7 +10,7 @@ A JavaScript SDK for creating and managing smart contract wallets on Oasis Sapph
 Monstera is an SDK for **API-driven wallets where private keys never leave a Sapphire enclave**.  
 It gives you one wallet with a single cryptographic root and **many isolated accounts**, each of which can be mapped to products, environments, or features.
 
-Your application sends **auth proofs** (password-based, wallet-signature-based, or custom).  
+Your application sends **auth proofs** (password-based, wallet-signature-based, dual-factor, or custom).  
 Monstera verifies them on-chain, derives the correct account from the wallet’s HD root, and signs **inside the enclave**.  
 Your backend never sees private keys and never has to handle raw key material.
 
@@ -19,7 +19,7 @@ Your backend never sees private keys and never has to handle raw key material.
 - A wallet is created once and gets a single HD root inside a Sapphire-backed contract.
 - All accounts are **derived** from that root by index (account 0, 1, 2, …).  
   Each account is a normal Ethereum address with its own balance and history.
-- The user authenticates once (password, wallet signature, etc.).  
+- The user authenticates once (password, wallet signature, dual-factor, etc.).  
   Authentication is attached to the wallet, **not** to individual accounts.
 - When you call `sign*` from the SDK:
   - You send an `authProof` plus signing params.
@@ -35,7 +35,8 @@ Responsibilities are split so that no single contract can compromise a wallet on
 - 🔐 **Encrypted Transactions** - Automatic Sapphire wrapper for confidential transactions
 - 🌐 **Network Support** - Built-in testnet and mainnet presets
 - 🔑 **Wallet Management** - Create and manage smart contract wallets
-- 🔒 **Multiple Authenticators** - Password and wallet signature authentication
+- 🔒 **Multiple Authenticators** - Password, wallet signature, and dual-factor authentication
+- 📋 **Optional Logging** - Configurable log levels (`error`, `warn`, `info`, `debug`); logs never include secrets
 - ⚡ **Simple API** - Clean, intuitive interface with comprehensive error handling
 
 ## Installation
@@ -60,7 +61,8 @@ import { ethers } from 'ethers';
 
 const monstera = Monstera.connect({ 
   mainnet: false, 
-  signer: '0x...' // Your private key
+  signer: '0x...', // Your private key (or ethers Signer)
+  debug: true     // optional: enable debug logs; or use logLevel: 'info' | 'warn' | 'error'
 });
 
 // Create password hash for authentication
@@ -75,7 +77,7 @@ console.log('Wallet created:', wallet.wallet);
 console.log('Save this mnemonic securely:', wallet.mnemonic);
 ```
 
-That's it! Contract addresses are hardcoded - no configuration needed.
+That's it! Contract addresses use network presets; override with `addresses` or `rpcUrl` if needed. Use `monstera.setLogLevel('debug')` at runtime to change log verbosity.
 
 **Need more details?** See [Full wallet creation guide](docs/node.md#basic-usage).
 
@@ -99,6 +101,7 @@ Check out the `examples/` directory for comprehensive examples:
 - 🔒 **Store mnemonics securely**
 - 🧪 **Use testnet for development** - only use mainnet for production
 - ✅ **Validate contract addresses** before use
+- 📋 **SDK logging** is configurable and does not log seeds, mnemonics, passwords, or auth proofs
 
 ## License
 

@@ -28,8 +28,9 @@ import { ethers } from 'ethers';
 
 // Create SDK instance for testnet (with signer for write operations)
 const sdk = Monstera.connect({
-  mainnet: false, // or true for mainnet
-  signer: 'your_private_key' // Private key string or ethers Signer instance
+  mainnet: false,   // or true for mainnet
+  signer: 'your_private_key',  // Private key string or ethers Signer instance
+  debug: true      // optional: enable debug logs; or use logLevel: 'error' | 'warn' | 'info' | 'debug'
 });
 ```
 
@@ -52,8 +53,9 @@ const mainnetSdk = Monstera.connect({
 
 // Read-only instance (no signer, read operations only)
 const readonlySdk = Monstera.readonly({
-  mainnet: false
-  // provider is optional - will use default RPC if not provided
+  mainnet: false,
+  // provider (optional) - ethers Provider; uses default RPC if not provided
+  // logLevel or debug (optional) - same as connect()
 });
 
 // Access network information
@@ -92,7 +94,8 @@ const sdk = Monstera.connect({
   addresses: {
     factory: '0x...',               // Override factory address
     passwordAuth: '0x...',          // Override password authenticator
-    walletSignatureAuth: '0x...'    // Override wallet signature authenticator
+    walletSignatureAuth: '0x...',   // Override wallet signature authenticator
+    dualFactorAuth: '0x...'         // Override dual factor authenticator
   }
 });
 ```
@@ -115,12 +118,42 @@ const sdkWithOverrides = Monstera.connect({
   mainnet: false,
   rpcUrl: 'https://custom-rpc-endpoint.com',
   addresses: {
-    factory: '0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a',
-    passwordAuth: '0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7',
-    walletSignatureAuth: '0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a'
+    factory: '0x...',
+    passwordAuth: '0x...',
+    walletSignatureAuth: '0x...',
+    dualFactorAuth: '0x...',
   },
   signer: 'your_private_key' // Private key string or ethers Signer instance
 });
+```
+
+### Logging
+
+You can control SDK log verbosity when creating the instance or at runtime. Logs never include secrets (mnemonics, passwords, auth proofs, or private keys).
+
+**At connect/readonly:**
+
+```javascript
+// Option 1: enable all debug logs
+const sdk = Monstera.connect({
+  mainnet: false,
+  signer: '0x...',
+  debug: true
+});
+
+// Option 2: set level explicitly
+const sdk = Monstera.connect({
+  mainnet: false,
+  signer: '0x...',
+  logLevel: 'info'  // 'error' | 'warn' | 'info' | 'debug' (default: 'error')
+});
+```
+
+**At runtime:**
+
+```javascript
+sdk.setLogLevel('debug');  // switch to debug logs
+sdk.setLogLevel('error');  // quiet again
 ```
 
 ## Examples
@@ -146,11 +179,11 @@ The SDK includes comprehensive Node.js examples in `examples/nodejs/`:
 - **`updatePassword.js`** - Update wallet password
 - **`updateAuthenticator.js`** - Update authenticator
 - **`passwordAuthMethods.js`** - Password authenticator methods
-- **`walletSigAuth.js`** - Wallet signature authenticator methods
+- **`walletSigAuthMethods.js`** - Wallet signature authenticator methods
 - **`removeWhitelistedWallet.js`** - Remove from whitelist
 
 **Administration:**
-- **`5_ugradeToNewLogic.js`** - Update wallet logic implementation
+- **`5_updateToNewLogic.js`** - Update wallet logic implementation
 - **`13.2_updateKeyVault.js`** - Update KeyVault implementation
 - **`transferAdmin.js`** - Transfer factory admin
 - **`factoryMethods.js`** - Factory contract methods

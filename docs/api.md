@@ -14,7 +14,10 @@ Create an SDK instance with write capabilities (requires signer).
 - `mainnet` (required): `true` for mainnet, `false` for testnet
 - `signer` (required): Private key string (0x-prefixed hex) or ethers Signer instance
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
-- `addresses` (optional): Object with contract addresses to override defaults
+- `addresses` (optional): Object with contract addresses to override defaults (`factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`)
+- `logLevel` (optional): `'error'` | `'warn'` | `'info'` | `'debug'` (default: `'error'`)
+- `debug` (optional): If `true`, sets log level to `'debug'`
+- `checkVersion` (optional): If `false`, skips npm version check on connect
 
 **Returns:** `Monstera` instance with write capabilities
 
@@ -27,6 +30,9 @@ Create a read-only SDK instance (no signer required).
 - `provider` (optional): ethers Provider instance (uses default RPC if not provided)
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
 - `addresses` (optional): Object with contract addresses to override defaults
+- `logLevel` (optional): Same as `connect()`
+- `debug` (optional): Same as `connect()`
+- `checkVersion` (optional): Same as `connect()`
 
 **Returns:** `Monstera` instance (read-only)
 
@@ -72,7 +78,7 @@ Create a wallet with a post-creation hook.
 
 **Parameters:**
 - `authConfig` (required): Authentication configuration
-- `hook` (required): Hook contract address
+- `hookAddr` (required): Hook contract address
 - `hookData` (required): Data for the hook
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
@@ -109,13 +115,16 @@ const hasWriteAccess = sdk.hasWriteAccess(); // boolean
 // Get the signer address (if available)
 const signerAddress = await sdk.getSignerAddr(); // string | null
 
+// Set log level at runtime ('error' | 'warn' | 'info' | 'debug')
+sdk.setLogLevel('debug');
+
 // Create an auth proof for wallet signature authentication
 const authProof = await sdk.createAuthProof({
   signer: walletSigner,        // Wallet or HDNodeWallet instance
-  keyVaultAddr: keyVaultAddr,   // KeyVault address
-  authenticatorAddr: '0x...',      // Optional: authenticator address (defaults to config)
-  deadline: 1234567890,         // Optional: Unix timestamp (defaults to 1h from now)
-  chainId: 23295               // Optional: Chain ID (defaults to config chainId)
+  keyVaultAddr: keyVaultAddr,  // KeyVault address
+  authenticatorAddr: '0x...',  // Optional: authenticator address (defaults to config)
+  deadline: 1234567890,        // Optional: Unix timestamp (defaults to 1h from now)
+  chainId: 23295              // Optional: Chain ID (defaults to config chainId)
 });
 ```
 
@@ -127,7 +136,7 @@ The SDK provides access to domain-specific clients:
 // Factory client - wallet creation and factory administration
 await sdk.createWallet({ authConfig });
 await sdk.createWalletFromMnemonic({ authConfig, mnemonic });
-await sdk.createWalletWithHook({ authConfig, hook, hookData });
+await sdk.createWalletWithHook({ authConfig, hookAddr, hookData });
 await sdk.createWalletCore({ authConfig });
 await sdk.createWalletWithCustomLogic({ authConfig, customLogicImplAddr, logicData });
 await sdk.isWallet({ walletAddr });
@@ -136,6 +145,7 @@ await sdk.getWalletLogicImplAddr();
 await sdk.getKeyVaultAddr({ walletAddr });
 await sdk.getStorageAddr({ walletAddr });
 await sdk.getBeaconAddr();
+await sdk.getSecretVaultAddr({ walletAddr });
 await sdk.updateWalletLogicImplAddr({ newLogicAddr });
 await sdk.transferAdmin({ newAdminAddr });
 
@@ -160,7 +170,8 @@ await sdk.updateAuthenticatorAddr({ keyVaultAddr, authProof, newAuthenticatorAdd
 // Auth client - authenticator management
 const passwordAuth = sdk.getAuthClient('password');
 const walletSigAuth = sdk.getAuthClient('walletSignature');
-const availableTypes = sdk.getAvailableAuthTypes(); // ['password', 'walletSignature']
+const dualFactorAuth = sdk.getAuthClient('dualFactor');
+const availableTypes = sdk.getAvailableAuthTypes(); // ['walletSignature', 'password', 'dualFactor']
 ```
 
 ## Exports

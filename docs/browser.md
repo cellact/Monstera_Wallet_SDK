@@ -13,7 +13,8 @@ The Monstera SDK works in browsers via ESM or IIFE builds.
   
   const sdk = Monstera.connect({
     mainnet: false,
-    signer: 'your_private_key'
+    signer: 'your_private_key',  // or ethers Signer instance
+    debug: true                 // optional: enable debug logs; or logLevel: 'info' | 'warn' | 'error'
   });
 </script>
 ```
@@ -32,8 +33,12 @@ The Monstera SDK works in browsers via ESM or IIFE builds.
 <script>
   const sdk = window.Monstera.connect({
     mainnet: false,
-    signer: 'your_private_key'
+    signer: 'your_private_key',
+    debug: true   // optional: enable debug logs
   });
+  
+  // Change log level at runtime
+  sdk.setLogLevel('debug');
   
   // Error classes are also exposed on window.Monstera
   console.log(window.Monstera.WalletError);
@@ -80,6 +85,16 @@ The IIFE build (`monstera.global.js`) automatically includes a queue stub, so yo
 ```
 
 **Note:** The queue stub is automatically included in `monstera.global.js`, so queued calls will be processed when the SDK loads.
+
+## Configuration
+
+The same options as Node.js apply in the browser:
+
+- **`Monstera.connect(options)`**: `mainnet`, `signer` (required), `rpcUrl`, `addresses`, `logLevel`, `debug`, `checkVersion`
+- **`Monstera.readonly(options)`**: For read-only use (no signer): `mainnet`, `provider`, `rpcUrl`, `addresses`, `logLevel`, `debug`
+- **`sdk.setLogLevel(level)`**: Change log level at runtime (`'error'` | `'warn'` | `'info'` | `'debug'`)
+
+Logs never include secrets (mnemonics, passwords, auth proofs). See [Node.js configuration](node.md#configuration) and [API Reference](api.md) for full option details.
 
 ## Entry Points
 
