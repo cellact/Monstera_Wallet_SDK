@@ -4,7 +4,7 @@
  * Run: node examples/nodejs/5_updateToNewLogic.js
  * 
  * This demonstrates ADMIN-controlled updates:
- * - Deploys new WalletLogic contract (needs to be done eslewhere first and get the address)
+ * - Deploys new WalletLogic contract (needs to be done elsewhere first and get the address)
  * - Updates the beacon (all wallets use new logic instantly)
  * - Keys in WalletStorage remain untouched
  * - KeyVault (auth layer) remains untouched

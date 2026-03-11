@@ -43,7 +43,7 @@ async function main() {
   try {
     // Check if an address is a wallet created by this factory
     const result = await sdk.isWallet({
-        walletAddr:WALLET_ADDRESS
+        walletAddr: WALLET_ADDRESS
     });
 
     console.log(`   ✅ Address ${WALLET_ADDRESS} is ${result ? 'a' : 'not a'} wallet created by this factory`);

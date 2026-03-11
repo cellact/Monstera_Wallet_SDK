@@ -41,7 +41,8 @@ const COUNTER_BYTECODE = process.env.COUNTER_BYTECODE || "0x60808060405234610016
 
 const sdk = Monstera.connect({
   mainnet: false,
-  signer: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY,
+  logLevel: 'debug'
 });
 
 async function main() {
@@ -66,12 +67,12 @@ async function main() {
   console.log("=".repeat(70));
 
   // Get account address and KeyVault
+  const keyVaultAddr = await sdk.getKeyVaultAddr({
+    walletAddr: SAPPHIRE_WALLET_ADDRESS
+  });
   const accountAddress = await sdk.getAccountAddr({
     keyVaultAddr: keyVaultAddr,
     index: ACCOUNT_INDEX
-  });
-  const keyVaultAddr = await sdk.getKeyVaultAddr({
-    walletAddr: SAPPHIRE_WALLET_ADDRESS
   });
   
   console.log(`   Wallet (proxy): ${SAPPHIRE_WALLET_ADDRESS}`);
@@ -89,7 +90,7 @@ async function main() {
   if (balance === 0n) {
     console.error("\n   ❌ No MATIC balance!");
     console.error(`   Send testnet MATIC to: ${accountAddress}`);
-    console.error("   Faucet: https://faucet.polygon.technology/");
+    console.error("   Faucet: https://faucet.polygon.technology/ or https://faucet.stakepool.dev.br/amoy");
     process.exit(1);
   }
 

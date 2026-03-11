@@ -31,13 +31,11 @@ const WALLET_ADDRESS = process.env.WALLET_ADDRESS || "";
 const PASSWORD = process.env.PASSWORD || "";
 const MNEMONIC = process.env.MNEMONIC || "";
 const RPC_URL = process.env.RPC_URL || "";
-const CHAIN_ID = process.env.SAPPHIRE_CHAIN_ID || "";
 
 const sdk = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY,
   rpcUrl: RPC_URL,   // optional
-  chainId: CHAIN_ID  // optional
 });
 
 async function main() {
