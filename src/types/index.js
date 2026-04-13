@@ -366,7 +366,7 @@
 /**
  * @typedef {Object} CreateAuthProofMinuteSignatureOptions
  * @property {Address} keyVaultAddr - KeyVault / wallet address for verify
- * @property {Bytes32} passwordHash - Same hash used at configure time
+ * @property {Bytes32} passwordHash - Same hash used at configure time; 32-byte password hash
  * @property {Address} [authenticatorAddr] - PasswordMinuteSignatureAuthenticator address (defaults to config)
  * @property {number | string} [chainId] - Chain ID (optional, defaults to config)
  */

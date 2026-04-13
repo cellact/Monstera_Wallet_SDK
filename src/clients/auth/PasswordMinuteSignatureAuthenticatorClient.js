@@ -65,7 +65,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify minute-bucket ECDSA signature (IAuthenticator.verify).
+   * Verify minute-bucket ECDSA signature
    *
    * Contract expects {@code authProof = abi.encode(bytes signature)} where
    * {@code signature} is a 65-byte secp256k1 signature. The contract hashes

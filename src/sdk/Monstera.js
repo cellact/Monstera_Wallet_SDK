@@ -58,7 +58,7 @@ import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
 import { createAuthProof, createAuthProofMinuteSignature } from '../crypto/wallet.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
-import { ValidationError } from '../errors/index.js';
+import { ValidationError, NetworkError } from '../errors/index.js';
 
 /**
  * Monstera Wallet SDK
@@ -1008,16 +1008,40 @@ class Monstera {
   }
 
   /**
-   * Verify minute-bucket ECDSA signature (encoded auth proof).
-   *
-   * @param {Record<string, unknown>} options - Verify options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - {@code AbiCoder.encode(['bytes'], [signature65])} per PasswordMinuteSignatureAuthenticator
+   * Verfiy minute-bucket ECDSA siganture using password hash
+   * 
+   * @param {CreateAuthProofMinuteSignatureOptions} options
    * @returns {Promise<boolean>} True if signature matches derived signer for current minute bucket
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If failed to read latest block from provider
    */
   async isPasswordMinuteSignatureValid(options = {}) {
-    return this.auth.passwordMinuteSignature.verify(options);
+    const { keyVaultAddr, passwordHash } = options;
+    let { authenticatorAddr, chainId } = options;
+
+    // Set default authenticator if not provided
+    if (!authenticatorAddr) {
+      authenticatorAddr = this.config.addresses.passwordMinuteSignatureAuth;
+    }
+
+    // Set chainId default if not provided
+    if (!chainId) {
+      chainId = this.config.chainId;
+    }
+
+    const proofData = await createAuthProofMinuteSignature({
+      provider: this.readProvider,
+      keyVaultAddr,
+      authenticatorAddr,
+      chainId,
+      passwordHash
+    });
+    const authProof = proofData.authProof;
+
+    return this.auth.passwordMinuteSignature.verify({
+      keyVaultAddr,
+      authProof
+    });
   }
 
 

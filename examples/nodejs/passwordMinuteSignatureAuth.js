@@ -7,8 +7,8 @@
  * 
  * 1. Check if wallet is configured
  * 2. Configure the password
- * 3. Create a password minute signature auth proof
- * 4. Verify the password minute signature auth proof
+ * 3. Verify the password minute signature auth proof
+ * 4. Verify the password minute signature auth proof with wrong password
  * 
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
@@ -46,7 +46,7 @@ async function main() {
 
   // ============ STEP 2: Check if wallet is configured ============
   console.log("\n" + "=".repeat(60));
-  console.log("STEP 1: Check if wallet is configured");
+  console.log("STEP 2: Check if wallet is configured");
   console.log("=".repeat(60));
 
   const isConfiguredBefore = await sdk.isPasswordMinuteSignatureConfigured({
@@ -73,25 +73,14 @@ async function main() {
   });
   console.log("Is Configured:", isConfiguredAfter ? "✅ Yes" : "❌ No");
 
-  // ============ STEP 3: Create auth proof ============
+  // ============ STEP 3: Verify auth proof ============
   console.log("\n" + "=".repeat(60));
-  console.log("STEP 3: Create auth proof");
-  console.log("=".repeat(60));
-
-  const proofData = await sdk.createAuthProofMinuteSignature({
-    keyVaultAddr: WALLET_ADDRESS,
-    passwordHash: passwordHash,
-  });
-  console.log("Auth Proof Data:", proofData);
-
-  // ============ STEP 4: Verify auth proof ============
-  console.log("\n" + "=".repeat(60));
-  console.log("STEP 4: Verify auth proof");
+  console.log("STEP 3: Verify auth proof");
   console.log("=".repeat(60));
 
   const isValid = await sdk.isPasswordMinuteSignatureValid({
     keyVaultAddr: WALLET_ADDRESS,
-    authProof: proofData.authProof,
+    passwordHash: passwordHash,
   });
   console.log("Is Valid:", isValid ? "✅ Yes" : "❌ No");
   if (!isValid) {
@@ -99,22 +88,17 @@ async function main() {
     process.exit(1);
   }
 
-  //  ============ STEP 5: Test with wrong password ============
+  //  ============ STEP 4: Test with wrong password ============
   console.log("\n" + "=".repeat(60));
-  console.log("STEP 5: Test with wrong password");
+  console.log("STEP 4: Test with wrong password");
   console.log("=".repeat(60));
 
   const wrongPassword = "wrongpassword";
   const wrongPasswordHash = ethers.keccak256(ethers.toUtf8Bytes(wrongPassword));
-  const wrongProofData = await sdk.createAuthProofMinuteSignature({
-    keyVaultAddr: WALLET_ADDRESS,
-    passwordHash: wrongPasswordHash,
-  });
-  console.log("Wrong Auth Proof Data:", wrongProofData);
 
   const wrongIsValid = await sdk.isPasswordMinuteSignatureValid({
     keyVaultAddr: WALLET_ADDRESS,
-    authProof: wrongProofData.authProof,
+    passwordHash: wrongPasswordHash,
   });
   console.log("Wrong Auth Proof Is Valid:", wrongIsValid ? "✅ Yes" : "❌ No (expected)");
   if (wrongIsValid) {
