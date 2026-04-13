@@ -29,6 +29,7 @@
  * @typedef {import('../types/index.js').AddToWhitelistResult} AddToWhitelistResult
  * @typedef {import('../types/index.js').RemoveFromWhitelistResult} RemoveFromWhitelistResult
  * @typedef {import('../types/index.js').CreateAuthProofOptions} CreateAuthProofOptions
+ * @typedef {import('../types/index.js').CreateAuthProofMinuteSignatureOptions} CreateAuthProofMinuteSignatureOptions
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').Bytes} Bytes
  * @typedef {import('../types/index.js').Bytes32} Bytes32
@@ -55,7 +56,7 @@ import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
-import { createAuthProof } from '../crypto/wallet.js';
+import { createAuthProof, createAuthProofMinuteSignature } from '../crypto/wallet.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
 
@@ -323,6 +324,37 @@ class Monstera {
     return authProof;
   }
 
+  /**
+   * Build {@code authProof} for PasswordMinuteSignatureAuthenticator
+   * ({@code AbiCoder.encode(['bytes'], [signature])}), using the SDK read provider for the latest block time.
+   *
+   * @param {CreateAuthProofMinuteSignatureOptions} options
+   * @returns {Promise<{ authProof: string, minuteBucket: number, derivedAddress: string }>}
+   * @throws {ValidationError} If addresses or passwordHash are invalid
+   */
+  async createAuthProofMinuteSignature(options = {}) {
+    const { keyVaultAddr, passwordHash } = options;
+    let { authenticatorAddr, chainId } = options;
+
+    // Set default authenticator if not provided
+    if (!authenticatorAddr) {
+      authenticatorAddr = this.config.addresses.passwordMinuteSignatureAuth;
+    }
+
+    // Set chainId default if not provided
+    if (!chainId) {
+      chainId = this.config.chainId;
+    }
+
+    return createAuthProofMinuteSignature({
+      provider: this.readProvider,
+      keyVaultAddr,
+      authenticatorAddr,
+      chainId,
+      passwordHash
+    });
+  }
+
   // ============================================================================
   // Initialize Methods (Write)
   // ============================================================================
@@ -364,7 +396,7 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Configure password options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the password hash (keccak256 of password)
+   * @param {Bytes} options.authConfig - Exactly 32 bytes: keccak256 hash of UTF-8 password
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -396,7 +428,7 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Configure dual factor options
    * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config = abi.encode(bytes32 passwordHash, address guardian)
+   * @param {Bytes} options.authConfig - {@code abi.encode(bytes32 passwordHash, address guardian)} (non-zero hash and guardian)
    * @returns {Promise<ConfigurePasswordDualFactorResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -405,6 +437,22 @@ class Monstera {
    */
   async configureDualFactor(options = {}) {
     return this.auth.dualFactor.configure(options);
+  }
+
+  /**
+   * Configure password minute signature
+   * 
+   * @param {Record<string, unknown>} options - Configure password minute signature options
+   * @param {Address} options.keyVaultAddr - Key vault address 
+   * @param {Bytes} options.authConfig - Exactly 32 bytes: keccak256 hash of UTF-8 password (same as PasswordAuthenticator configure)
+   * @returns {Promise<ConfigurePasswordMinuteSignatureResult>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async configurePasswordMinuteSignature(options = {}) {
+    return this.auth.passwordMinuteSignature.configure(options);
   }
 
   // ============================================================================
@@ -913,15 +961,15 @@ class Monstera {
   }
 
   /**
-   * Verify password with dual factor auth proof
-   * 
-   * @param {Record<string, unknown>} options - Verify password options
+   * Verify dual-factor auth proof (minute password signature + guardian EIP-712).
+   *
+   * @param {Record<string, unknown>} options - Verify options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
-   * @returns {Promise<boolean>} True if password is valid, false otherwise
+   * @param {Bytes} options.authProof - {@code abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)} (two 65-byte ECDSA signatures)
+   * @returns {Promise<boolean>} True if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid
    */
-   async isPasswordDualFactorValid(options = {}) {
+  async isPasswordDualFactorValid(options = {}) {
     return this.auth.dualFactor.verify(options);
   }
 
@@ -945,6 +993,31 @@ class Monstera {
    */
   async getDomainSeparatorDualFactor(options = {}) {
     return this.auth.dualFactor.getDomainSeparator(options);
+  }
+
+  /**
+   * Check if a wallet is configured with password minute signature
+   * 
+   * @param {Record<string, unknown>} options - Check if wallet is configured options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
+   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   */
+  async isPasswordMinuteSignatureConfigured(options = {}) {
+    return this.auth.passwordMinuteSignature.isConfigured(options);
+  }
+
+  /**
+   * Verify minute-bucket ECDSA signature (encoded auth proof).
+   *
+   * @param {Record<string, unknown>} options - Verify options
+   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {Bytes} options.authProof - {@code AbiCoder.encode(['bytes'], [signature65])} per PasswordMinuteSignatureAuthenticator
+   * @returns {Promise<boolean>} True if signature matches derived signer for current minute bucket
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async isPasswordMinuteSignatureValid(options = {}) {
+    return this.auth.passwordMinuteSignature.verify(options);
   }
 
 
@@ -1133,12 +1206,12 @@ class Monstera {
   }
 
   /**
-   * Update the password of a wallet using valid dual factor auth proof
-   * 
+   * Update password hash (dual-factor auth required).
+   *
    * @param {Record<string, unknown>} options - Update password options
    * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
-   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
+   * @param {Bytes} options.authProof - Same encoding as {@link Monstera#isPasswordDualFactorValid}
+   * @param {Bytes32} options.newPasswordHash - New password hash (non-zero bytes32)
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1150,12 +1223,12 @@ class Monstera {
   }
 
   /**
-   * Update the guardian of a wallet
-   * 
+   * Update guardian (dual-factor auth required).
+   *
    * @param {Record<string, unknown>} options - Update guardian options
    * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
-   * @param {Address} options.newGuardian - New guardian address
+   * @param {Bytes} options.authProof - Same encoding as {@link Monstera#isPasswordDualFactorValid}
+   * @param {Address} options.newGuardian - New guardian address (non-zero)
    * @returns {Promise<UpdateGuardianResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1164,6 +1237,23 @@ class Monstera {
    */
   async updateGuardian(options = {}) {
     return this.auth.dualFactor.updateGuardian(options);
+  }
+
+  /**
+   * Update password hash (current password bytes must match stored hash; same as PasswordAuthenticator changePassword).
+   *
+   * @param {Record<string, unknown>} options - Update password options
+   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
+   * @param {Bytes} options.currentPassword - Raw current password bytes (UTF-8)
+   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
+   * @returns {Promise<UpdatePasswordResult>}
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @throws {ContractRevertError} If transaction reverts
+   * @throws {EventNotFoundError} If expected event is not found in receipt
+   */
+  async updatePasswordMinuteSignature(options = {}) {
+    return this.auth.passwordMinuteSignature.updatePassword(options);
   }
 }
 

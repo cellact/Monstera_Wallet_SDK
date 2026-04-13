@@ -2,7 +2,8 @@
  * DualFactorAuthenticatorClient
  * 
  * Client for interacting with DualFactorAuthenticator contract methods.
- * Handles dual factor authentication and configuration.
+ * Combines a minute-bucket ECDSA proof (derived from password hash via Sapphire)
+ * with a guardian EIP-712 signature over {@code DualFactorAuth(wallet, deadline)}.
  * 
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
@@ -65,12 +66,17 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify password with dual factor auth proof
-   * 
-   * @param {Record<string, unknown>} options - Verify auth proof options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
-   * @returns {Promise<boolean>} True if auth proof is valid, false otherwise
+   * Verify dual-factor auth proof (IAuthenticator.verify).
+   *
+   * {@code authProof = abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}
+   * where {@code minutePasswordSignature} and {@code guardianSignature} are each 65-byte ECDSA signatures:
+   * minute key signs the EIP-191 digest for the current minute bucket; guardian signs EIP-712 typed data
+   * with struct hash {@code keccak256(abi.encode(AUTH_TYPEHASH, wallet, deadline))} and {@code deadline} not expired.
+   *
+   * @param {Record<string, unknown>} options - Verify options
+   * @param {Address} options.keyVaultAddr - Wallet / KeyVault address passed to the authenticator
+   * @param {Bytes} options.authProof - ABI-encoded tuple above (not raw password bytes)
+   * @returns {Promise<boolean>} True if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async verify(options = {}) {
@@ -141,12 +147,12 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Update the password of a wallet using valid dual factor auth proof
+   * Update the password hash of a wallet using valid dual factor auth proof
    * 
    * @param {Record<string, unknown>} options - Update password options
    * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
-   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
+   * @param {Bytes} options.authProof - {@code abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}
+   * @param {Bytes32} options.newPasswordHash - New password hash (non-zero bytes32)
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -186,11 +192,13 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Configure password dual factor 
-   * 
-   * @param {Record<string, unknown>} options - Configure password options
+   * Configure the dual factor authenticator for a wallet
+   *
+   * {@code config = abi.encode(bytes32 passwordHash, address guardian)} with non-zero hash and guardian.
+   *
+   * @param {Record<string, unknown>} options - Configure options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config = abi.encode(bytes32 passwordHash, address guardian)
+   * @param {Bytes} options.authConfig - ABI-encoded {@code (passwordHash, guardian)} (min length 64 bytes on-chain)
    * @returns {Promise<ConfigurePasswordDualFactorResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -221,12 +229,12 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Update the guardian of a wallet
-   * 
+   * Update the guardian of a wallet using valid dual factor auth proof
+   *
    * @param {Record<string, unknown>} options - Update guardian options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - The raw auth proof bytes (utf8 encoded string) authProof = abi.encode(bytes password, uint256 deadline, bytes signature)
-   * @param {Address} options.newGuardian - New guardian address
+   * @param {Bytes} options.authProof - {@code abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}
+   * @param {Address} options.newGuardian - New guardian address (non-zero)
    * @returns {Promise<UpdateGuardianResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

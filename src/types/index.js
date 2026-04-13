@@ -41,6 +41,7 @@
  * @property {Address} passwordAuth - PasswordAuthenticator contract address
  * @property {Address} walletSignatureAuth - WalletSignatureAuthenticator contract address
  * @property {Address} dualFactorAuth - DualFactorAuthenticator contract address
+ * @property {Address} passwordMinuteSignatureAuth - PasswordMinuteSignatureAuthenticator contract address
  */
 
 /**
@@ -359,6 +360,14 @@
  * @property {Address} keyVaultAddr - KeyVault address of the wallet to authenticate
  * @property {Address} [authenticatorAddr] - Wallet signature authenticator address (optional, defaults to config)
  * @property {number} [deadline] - Deadline for the auth proof (optional, Unix timestamp, default 1h from now)
+ * @property {number | string} [chainId] - Chain ID (optional, defaults to config)
+ */
+
+/**
+ * @typedef {Object} CreateAuthProofMinuteSignatureOptions
+ * @property {Address} keyVaultAddr - KeyVault / wallet address for verify
+ * @property {Bytes32} passwordHash - Same hash used at configure time
+ * @property {Address} [authenticatorAddr] - PasswordMinuteSignatureAuthenticator address (defaults to config)
  * @property {number | string} [chainId] - Chain ID (optional, defaults to config)
  */
 

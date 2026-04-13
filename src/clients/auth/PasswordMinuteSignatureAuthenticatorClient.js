@@ -1,8 +1,9 @@
 /**
- * PasswordAuthenticatorClient
+ * PasswordMinuteSignatureAuthenticatorClient
  * 
- * Client for interacting with PasswordAuthenticator contract methods.
- * Handles password-based authentication and configuration.
+ * Client for interacting with PasswordMinuteSignatureAuthenticator contract methods.
+ * Configure with a bytes32 password hash; {@link verify} expects an ABI-encoded ECDSA
+ * signature over the per-minute EIP-191 digest (not raw password bytes).
  * 
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
@@ -15,12 +16,12 @@
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
-import { getPasswordAuthenticatorContract } from '../../contracts/authenticators/PasswordAuthenticator.js';
-import { PasswordAuthenticatorEvents } from '../../events/index.js';
+import { getPasswordMinuteSignatureAuthenticatorContract } from '../../contracts/authenticators/PasswordMinuteSignatureAuthenticator.js';
+import { PasswordMinuteSignatureAuthenticatorEvents } from '../../events/index.js';
 import { requireAddress, requireBytes } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 
-class PasswordAuthenticatorClient extends BaseContractClient {
+class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   // ============================================================================
   // Constructor
   // ============================================================================
@@ -49,10 +50,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('PasswordAuthenticator: isConfigured');
+    log.info('PasswordMinuteSignatureAuthenticator: isConfigured');
     log.debug('Checking if keyVault is configured', { keyVaultAddr });
 
-    const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
+    const passwordAuth = this.getReadContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
 
     return this.executeRead(
       {
@@ -64,27 +65,34 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify password using valid password auth proof
-   * 
-   * @param {Record<string, unknown>} options - Verify password options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - The raw password bytes (utf8 encoded string)
-   * @returns {Promise<boolean>} True if password is valid, false otherwise
+   * Verify minute-bucket ECDSA signature (IAuthenticator.verify).
+   *
+   * Contract expects {@code authProof = abi.encode(bytes signature)} where
+   * {@code signature} is a 65-byte secp256k1 signature. The contract hashes
+   * {@code keccak256(abi.encodePacked(wallet, address(this), chainId, minuteBucket))},
+   * applies EIP-191, derives a deterministic signing key from
+   * {@code (passwordHash, minuteBucket)} via Sapphire, and checks
+   * {@code recover(digest, signature)} matches that derived address.
+   *
+   * @param {Record<string, unknown>} options - Verify options
+   * @param {Address} options.keyVaultAddr - Wallet / KeyVault address passed to the authenticator
+   * @param {Bytes} options.authProof - ABI-encoded signature: {@code AbiCoder.encode(['bytes'], [signature])}
+   * @returns {Promise<boolean>} True if the signature is valid for the current minute bucket
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async verify(options = {}) {
     const { keyVaultAddr, authProof } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
-    log.info('PasswordAuthenticator: verify');
-    log.debug('Verifying password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
+    log.info('PasswordMinuteSignatureAuthenticator: verify');
+    log.debug('Verifying minute signature for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
-    const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
+    const passwordAuth = this.getReadContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
 
     return this.executeRead(
       {
         operation: () => passwordAuth.verify(keyVaultAddr, authProof),
-        methodName: 'verify password',
+        methodName: 'verify minute signature',
         ...options
       }
     );
@@ -112,20 +120,20 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(currentPassword, 'currentPassword');
     requireBytes(newPasswordHash, 'newPasswordHash');
-    log.info('PasswordAuthenticator: updatePassword');
+    log.info('PasswordMinuteSignatureAuthenticator: updatePassword');
     log.debug('Updating password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
-    const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
+    const passwordAuth = this.getWriteContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
 
     const result = await this.executeWrite(
       {
         operation: () => passwordAuth.changePassword(keyVaultAddr, currentPassword, newPasswordHash),
         methodName: 'change password',
         parseEvents: [{
-          eventDef: PasswordAuthenticatorEvents.PasswordChanged,
+          eventDef: PasswordMinuteSignatureAuthenticatorEvents.PasswordChanged,
           contract: passwordAuth
         }],
-        extraData: { authenticatorAddress: this.config.addresses.passwordAuth },
+        extraData: { authenticatorAddress: this.config.addresses.passwordMinuteSignatureAuth },
         ...options
       }
     );
@@ -140,10 +148,10 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Configure password hash (IAuthenticator.configure).
+   * Configure password 
    *
-   * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes
-   * ({@code keccak256} of UTF-8 password bytes).
+   * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes,
+   * the keccak256 hash of the UTF-8 password ({@code keccak256(utf8Bytes(password))}).
    *
    * @param {Record<string, unknown>} options - Configure password options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
@@ -158,24 +166,24 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, authConfig } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authConfig, 'authConfig');
-    log.info('PasswordAuthenticator: configure');
+    log.info('PasswordMinuteSignatureAuthenticator: configure');
     log.debug('Configuring password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
-    const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
+    const passwordAuth = this.getWriteContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
     
     return this.executeWrite(
       {
         operation: () => passwordAuth.configure(keyVaultAddr, authConfig),
         methodName: 'configure password',
         parseEvents: [{
-          eventDef: PasswordAuthenticatorEvents.PasswordConfigured,
+          eventDef: PasswordMinuteSignatureAuthenticatorEvents.PasswordConfigured,
           contract: passwordAuth
         }],  
-        extraData: { authenticatorAddress: this.config.addresses.passwordAuth },
+        extraData: { authenticatorAddress: this.config.addresses.passwordMinuteSignatureAuth },
         ...options
       }
     );
   }
 }
 
-export default PasswordAuthenticatorClient;
+export default PasswordMinuteSignatureAuthenticatorClient;

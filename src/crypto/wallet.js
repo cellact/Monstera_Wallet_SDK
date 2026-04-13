@@ -176,9 +176,90 @@ async function createAuthProof(signer, chainId, authenticatorAddr, deadline, key
   }
 }
 
+/**
+ * Floor unix timestamp (seconds) to the start of its minute bucket.
+ *
+ * @param {number} timestampSeconds
+ * @returns {number}
+ */
+function floorTimestampToMinuteBucket(timestampSeconds) {
+  return Math.floor(Number(timestampSeconds) / 60) * 60;
+}
+
+/**
+ * Build {@code authProof} for PasswordMinuteSignatureAuthenticator: {@code abi.encode(bytes signature)}
+ * over the EIP-191 digest of the same {@code payloadHash} the contract uses.
+ *
+ * Uses {@code new Wallet(keccak256(abi.encodePacked(passwordHash, minuteBucket)))} to sign — the same
+ * approach as common Hardhat scripts. The deployed Sapphire contract derives the signing key via
+ * {@code Sapphire.generateSigningKeyPair}; if your on-chain verify fails, those derivations may differ.
+ *
+ * @param {Object} options
+ * @param {import('ethers').AbstractProvider} options.provider - Provider used only for {@code getBlock('latest')} (on-chain time)
+ * @param {Address} options.keyVaultAddr - Wallet / KeyVault address passed to {@code verify(wallet, authProof)}
+ * @param {Address} options.authenticatorAddr - PasswordMinuteSignatureAuthenticator contract address
+ * @param {number|string} options.chainId - Chain ID
+ * @param {string} options.passwordHash - 32-byte hex string ({@code keccak256(utf8(password))})
+ * @returns {Promise<{ authProof: string, minuteBucket: number, derivedAddress: string }>}
+ */
+async function createAuthProofMinuteSignature(options = {}) {
+  const { provider, keyVaultAddr, authenticatorAddr, chainId, passwordHash } = options;
+
+  if (!provider || typeof provider.getBlock !== 'function') {
+    throw new ValidationError('provider must expose getBlock', 'provider', provider);
+  }
+  requireAddress(keyVaultAddr, 'keyVaultAddr');
+  requireAddress(authenticatorAddr, 'authenticatorAddr');
+  if (typeof chainId !== 'string' && typeof chainId !== 'number') {
+    throw new ValidationError('chainId must be a string or number', 'chainId', chainId);
+  }
+  if (!passwordHash || typeof passwordHash !== 'string' || !ethers.isHexString(passwordHash, 32)) {
+    throw new ValidationError(
+      'passwordHash must be a 32-byte hex string (0x-prefixed bytes32)',
+      'passwordHash',
+      passwordHash
+    );
+  }
+
+  const block = await provider.getBlock('latest');
+  if (!block) {
+    throw new NetworkError('Failed to read latest block from provider', null, null);
+  }
+  const minuteBucket = floorTimestampToMinuteBucket(block.timestamp);
+
+  const minuteSeed = ethers.keccak256(
+    ethers.solidityPacked(['bytes32', 'uint256'], [passwordHash, BigInt(minuteBucket)])
+  );
+
+  const derivedSigner = new Wallet(minuteSeed);
+
+  const payloadHash = ethers.keccak256(
+    ethers.solidityPacked(
+      ['address', 'address', 'uint256', 'uint256'],
+      [keyVaultAddr, authenticatorAddr, BigInt(chainId), BigInt(minuteBucket)]
+    )
+  );
+
+  const signature = await derivedSigner.signMessage(ethers.getBytes(payloadHash));
+  const authProof = ethers.AbiCoder.defaultAbiCoder().encode(['bytes'], [signature]);
+
+  log.debug('createAuthProofMinuteSignature', {
+    minuteBucket,
+    derivedAddress: derivedSigner.address
+  });
+
+  return {
+    authProof,
+    minuteBucket,
+    derivedAddress: derivedSigner.address
+  };
+}
+
 export {
   generateMnemonic,
   deriveSeed,
   hashPassword,
-  createAuthProof
+  createAuthProof,
+  floorTimestampToMinuteBucket,
+  createAuthProofMinuteSignature
 };
