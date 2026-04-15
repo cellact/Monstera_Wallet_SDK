@@ -82,7 +82,7 @@ async function main() {
 
   const isValid = await sdk.isPasswordValid({
     keyVaultAddr: keyVault,
-    authProof: authProof
+    currentPassword: authProof
   });
 
   console.log("Is Valid:", isValid ? "✅ Yes" : "❌ No");

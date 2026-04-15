@@ -213,14 +213,14 @@ describe('Authentication Integration Tests', () => {
       // Verify new password works
       const isValid = await sdk.isPasswordValid({
         keyVaultAddr,
-        authProof: createPasswordAuthProof(newPassword)
+        currentPassword: createPasswordAuthProof(newPassword)
       });
       expect(isValid).toBe(true);
 
       // Verify old password doesn't work
       const isOldValid = await sdk.isPasswordValid({
         keyVaultAddr,
-        authProof: currentPasswordBytes
+        currentPassword: currentPasswordBytes
       });
       expect(isOldValid).toBe(false);
 
@@ -331,7 +331,7 @@ describe('Authentication Integration Tests', () => {
     test('should return true for correct password', async () => {
       const isValid = await sdk.isPasswordValid({
         keyVaultAddr,
-        authProof: createPasswordAuthProof(password)
+        currentPassword: createPasswordAuthProof(password)
       });
       expect(isValid).toBe(true);
     });
@@ -339,7 +339,7 @@ describe('Authentication Integration Tests', () => {
     test('should return false for incorrect password', async () => {
       const isValid = await sdk.isPasswordValid({
         keyVaultAddr,
-        authProof: createPasswordAuthProof('wrongpassword')
+        currentPassword: createPasswordAuthProof('wrongpassword')
       });
       expect(isValid).toBe(false);
     });
@@ -348,7 +348,7 @@ describe('Authentication Integration Tests', () => {
       await testMissingParam(
         sdk.isPasswordValid.bind(sdk),
         {
-          authProof: createPasswordAuthProof(password)
+          currentPassword: createPasswordAuthProof(password)
         },
         'keyVaultAddr'
       );
@@ -358,7 +358,7 @@ describe('Authentication Integration Tests', () => {
       await testMissingParam(
         sdk.isPasswordValid.bind(sdk),
         { keyVaultAddr },
-        'authProof'
+        'currentPassword'
       );
     });
 
@@ -367,7 +367,7 @@ describe('Authentication Integration Tests', () => {
         sdk.isPasswordValid.bind(sdk),
         {
           keyVaultAddr,
-          authProof: createPasswordAuthProof(password)
+          currentPassword: createPasswordAuthProof(password)
         },
         'keyVaultAddr'
       );

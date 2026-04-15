@@ -972,12 +972,16 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Verify password options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - Raw password bytes (utf8 encoded string)
+   * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
    * @returns {Promise<boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async isPasswordValid(options = {}) {
-    return this.auth.password.verify(options);
+    const { keyVaultAddr, currentPassword } = options;
+
+    const authProof = currentPassword;
+
+    return this.auth.password.verify({ keyVaultAddr, authProof });
   }
 
   /**
