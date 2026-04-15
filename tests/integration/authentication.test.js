@@ -131,14 +131,15 @@ describe('Authentication Integration Tests', () => {
         authConfig: passwordHash
       });
 
-      // Encode whitelist addresses
-      const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
+      // // Encode whitelist addresses
+      // const whitelist = [testWalletAddr];
+      // const authConfig = createWalletSigAuthConfig(whitelist);
 
       // Configure wallet signature authenticator
       const result = await sdk.configureWalletSignature({
         keyVaultAddr: newWallet.keyVault,
-        authConfig
+        // authConfig
+        initialWhitelist: [testWalletAddr]
       });
 
       expectTransactionResult(result);
@@ -151,41 +152,45 @@ describe('Authentication Integration Tests', () => {
     }, 30000);
 
     test('should fail with missing keyVaultAddr', async () => {
-      const authConfig = createWalletSigAuthConfig([testWalletAddr]);
+      // const authConfig = createWalletSigAuthConfig([testWalletAddr]);
 
       await testMissingParam(
         sdk.configureWalletSignature.bind(sdk),
-        { authConfig },
+        // { authConfig },
+        { initialWhitelist: [testWalletAddr] },
         'keyVaultAddr'
       );
     });
 
-    test('should fail with missing authConfig', async () => {
+    test('should fail with missing initialWhitelist', async () => {
       await testMissingParam(
         sdk.configureWalletSignature.bind(sdk),
         { keyVaultAddr },
-        'authConfig'
+        // 'authConfig'
+        'initialWhitelist'
       );
     });
 
     test('should fail with invalid keyVaultAddr', async () => {
-      const authConfig = createWalletSigAuthConfig([testWalletAddr]);
+      // const authConfig = createWalletSigAuthConfig([testWalletAddr]);
 
       await testInvalidAddress(
         sdk.configureWalletSignature.bind(sdk),
-        { keyVaultAddr, authConfig },
+        // { keyVaultAddr, authConfig },
+        { keyVaultAddr, initialWhitelist: [testWalletAddr] },
         'keyVaultAddr'
       );
     });
 
     test('should fail with readonly SDK instance', async () => {
-      const authConfig = createWalletSigAuthConfig([testWalletAddr]);
+      // const authConfig = createWalletSigAuthConfig([testWalletAddr]);
 
       await testReadonlySDK(
         sdk.configureWalletSignature,
         {
           keyVaultAddr,
-          authConfig
+          // authConfig
+          initialWhitelist: [testWalletAddr]
         }
       );
     });
@@ -420,17 +425,18 @@ describe('Authentication Integration Tests', () => {
       });
 
       // Create auth proof
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault,
-        deadline
-      });
+      // const deadline = calculateDeadline();
+      // const authProof = await sdk.createAuthProof({
+      //   signer: testWallet.connect(sdk.provider),
+      //   keyVaultAddr: newWallet.keyVault,
+      //   deadline
+      // });
 
       // Verify signature
       const isValid = await sdk.isWalletSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        // authProof
+        signer: testWallet.connect(sdk.provider)
       });
       expect(isValid).toBe(true);
     }, 30000);
@@ -447,17 +453,18 @@ describe('Authentication Integration Tests', () => {
 
       // Create auth proof with different wallet (not whitelisted)
       const otherWallet = Wallet.createRandom();
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: otherWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault,
-        deadline
-      });
+      // const deadline = calculateDeadline();
+      // const authProof = await sdk.createAuthProof({
+      //   signer: otherWallet.connect(sdk.provider),
+      //   keyVaultAddr: newWallet.keyVault,
+      //   deadline
+      // });
 
       // Verify signature (should be false)
       const isValid = await sdk.isWalletSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        // authProof
+        signer: otherWallet.connect(sdk.provider)
       });
       expect(isValid).toBe(false);
     }, 30000);
@@ -472,7 +479,9 @@ describe('Authentication Integration Tests', () => {
 
       await testMissingParam(
         sdk.isWalletSignatureValid.bind(sdk),
-        { authProof },
+        { // authProof
+          signer: testWallet.connect(sdk.provider)
+        },
         'keyVaultAddr'
       );
     });
@@ -481,7 +490,8 @@ describe('Authentication Integration Tests', () => {
       await testMissingParam(
         sdk.isWalletSignatureValid.bind(sdk),
         { keyVaultAddr },
-        'authProof'
+        // 'authProof'
+        'signer'
       );
     });
   });
@@ -857,21 +867,22 @@ describe('Authentication Integration Tests', () => {
         authConfig
       });
 
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault,
-        deadline
-      });
+      // const deadline = calculateDeadline();
+      // const authProof = await sdk.createAuthProof({
+      //   signer: testWallet.connect(sdk.provider),
+      //   keyVaultAddr: newWallet.keyVault,
+      //   deadline
+      // });
 
-      expect(authProof).toBeDefined();
-      expect(typeof authProof).toBe('string');
-      expectValidHex(authProof);
+      // expect(authProof).toBeDefined();
+      // expect(typeof authProof).toBe('string');
+      // expectValidHex(authProof);
 
       // Verify auth proof is valid
       const isValid = await sdk.isWalletSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        // authProof
+        signer: testWallet.connect(sdk.provider)
       });
       expect(isValid).toBe(true);
     }, 30000);
@@ -885,18 +896,19 @@ describe('Authentication Integration Tests', () => {
         authConfig
       });
 
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault
-        // deadline not provided, should default to 1 hour from now
-      });
+      // const authProof = await sdk.createAuthProof({
+      //   signer: testWallet.connect(sdk.provider),
+      //   keyVaultAddr: newWallet.keyVault
+      //   // deadline not provided, should default to 1 hour from now
+      // });
 
-      expect(authProof).toBeDefined();
+      // expect(authProof).toBeDefined();
       
       // Verify auth proof is valid
       const isValid = await sdk.isWalletSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        // authProof
+        signer: testWallet.connect(sdk.provider)
       });
       expect(isValid).toBe(true);
     }, 30000);
@@ -910,20 +922,21 @@ describe('Authentication Integration Tests', () => {
         authConfig
       });
 
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault,
-        deadline
-        // authenticatorAddr not provided, should use default
-      });
+      // const deadline = calculateDeadline();
+      // const authProof = await sdk.createAuthProof({
+      //   signer: testWallet.connect(sdk.provider),
+      //   keyVaultAddr: newWallet.keyVault,
+      //   deadline
+      //   // authenticatorAddr not provided, should use default
+      // });
 
-      expect(authProof).toBeDefined();
+      // expect(authProof).toBeDefined();
       
       // Verify auth proof is valid
       const isValid = await sdk.isWalletSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        // authProof
+        signer: testWallet.connect(sdk.provider)
       });
       expect(isValid).toBe(true);
     }, 30000);

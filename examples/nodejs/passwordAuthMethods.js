@@ -19,7 +19,8 @@ const PASSWORD = process.env.PASSWORD;
 
 const sdk = Monstera.connect({
   mainnet: false,
-  signer: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY,
+  logLevel: 'debug'
 });
 
 async function main() {

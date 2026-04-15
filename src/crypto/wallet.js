@@ -72,6 +72,33 @@ function hashPassword(password) {
 }
 
 /**
+ * Creates a wallet signature auth config from whitelist
+ * @param {string[]} whitelist - Array of whitelisted addresses
+ * @returns {string} Encoded auth config
+ */
+function createWalletSigAuthConfig(whitelist) {
+  if (!Array.isArray(whitelist)) {
+    throw new ValidationError('Whitelist must be an array', 'whitelist', whitelist);
+  }
+  if (whitelist.length === 0) {
+    throw new ValidationError('Whitelist must contain at least one address', 'whitelist', whitelist);
+  }
+  for (const address of whitelist) {
+    requireAddress(address, 'address');
+  }
+  return ethers.AbiCoder.defaultAbiCoder().encode(["address[]"], [whitelist]);
+}
+
+function createDualFactorAuthConfig(passwordHash, guardianAddr) {
+  if (!passwordHash || typeof passwordHash !== 'string' || !ethers.isHexString(passwordHash, 32)) {
+    throw new ValidationError('passwordHash must be a 32-byte hex string (0x-prefixed bytes32)', 'passwordHash', passwordHash);
+  }
+  requireAddress(guardianAddr, 'guardianAddr');
+
+  return ethers.AbiCoder.defaultAbiCoder().encode(["bytes32", "address"], [passwordHash, guardianAddr]);
+}
+
+/**
  * Create auth proof (EIP-712 authentication proof)
  * 
  * @param {EthersWallet | EthersHDNodeWallet} signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
@@ -81,8 +108,9 @@ function hashPassword(password) {
  * @param {Address} keyVaultAddr - Key vault address
  * @returns {Promise<Bytes>} Auth proof (bytes)
  */
-async function createAuthProof(signer, chainId, authenticatorAddr, deadline, keyVaultAddr) {
-  
+async function createAuthProof(options = {}) {
+  const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr } = options;
+
   // Validate signer
   if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
     throw new ValidationError('Signer must be a Wallet or HDNodeWallet', 'signer', signer);
@@ -197,7 +225,7 @@ function floorTimestampToMinuteBucket(timestampSeconds) {
  * @param {Object} options
  * @param {import('ethers').AbstractProvider} options.provider - Provider used only for {@code getBlock('latest')} (on-chain time)
  * @param {Address} options.keyVaultAddr - Wallet / KeyVault address passed to {@code verify(wallet, authProof)}
- * @param {Address} options.authenticatorAddr - PasswordMinuteSignatureAuthenticator contract address
+ * @param {Address} options.authenticatorAddr - Authenticator contract address ({@code address(this)} in the digest): PasswordMinuteSignature or DualFactor for its minute leg
  * @param {number|string} options.chainId - Chain ID
  * @param {string} options.passwordHash - 32-byte hex string ({@code keccak256(utf8(password))})
  * @returns {Promise<{ authProof: string, minuteBucket: number, derivedAddress: string }>}
@@ -255,11 +283,133 @@ async function createAuthProofMinuteSignature(options = {}) {
   };
 }
 
+/**
+ * Build {@code authProof} for DualFactorAuthenticator:
+ * {@code abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}.
+ *
+ * Reuses {@link createAuthProofMinuteSignature} for the minute leg (pass {@code authenticatorAddr} as the
+ * DualFactor contract so {@code address(this)} in the digest matches verify). Decodes the inner 65-byte
+ * signature, then the guardian {@code signer} signs EIP-712 {@code DualFactorAuth(wallet, deadline)} for the
+ * same contract domain as on-chain {@code EIP712("DualFactorAuthenticator", "1")}.
+ *
+ * @param {Object} options
+ * @param {import('ethers').AbstractProvider} options.provider - Provider for latest block (minute bucket)
+ * @param {Address} options.keyVaultAddr - KeyVault / wallet address ({@code verify} first argument)
+ * @param {Address} options.authenticatorAddr - DualFactorAuthenticator address (minute digest + EIP-712 verifyingContract)
+ * @param {number|string} options.chainId - Chain ID
+ * @param {string} options.passwordHash - 32-byte hex ({@code keccak256(utf8(password))})
+ * @param {EthersWallet | EthersHDNodeWallet} options.signer - Guardian key (must match configured guardian)
+ * @param {number} options.deadline - Unix seconds; must be {@code >= block.timestamp} when verify runs
+ * @returns {Promise<string>} ABI-encoded auth proof bytes (hex)
+ */
+async function createAuthProofDualFactor(options = {}) {
+  const { provider, keyVaultAddr, passwordHash, signer, authenticatorAddr, deadline, chainId } = options;
+
+  if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
+    throw new ValidationError(
+      'Signer must be a Wallet or HDNodeWallet (guardian key)',
+      'signer',
+      signer
+    );
+  }
+  if (typeof deadline !== 'number' || !Number.isInteger(deadline)) {
+    throw new ValidationError('Deadline must be an integer (Unix timestamp in seconds)', 'deadline', deadline);
+  }
+  const nowInSeconds = Math.floor(Date.now() / 1000);
+  if (deadline < nowInSeconds) {
+    throw new ValidationError('Deadline must be in the future', 'deadline', deadline);
+  }
+
+  log.info('Creating dual-factor auth proof');
+  log.debug('createAuthProofDualFactor', { keyVaultAddr, authenticatorAddr, chainId, deadline });
+
+  const minuteProof = await createAuthProofMinuteSignature({
+    provider,
+    keyVaultAddr,
+    authenticatorAddr,
+    chainId,
+    passwordHash
+  });
+
+  const [minutePasswordSignature] = ethers.AbiCoder.defaultAbiCoder().decode(
+    ['bytes'],
+    minuteProof.authProof
+  );
+
+  const domain = {
+    name: 'DualFactorAuthenticator',
+    version: '1',
+    chainId,
+    verifyingContract: authenticatorAddr
+  };
+  const types = {
+    DualFactorAuth: [
+      { name: 'wallet', type: 'address' },
+      { name: 'deadline', type: 'uint256' }
+    ]
+  };
+  const value = { wallet: keyVaultAddr, deadline };
+
+  try {
+    const guardianSignature = await signer.signTypedData(domain, types, value);
+
+    return ethers.AbiCoder.defaultAbiCoder().encode(
+      ['bytes', 'uint256', 'bytes'],
+      [minutePasswordSignature, deadline, guardianSignature]
+    );
+  } catch (error) {
+    if (error instanceof WalletError) {
+      throw error;
+    }
+
+    const errorCode = error.code || error.error?.code;
+    const errorMessage = error.message || String(error);
+
+    if (
+      errorCode === 'NETWORK_ERROR' ||
+      errorCode === 'TIMEOUT' ||
+      errorCode === 'SERVER_ERROR' ||
+      errorCode === 'UNKNOWN_ERROR' ||
+      error.name === 'NetworkError' ||
+      errorMessage.includes('network') ||
+      errorMessage.includes('connection') ||
+      errorMessage.includes('timeout')
+    ) {
+      throw new NetworkError(
+        `Failed to create dual-factor auth proof: Network error during signing - ${errorMessage}`,
+        null,
+        error
+      );
+    }
+
+    if (errorMessage.includes('encode') || errorMessage.includes('ABI')) {
+      throw new ValidationError(
+        `Failed to encode dual-factor auth proof: ${errorMessage}`,
+        'authProof',
+        { deadline }
+      );
+    }
+
+    throw new WalletError(
+      `Failed to create dual-factor auth proof: ${errorMessage}`,
+      'UNKNOWN_ERROR',
+      {
+        function: 'createAuthProofDualFactor',
+        originalError: errorMessage,
+        originalCode: errorCode
+      }
+    );
+  }
+}
+
 export {
   generateMnemonic,
   deriveSeed,
   hashPassword,
   createAuthProof,
   floorTimestampToMinuteBucket,
-  createAuthProofMinuteSignature
+  createAuthProofMinuteSignature,
+  createAuthProofDualFactor,
+  createWalletSigAuthConfig,
+  createDualFactorAuthConfig
 };

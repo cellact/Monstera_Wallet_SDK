@@ -76,16 +76,11 @@ async function main() {
   console.log("=".repeat(60));
 
   try {
-    const authProof = await sdk.createAuthProof({
-      signer: allowed1Signer,
-      keyVaultAddr: result.keyVault
-    });
-    
     // Sign a message
     const message = "Hello from WalletSigAuth test!";
     const sig = await sdk.signMessage({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: allowed1Signer,
       index: 0,
       message: ethers.toUtf8Bytes(message)
     });
@@ -109,15 +104,10 @@ async function main() {
   console.log("=".repeat(60));
 
   try {
-    const authProof = await sdk.createAuthProof({
-      signer: allowed2Signer,
-      keyVaultAddr: result.keyVault
-    });
-    
     const hash = ethers.keccak256(ethers.toUtf8Bytes("test data"));
     const sig = await sdk.sign({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: allowed2Signer,
       index: 0,
       hash: hash
     });
@@ -134,13 +124,9 @@ async function main() {
 
   try {
     // Use allowed1 to remove allowed2 from the whitelist
-    const authProof = await sdk.createAuthProof({
-      signer: allowed1Signer,
-      keyVaultAddr: result.keyVault
-    });
     const removeResult = await sdk.removeFromWhitelist({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: allowed1Signer,
       addressToRemove: allowed2Signer.address
     });
     console.log(`   ✅ Removed ${allowed2Signer.address.slice(0, 10)}... from whitelist`);
@@ -162,13 +148,9 @@ async function main() {
   console.log("=".repeat(60));
 
   try {
-    const authProof = await sdk.createAuthProof({
-      signer: allowed2Signer,
-      keyVaultAddr: result.keyVault
-    });
     const sig = await sdk.signMessage({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: allowed2Signer,
       index: 0,
       message: ethers.toUtf8Bytes("I'm now not allowed!")
     });

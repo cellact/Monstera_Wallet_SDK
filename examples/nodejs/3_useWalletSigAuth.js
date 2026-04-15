@@ -86,14 +86,10 @@ async function main() {
     });
     console.log(`   ✅ getAccountAddr(0) works: ${addr.slice(0, 20)}...`);
     
-    // Authenticated function should fail
-    const authProof = await sdk.createAuthProof({
-      signer: notAllowedSigner,
-      keyVaultAddr: result.keyVault
-    });
+    // // Authenticated function should fail
     await sdk.signMessage({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: notAllowedSigner,
       index: 0,
       message: ethers.toUtf8Bytes("test")
     });
@@ -108,16 +104,11 @@ async function main() {
   console.log("=".repeat(60));
 
   try {
-    const authProof = await sdk.createAuthProof({
-      signer: allowed1Signer,
-      keyVaultAddr: result.keyVault
-    });
-    
     // Sign a message
     const message = "Hello from WalletSigAuth test!";
     const sig = await sdk.signMessage({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: allowed1Signer,
       index: 0,
       message: ethers.toUtf8Bytes(message)
     });
@@ -141,15 +132,10 @@ async function main() {
   console.log("=".repeat(60));
 
   try {
-    const authProof = await sdk.createAuthProof({
-      signer: allowed2Signer,
-      keyVaultAddr: result.keyVault
-    });
-    
     const hash = ethers.keccak256(ethers.toUtf8Bytes("test data"));
     const sig = await sdk.sign({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: allowed2Signer,
       index: 0,
       hash: hash
     });
@@ -166,13 +152,9 @@ async function main() {
 
   try {
     // Use allowed1 to add the notAllowed signer
-    const authProof = await sdk.createAuthProof({
-      signer: allowed1Signer,
-      keyVaultAddr: result.keyVault
-    });
     const addResult = await sdk.addToWhitelist({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: allowed1Signer,
       addressToAdd: notAllowedSigner.address
     });
     console.log(`   ✅ Added ${addResult.added} to whitelist for wallet ${addResult.wallet}`);
@@ -196,13 +178,9 @@ async function main() {
   console.log("=".repeat(60));
 
   try {
-    const authProof = await sdk.createAuthProof({
-      signer: notAllowedSigner,
-      keyVaultAddr: result.keyVault
-    });
     const sig = await sdk.signMessage({
       keyVaultAddr: result.keyVault,
-      authProof: authProof,
+      signer: notAllowedSigner,
       index: 0,
       message: ethers.toUtf8Bytes("I'm now allowed!")
     });

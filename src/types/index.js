@@ -240,11 +240,20 @@
 // Signing Context Base Types (keyVault vs wallet, then transaction/message/hash)
 // ============================================================================
 
+// /**
+//  * Base for signing options that target a KeyVault by address.
+//  * @typedef {Object} KeyVaultSigningBase
+//  * @property {Address} keyVaultAddr - KeyVault contract address
+//  * @property {Bytes} authProof - Authentication proof (bytes)
+//  * @property {number|bigint} index - Account index (uint32)
+//  */
+
 /**
  * Base for signing options that target a KeyVault by address.
  * @typedef {Object} KeyVaultSigningBase
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes} authProof - Authentication proof (bytes)
+ * @property {EthersWallet | EthersHDNodeWallet} signer - Optional signer (Wallet or HDNodeWallet) used to sign the auth proof
+ * @property {Bytes} authProof - Optional authentication proof (bytes)
  * @property {number|bigint} index - Account index (uint32)
  */
 
