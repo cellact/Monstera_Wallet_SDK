@@ -59,7 +59,7 @@ async function main() {
   console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
   const result = await sdk.createWalletFromMnemonic({
     authenticatorAddr: sdk.addresses.passwordAuth,
-    authConfig: passwordHash,
+    authConfig: { passwordHash },
     mnemonic: MNEMONIC
   });
   console.log("   Transaction:", result.transactionHash);

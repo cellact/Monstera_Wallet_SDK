@@ -65,7 +65,7 @@ describe('Wallet Management Integration Tests', () => {
       // Create a new wallet (wallet logic is initialized during creation)
       // But we can test the method directly
       const newWallet = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       // Check if already initialized
@@ -133,7 +133,7 @@ describe('Wallet Management Integration Tests', () => {
       // Create a new wallet for testing
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.passwordAuth,
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       const authProof = createPasswordAuthProof(password);

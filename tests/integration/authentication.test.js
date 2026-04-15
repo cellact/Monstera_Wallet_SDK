@@ -18,7 +18,6 @@ import {
 } from '../utils/setup.js';
 import { 
   createPasswordAuthProof, 
-  createWalletSigAuthConfig,
   calculateDeadline,
   randomAddress
 } from '../utils/fixtures.js';
@@ -62,10 +61,9 @@ describe('Authentication Integration Tests', () => {
     test('should successfully configure password for a wallet', async () => {
       // Create a new wallet WITHOUT password configured (using wallet signature authenticator)
       const whitelist = [testWalletAddr];
-      const walletSigAuthConfig = createWalletSigAuthConfig(whitelist);
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig: walletSigAuthConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       // Verify password is NOT configured initially
@@ -128,7 +126,7 @@ describe('Authentication Integration Tests', () => {
     test('should successfully configure wallet signature authenticator', async () => {
       // Create a new wallet
       const newWallet = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       // // Encode whitelist addresses
@@ -297,11 +295,9 @@ describe('Authentication Integration Tests', () => {
     test('should return false for unconfigured wallet', async () => {
       // Create a wallet without password configured (using wallet signature)
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       const isConfigured = await sdk.isPasswordConfigured({
@@ -378,11 +374,9 @@ describe('Authentication Integration Tests', () => {
     test('should return true for configured wallet', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       const isConfigured = await sdk.isWalletSignatureConfigured({
@@ -395,7 +389,7 @@ describe('Authentication Integration Tests', () => {
       // Create wallet with password authenticator
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.passwordAuth,
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       const isConfigured = await sdk.isWalletSignatureConfigured({
@@ -417,11 +411,9 @@ describe('Authentication Integration Tests', () => {
     test('should return true for valid signature', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       // Create auth proof
@@ -444,11 +436,9 @@ describe('Authentication Integration Tests', () => {
     test('should return false for invalid signature', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       // Create auth proof with different wallet (not whitelisted)
@@ -500,11 +490,9 @@ describe('Authentication Integration Tests', () => {
     test('should return true for whitelisted address', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       const isWhitelisted = await sdk.isWhitelisted({
@@ -517,11 +505,9 @@ describe('Authentication Integration Tests', () => {
     test('should return false for non-whitelisted address', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       const otherAddr = randomAddress();
@@ -564,11 +550,9 @@ describe('Authentication Integration Tests', () => {
     test('should return whitelist addresses', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr, randomAddress()];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       const result = await sdk.getWhitelist({
@@ -585,11 +569,9 @@ describe('Authentication Integration Tests', () => {
     test('should fail to remove last address from whitelist (prevents empty whitelist)', async () => {
       // Create wallet with wallet signature authenticator and one address
       const initialWhitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(initialWhitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist }
       });
 
       // Verify initial whitelist has one address
@@ -645,11 +627,9 @@ describe('Authentication Integration Tests', () => {
     test('should successfully add address to whitelist', async () => {
       // Create wallet with wallet signature authenticator
       const initialWhitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(initialWhitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist }
       });
 
       // Create auth proof
@@ -728,11 +708,9 @@ describe('Authentication Integration Tests', () => {
     test('should fail with invalid authProof from non-whitelisted address', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       // Create auth proof with non-whitelisted address
@@ -758,11 +736,9 @@ describe('Authentication Integration Tests', () => {
     test('should successfully remove address from whitelist', async () => {
       // Create wallet with wallet signature authenticator
       const initialWhitelist = [testWalletAddr, randomAddress()];
-      const authConfig = createWalletSigAuthConfig(initialWhitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist }
       });
 
       // Create auth proof
@@ -860,11 +836,9 @@ describe('Authentication Integration Tests', () => {
     test('should successfully create auth proof', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       // const deadline = calculateDeadline();
@@ -889,11 +863,9 @@ describe('Authentication Integration Tests', () => {
 
     test('should use default deadline if not provided', async () => {
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       // const authProof = await sdk.createAuthProof({
@@ -915,11 +887,9 @@ describe('Authentication Integration Tests', () => {
 
     test('should use default authenticatorAddr if not provided', async () => {
       const whitelist = [testWalletAddr];
-      const authConfig = createWalletSigAuthConfig(whitelist);
-      
       const newWallet = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.walletSignatureAuth,
-        authConfig
+        authConfig: { initialWhitelist: whitelist }
       });
 
       // const deadline = calculateDeadline();

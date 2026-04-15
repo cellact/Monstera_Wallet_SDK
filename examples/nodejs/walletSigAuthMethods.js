@@ -56,16 +56,14 @@ async function main() {
   console.log("STEP 1: Create new wallet");
   console.log("=".repeat(60));
 
-  // Prepare whitelist config
   const whitelist = [allowedSigner.address];
-  const authConfig = ethers.AbiCoder.defaultAbiCoder().encode(["address[]"], [whitelist]);
   console.log(`   Whitelist: ${whitelist.length} address(es)`);
   
   let result;
   try {
     result = await monstera.createWallet({
       authenticatorAddr: monstera.addresses.walletSignatureAuth,
-      authConfig: authConfig
+      authConfig: { initialWhitelist: whitelist }
     });
 
     console.log(`   Wallet: ${result.wallet}`);
@@ -122,7 +120,7 @@ async function main() {
     try {
       const configureResult = await monstera.configureWalletSignature({
         keyVaultAddr: result.keyVault,
-        authConfig: authConfig
+        initialWhitelist: whitelist
       });
 
       console.log(`   ✅ Configuration successful!`);

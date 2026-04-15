@@ -77,7 +77,7 @@ async function main() {
   console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
   const result = await sdk.createWallet({
     authenticatorAddr: sdk.addresses.passwordAuth,
-    authConfig: passwordHash,
+    authConfig: { passwordHash },
   });
   console.log("   Transaction:", result.transactionHash);
 

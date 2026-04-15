@@ -79,7 +79,7 @@ export async function setupTestWallet(sdk, passwordHash) {
   
   const result = await sdk.createWallet({
     authenticatorAddr: sdk.addresses.passwordAuth,
-    authConfig: passwordHash
+    authConfig: { passwordHash }
   });
   
   return result;

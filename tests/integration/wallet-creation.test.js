@@ -10,7 +10,7 @@ import 'dotenv/config';
 import { describe, test, expect, beforeAll } from '@jest/globals';
 import { Monstera } from '../../src/index.js';
 import { ethers, Mnemonic } from 'ethers';
-import { WalletError } from '../../src/errors/index.js';
+import { ValidationError, WalletError } from '../../src/errors/index.js';
 import { 
   createTestSDK, 
   getTestConfig 
@@ -51,7 +51,7 @@ describe('Wallet Creation Integration Tests', () => {
   describe('createWallet', () => {
     test('should successfully create a wallet with default authenticator', async () => {
       const result = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       expectWalletResult(result);
@@ -64,7 +64,7 @@ describe('Wallet Creation Integration Tests', () => {
     test('should successfully create a wallet with explicit authenticator', async () => {
       const result = await sdk.createWallet({
         authenticatorAddr: sdk.addresses.passwordAuth,
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       expect(result).toBeDefined();
@@ -74,11 +74,11 @@ describe('Wallet Creation Integration Tests', () => {
 
     test('should create wallets with different addresses', async () => {
       const result1 = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       const result2 = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       expect(result1.wallet).not.toBe(result2.wallet);
@@ -103,6 +103,15 @@ describe('Wallet Creation Integration Tests', () => {
       ).rejects.toThrow();
     });
 
+    test('should fail with object authConfig when authenticator is not a built-in SDK address', async () => {
+      await expect(
+        sdk.createWallet({
+          authenticatorAddr: sdk.addresses.factory,
+          authConfig: { passwordHash }
+        })
+      ).rejects.toThrow(ValidationError);
+    });
+
     test('should fail with invalid authenticator address', async () => {
       await expect(
         sdk.createWallet({
@@ -115,7 +124,7 @@ describe('Wallet Creation Integration Tests', () => {
     test('should fail with readonly SDK instance', async () => {
       await testReadonlySDK(
         sdk.createWallet,
-        { authConfig: passwordHash }
+        { authConfig: { passwordHash } }
       );
     });
   });
@@ -124,7 +133,7 @@ describe('Wallet Creation Integration Tests', () => {
     test('should successfully create a wallet from provided mnemonic', async () => {
       const result = await sdk.createWalletFromMnemonic({
         mnemonic: testMnemonic,
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       expect(result).toBeDefined();
@@ -142,7 +151,7 @@ describe('Wallet Creation Integration Tests', () => {
     test('should fail with missing mnemonic', async () => {
       await testMissingParam(
         sdk.createWalletFromMnemonic.bind(sdk),
-        { authConfig: passwordHash },
+        { authConfig: { passwordHash } },
         'mnemonic'
       );
     });
@@ -151,7 +160,7 @@ describe('Wallet Creation Integration Tests', () => {
       await expect(
         sdk.createWalletFromMnemonic({
           mnemonic: 'invalid mnemonic phrase',
-          authConfig: passwordHash
+          authConfig: { passwordHash }
         })
       ).rejects.toThrow();
     });
@@ -160,7 +169,7 @@ describe('Wallet Creation Integration Tests', () => {
       await expect(
         sdk.createWalletFromMnemonic({
           mnemonic: 'abandon abandon abandon', // Too few words
-          authConfig: passwordHash
+          authConfig: { passwordHash }
         })
       ).rejects.toThrow();
     });
@@ -177,7 +186,7 @@ describe('Wallet Creation Integration Tests', () => {
   describe('createWalletCore', () => {
     test('should successfully create a wallet core', async () => {
       const result = await sdk.createWalletCore({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       expect(result).toBeDefined();
@@ -211,7 +220,7 @@ describe('Wallet Creation Integration Tests', () => {
       await testMissingParam(
         sdk.createWalletWithHook.bind(sdk),
         {
-          authConfig: passwordHash,
+          authConfig: { passwordHash },
           hookData: ethers.toUtf8Bytes('test')
         },
         'hookAddr'
@@ -222,7 +231,7 @@ describe('Wallet Creation Integration Tests', () => {
       await testMissingParam(
         sdk.createWalletWithHook.bind(sdk),
         {
-          authConfig: passwordHash,
+          authConfig: { passwordHash },
           hookAddr: ZERO_ADDRESS
         },
         'hookData'
@@ -233,7 +242,7 @@ describe('Wallet Creation Integration Tests', () => {
       await testInvalidAddress(
         sdk.createWalletWithHook.bind(sdk),
         {
-          authConfig: passwordHash,
+          authConfig: { passwordHash },
           hookAddr: ZERO_ADDRESS,
           hookData: ethers.toUtf8Bytes('test')
         },
@@ -258,7 +267,7 @@ describe('Wallet Creation Integration Tests', () => {
       await testMissingParam(
         sdk.createWalletWithCustomLogic.bind(sdk),
         {
-          authConfig: passwordHash,
+          authConfig: { passwordHash },
           logicData: ethers.toUtf8Bytes('test')
         },
         'customLogicImplAddr'
@@ -269,7 +278,7 @@ describe('Wallet Creation Integration Tests', () => {
       await testMissingParam(
         sdk.createWalletWithCustomLogic.bind(sdk),
         {
-          authConfig: passwordHash,
+          authConfig: { passwordHash },
           customLogicImplAddr: ZERO_ADDRESS
         },
         'logicData'
@@ -280,7 +289,7 @@ describe('Wallet Creation Integration Tests', () => {
       await testInvalidAddress(
         sdk.createWalletWithCustomLogic.bind(sdk),
         {
-          authConfig: passwordHash,
+          authConfig: { passwordHash },
           customLogicImplAddr: ZERO_ADDRESS,
           logicData: ethers.toUtf8Bytes('test')
         },
@@ -303,7 +312,7 @@ describe('Wallet Creation Integration Tests', () => {
   describe('Wallet structure validation', () => {
     test('should have correct wallet component relationships', async () => {
       const result = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       // Verify KeyVault address
@@ -333,7 +342,7 @@ describe('Wallet Creation Integration Tests', () => {
 
     test('should be initialized after creation', async () => {
       const result = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       const isInitialized = await sdk.isInitialized({
@@ -344,7 +353,7 @@ describe('Wallet Creation Integration Tests', () => {
 
     test('should generate valid account addresses', async () => {
       const result = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       // Get multiple account addresses
@@ -378,7 +387,7 @@ describe('Wallet Creation Integration Tests', () => {
   describe('Mnemonic validation', () => {
     test('should generate valid BIP39 mnemonics', async () => {
       const result = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       // Validate mnemonic format
@@ -392,11 +401,11 @@ describe('Wallet Creation Integration Tests', () => {
 
     test('should generate unique mnemonics for different wallets', async () => {
       const result1 = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       const result2 = await sdk.createWallet({
-        authConfig: passwordHash
+        authConfig: { passwordHash }
       });
 
       expect(result1.mnemonic).not.toBe(result2.mnemonic);
@@ -417,7 +426,7 @@ describe('Wallet Creation Integration Tests', () => {
       // This should fail with a network error or validation error
       await expect(
         invalidSdk.createWallet({
-          authConfig: passwordHash
+          authConfig: { passwordHash }
         })
       ).rejects.toThrow();
     });

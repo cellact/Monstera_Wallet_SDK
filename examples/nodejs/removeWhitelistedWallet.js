@@ -54,15 +54,12 @@ async function main() {
   console.log("STEP 1: Create Wallet with Whitelist");
   console.log("=".repeat(60));
 
-  // Encode whitelist config (only allowed1 and allowed2)
   const whitelist = [allowed1Signer.address, allowed2Signer.address];
-  const authConfig = ethers.AbiCoder.defaultAbiCoder().encode(["address[]"], [whitelist]);
   console.log(`   Initial Whitelist: ${whitelist.length} addresses`);
 
-  // Create wallet
   const result = await sdk.createWallet({
     authenticatorAddr: sdk.addresses.walletSignatureAuth,
-    authConfig: authConfig,
+    authConfig: { initialWhitelist: whitelist },
   });
   
   console.log(`   Wallet: ${result.wallet}`);

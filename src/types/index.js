@@ -206,9 +206,36 @@
 // ============================================================================
 
 /**
+ * Structured {@code authConfig} for PasswordAuthenticator at wallet creation.
+ * @typedef {Object} CreateWalletPasswordAuthConfig
+ * @property {Bytes32} passwordHash - keccak256(utf8(password))
+ */
+
+/**
+ * Structured {@code authConfig} for WalletSignatureAuthenticator at wallet creation.
+ * @typedef {Object} CreateWalletWalletSignatureAuthConfig
+ * @property {Address[]} initialWhitelist - Initial whitelist (at least one address)
+ */
+
+/**
+ * Structured {@code authConfig} for DualFactorAuthenticator at wallet creation.
+ * @typedef {Object} CreateWalletDualFactorAuthConfig
+ * @property {Bytes32} passwordHash
+ * @property {Address} guardianAddr
+ */
+
+/**
+ * Structured {@code authConfig} for PasswordMinuteSignatureAuthenticator at wallet creation.
+ * @typedef {Object} CreateWalletPasswordMinuteSignatureAuthConfig
+ * @property {Bytes32} passwordHash
+ */
+
+/**
  * Options shared by createWalletWithHook and createWalletWithCustomLogic.
  * @typedef {Object} CreateWalletBaseOptions
- * @property {Bytes} authConfig - Configuration data for the authenticator (bytes)
+ * @property {Bytes|CreateWalletPasswordAuthConfig|CreateWalletWalletSignatureAuthConfig|CreateWalletDualFactorAuthConfig|CreateWalletPasswordMinuteSignatureAuthConfig} authConfig -
+ *   Hex-encoded authenticator config bytes, or a plain object when using a built-in {@code authenticatorAddr}
+ *   from {@link Monstera#addresses} (SDK encodes to bytes).
  * @property {Address} [authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
  */
 

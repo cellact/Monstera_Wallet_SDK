@@ -54,9 +54,11 @@ import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
+import { ethers } from 'ethers';
 import { createAuthProof, createAuthProofMinuteSignature, createAuthProofDualFactor, createWalletSigAuthConfig, createDualFactorAuthConfig } from '../crypto/wallet.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
+import { requireAddress } from '../internal/assert.js';
 
 /**
  * Monstera Wallet SDK
@@ -504,6 +506,153 @@ class Monstera {
   }
 
   // ============================================================================
+  // Wallet creation — authConfig encoding (Monstera boundary)
+  // ============================================================================
+
+  /**
+   * Normalize an address for comparisons, or return null if invalid.
+   *
+   * @private
+   * @param {string} addr
+   * @returns {string | null}
+   */
+  static _tryGetAddress(addr) {
+    try {
+      return ethers.getAddress(addr);
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * @private
+   * @param {string} a
+   * @param {string} b
+   * @returns {boolean}
+   */
+  static _sameAuthenticatorAddr(a, b) {
+    const na = Monstera._tryGetAddress(a);
+    const nb = Monstera._tryGetAddress(b);
+    return na !== null && nb !== null && na === nb;
+  }
+
+  /**
+   * Build {@code authConfig} bytes for PasswordAuthenticator at wallet creation.
+   *
+   * @private
+   * @param {Record<string, unknown>} authConfig
+   * @returns {import('../types/index.js').Bytes}
+   */
+  static _buildPasswordAuthWalletConfig(authConfig) {
+    const { passwordHash } = authConfig;
+    if (!passwordHash || typeof passwordHash !== 'string' || !ethers.isHexString(passwordHash, 32)) {
+      throw new ValidationError(
+        'authConfig.passwordHash must be a 32-byte hex string (bytes32)',
+        'authConfig',
+        authConfig
+      );
+    }
+    return passwordHash;
+  }
+
+  /**
+   * @private
+   * @param {Record<string, unknown>} authConfig
+   * @returns {import('../types/index.js').Bytes}
+   */
+  static _buildWalletSignatureAuthWalletConfig(authConfig) {
+    const { initialWhitelist } = authConfig;
+    return createWalletSigAuthConfig(/** @type {string[]} */ (initialWhitelist));
+  }
+
+  /**
+   * @private
+   * @param {Record<string, unknown>} authConfig
+   * @returns {import('../types/index.js').Bytes}
+   */
+  static _buildDualFactorAuthWalletConfig(authConfig) {
+    const { passwordHash, guardianAddr } = authConfig;
+    return createDualFactorAuthConfig(
+      /** @type {import('../types/index.js').Bytes32} */ (passwordHash),
+      /** @type {import('../types/index.js').Address} */ (guardianAddr)
+    );
+  }
+
+  /**
+   * @private
+   * @param {Record<string, unknown>} authConfig
+   * @returns {import('../types/index.js').Bytes}
+   */
+  static _buildPasswordMinuteSignatureAuthWalletConfig(authConfig) {
+    return Monstera._buildPasswordAuthWalletConfig(authConfig);
+  }
+
+  /**
+   * Turn high-level {@code authConfig} (object or legacy hex bytes) into the bytes
+   * the factory expects, based on {@code authenticatorAddr}.
+   *
+   * When {@code authConfig} is a string, it is passed through unchanged (custom
+   * authenticators or pre-encoded configs). When it is a plain object, it must
+   * match a built-in authenticator address from {@link Monstera#addresses}.
+   *
+   * @private
+   * @param {Record<string, unknown>} options
+   * @returns {Record<string, unknown>}
+   */
+  _prepareCreateWalletFactoryOptions(options) {
+    const { authConfig: authInput, ...rest } = options;
+
+    if (authInput === undefined || authInput === null) {
+      throw new ValidationError('authConfig is required', 'authConfig', authInput);
+    }
+
+    if (typeof authInput === 'string') {
+      return { ...options };
+    }
+
+    if (typeof authInput !== 'object' || Array.isArray(authInput)) {
+      throw new ValidationError(
+        'authConfig must be a hex-encoded bytes string or a plain object with per-authenticator fields',
+        'authConfig',
+        authInput
+      );
+    }
+
+    const authenticatorAddr =
+      options.authenticatorAddr ?? this.config.addresses.passwordAuth;
+    requireAddress(authenticatorAddr, 'authenticatorAddr');
+
+    const addr = this.config.addresses;
+    let encoded;
+
+    if (Monstera._sameAuthenticatorAddr(authenticatorAddr, addr.passwordAuth)) {
+      log.info('building password auth wallet config');
+      encoded = Monstera._buildPasswordAuthWalletConfig(authInput);
+    } else if (Monstera._sameAuthenticatorAddr(authenticatorAddr, addr.walletSignatureAuth)) {
+      log.info('building wallet signature auth wallet config');
+      encoded = Monstera._buildWalletSignatureAuthWalletConfig(authInput);
+    } else if (Monstera._sameAuthenticatorAddr(authenticatorAddr, addr.dualFactorAuth)) {
+      log.info('building dual factor auth wallet config');
+      encoded = Monstera._buildDualFactorAuthWalletConfig(authInput);
+    } else if (Monstera._sameAuthenticatorAddr(authenticatorAddr, addr.passwordMinuteSignatureAuth)) {
+      log.info('building password minute signature auth wallet config');
+      encoded = Monstera._buildPasswordMinuteSignatureAuthWalletConfig(authInput);
+    } else {
+      throw new ValidationError(
+        'authenticatorAddr is not a built-in Monstera authenticator; pass authConfig as a hex-encoded bytes string instead',
+        'authenticatorAddr',
+        authenticatorAddr
+      );
+    }
+
+    return {
+      ...rest,
+      authenticatorAddr,
+      authConfig: encoded
+    };
+  }
+
+  // ============================================================================
   // Create Methods (Write)
   // ============================================================================
 
@@ -515,7 +664,7 @@ class Monstera {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {CreateWalletBaseOptions} options - Wallet creation options
+   * @param {CreateWalletBaseOptions} options - Wallet creation options (authConfig is encoded from a plain object when using built-in {@code authenticatorAddr} values from {@link Monstera#addresses})
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -523,8 +672,7 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async createWallet(options = {}) {
-    // TODO: understand what authConfig can  be
-    return this.factory.createWallet(options);
+    return this.factory.createWallet(this._prepareCreateWalletFactoryOptions(options));
   }
 
   /**
@@ -543,9 +691,7 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async createWalletFromMnemonic(options = {}) {
-    // TODO: determine if i need to call a function that creates the auth config
-    // TODO: understand what authConfig can  be (is it only ever password hash (bytes32); keccak256 hash of UTF-8 password?)
-    return this.factory.createWalletFromMnemonic(options);
+    return this.factory.createWalletFromMnemonic(this._prepareCreateWalletFactoryOptions(options));
   }
 
   /**
@@ -567,9 +713,7 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async createWalletWithHook(options = {}) {
-    // TODO: determine if i need to call a function that creates the auth config
-    // TODO: understand what authConfig can  be (is it only ever password hash (bytes32); keccak256 hash of UTF-8 password?)
-    return this.factory.createWalletWithHook(options);
+    return this.factory.createWalletWithHook(this._prepareCreateWalletFactoryOptions(options));
   }
 
   /**
@@ -590,8 +734,7 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async createWalletCore(options = {}) {
-    // TODO: understand what authConfig can  be (is it only ever password hash (bytes32); keccak256 hash of UTF-8 password?)
-    return this.factory.createWalletCore(options);
+    return this.factory.createWalletCore(this._prepareCreateWalletFactoryOptions(options));
   }
 
   /**
@@ -614,9 +757,7 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async createWalletWithCustomLogic(options = {}) {
-    // TODO: determine if i need to call a function that creates the auth config
-    // TODO: understand what authConfig can  be (is it only ever password hash (bytes32); keccak256 hash of UTF-8 password?)
-    return this.factory.createWalletWithCustomLogic(options);
+    return this.factory.createWalletWithCustomLogic(this._prepareCreateWalletFactoryOptions(options));
   }
 
   // ============================================================================

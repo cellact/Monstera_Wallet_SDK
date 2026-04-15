@@ -43,7 +43,7 @@ async function main() {
   console.log("   This deploys: WalletStorage + KeyVault");
   const result = await sdk.createWalletCore({
     authenticatorAddr: sdk.addresses.passwordAuth,
-    authConfig: passwordHash,
+    authConfig: { passwordHash },
   });
   console.log("   Transaction:", result.transactionHash);
 

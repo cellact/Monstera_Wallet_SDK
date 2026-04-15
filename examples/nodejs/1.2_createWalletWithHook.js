@@ -54,7 +54,7 @@ async function main() {
   console.log("   This deploys: WalletStorage + KeyVault + WalletProxy");
   const result = await sdk.createWalletWithHook({
     authenticatorAddr: sdk.addresses.passwordAuth,
-    authConfig: passwordHash,
+    authConfig: { passwordHash },
     hookAddr: HOOK_ADDRESS,
     hookData: hookData
   });
