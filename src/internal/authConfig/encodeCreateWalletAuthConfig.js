@@ -4,6 +4,9 @@
  * hex strings pass through for custom authenticators.
  *
  * @typedef {import('../../types/index.js').ContractAddresses} ContractAddresses
+ *
+ * @typedef {Object} CreateWalletAuthConfigPrepareContext
+ * @property {ContractAddresses} addresses
  */
 
 import log from '../logger.js';

@@ -45,6 +45,8 @@
  * @typedef {import('../types/index.js').SignSolanaOptions} SignSolanaOptions
  * @typedef {import('../types/index.js').ImportKeyOptions} ImportKeyOptions
  * @typedef {import('../types/index.js').SetChainBaseKeysOptions} SetChainBaseKeysOptions
+ * @typedef {import('../internal/authProof/prepareKeyVaultAuthProofOptions.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
+ * @typedef {import('../internal/authConfig/encodeCreateWalletAuthConfig.js').CreateWalletAuthConfigPrepareContext} CreateWalletAuthConfigPrepareContext
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -395,7 +397,7 @@ class Monstera {
   /**
    * Shared context for {@link prepareKeyVaultAuthProofOptions} (built-in authenticator resolution + encoding).
    *
-   * @returns {import('../internal/authProof/prepareKeyVaultAuthProofOptions.js').KeyVaultAuthProofPrepareContext}
+   * @returns {KeyVaultAuthProofPrepareContext}
    */
   _authProofPrepareContext() {
     return {
@@ -409,7 +411,7 @@ class Monstera {
   /**
    * Shared context for {@link prepareCreateWalletFactoryOptions} (authConfig resolution + encoding).
    *
-   * @returns {import('../internal/authConfig/encodeCreateWalletAuthConfig.js').CreateWalletAuthConfigPrepareContext}
+   * @returns {CreateWalletAuthConfigPrepareContext}
    */
   _authConfigPrepareContext() {
     return {

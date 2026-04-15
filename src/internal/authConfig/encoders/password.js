@@ -1,17 +1,19 @@
 /**
  * PasswordAuthenticator — create-wallet {@code authConfig} (bytes32 hash).
+ *
+ * @typedef {import('../../../types/index.js').Bytes} Bytes
  */
 
 import { ethers } from 'ethers';
 import { ValidationError } from '../../../errors/index.js';
 
-/** @type {{ id: string, encode: (authConfig: Record<string, unknown>) => import('../../../types/index.js').Bytes }} */
+/** @type {{ id: string, encode: (authConfig: Record<string, unknown>) => Bytes }} */
 export const passwordAuthCreateWalletEncoder = {
   id: 'passwordAuth',
 
   /**
    * @param {Record<string, unknown>} authConfig
-   * @returns {import('../../../types/index.js').Bytes}
+   * @returns {Bytes}
    */
   encode(authConfig) {
     const { passwordHash } = authConfig;

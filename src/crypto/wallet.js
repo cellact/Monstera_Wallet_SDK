@@ -8,6 +8,7 @@
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').EthersWallet} EthersWallet
  * @typedef {import('../types/index.js').EthersHDNodeWallet} EthersHDNodeWallet
+ * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider
  */
 
 import crypto from 'crypto';
@@ -223,7 +224,7 @@ function floorTimestampToMinuteBucket(timestampSeconds) {
  * {@code Sapphire.generateSigningKeyPair}; if your on-chain verify fails, those derivations may differ.
  *
  * @param {Object} options
- * @param {import('ethers').AbstractProvider} options.provider - Provider used only for {@code getBlock('latest')} (on-chain time)
+ * @param {EthersAbstractProvider} options.provider - Provider used only for {@code getBlock('latest')} (on-chain time)
  * @param {Address} options.keyVaultAddr - Wallet / KeyVault address passed to {@code verify(wallet, authProof)}
  * @param {Address} options.authenticatorAddr - Authenticator contract address ({@code address(this)} in the digest): PasswordMinuteSignature or DualFactor for its minute leg
  * @param {number|string} options.chainId - Chain ID
@@ -293,7 +294,7 @@ async function createAuthProofMinuteSignature(options = {}) {
  * same contract domain as on-chain {@code EIP712("DualFactorAuthenticator", "1")}.
  *
  * @param {Object} options
- * @param {import('ethers').AbstractProvider} options.provider - Provider for latest block (minute bucket)
+ * @param {EthersAbstractProvider} options.provider - Provider for latest block (minute bucket)
  * @param {Address} options.keyVaultAddr - KeyVault / wallet address ({@code verify} first argument)
  * @param {Address} options.authenticatorAddr - DualFactorAuthenticator address (minute digest + EIP-712 verifyingContract)
  * @param {number|string} options.chainId - Chain ID

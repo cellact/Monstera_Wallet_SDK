@@ -3,17 +3,18 @@
  * using the on-chain authenticator for {@code keyVaultAddr}.
  *
  * @typedef {import('../../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider
  *
  * @typedef {Object} KeyVaultAuthProofPrepareContext
  * @property {ContractAddresses} addresses
  * @property {string|number} chainId
- * @property {import('ethers').AbstractProvider} readProvider
+ * @property {EthersAbstractProvider} readProvider
  * @property {(keyVaultAddr: string) => Promise<string>} getAuthenticatorAddr
  *
  * @typedef {Object} KeyVaultAuthProofEncodeContext
  * @property {ContractAddresses} addresses
  * @property {string|number} chainId
- * @property {import('ethers').AbstractProvider} readProvider
+ * @property {EthersAbstractProvider} readProvider
  * @property {string} authenticatorAddr
  * @property {string} keyVaultAddr
  */
