@@ -12,11 +12,11 @@ import { ValidationError } from '../../errors/index.js';
 import { createCreateWalletAuthEncoderRegistry } from './registry.js';
 
 /**
- * @param {ContractAddresses} contractAddresses
+ * @param {CreateWalletAuthConfigPrepareContext} ctx
  * @param {Record<string, unknown>} options
  * @returns {Record<string, unknown>}
  */
-export function prepareCreateWalletFactoryOptions(contractAddresses, options) {
+export function prepareCreateWalletFactoryOptions(ctx, options) {
   const { authConfig: authInput, ...rest } = options;
 
   if (authInput === undefined || authInput === null) {
@@ -36,10 +36,10 @@ export function prepareCreateWalletFactoryOptions(contractAddresses, options) {
   }
 
   const authenticatorAddr =
-    options.authenticatorAddr ?? contractAddresses.passwordAuth;
+    options.authenticatorAddr ?? ctx.addresses.passwordAuth;
   requireAddress(authenticatorAddr, 'authenticatorAddr');
 
-  const registry = createCreateWalletAuthEncoderRegistry(contractAddresses);
+  const registry = createCreateWalletAuthEncoderRegistry(ctx.addresses);
   const encoder = registry.getByAuthenticatorAddr(authenticatorAddr);
 
   if (!encoder) {

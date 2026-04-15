@@ -526,7 +526,8 @@ class Monstera {
    */
   async createWallet(options = {}) {
     return this.factory.createWallet(
-      prepareCreateWalletFactoryOptions(this.config.addresses, options)
+      // prepareCreateWalletFactoryOptions(this.config.addresses, options)
+      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -547,7 +548,7 @@ class Monstera {
    */
   async createWalletFromMnemonic(options = {}) {
     return this.factory.createWalletFromMnemonic(
-      prepareCreateWalletFactoryOptions(this.config.addresses, options)
+      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -571,7 +572,7 @@ class Monstera {
    */
   async createWalletWithHook(options = {}) {
     return this.factory.createWalletWithHook(
-      prepareCreateWalletFactoryOptions(this.config.addresses, options)
+      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -594,7 +595,7 @@ class Monstera {
    */
   async createWalletCore(options = {}) {
     return this.factory.createWalletCore(
-      prepareCreateWalletFactoryOptions(this.config.addresses, options)
+      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -619,7 +620,7 @@ class Monstera {
    */
   async createWalletWithCustomLogic(options = {}) {
     return this.factory.createWalletWithCustomLogic(
-      prepareCreateWalletFactoryOptions(this.config.addresses, options)
+      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -797,6 +798,17 @@ class Monstera {
       chainId: this.config.chainId,
       readProvider: this.readProvider,
       getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
+    };
+  }
+
+  /**
+   * Shared context for {@link prepareCreateWalletFactoryOptions} (authConfig resolution + encoding).
+   *
+   * @returns {import('../internal/authConfig/encodeCreateWalletAuthConfig.js').CreateWalletAuthConfigPrepareContext}
+   */
+  _authConfigPrepareContext() {
+    return {
+      addresses: this.config.addresses
     };
   }
 
