@@ -109,7 +109,7 @@ function createDualFactorAuthConfig(passwordHash, guardianAddr) {
  * @param {Address} keyVaultAddr - Key vault address
  * @returns {Promise<Bytes>} Auth proof (bytes)
  */
-async function createAuthProof(options = {}) {
+async function createAuthProofWalletSignature(options = {}) {
   const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr } = options;
 
   // Validate signer
@@ -136,7 +136,7 @@ async function createAuthProof(options = {}) {
   }
 
   log.info('Creating auth proof');
-  log.debug('createAuthProof', { keyVaultAddr, authenticatorAddr, chainId, deadline });
+  log.debug('createAuthProofWalletSignature', { keyVaultAddr, authenticatorAddr, chainId, deadline });
 
   // build EIP-712 domain
   const domain = {
@@ -197,7 +197,7 @@ async function createAuthProof(options = {}) {
       `Failed to create auth proof: ${errorMessage}`,
       'UNKNOWN_ERROR',
       {
-        function: 'createAuthProof',
+        function: 'createAuthProofWalletSignature',
         originalError: errorMessage,
         originalCode: errorCode
       }
@@ -407,7 +407,7 @@ export {
   generateMnemonic,
   deriveSeed,
   hashPassword,
-  createAuthProof,
+  createAuthProofWalletSignature,
   floorTimestampToMinuteBucket,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor,

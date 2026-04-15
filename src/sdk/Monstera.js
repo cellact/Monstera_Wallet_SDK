@@ -26,7 +26,7 @@
  * @typedef {import('../types/index.js').UpdatePasswordResult} UpdatePasswordResult
  * @typedef {import('../types/index.js').AddToWhitelistResult} AddToWhitelistResult
  * @typedef {import('../types/index.js').RemoveFromWhitelistResult} RemoveFromWhitelistResult
- * @typedef {import('../types/index.js').CreateAuthProofOptions} CreateAuthProofOptions
+ * @typedef {import('../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
  * @typedef {import('../types/index.js').CreateAuthProofMinuteSignatureOptions} CreateAuthProofMinuteSignatureOptions
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').Bytes} Bytes
@@ -56,7 +56,7 @@ import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
-import { createAuthProof, createAuthProofMinuteSignature, createAuthProofDualFactor, createWalletSigAuthConfig, createDualFactorAuthConfig } from '../crypto/wallet.js';
+import { createAuthProofWalletSignature, createAuthProofMinuteSignature, createAuthProofDualFactor, createWalletSigAuthConfig, createDualFactorAuthConfig } from '../crypto/wallet.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
 import { encodeAuthConfigOptions } from '../internal/authenticators/authConfig/encodeAuthConfigOptions.js';
@@ -298,10 +298,10 @@ class Monstera {
   /**
    * Create an auth proof for a wallet
    * 
-   * @param {CreateAuthProofOptions} options - Create auth proof options
+   * @param {CreateAuthProofWalletSignatureOptions} options - Create auth proof options
    * @returns {Promise<Bytes>} Auth proof (bytes)
    */
-  async createAuthProof(options = {}) {
+  async createAuthProofWalletSignature(options = {}) {
     const { signer, keyVaultAddr } = options;
     let { authenticatorAddr, deadline, chainId } = options;
 
@@ -321,7 +321,7 @@ class Monstera {
       chainId = this.config.chainId;
     }
 
-    const authProof = await createAuthProof({ signer, chainId, authenticatorAddr, deadline, keyVaultAddr });
+    const authProof = await createAuthProofWalletSignature({ signer, chainId, authenticatorAddr, deadline, keyVaultAddr });
 
     return authProof;
   }
@@ -849,7 +849,7 @@ class Monstera {
    * Sign a 32-byte hash (authenticated function)
    * 
    * @param {SignHashOptions} options - Sign hash options
-   * @returns {Promise<Bytes>} Signed hash (bytes)
+   * @returns {Promise<Bytes>} Signed hash (bytes) // TODO: update this to the authproff options
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async sign(options = {}) {
@@ -863,7 +863,7 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Execute function options
    * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes) // what is the auth proof here? call createAuthProof? or createAuthProofMinuteSignature?
+   * @param {Bytes} options.authProof - Authentication proof (bytes)
    * @param {Bytes} options.implCall - Implementation call (bytes)
    * @returns {Promise<Bytes>} Execute function result (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1048,15 +1048,13 @@ class Monstera {
    * @param {Record<string, unknown>} options - Verify options
    * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
+   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
    * @returns {Promise<boolean>} True if signature is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async isWalletSignatureValid(options = {}) {    
-    const { keyVaultAddr, signer } = options; 
-
-    const authProof = await this.createAuthProof({signer, keyVaultAddr});
-
-    return this.auth.walletSignature.verify({keyVaultAddr, authProof});
+    const authProof = await this.createAuthProofWalletSignature(options);
+    return this.auth.walletSignature.verify({keyVaultAddr: options.keyVaultAddr, authProof});
   }
 
   /**
@@ -1078,15 +1076,13 @@ class Monstera {
    * @param {Address} options.keyVaultAddr - KeyVault contract address
    * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
    * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
+   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
    * @returns {Promise<boolean>} True if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async isPasswordDualFactorValid(options = {}) {
-    const { keyVaultAddr, passwordHash, signer } = options;
-
-    const authProof = await this.createAuthProofDualFactor({ keyVaultAddr, passwordHash, signer });
-    
-    return this.auth.dualFactor.verify({ keyVaultAddr, authProof });
+    const authProof = await this.createAuthProofDualFactor(options);
+    return this.auth.dualFactor.verify({ keyVaultAddr: options.keyVaultAddr, authProof });
   }
 
   /**
@@ -1189,7 +1185,7 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Update keyVaultImplementation options
    * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes) // should this stay as is or call createAuthProof? or something else?
+   * @param {Bytes} options.authProof - Authentication proof (bytes)
    * @param {Address} options.newImplAddr - New keyVaultImplementation contract address
    * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1240,7 +1236,7 @@ class Monstera {
    *
    * @param {Record<string, unknown>} options - Deactivate key options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - Authentication proof // should this stay as is or call createAuthProof? or something else?
+   * @param {Bytes} options.authProof - Authentication proof
    * @param {Bytes32} options.keyId - Key ID to deactivate
    * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1259,7 +1255,7 @@ class Monstera {
    *
    * @param {Record<string, unknown>} options - Activate key options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - Authentication proof // should this stay as is or call createAuthProof? or something else?
+   * @param {Bytes} options.authProof - Authentication proof
    * @param {Bytes32} options.keyId - Key ID to activate
    * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1313,6 +1309,7 @@ class Monstera {
    * @param {Record<string, unknown>} options - Add to whitelist options
    * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
+   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
    * @param {Address} options.addressToAdd - Address to add to the whitelist
    * @returns {Promise<AddToWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1321,11 +1318,8 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async addToWhitelist(options = {}) {
-    const { keyVaultAddr, signer, addressToAdd } = options;
-
-    const authProof = await this.createAuthProof({signer, keyVaultAddr});
-
-    return this.auth.walletSignature.addToWhitelist({keyVaultAddr, authProof, addressToAdd});
+    const authProof = await this.createAuthProofWalletSignature(options);
+    return this.auth.walletSignature.addToWhitelist({keyVaultAddr: options.keyVaultAddr, authProof, addressToAdd: options.addressToAdd});
   }
 
   /**
@@ -1334,6 +1328,7 @@ class Monstera {
    * @param {Record<string, unknown>} options - Remove from whitelist options
    * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
+   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
    * @param {Address} options.addressToRemove - Address to remove from the whitelist
    * @returns {Promise<RemoveFromWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1342,11 +1337,8 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async removeFromWhitelist(options = {}) {
-    const { keyVaultAddr, signer, addressToRemove } = options; 
-
-    const authProof = await this.createAuthProof({signer, keyVaultAddr});
-
-    return this.auth.walletSignature.removeFromWhitelist({keyVaultAddr, authProof, addressToRemove});
+    const authProof = await this.createAuthProofWalletSignature(options);
+    return this.auth.walletSignature.removeFromWhitelist({keyVaultAddr: options.keyVaultAddr, authProof, addressToRemove: options.addressToRemove});
   }
 
   /**
@@ -1357,6 +1349,7 @@ class Monstera {
    * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
    * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
    * @param {Bytes32} options.newPasswordHash - New password hash (bytes32); keccak256 hash of UTF-8 password
+   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1364,11 +1357,8 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async updatePasswordDualFactor(options = {}) {
-    const { keyVaultAddr, passwordHash, signer, newPasswordHash } = options;
-
-    const authProof = await this.createAuthProofDualFactor({ keyVaultAddr, passwordHash, signer });
-    
-    return this.auth.dualFactor.updatePassword({ keyVaultAddr, authProof, newPasswordHash });
+    const authProof = await this.createAuthProofDualFactor(options);
+    return this.auth.dualFactor.updatePassword({ keyVaultAddr: options.keyVaultAddr, authProof, newPasswordHash: options.newPasswordHash });
   }
 
   /**
@@ -1379,6 +1369,7 @@ class Monstera {
    * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
    * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
    * @param {Address} options.newGuardian - New guardian address (non-zero)
+   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
    * @returns {Promise<UpdateGuardianResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1386,11 +1377,8 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async updateGuardian(options = {}) {
-    const { keyVaultAddr, passwordHash, signer, newGuardian } = options;
-
-    const authProof = await this.createAuthProofDualFactor({ keyVaultAddr, passwordHash, signer });
-
-    return this.auth.dualFactor.updateGuardian({ keyVaultAddr, authProof, newGuardian });
+    const authProof = await this.createAuthProofDualFactor(options);
+    return this.auth.dualFactor.updateGuardian({ keyVaultAddr: options.keyVaultAddr, authProof, newGuardian: options.newGuardian });
   }
 
   /**

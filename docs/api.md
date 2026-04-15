@@ -119,7 +119,7 @@ const signerAddress = await sdk.getSignerAddr(); // string | null
 sdk.setLogLevel('debug');
 
 // Create an auth proof for wallet signature authentication
-const authProof = await sdk.createAuthProof({
+const authProof = await sdk.createAuthProofWalletSignature({
   signer: walletSigner,        // Wallet or HDNodeWallet instance
   keyVaultAddr: keyVaultAddr,  // KeyVault address
   authenticatorAddr: '0x...',  // Optional: authenticator address (defaults to config)

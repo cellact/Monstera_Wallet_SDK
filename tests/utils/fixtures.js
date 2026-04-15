@@ -41,7 +41,7 @@ export async function createWalletSigAuthProof({ sdk, keyVaultAddr, signerWallet
     deadline = calculateDeadline();
   }
   
-  return await sdk.createAuthProof({
+  return await sdk.createAuthProofWalletSignature({
     keyVaultAddr,
     signer: signerWallet,
     deadline

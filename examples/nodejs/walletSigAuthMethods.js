@@ -143,22 +143,13 @@ async function main() {
   console.log("\n   Creates an auth proof and verifies it.\n");
 
   try {
-    // Create auth proof using the whitelisted signer
     const deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
-    const authProof = await monstera.createAuthProof({
-      signer: allowedSigner,
-      keyVaultAddr: result.keyVault,
-      authenticatorAddr: monstera.addresses.walletSignatureAuth,
-      deadline: deadline,
-      chainId: monstera.chainId
-    });
-
-    console.log(`   ✅ Auth proof created`);
 
     // Verify the signature
     const isValid = await monstera.isWalletSignatureValid({
       keyVaultAddr: result.keyVault,
-      authProof: authProof
+      signer: allowedSigner,
+      deadline: deadline,
     });
 
     console.log(`   ✅ Signature Valid: ${isValid ? "Yes" : "No"}`);

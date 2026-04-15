@@ -390,7 +390,7 @@
 // ============================================================================
 
 /**
- * @typedef {Object} CreateAuthProofOptions
+ * @typedef {Object} CreateAuthProofWalletSignatureOptions
  * @property {EthersWallet | EthersHDNodeWallet} signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
  * @property {Address} keyVaultAddr - KeyVault address of the wallet to authenticate
  * @property {Address} [authenticatorAddr] - Wallet signature authenticator address (optional, defaults to config)

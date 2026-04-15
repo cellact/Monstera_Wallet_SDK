@@ -4,7 +4,7 @@
 
 import { HDNodeWallet, Wallet } from 'ethers';
 import { ValidationError } from '../../../../errors/index.js';
-import { createAuthProof } from '../../../../crypto/wallet.js';
+import { createAuthProofWalletSignature } from '../../../../crypto/wallet.js';
 
 /** @type {{ id: string, encode: (ctx: object, input: Record<string, unknown>) => Promise<string> }} */
 export const walletSignatureKeyVaultAuthProofEncoder = {
@@ -27,7 +27,7 @@ export const walletSignatureKeyVaultAuthProofEncoder = {
     if (deadline == null) {
       deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
     }
-    return createAuthProof({
+    return createAuthProofWalletSignature({
       signer,
       chainId: ctx.chainId,
       authenticatorAddr: ctx.authenticatorAddr,
