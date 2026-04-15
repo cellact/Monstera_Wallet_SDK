@@ -45,8 +45,8 @@
  * @typedef {import('../types/index.js').SignSolanaOptions} SignSolanaOptions
  * @typedef {import('../types/index.js').ImportKeyOptions} ImportKeyOptions
  * @typedef {import('../types/index.js').SetChainBaseKeysOptions} SetChainBaseKeysOptions
- * @typedef {import('../internal/authProof/prepareKeyVaultAuthProofOptions.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
- * @typedef {import('../internal/authConfig/encodeCreateWalletAuthConfig.js').CreateWalletAuthConfigPrepareContext} CreateWalletAuthConfigPrepareContext
+ * @typedef {import('../internal/authenticators/authProof/prepareKeyVaultAuthProofOptions.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
+ * @typedef {import('../internal/authenticators/authConfig/encodeCreateWalletAuthConfig.js').CreateWalletAuthConfigPrepareContext} CreateWalletAuthConfigPrepareContext
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -59,8 +59,8 @@ import { AuthenticatorClient } from '../clients/auth/index.js';
 import { createAuthProof, createAuthProofMinuteSignature, createAuthProofDualFactor, createWalletSigAuthConfig, createDualFactorAuthConfig } from '../crypto/wallet.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
-import { prepareCreateWalletFactoryOptions } from '../internal/authConfig/encodeCreateWalletAuthConfig.js';
-import { prepareKeyVaultAuthProofOptions } from '../internal/authProof/prepareKeyVaultAuthProofOptions.js';
+import { prepareCreateWalletFactoryOptions } from '../internal/authenticators/authConfig/encodeCreateWalletAuthConfig.js';
+import { prepareKeyVaultAuthProofOptions } from '../internal/authenticators/authProof/prepareKeyVaultAuthProofOptions.js';
 
 /**
  * Monstera Wallet SDK
@@ -557,7 +557,6 @@ class Monstera {
    */
   async createWallet(options = {}) {
     return this.factory.createWallet(
-      // prepareCreateWalletFactoryOptions(this.config.addresses, options)
       prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
     );
   }

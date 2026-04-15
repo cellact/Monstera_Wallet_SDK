@@ -2,8 +2,8 @@
  * PasswordMinuteSignatureAuthenticator — minute-bucket password signature bundle.
  */
 
-import { ValidationError } from '../../../errors/index.js';
-import { createAuthProofMinuteSignature } from '../../../crypto/wallet.js';
+import { ValidationError } from '../../../../errors/index.js';
+import { createAuthProofMinuteSignature } from '../../../../crypto/wallet.js';
 
 /** @type {{ id: string, encode: (ctx: object, input: Record<string, unknown>) => Promise<string> }} */
 export const passwordMinuteSignatureKeyVaultAuthProofEncoder = {

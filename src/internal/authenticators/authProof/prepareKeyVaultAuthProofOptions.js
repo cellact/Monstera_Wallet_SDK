@@ -2,7 +2,7 @@
  * Resolve structured {@code authProof} objects to bytes for KeyVault authenticated calls
  * using the on-chain authenticator for {@code keyVaultAddr}.
  *
- * @typedef {import('../../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider
  *
  * @typedef {Object} KeyVaultAuthProofPrepareContext
@@ -19,9 +19,9 @@
  * @property {string} keyVaultAddr
  */
 
-import { requireAddress } from '../assert.js';
-import { ValidationError } from '../../errors/index.js';
-import log from '../logger.js';
+import { requireAddress } from '../../assert.js';
+import { ValidationError } from '../../../errors/index.js';
+import log from '../../logger.js';
 import { createKeyVaultAuthProofEncoderRegistry } from './registry.js';
 
 /**
@@ -33,11 +33,7 @@ export async function prepareKeyVaultAuthProofOptions(ctx, options) {
   const { authProof: authInput, ...rest } = options;
 
   if (authInput === undefined || authInput === null) {
-    throw new ValidationError(
-      'authProof is required (hex string, Uint8Array, or a plain object whose fields match the installed authenticator)',
-      'authProof',
-      authInput
-    );
+    throw new ValidationError('authProof is required', 'authProof', authInput);
   }
 
   if (typeof authInput === 'string' || authInput instanceof Uint8Array) {
@@ -67,7 +63,7 @@ export async function prepareKeyVaultAuthProofOptions(ctx, options) {
     );
   }
 
-  log.info('encoding key vault auth proof', { encoderId: encoder.id, keyVaultAddr });
+  log.info('encoding auth proof', { encoderId: encoder.id, keyVaultAddr });
 
   const encodeCtx = {
     addresses: ctx.addresses,

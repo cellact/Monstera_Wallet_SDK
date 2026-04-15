@@ -1,7 +1,7 @@
 /**
  * PasswordMinuteSignatureAuthenticator — same bytes32 shape as password auth at creation.
  *
- * @typedef {import('../../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../../../types/index.js').Bytes} Bytes
  */
 
 import { passwordAuthCreateWalletEncoder } from './password.js';

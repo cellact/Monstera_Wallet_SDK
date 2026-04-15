@@ -4,7 +4,7 @@
  */
 
 import { ethers } from 'ethers';
-import { ValidationError } from '../../../errors/index.js';
+import { ValidationError } from '../../../../errors/index.js';
 
 /** @type {{ id: string, encode: (ctx: object, input: Record<string, unknown>) => Promise<string> }} */
 export const passwordKeyVaultAuthProofEncoder = {

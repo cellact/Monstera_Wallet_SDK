@@ -3,8 +3,8 @@
  */
 
 import { HDNodeWallet, Wallet } from 'ethers';
-import { ValidationError } from '../../../errors/index.js';
-import { createAuthProofDualFactor } from '../../../crypto/wallet.js';
+import { ValidationError } from '../../../../errors/index.js';
+import { createAuthProofDualFactor } from '../../../../crypto/wallet.js';
 
 /** @type {{ id: string, encode: (ctx: object, input: Record<string, unknown>) => Promise<string> }} */
 export const dualFactorKeyVaultAuthProofEncoder = {

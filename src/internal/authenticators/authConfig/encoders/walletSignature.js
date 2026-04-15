@@ -1,10 +1,10 @@
 /**
  * WalletSignatureAuthenticator — create-wallet {@code authConfig} (encoded whitelist).
  *
- * @typedef {import('../../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../../../types/index.js').Bytes} Bytes
  */
 
-import { createWalletSigAuthConfig } from '../../../crypto/wallet.js';
+import { createWalletSigAuthConfig } from '../../../../crypto/wallet.js';
 
 /** @type {{ id: string, encode: (authConfig: Record<string, unknown>) => Bytes }} */
 export const walletSignatureAuthCreateWalletEncoder = {

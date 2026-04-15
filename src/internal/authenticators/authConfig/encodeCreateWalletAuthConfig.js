@@ -3,15 +3,15 @@
  * structured {@code authConfig} objects are encoded via the built-in authenticator registry;
  * hex strings pass through for custom authenticators.
  *
- * @typedef {import('../../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
  *
  * @typedef {Object} CreateWalletAuthConfigPrepareContext
  * @property {ContractAddresses} addresses
  */
 
-import log from '../logger.js';
-import { requireAddress } from '../assert.js';
-import { ValidationError } from '../../errors/index.js';
+import log from '../../logger.js';
+import { requireAddress } from '../../assert.js';
+import { ValidationError } from '../../../errors/index.js';
 import { createCreateWalletAuthEncoderRegistry } from './registry.js';
 
 /**
@@ -53,7 +53,7 @@ export function prepareCreateWalletFactoryOptions(ctx, options) {
     );
   }
 
-  log.info('encoding create-wallet auth config', { encoderId: encoder.id });
+  log.info('encoding auth config', { encoderId: encoder.id });
   const encoded = encoder.encode(authInput);
 
   return {
