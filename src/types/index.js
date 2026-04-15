@@ -267,19 +267,38 @@
 // Signing Context Base Types (keyVault vs wallet, then transaction/message/hash)
 // ============================================================================
 
-// /**
-//  * Base for signing options that target a KeyVault by address.
-//  * @typedef {Object} KeyVaultSigningBase
-//  * @property {Address} keyVaultAddr - KeyVault contract address
-//  * @property {Bytes} authProof - Authentication proof (bytes)
-//  * @property {number|bigint} index - Account index (uint32)
-//  */
+/**
+ * Structured input options to create auth proof for PasswordAuthenticator.
+ * @typedef {Object} KeyVaultPasswordAuthProof
+ * @property {Uint8Array} password - UTF-8 password bytes (e.g. from {@code ethers.toUtf8Bytes})
+ */
+
+/**
+ * Structured input options to create auth proof for WalletSignatureAuthenticator.
+ * @typedef {Object} KeyVaultWalletSignatureAuthProof
+ * @property {EthersWallet | EthersHDNodeWallet} signer
+ * @property {number} [deadline] - Deadline for the auth proof (Unix timestamp in seconds) (optional)
+ */
+
+/**
+ * Structured input options to create auth proof for DualFactorAuthenticator.
+ * @typedef {Object} KeyVaultDualFactorAuthProof
+ * @property {Bytes32} passwordHash
+ * @property {EthersWallet | EthersHDNodeWallet} signer
+ * @property {number} [deadline] - Deadline for the auth proof (Unix timestamp in seconds) (optional)
+ */
+
+/**
+ * Structured input options to create auth proof for PasswordMinuteSignatureAuthenticator.
+ * @typedef {Object} KeyVaultPasswordMinuteSignatureAuthProof
+ * @property {Bytes32} passwordHash
+ */
 
 /**
  * Base for signing options that target a KeyVault by address.
  * @typedef {Object} KeyVaultSigningBase
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Proof as hex/bytes, or a plain object (fields depend on the KeyVault's installed authenticator; e.g. {@code { signer }} for wallet-signature, {@code { password: Uint8Array }} for password auth using bytes from {@code ethers.toUtf8Bytes} — not plaintext strings)
+ * @property {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} authProof - Authentication proof (bytes or structured object)
  * @property {number|bigint} index - Account index (uint32)
  */
 
@@ -332,7 +351,7 @@
  * Options for signWithImportedKey (V2).
  * @typedef {Object} SignWithImportedKeyOptions
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Authentication proof (bytes or structured object)
+ * @property {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} authProof - Authentication proof (bytes or structured object)
  * @property {Bytes32} keyId - Imported key ID
  * @property {Bytes32} digest - 32-byte hash to sign
  */
@@ -346,7 +365,7 @@
  * Options for importKey (V2).
  * @typedef {Object} ImportKeyOptions
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Authentication proof (bytes or structured object)
+ * @property {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} authProof - Authentication proof (bytes or structured object)
  * @property {Bytes32} keyId - Unique identifier for the key
  * @property {Bytes} privateKey - Private key to import
  * @property {Bytes} [publicKey] - Optional public key (defaults to 0x)
@@ -359,7 +378,7 @@
  * Options for setChainBaseKeys (V2).
  * @typedef {Object} SetChainBaseKeysOptions
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Authentication proof (bytes or structured object)
+ * @property {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} authProof - Authentication proof (bytes or structured object)
  * @property {number} chain - Chain type (enum: 0=ETHEREUM, 1=SOLANA, etc.)
  * @property {Bytes} basePrivateKey - Base private key for HD derivation
  * @property {Bytes} baseChainCode - Base chain code for HD derivation
@@ -372,7 +391,7 @@
 /**
  * Base fields for updating authenticator (keyVault vs wallet variant).
  * @typedef {Object} UpdateAuthenticatorBase
- * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Authentication proof (bytes or structured object)
+ * @property {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} authProof - Authentication proof (bytes or structured object)
  * @property {Address} newAuthenticatorAddr - New authenticator contract address
  * @property {Bytes} newAuthConfig - New authentication configuration (bytes)
  */
@@ -406,6 +425,16 @@
  * @property {number | string} [chainId] - Chain ID (optional, defaults to config)
  */
 
+/**
+ * @typedef {Object} CreateAuthProofDualFactorOptions
+ * @property {Address} keyVaultAddr - KeyVault / wallet address for verify
+ * @property {Bytes32} passwordHash - Same hash used at configure time; 32-byte password hash
+ * @property {EthersWallet | EthersHDNodeWallet} signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
+ * @property {Address} [authenticatorAddr] - DualFactorAuthenticator address (defaults to config)
+ * @property {number} [deadline] - Deadline for the auth proof (optional, Unix timestamp, default 1h from now)
+ * @property {number | string} [chainId] - Chain ID (optional, defaults to config)
+ */
+
 // ============================================================================
 // Version Check Types
 // ============================================================================
@@ -427,7 +456,7 @@
 
 /**
  * Union type for authenticator client instances.
- * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default} AuthenticatorClientInstance
+ * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default | import('../clients/auth/PasswordMinuteSignatureAuthenticatorClient.js').default} AuthenticatorClientInstance
  */
 
 // Export empty object to make this a valid ES module

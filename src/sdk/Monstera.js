@@ -47,6 +47,7 @@
  * @typedef {import('../types/index.js').SetChainBaseKeysOptions} SetChainBaseKeysOptions
  * @typedef {import('../internal/authenticators/authProof/encodeAuthProofOptions.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
  * @typedef {import('../internal/authenticators/authConfig/encodeAuthConfigOptions.js').CreateWalletAuthConfigPrepareContext} CreateWalletAuthConfigPrepareContext
+ * @typedef {import('../types/index.js').CreateAuthProofDualFactorOptions} CreateAuthProofDualFactorOptions
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -298,7 +299,7 @@ class Monstera {
   /**
    * Create an auth proof for a wallet
    * 
-   * @param {CreateAuthProofWalletSignatureOptions} options - Create auth proof options
+   * @param {CreateAuthProofWalletSignatureOptions} options 
    * @returns {Promise<Bytes>} Auth proof (bytes)
    */
   async createAuthProofWalletSignature(options = {}) {
@@ -357,6 +358,13 @@ class Monstera {
     });
   }
 
+  /**
+   * Create an auth proof for a dual factor authenticator
+   * 
+   * @param {CreateAuthProofDualFactorOptions} options
+   * @returns {Promise<Bytes>} Auth proof (bytes)
+   * @throws {ValidationError} If addresses or passwordHash are invalid
+   */
   async createAuthProofDualFactor(options = {}) {
     const { keyVaultAddr, passwordHash, signer } = options;
     let { authenticatorAddr, deadline, chainId } = options;
@@ -849,7 +857,7 @@ class Monstera {
    * Sign a 32-byte hash (authenticated function)
    * 
    * @param {SignHashOptions} options - Sign hash options
-   * @returns {Promise<Bytes>} Signed hash (bytes) // TODO: update this to the authproff options
+   * @returns {Promise<Bytes>} Signed hash (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async sign(options = {}) {
@@ -863,7 +871,7 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Execute function options
    * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
+   * @param {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} options.authProof - Authentication proof (bytes or structured object)
    * @param {Bytes} options.implCall - Implementation call (bytes)
    * @returns {Promise<Bytes>} Execute function result (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1185,7 +1193,7 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Update keyVaultImplementation options
    * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes)
+   * @param {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} options.authProof - Authentication proof (bytes or structured object)
    * @param {Address} options.newImplAddr - New keyVaultImplementation contract address
    * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1236,7 +1244,7 @@ class Monstera {
    *
    * @param {Record<string, unknown>} options - Deactivate key options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - Authentication proof
+   * @param {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} options.authProof - Authentication proof (bytes or structured object)
    * @param {Bytes32} options.keyId - Key ID to deactivate
    * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
    * @throws {ValidationError} If required parameters are missing or invalid
@@ -1255,7 +1263,7 @@ class Monstera {
    *
    * @param {Record<string, unknown>} options - Activate key options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - Authentication proof
+   * @param {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} options.authProof - Authentication proof (bytes or structured object)
    * @param {Bytes32} options.keyId - Key ID to activate
    * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
    * @throws {ValidationError} If required parameters are missing or invalid

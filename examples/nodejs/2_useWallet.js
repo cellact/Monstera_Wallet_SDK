@@ -110,7 +110,6 @@ async function main() {
   try {
     const result = await sdk.signMessage({
       keyVaultAddr: keyVaultAddr,
-      // authProof: authProof, // TODO: do I need to make this an object? 
       authProof: { password: authProof },
       index: 0,
       message: ethers.toUtf8Bytes(message)
@@ -167,7 +166,6 @@ async function main() {
   try {
     await sdk.signMessage({
       keyVaultAddr: keyVaultAddr,
-      // authProof: wrongAuthProof, // TODO: do I need to make this an object? 
       authProof: { password: wrongAuthProof },
       index: 0,
       message: ethers.toUtf8Bytes("test")

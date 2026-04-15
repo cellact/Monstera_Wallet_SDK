@@ -41,7 +41,8 @@ class SapphireWriteWrapper {
       parseEvents = [],
       requireEvents = true,
       extraData = {},
-      methodName = 'execute transaction'
+      methodName = 'execute transaction',
+      rpcUrl = null
     } = options;
 
     // Validate signer is provided
@@ -54,10 +55,24 @@ class SapphireWriteWrapper {
       // Note: The contract instance passed to txFn should already be using
       // a Sapphire-wrapped signer (created via createWriteSigner)
       const tx = await txFn();
+      if (tx == null || typeof tx.hash !== 'string') {
+        throw new NetworkError(
+          `No transaction response from ${methodName} (RPC or signer may have failed before broadcast)`,
+          rpcUrl,
+          null
+        );
+      }
       log.debug('tx submitted', { hash: tx.hash });
 
       // Wait for transaction receipt
       const receipt = await tx.wait();
+      if (receipt == null || typeof receipt.hash !== 'string') {
+        throw new NetworkError(
+          `No receipt returned for ${methodName} (hash ${tx.hash})`,
+          rpcUrl,
+          null
+        );
+      }
       log.info('Write succeeded', { methodName, hash: receipt.hash });
 
       // Parse events if provided
@@ -95,12 +110,27 @@ class SapphireWriteWrapper {
       log.debug('Raw error (before wrap)', { error: error });
       // Re-throw WalletError as-is
       if (error instanceof WalletError) {
+        log.debug('Re-throwing WalletError');
         throw error;
       }
       
+      log.debug('Translating error to WalletError');
       // Translate provider/contract errors to SDK errors
-      throw SapphireWriteWrapper._translateError(methodName, error);
+      throw SapphireWriteWrapper._translateError(methodName, error, { rpcUrl });
     }
+  }
+
+  /**
+   * Best-effort nested JSON-RPC message (e.g. Sapphire "attestation required").
+   *
+   * @private
+   * @param {Error} err
+   * @returns {string | null}
+   */
+  static _nestedRpcMessage(err) {
+    const info = /** @type {{ error?: { message?: string } }} */ (err).info;
+    const nested = info?.error?.message;
+    return typeof nested === 'string' && nested.length > 0 ? nested : null;
   }
 
   /**
@@ -118,15 +148,36 @@ class SapphireWriteWrapper {
     // Detect error types from ethers/contract errors
     // Ethers error codes: https://docs.ethers.org/v6/api/providers/#errors
     const errorCode = err.code || err.error?.code;
-    
+    /** @type {string | undefined} */
+    const action = typeof err.action === 'string' ? err.action : undefined;
+    const nestedRpc = SapphireWriteWrapper._nestedRpcMessage(err);
+
     if (errorCode === 'CALL_EXCEPTION' || errorCode === 'UNPREDICTABLE_GAS_LIMIT') {
-      // Contract revert
-      return new ContractRevertError(
-        `Transaction reverted: ${message}`,
-        err.data, // revertData 
-        err.reason, // revertReason
-        context.transactionHash || err.receipt.hash,
-        context.receipt || err.receipt
+      const receipt = /** @type {Record<string, unknown> | null | undefined} */ (
+        context.receipt ?? err.receipt
+      );
+      const txHash =
+        (typeof context.transactionHash === 'string' && context.transactionHash) ||
+        (receipt && typeof receipt.hash === 'string' ? receipt.hash : null);
+
+      // Receipt + hash → transaction was included; surface as on-chain revert
+      if (txHash && receipt) {
+        return new ContractRevertError(
+          `Transaction reverted: ${message}`,
+          err.data,
+          err.reason,
+          txHash,
+          receipt
+        );
+      }
+
+      // eth_call / estimateGas / Sapphire cipher fetch — no mined tx
+      const actionPart = action ? ` (${action})` : '';
+      const detail = nestedRpc && nestedRpc !== message ? `${message}: ${nestedRpc}` : message;
+      return new NetworkError(
+        `RPC call failed${actionPart} during ${methodName}: ${detail}`,
+        /** @type {string | null} */ (context.rpcUrl ?? null),
+        err
       );
     }
     
@@ -134,7 +185,7 @@ class SapphireWriteWrapper {
         errorCode === 'UNKNOWN_ERROR' || err.name === 'NetworkError') {
       // Network/RPC error
       return new NetworkError(
-        `Network error: ${message}`,
+        `Network error: ${message} during ${methodName}`,
         context.rpcUrl,
         err
       );
@@ -142,7 +193,7 @@ class SapphireWriteWrapper {
     
     // Generic WalletError with method context
     return new WalletError(
-      `Failed to ${methodName}: ${message}`,
+      `Failed during ${methodName}: ${message}`,
       'UNKNOWN_ERROR',
       { methodName, ...context, originalError: message, originalCode: errorCode }
     );
