@@ -29,7 +29,7 @@ import { createKeyVaultAuthProofEncoderRegistry } from './registry.js';
  * @param {Record<string, unknown>} options - KeyVault call options (must include keyVaultAddr when authProof is an object)
  * @returns {Promise<Record<string, unknown>>}
  */
-export async function prepareKeyVaultAuthProofOptions(ctx, options) {
+export async function encodeAuthProofOptions(ctx, options) {
   const { authProof: authInput, ...rest } = options;
 
   if (authInput === undefined || authInput === null) {

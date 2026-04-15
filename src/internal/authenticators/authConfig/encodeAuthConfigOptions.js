@@ -19,7 +19,7 @@ import { createCreateWalletAuthEncoderRegistry } from './registry.js';
  * @param {Record<string, unknown>} options
  * @returns {Record<string, unknown>}
  */
-export function prepareCreateWalletFactoryOptions(ctx, options) {
+export function encodeAuthConfigOptions(ctx, options) {
   const { authConfig: authInput, ...rest } = options;
 
   if (authInput === undefined || authInput === null) {

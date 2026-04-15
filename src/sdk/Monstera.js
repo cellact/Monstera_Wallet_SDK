@@ -45,8 +45,8 @@
  * @typedef {import('../types/index.js').SignSolanaOptions} SignSolanaOptions
  * @typedef {import('../types/index.js').ImportKeyOptions} ImportKeyOptions
  * @typedef {import('../types/index.js').SetChainBaseKeysOptions} SetChainBaseKeysOptions
- * @typedef {import('../internal/authenticators/authProof/prepareKeyVaultAuthProofOptions.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
- * @typedef {import('../internal/authenticators/authConfig/encodeCreateWalletAuthConfig.js').CreateWalletAuthConfigPrepareContext} CreateWalletAuthConfigPrepareContext
+ * @typedef {import('../internal/authenticators/authProof/encodeAuthProofOptions.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
+ * @typedef {import('../internal/authenticators/authConfig/encodeAuthConfigOptions.js').CreateWalletAuthConfigPrepareContext} CreateWalletAuthConfigPrepareContext
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -59,8 +59,8 @@ import { AuthenticatorClient } from '../clients/auth/index.js';
 import { createAuthProof, createAuthProofMinuteSignature, createAuthProofDualFactor, createWalletSigAuthConfig, createDualFactorAuthConfig } from '../crypto/wallet.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
-import { prepareCreateWalletFactoryOptions } from '../internal/authenticators/authConfig/encodeCreateWalletAuthConfig.js';
-import { prepareKeyVaultAuthProofOptions } from '../internal/authenticators/authProof/prepareKeyVaultAuthProofOptions.js';
+import { encodeAuthConfigOptions } from '../internal/authenticators/authConfig/encodeAuthConfigOptions.js';
+import { encodeAuthProofOptions } from '../internal/authenticators/authProof/encodeAuthProofOptions.js';
 
 /**
  * Monstera Wallet SDK
@@ -395,7 +395,7 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Shared context for {@link prepareKeyVaultAuthProofOptions} (built-in authenticator resolution + encoding).
+   * Shared context for {@link encodeAuthProofOptions} (built-in authenticator resolution + encoding).
    *
    * @returns {KeyVaultAuthProofPrepareContext}
    */
@@ -409,7 +409,7 @@ class Monstera {
   }
 
   /**
-   * Shared context for {@link prepareCreateWalletFactoryOptions} (authConfig resolution + encoding).
+   * Shared context for {@link encodeAuthConfigOptions} (authConfig resolution + encoding).
    *
    * @returns {CreateWalletAuthConfigPrepareContext}
    */
@@ -557,7 +557,7 @@ class Monstera {
    */
   async createWallet(options = {}) {
     return this.factory.createWallet(
-      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
+      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -578,7 +578,7 @@ class Monstera {
    */
   async createWalletFromMnemonic(options = {}) {
     return this.factory.createWalletFromMnemonic(
-      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
+      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -602,7 +602,7 @@ class Monstera {
    */
   async createWalletWithHook(options = {}) {
     return this.factory.createWalletWithHook(
-      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
+      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -625,7 +625,7 @@ class Monstera {
    */
   async createWalletCore(options = {}) {
     return this.factory.createWalletCore(
-      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
+      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -650,7 +650,7 @@ class Monstera {
    */
   async createWalletWithCustomLogic(options = {}) {
     return this.factory.createWalletWithCustomLogic(
-      prepareCreateWalletFactoryOptions(this._authConfigPrepareContext(), options)
+      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
     );
   }
 
@@ -828,7 +828,7 @@ class Monstera {
    */
   async signTransaction(options = {}) {
     return this.keyVault.signTransaction(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -841,7 +841,7 @@ class Monstera {
    */
   async signMessage(options = {}) {
     return this.keyVault.signMessage(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -854,7 +854,7 @@ class Monstera {
    */
   async sign(options = {}) {
     return this.keyVault.sign(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -870,7 +870,7 @@ class Monstera {
    */
   async executeWithAuth(options = {}) {
     return this.keyVault.executeWithAuth(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -921,7 +921,7 @@ class Monstera {
    */
   async signWithImportedKey(options = {}) {
     return this.keyVault.signWithImportedKey(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -960,7 +960,7 @@ class Monstera {
    */
   async signSolana(options = {}) {
     return this.keyVault.signSolana(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1199,7 +1199,7 @@ class Monstera {
    */
   async updateKeyVaultImplAddr(options = {}) {
     return this.keyVault.updateKeyVaultImplAddr(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1215,7 +1215,7 @@ class Monstera {
    */
   async updateAuthenticatorAddr(options = {}) {
     return this.keyVault.updateAuthenticatorAddr(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1231,7 +1231,7 @@ class Monstera {
    */
   async importKey(options = {}) {
     return this.keyVault.importKey(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1250,7 +1250,7 @@ class Monstera {
    */
   async deactivateKey(options = {}) {
     return this.keyVault.deactivateKey(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1269,7 +1269,7 @@ class Monstera {
    */
   async activateKey(options = {}) {
     return this.keyVault.activateKey(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1284,7 +1284,7 @@ class Monstera {
    */
   async setChainBaseKeys(options = {}) {
     return this.keyVault.setChainBaseKeys(
-      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
