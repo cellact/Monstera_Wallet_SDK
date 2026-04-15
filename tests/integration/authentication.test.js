@@ -460,27 +460,19 @@ describe('Authentication Integration Tests', () => {
     }, 30000);
 
     test('should fail with missing keyVaultAddr', async () => {
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr,
-        deadline
-      });
-
       await testMissingParam(
         sdk.isWalletSignatureValid.bind(sdk),
-        { // authProof
+        {
           signer: testWallet.connect(sdk.provider)
         },
         'keyVaultAddr'
       );
     });
 
-    test('should fail with missing authProof', async () => {
+    test('should fail with missing signer', async () => {
       await testMissingParam(
         sdk.isWalletSignatureValid.bind(sdk),
         { keyVaultAddr },
-        // 'authProof'
         'signer'
       );
     });
@@ -580,19 +572,11 @@ describe('Authentication Integration Tests', () => {
       });
       expect(initialResult.length).toBe(1);
 
-      // Create auth proof to remove the address
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault,
-        deadline
-      });
-
       // Attempting to remove the last address should fail (contract prevents empty whitelist)
       await expect(
         sdk.removeFromWhitelist({
           keyVaultAddr: newWallet.keyVault,
-          authProof,
+          signer: testWallet.connect(sdk.provider),
           addressToRemove: testWalletAddr
         })
       ).rejects.toThrow(); // Should throw ContractRevertError
@@ -632,19 +616,10 @@ describe('Authentication Integration Tests', () => {
         authConfig: { initialWhitelist }
       });
 
-      // Create auth proof
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault,
-        deadline
-      });
-
-      // Add new address to whitelist
       const newAddr = randomAddress();
       const result = await sdk.addToWhitelist({
         keyVaultAddr: newWallet.keyVault,
-        authProof,
+        signer: testWallet.connect(sdk.provider),
         addressToAdd: newAddr
       });
 
@@ -659,53 +634,40 @@ describe('Authentication Integration Tests', () => {
     }, 30000);
 
     test('should fail with missing keyVaultAddr', async () => {
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr,
-        deadline
-      });
-
       await testMissingParam(
         sdk.addToWhitelist.bind(sdk),
         {
-          authProof,
+          keyVaultAddr,
+          signer: testWallet.connect(sdk.provider),
           addressToAdd: testWalletAddr
         },
         'keyVaultAddr'
       );
     });
 
-    test('should fail with missing authProof', async () => {
+    test('should fail with missing signer', async () => {
       await testMissingParam(
         sdk.addToWhitelist.bind(sdk),
         {
           keyVaultAddr,
           addressToAdd: testWalletAddr
         },
-        'authProof'
+        'signer'
       );
     });
 
     test('should fail with missing addressToAdd', async () => {
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr,
-        deadline
-      });
-
       await testMissingParam(
         sdk.addToWhitelist.bind(sdk),
         {
           keyVaultAddr,
-          authProof
+          signer: testWallet.connect(sdk.provider)
         },
         'addressToAdd'
       );
     });
 
-    test('should fail with invalid authProof from non-whitelisted address', async () => {
+    test('should fail when signer is not on the whitelist', async () => {
       // Create wallet with wallet signature authenticator
       const whitelist = [testWalletAddr];
       const newWallet = await sdk.createWallet({
@@ -713,19 +675,12 @@ describe('Authentication Integration Tests', () => {
         authConfig: { initialWhitelist: whitelist }
       });
 
-      // Create auth proof with non-whitelisted address
       const otherWallet = Wallet.createRandom();
-      const deadline = calculateDeadline();
-      const invalidAuthProof = await sdk.createAuthProof({
-        signer: otherWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault,
-        deadline
-      });
 
       await expect(
         sdk.addToWhitelist({
           keyVaultAddr: newWallet.keyVault,
-          authProof: invalidAuthProof,
+          signer: otherWallet.connect(sdk.provider),
           addressToAdd: randomAddress()
         })
       ).rejects.toThrow();
@@ -741,19 +696,10 @@ describe('Authentication Integration Tests', () => {
         authConfig: { initialWhitelist }
       });
 
-      // Create auth proof
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr: newWallet.keyVault,
-        deadline
-      });
-
-      // Remove address from whitelist
       const addrToRemove = initialWhitelist[1];
       const result = await sdk.removeFromWhitelist({
         keyVaultAddr: newWallet.keyVault,
-        authProof,
+        signer: testWallet.connect(sdk.provider),
         addressToRemove: addrToRemove
       });
 
@@ -768,47 +714,34 @@ describe('Authentication Integration Tests', () => {
     }, 30000);
 
     test('should fail with missing keyVaultAddr', async () => {
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr,
-        deadline
-      });
-
       await testMissingParam(
         sdk.removeFromWhitelist.bind(sdk),
         {
-          authProof,
+          keyVaultAddr,
+          signer: testWallet.connect(sdk.provider),
           addressToRemove: testWalletAddr
         },
         'keyVaultAddr'
       );
     });
 
-    test('should fail with missing authProof', async () => {
+    test('should fail with missing signer', async () => {
       await testMissingParam(
         sdk.removeFromWhitelist.bind(sdk),
         {
           keyVaultAddr,
           addressToRemove: testWalletAddr
         },
-        'authProof'
+        'signer'
       );
     });
 
     test('should fail with missing addressToRemove', async () => {
-      const deadline = calculateDeadline();
-      const authProof = await sdk.createAuthProof({
-        signer: testWallet.connect(sdk.provider),
-        keyVaultAddr,
-        deadline
-      });
-
       await testMissingParam(
         sdk.removeFromWhitelist.bind(sdk),
         {
           keyVaultAddr,
-          authProof
+          signer: testWallet.connect(sdk.provider)
         },
         'addressToRemove'
       );

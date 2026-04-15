@@ -41,7 +41,8 @@ const COUNTER_BYTECODE = process.env.COUNTER_BYTECODE || "0x60808060405234610016
 
 const sdk = Monstera.connect({
   mainnet: false,
-  signer: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY,
+  logLevel: 'debug'
 });
 
 async function main() {
@@ -241,7 +242,7 @@ async function main() {
   console.log("   Requesting signature from Sapphire...");
   const signedTransaction = await sdk.signTransaction({
     keyVaultAddr: keyVaultAddr,
-    authProof: authProof,
+    authProof: { password: authProof },
     index: ACCOUNT_INDEX,
     nonce: deployNonce,
     gasPrice: gasPrice,
@@ -291,7 +292,7 @@ async function main() {
 
   const signedHash = await sdk.sign({
     keyVaultAddr: keyVaultAddr,
-    authProof: authProof,
+    authProof: { password: authProof },
     index: 0,
     hash: hash
   });
@@ -310,7 +311,7 @@ async function main() {
 
   const signature = await sdk.signMessage({
     keyVaultAddr: keyVaultAddr,
-    authProof: authProof,
+    authProof: { password: authProof },
     index: 0,
     message: ethers.toUtf8Bytes(message)
   });
@@ -667,7 +668,7 @@ async function main() {
 
   const result = await sdk.executeWithAuth({
     keyVaultAddr: keyVaultAddr,
-    authProof: authProof,
+    authProof: { password: authProof },
     implCall: implCall
   });
 

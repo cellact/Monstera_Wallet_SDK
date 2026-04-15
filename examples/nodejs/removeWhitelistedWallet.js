@@ -77,7 +77,7 @@ async function main() {
     const message = "Hello from WalletSigAuth test!";
     const sig = await sdk.signMessage({
       keyVaultAddr: result.keyVault,
-      signer: allowed1Signer,
+      authProof: { signer: allowed1Signer },
       index: 0,
       message: ethers.toUtf8Bytes(message)
     });
@@ -104,7 +104,7 @@ async function main() {
     const hash = ethers.keccak256(ethers.toUtf8Bytes("test data"));
     const sig = await sdk.sign({
       keyVaultAddr: result.keyVault,
-      signer: allowed2Signer,
+      authProof: { signer: allowed2Signer },
       index: 0,
       hash: hash
     });
@@ -147,7 +147,7 @@ async function main() {
   try {
     const sig = await sdk.signMessage({
       keyVaultAddr: result.keyVault,
-      signer: allowed2Signer,
+      authProof: { signer: allowed2Signer },
       index: 0,
       message: ethers.toUtf8Bytes("I'm now not allowed!")
     });

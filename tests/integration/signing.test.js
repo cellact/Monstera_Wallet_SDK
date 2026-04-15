@@ -51,8 +51,7 @@ describe('Signing Integration Tests', () => {
     walletAddr = walletData.wallet;
     keyVaultAddr = walletData.keyVault;
 
-    // Prepare auth proof
-    authProof = createPasswordAuthProof(password);
+    authProof = { password: createPasswordAuthProof(password) };
   });
 
   describe('signMessage', () => {
@@ -95,7 +94,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with wrong password', async () => {
-      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
+      const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
       const messageBytes = ethers.toUtf8Bytes('test message');
 
       await expect(
@@ -238,7 +237,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with wrong password', async () => {
-      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
+      const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
       const hash = ethers.keccak256(ethers.toUtf8Bytes('test'));
 
       await expect(
@@ -341,7 +340,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with wrong password', async () => {
-      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
+      const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
       const to = ZERO_ADDRESS;
       const value = ethers.parseEther('0.001');
       const nonce = 0;

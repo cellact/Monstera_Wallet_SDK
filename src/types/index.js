@@ -279,8 +279,7 @@
  * Base for signing options that target a KeyVault by address.
  * @typedef {Object} KeyVaultSigningBase
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {EthersWallet | EthersHDNodeWallet} signer - Optional signer (Wallet or HDNodeWallet) used to sign the auth proof
- * @property {Bytes} authProof - Optional authentication proof (bytes)
+ * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Proof as hex/bytes, or a plain object (fields depend on the KeyVault's installed authenticator; e.g. {@code { signer }} for wallet-signature, {@code { password: Uint8Array }} for password auth using bytes from {@code ethers.toUtf8Bytes} — not plaintext strings)
  * @property {number|bigint} index - Account index (uint32)
  */
 
@@ -333,7 +332,7 @@
  * Options for signWithImportedKey (V2).
  * @typedef {Object} SignWithImportedKeyOptions
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes} authProof - Authentication proof
+ * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Authentication proof (bytes or structured object)
  * @property {Bytes32} keyId - Imported key ID
  * @property {Bytes32} digest - 32-byte hash to sign
  */
@@ -347,7 +346,7 @@
  * Options for importKey (V2).
  * @typedef {Object} ImportKeyOptions
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes} authProof - Authentication proof
+ * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Authentication proof (bytes or structured object)
  * @property {Bytes32} keyId - Unique identifier for the key
  * @property {Bytes} privateKey - Private key to import
  * @property {Bytes} [publicKey] - Optional public key (defaults to 0x)
@@ -360,7 +359,7 @@
  * Options for setChainBaseKeys (V2).
  * @typedef {Object} SetChainBaseKeysOptions
  * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {Bytes} authProof - Authentication proof
+ * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Authentication proof (bytes or structured object)
  * @property {number} chain - Chain type (enum: 0=ETHEREUM, 1=SOLANA, etc.)
  * @property {Bytes} basePrivateKey - Base private key for HD derivation
  * @property {Bytes} baseChainCode - Base chain code for HD derivation
@@ -373,7 +372,7 @@
 /**
  * Base fields for updating authenticator (keyVault vs wallet variant).
  * @typedef {Object} UpdateAuthenticatorBase
- * @property {Bytes} authProof - Authentication proof (bytes)
+ * @property {Bytes|Uint8Array|Record<string, unknown>} authProof - Authentication proof (bytes or structured object)
  * @property {Address} newAuthenticatorAddr - New authenticator contract address
  * @property {Bytes} newAuthConfig - New authentication configuration (bytes)
  */

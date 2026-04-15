@@ -58,6 +58,7 @@ import { createAuthProof, createAuthProofMinuteSignature, createAuthProofDualFac
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
 import { prepareCreateWalletFactoryOptions } from '../internal/authConfig/encodeCreateWalletAuthConfig.js';
+import { prepareKeyVaultAuthProofOptions } from '../internal/authProof/prepareKeyVaultAuthProofOptions.js';
 
 /**
  * Monstera Wallet SDK
@@ -785,6 +786,20 @@ class Monstera {
     return this.keyVault.getAccountAddresses(options);
   }
 
+  /**
+   * Shared context for {@link prepareKeyVaultAuthProofOptions} (built-in authenticator resolution + encoding).
+   *
+   * @returns {import('../internal/authProof/prepareKeyVaultAuthProofOptions.js').KeyVaultAuthProofPrepareContext}
+   */
+  _keyVaultAuthProofPrepareContext() {
+    return {
+      addresses: this.config.addresses,
+      chainId: this.config.chainId,
+      readProvider: this.readProvider,
+      getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
+    };
+  }
+
   // --- Signing Reads ---
 
   /**
@@ -795,10 +810,9 @@ class Monstera {
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signTransaction(options = {}) {
-    // TODO: determine if I need to call ceateAuthProof prior to calling signTransaction - understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    // TODO: make sure the SignTransactionOptions is correct for this method
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.signTransaction(options);
+    return this.keyVault.signTransaction(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -809,21 +823,9 @@ class Monstera {
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signMessage(options = {}) {
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-
-    const { keyVaultAddr, index, message } = options; // TODO: check if the message formatting can be done here to make user experience better
-    let { signer, authProof } = options;
-    
-    // if signer is provided, create an auth proof
-    if (signer && !authProof) {
-      authProof = await this.createAuthProof({signer, keyVaultAddr});
-    }
-    // if authProof is provided, use it
-    if (authProof && !signer) {
-      authProof = authProof;
-    }
-
-    return this.keyVault.signMessage({keyVaultAddr, authProof, index, message});
+    return this.keyVault.signMessage(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -833,21 +835,10 @@ class Monstera {
    * @returns {Promise<Bytes>} Signed hash (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
-  async sign(options = {}) {    
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    const { keyVaultAddr, index, hash } = options; // TODO: check if the hash formatting can be done here to make user experience better
-    let { signer, authProof } = options;
-    
-    // if signer is provided, create an auth proof
-    if (signer && !authProof) {
-      authProof = await this.createAuthProof({signer, keyVaultAddr});
-    }
-    // if authProof is provided, use it
-    if (authProof && !signer) {
-      authProof = authProof;
-    }
-
-    return this.keyVault.sign({keyVaultAddr, authProof, index, hash});
+  async sign(options = {}) {
+    return this.keyVault.sign(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -861,8 +852,9 @@ class Monstera {
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async executeWithAuth(options = {}) {
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.executeWithAuth(options);
+    return this.keyVault.executeWithAuth(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -911,9 +903,9 @@ class Monstera {
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signWithImportedKey(options = {}) {
-    // TODO: determine if I need to call createAuthProof prior to calling signWithImportedKey
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.signWithImportedKey(options);
+    return this.keyVault.signWithImportedKey(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -950,10 +942,9 @@ class Monstera {
    * @throws {ValidationError} If required parameters are missing or invalid
    */
   async signSolana(options = {}) {
-    // TODO: determine if i need to call createAuthProof prior to calling signSolana
-    // TODO: make sure the SignSolanaOptions is correct for this method
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.signSolana(options);
+    return this.keyVault.signSolana(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   // --- Auth Reads ---
@@ -1133,10 +1124,7 @@ class Monstera {
     });
     const authProof = proofData.authProof;
 
-    return this.auth.passwordMinuteSignature.verify({
-      keyVaultAddr,
-      authProof
-    });
+    return this.auth.passwordMinuteSignature.verify({ keyVaultAddr, authProof });
   }
 
 
@@ -1193,8 +1181,9 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async updateKeyVaultImplAddr(options = {}) {
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.updateKeyVaultImplAddr(options);
+    return this.keyVault.updateKeyVaultImplAddr(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -1208,10 +1197,9 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async updateAuthenticatorAddr(options = {}) {
-    // TODO: determine if i need to call createAuthProof prior to calling updateAuthenticatorAddr
-    // TODO: determine if i need to call a function that creates the auth config
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.updateAuthenticatorAddr(options);
+    return this.keyVault.updateAuthenticatorAddr(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -1225,9 +1213,9 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async importKey(options = {}) {
-    // TODO: determine if I need to call createAuthProof prior to calling importKey
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.importKey(options);
+    return this.keyVault.importKey(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -1244,8 +1232,9 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async deactivateKey(options = {}) {
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.deactivateKey(options);
+    return this.keyVault.deactivateKey(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -1262,8 +1251,9 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async activateKey(options = {}) {
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.activateKey(options);
+    return this.keyVault.activateKey(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   /**
@@ -1276,9 +1266,9 @@ class Monstera {
    * @throws {ContractRevertError} If transaction reverts
    */
   async setChainBaseKeys(options = {}) {
-    // TODO: determine if I need to call createAuthProof prior to calling setChainBaseKeys
-    // TODO: understand what authProof can be (forwards the same authProof to authenticator.verify(address(this), authProof) — format = installed authenticator (password bytes, minute sig bundle, wallet sig bundle, dual bundle, etc.).)
-    return this.keyVault.setChainBaseKeys(options);
+    return this.keyVault.setChainBaseKeys(
+      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+    );
   }
 
   // --- Auth Writes ---

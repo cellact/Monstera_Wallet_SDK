@@ -93,7 +93,7 @@ async function main() {
   try {
     const signature = await sdk.signMessage({
       keyVaultAddr: keyVault,
-      authProof: newAuthProof,
+      authProof: { password: newAuthProof },
       index: 0,
       message: ethers.toUtf8Bytes(message)
     });

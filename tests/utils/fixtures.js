@@ -1,9 +1,9 @@
 import { ethers, Wallet } from 'ethers';
 
 /**
- * Creates a password auth proof
- * @param {string} password - Password string
- * @returns {Uint8Array} Auth proof bytes
+ * UTF-8 password bytes for APIs that expect raw bytes (e.g. {@code currentPassword} on password helpers).
+ * @param {string} password
+ * @returns {Uint8Array}
  */
 export function createPasswordAuthProof(password) {
   return ethers.toUtf8Bytes(password);

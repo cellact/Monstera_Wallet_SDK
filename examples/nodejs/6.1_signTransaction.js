@@ -184,7 +184,7 @@ async function main() {
   console.log("   Requesting signature from Sapphire...");
   const signedDeployTx = await sdk.signTransaction({
     keyVaultAddr: keyVaultAddr,
-    authProof: authProof,
+    authProof: { password: authProof },
     index: ACCOUNT_INDEX,
     nonce: deployNonce,
     gasPrice: gasPrice,
@@ -226,7 +226,7 @@ async function main() {
   console.log("   Requesting signature from Sapphire...");
   const signedTx = await sdk.signTransaction({
     keyVaultAddr: keyVaultAddr,
-    authProof: authProof,
+    authProof: { password: authProof },
     index: ACCOUNT_INDEX,
     nonce: nonce,
     gasPrice: gasPrice,
@@ -258,7 +258,7 @@ async function main() {
   console.log("   Requesting signature from Sapphire...");
   const signedTx2 = await sdk.signTransaction({
     keyVaultAddr: keyVaultAddr,
-    authProof: authProof,
+    authProof: { password: authProof },
     index: ACCOUNT_INDEX,
     nonce: nonce2,
     gasPrice: gasPrice,

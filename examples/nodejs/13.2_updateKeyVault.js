@@ -79,7 +79,7 @@ async function main() {
     // Update KeyVaultImplementation
     const result = await sdk.updateKeyVaultImplAddr({
       keyVaultAddr: keyVaultAddr,
-      authProof: authProof,
+      authProof: { password: authProof },
       newImplAddr: NEW_KEYVAULT_IMPL_ADDRESS
     });
 

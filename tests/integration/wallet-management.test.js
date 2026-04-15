@@ -16,7 +16,7 @@ import {
   setupTestWallet 
 } from '../utils/setup.js';
 import { 
-  createPasswordAuthProof, 
+  createPasswordAuthProof,
   createWalletSigAuthConfig,
   ZERO_ADDRESS,
   randomAddress
@@ -136,7 +136,7 @@ describe('Wallet Management Integration Tests', () => {
         authConfig: { passwordHash }
       });
 
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
       const whitelist = [testWalletAddr];
       const newAuthConfig = createWalletSigAuthConfig(whitelist);
 
@@ -157,7 +157,7 @@ describe('Wallet Management Integration Tests', () => {
     }, 30000);
 
     test('should fail with missing keyVaultAddr', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
       const newAuthConfig = createWalletSigAuthConfig([testWalletAddr]);
 
       await testMissingParam(
@@ -186,7 +186,7 @@ describe('Wallet Management Integration Tests', () => {
     });
 
     test('should fail with missing newAuthenticatorAddr', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
       const newAuthConfig = createWalletSigAuthConfig([testWalletAddr]);
 
       await testMissingParam(
@@ -201,7 +201,7 @@ describe('Wallet Management Integration Tests', () => {
     });
 
     test('should fail with missing newAuthConfig', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
 
       await testMissingParam(
         sdk.updateAuthenticatorAddr.bind(sdk),
@@ -215,7 +215,7 @@ describe('Wallet Management Integration Tests', () => {
     });
 
     test('should fail with wrong authProof', async () => {
-      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
+      const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
       const newAuthConfig = createWalletSigAuthConfig([testWalletAddr]);
 
       await expect(
@@ -229,7 +229,7 @@ describe('Wallet Management Integration Tests', () => {
     }, 30000);
 
     test('should fail with invalid newAuthenticatorAddr', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
       const newAuthConfig = createWalletSigAuthConfig([testWalletAddr]);
 
       await testInvalidAddress(
@@ -247,7 +247,7 @@ describe('Wallet Management Integration Tests', () => {
 
   describe('updateKeyVaultImplAddr', () => {
     test('should fail with missing keyVaultAddr', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
       const newImplAddr = ZERO_ADDRESS;
 
       await testMissingParam(
@@ -274,7 +274,7 @@ describe('Wallet Management Integration Tests', () => {
     });
 
     test('should fail with missing newImplAddr', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
 
       await testMissingParam(
         sdk.updateKeyVaultImplAddr.bind(sdk),
@@ -287,7 +287,7 @@ describe('Wallet Management Integration Tests', () => {
     });
 
     test('should fail with invalid newImplAddr', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
 
       await testInvalidAddress(
         sdk.updateKeyVaultImplAddr.bind(sdk),
@@ -301,7 +301,7 @@ describe('Wallet Management Integration Tests', () => {
     });
 
     test('should fail with wrong authProof', async () => {
-      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
+      const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
       const newImplAddr = ZERO_ADDRESS;
 
       await expect(
@@ -314,7 +314,7 @@ describe('Wallet Management Integration Tests', () => {
     }, 30000);
 
     test('should fail with readonly SDK instance', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
       const newImplAddr = ZERO_ADDRESS;
 
       await testReadonlySDK(
@@ -403,7 +403,7 @@ describe('Wallet Management Integration Tests', () => {
         ethers.ZeroHash,  // placeholder baseChain - KeyVault replaces this
         0                  // index
       ]);
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
 
       const result = await sdk.executeWithAuth({
         keyVaultAddr,
@@ -441,7 +441,7 @@ describe('Wallet Management Integration Tests', () => {
 
     test('should fail with missing keyVaultAddr', async () => {
       const implCall = createImplCall();
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
 
       await testMissingParam(
         sdk.executeWithAuth.bind(sdk),
@@ -467,7 +467,7 @@ describe('Wallet Management Integration Tests', () => {
     });
 
     test('should fail with missing implCall', async () => {
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
 
       await testMissingParam(
         sdk.executeWithAuth.bind(sdk),
@@ -481,7 +481,7 @@ describe('Wallet Management Integration Tests', () => {
 
     test('should fail with wrong authProof', async () => {
       const implCall = createImplCall();
-      const wrongAuthProof = createPasswordAuthProof('wrongpassword');
+      const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
 
       await expect(
         sdk.executeWithAuth({
@@ -494,7 +494,7 @@ describe('Wallet Management Integration Tests', () => {
 
     test('should fail with invalid keyVaultAddr', async () => {
       const implCall = createImplCall();
-      const authProof = createPasswordAuthProof(password);
+      const authProof = { password: createPasswordAuthProof(password) };
 
       await testInvalidAddress(
         sdk.executeWithAuth.bind(sdk),

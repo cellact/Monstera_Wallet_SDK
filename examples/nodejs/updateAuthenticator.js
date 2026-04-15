@@ -84,7 +84,7 @@ async function main() {
 
   const result = await sdk.updateAuthenticatorAddr({
     keyVaultAddr: keyVault,
-    authProof: authProof,
+    authProof: { password: authProof },
     newAuthenticatorAddr: NEW_AUTHENTICATOR_ADDRESS,
     newAuthConfig: passwordHash
   });
