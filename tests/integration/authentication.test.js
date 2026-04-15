@@ -77,7 +77,7 @@ describe('Authentication Integration Tests', () => {
       // Configure password (this is typically done during creation, but can be done separately)
       const result = await sdk.configurePassword({
         keyVaultAddr: newWallet.keyVault,
-        authConfig: passwordHash
+        passwordHash: passwordHash
       });
 
       expectTransactionResult(result);
@@ -92,7 +92,7 @@ describe('Authentication Integration Tests', () => {
     test('should fail with missing keyVaultAddr', async () => {
       await testMissingParam(
         sdk.configurePassword.bind(sdk),
-        { authConfig: passwordHash },
+        { passwordHash: passwordHash },
         'keyVaultAddr'
       );
     });
@@ -101,14 +101,14 @@ describe('Authentication Integration Tests', () => {
       await testMissingParam(
         sdk.configurePassword.bind(sdk),
         { keyVaultAddr },
-        'authConfig'
+        'passwordHash'
       );
     });
 
     test('should fail with invalid keyVaultAddr', async () => {
       await testInvalidAddress(
         sdk.configurePassword.bind(sdk),
-        { keyVaultAddr, authConfig: passwordHash },
+        { keyVaultAddr, passwordHash: passwordHash },
         'keyVaultAddr'
       );
     });
@@ -118,7 +118,7 @@ describe('Authentication Integration Tests', () => {
         sdk.configurePassword,
         {
           keyVaultAddr,
-          authConfig: passwordHash
+          passwordHash: passwordHash
         }
       );
     });

@@ -427,7 +427,7 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Configure password options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authConfig - Password hash (bytes32); keccak256 hash of UTF-8 password
+   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -435,7 +435,11 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async configurePassword(options = {}) {
-    return this.auth.password.configure(options);
+    const { keyVaultAddr, passwordHash } = options;
+
+    const authConfig = passwordHash;
+
+    return this.auth.password.configure({ keyVaultAddr, authConfig });
   }
 
   /**
@@ -484,7 +488,7 @@ class Monstera {
    * 
    * @param {Record<string, unknown>} options - Configure password minute signature options
    * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authConfig - Password hash (bytes32); keccak256 hash of UTF-8 password
+   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
    * @returns {Promise<ConfigurePasswordMinuteSignatureResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -492,7 +496,11 @@ class Monstera {
    * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async configurePasswordMinuteSignature(options = {}) {
-    return this.auth.passwordMinuteSignature.configure(options);
+    const { keyVaultAddr, passwordHash } = options;
+
+    const authConfig = passwordHash;
+
+    return this.auth.passwordMinuteSignature.configure({ keyVaultAddr, authConfig });
   }
 
   // ============================================================================
@@ -1053,7 +1061,7 @@ class Monstera {
    *
    * @param {Record<string, unknown>} options - Verify options
    * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
+   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
    * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
    * @returns {Promise<boolean>} True if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid

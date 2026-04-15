@@ -64,7 +64,7 @@ async function main() {
 
   const result = await sdk.configurePassword({
     keyVaultAddr: keyVault,
-    authConfig: authConfig
+    passwordHash: authConfig
   });
 
   console.log("   Transaction:", result.transactionHash);

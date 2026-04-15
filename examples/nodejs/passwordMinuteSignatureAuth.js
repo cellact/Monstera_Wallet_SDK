@@ -59,7 +59,7 @@ async function main() {
 
     const result = await sdk.configurePasswordMinuteSignature({
         keyVaultAddr: WALLET_ADDRESS,
-        authConfig: passwordHash,
+        passwordHash: passwordHash,
     })
     console.log("Configuration successful!");
     console.log("Transaction:", result.transactionHash);
