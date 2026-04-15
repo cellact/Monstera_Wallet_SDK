@@ -2,10 +2,33 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [1.0.0-alpha.4] - 2026-04-15
+
+### Added
+
+- **PasswordMinuteSignatureAuthenticator**: New built-in authenticator (client, ABI/events, default `passwordMinuteSignatureAuth` addresses on testnet and mainnet). Supports create-wallet `authConfig` (bytes32 password hash), KeyVault `authProof` encoding for minute-bucket signatures, and `Monstera` helpers (`createAuthProofMinuteSignature`, `configurePasswordMinuteSignature`, `isPasswordMinuteSignatureConfigured`, `isPasswordMinuteSignatureValid`, `updatePasswordMinuteSignature`).
+- **Mainnet contract defaults**: Built-in default addresses for Sapphire mainnet (`factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`). Connecting with `mainnet: true` resolves a full `addresses` map without requiring manual overrides for the shipped deployment.
+- **Structured `authProof` types (JSDoc)**: Documented shapes for built-in KeyVault authenticators (`KeyVaultPasswordAuthProof`, `KeyVaultWalletSignatureAuthProof`, `KeyVaultDualFactorAuthProof`, `KeyVaultPasswordMinuteSignatureAuthProof`) and `CreateAuthProofDualFactorOptions` for dual-factor proof creation.
+- **Custom deadline**: Optional `deadline` (Unix seconds) for wallet-signature and dual-factor auth proof flows where the contract and SDK support it (defaults remain one hour ahead when omitted).
+- **Structured auth encoding helpers**: `encodeAuthConfigOptions` and `encodeAuthProofOptions` (`encodeAuthConfigOptions.js`, `encodeAuthProofOptions.js`) normalize create-wallet `authConfig` and KeyVault `authProof` options (hex/bytes pass-through; plain objects encoded via built-in authenticator registries).
+
+### Changed
+
+- **Internal layout**: Built-in authenticator encoding lives under `src/internal/authenticators/` (`authConfig/`, `authProof/`) with a shared checksum-keyed registry factory (`registryByChecksumAddress.js`). Ethereum address helpers moved to `src/internal/evm/addresses.js`.
+- **`SapphireWriteWrapper`**: Stricter handling when a transaction or receipt is missing before `wait()`, optional `rpcUrl` on write options for clearer `NetworkError` context, and improved translation of nested JSON-RPC errors (for example Sapphire attestation messages).
+- **Documentation**: `KeyVaultSigningBase` and related option types now describe `authProof` as hex bytes, `Uint8Array`, or one of the structured built-in object shapes (must match the authenticator installed on the target KeyVault).
+- **BREAKING**: `Monstera#createAuthProof` renamed to `Monstera#createAuthProofWalletSignature` (same behavior; options unchanged aside from optional `deadline`). The JSDoc typedef `CreateAuthProofOptions` is renamed to `CreateAuthProofWalletSignatureOptions`.
+- **BREAKING**: `createAuthProof` export from `src/crypto/wallet.js` renamed to `createAuthProofWalletSignature` and accepts a single options object `{ signer, chainId, authenticatorAddr, deadline, keyVaultAddr }` (update any positional call sites).
+- **BREAKING**: Deep imports of `src/internal/authConfig/**` or `src/internal/authProof/**` must move to `src/internal/authenticators/authConfig/**` and `src/internal/authenticators/authProof/**` (prefer the public `Monstera` API to avoid internal paths).
+
+### Fixed
+
+- **Tests**: Wallet crypto unit tests call `createAuthProofWalletSignature` with the options object shape expected by `src/crypto/wallet.js`.
 
 ## [1.0.0-alpha.3] - 2026-01-22
 

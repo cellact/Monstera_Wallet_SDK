@@ -95,7 +95,8 @@ const sdk = Monstera.connect({
     factory: '0x...',               // Override factory address
     passwordAuth: '0x...',          // Override password authenticator
     walletSignatureAuth: '0x...',   // Override wallet signature authenticator
-    dualFactorAuth: '0x...'         // Override dual factor authenticator
+    dualFactorAuth: '0x...',        // Override dual factor authenticator
+    passwordMinuteSignatureAuth: '0x...' // Override password-minute-signature authenticator
   }
 });
 ```
@@ -122,6 +123,7 @@ const sdkWithOverrides = Monstera.connect({
     passwordAuth: '0x...',
     walletSignatureAuth: '0x...',
     dualFactorAuth: '0x...',
+    passwordMinuteSignatureAuth: '0x...',
   },
   signer: 'your_private_key' // Private key string or ethers Signer instance
 });
@@ -180,6 +182,7 @@ The SDK includes comprehensive Node.js examples in `examples/nodejs/`:
 - **`updateAuthenticator.js`** - Update authenticator
 - **`passwordAuthMethods.js`** - Password authenticator methods
 - **`walletSigAuthMethods.js`** - Wallet signature authenticator methods
+- **`passwordMinuteSignatureAuth.js`** - Password minute-signature authenticator
 - **`removeWhitelistedWallet.js`** - Remove from whitelist
 
 **Administration:**

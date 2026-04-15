@@ -14,7 +14,7 @@ Create an SDK instance with write capabilities (requires signer).
 - `mainnet` (required): `true` for mainnet, `false` for testnet
 - `signer` (required): Private key string (0x-prefixed hex) or ethers Signer instance
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
-- `addresses` (optional): Object with contract addresses to override defaults (`factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`)
+- `addresses` (optional): Object with contract addresses to override defaults (`factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`)
 - `logLevel` (optional): `'error'` | `'warn'` | `'info'` | `'debug'` (default: `'error'`)
 - `debug` (optional): If `true`, sets log level to `'debug'`
 - `checkVersion` (optional): If `false`, skips npm version check on connect
@@ -43,7 +43,7 @@ Create a read-only SDK instance (no signer required).
 Create a new wallet with auto-generated mnemonic.
 
 **Parameters:**
-- `authConfig` (required): Authentication configuration (e.g., password hash as hex string)
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
 **Returns:**
@@ -66,7 +66,7 @@ Create a new wallet with auto-generated mnemonic.
 Create a new wallet from a provided mnemonic.
 
 **Parameters:**
-- `authConfig` (required): Authentication configuration (e.g., password hash as hex string)
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
 - `mnemonic` (required): BIP39 mnemonic phrase
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
@@ -77,7 +77,7 @@ Create a new wallet from a provided mnemonic.
 Create a wallet with a post-creation hook.
 
 **Parameters:**
-- `authConfig` (required): Authentication configuration
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
 - `hookAddr` (required): Hook contract address
 - `hookData` (required): Data for the hook
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
@@ -89,7 +89,7 @@ Create a wallet with a post-creation hook.
 Create a wallet core (KeyVault + Storage only, no WalletLogic proxy).
 
 **Parameters:**
-- `authConfig` (required): Authentication configuration
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
 **Returns:** Same as `createWallet()`
@@ -99,7 +99,7 @@ Create a wallet core (KeyVault + Storage only, no WalletLogic proxy).
 Create a wallet with a custom logic implementation.
 
 **Parameters:**
-- `authConfig` (required): Authentication configuration
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
 - `customLogicImplAddr` (required): Custom logic implementation contract address
 - `logicData` (required): Initialization data for custom logic
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
@@ -153,6 +153,8 @@ await sdk.transferAdmin({ newAdminAddr });
 await sdk.initializeWalletLogic({ walletAddr, keyVaultAddr });
 
 // KeyVault client - key vault operations and signing
+// authProof may be hex bytes, Uint8Array, or a plain object when the vault uses a built-in authenticator
+// (shape matches that authenticator, e.g. { password: Uint8Array } for password auth — see types in src/types/index.js)
 await sdk.getKeyVaultStorageAddr({ keyVaultAddr });
 await sdk.getAuthenticatorAddr({ keyVaultAddr });
 await sdk.getKeyVaultImplAddr({ keyVaultAddr });
@@ -171,7 +173,8 @@ await sdk.updateAuthenticatorAddr({ keyVaultAddr, authProof, newAuthenticatorAdd
 const passwordAuth = sdk.getAuthClient('password');
 const walletSigAuth = sdk.getAuthClient('walletSignature');
 const dualFactorAuth = sdk.getAuthClient('dualFactor');
-const availableTypes = sdk.getAvailableAuthTypes(); // ['walletSignature', 'password', 'dualFactor']
+const passwordMinuteSigAuth = sdk.getAuthClient('passwordMinuteSignature');
+const availableTypes = sdk.getAvailableAuthTypes(); // includes 'walletSignature', 'password', 'dualFactor', 'passwordMinuteSignature'
 ```
 
 ## Exports

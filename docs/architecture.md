@@ -11,10 +11,10 @@ The SDK is organized into modular components:
 - **`providers/`**: Ethers provider creation and Sapphire wrapper integration
 - **`crypto/`**: Mnemonic generation, seed derivation, password hashing, and auth proof creation
 - **`contracts/`**: Contract ABIs and typed contract getters (core + authenticators)
-- **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor)
+- **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Consistent error types with stable error codes
-- **`internal/`**: Logger, version check, version helpers, and validation (assert)
+- **`internal/`**: Logger, version check, validation (`assert`), EVM helpers (`evm/`), built-in authenticator encoders (`authenticators/`)
 - **`sdk/`**: Main SDK class (Monstera) and MonsteraUtils
 - **`types/`**: Shared JSDoc type definitions
 - **`bin/`**: CLI tool (monstera command)
@@ -34,11 +34,11 @@ src/             # Source code
   config/        # Network presets (networks.js), SDK config (monstera.js)
   providers/     # Provider and Sapphire wrapper
   crypto/        # Mnemonic, seed derivation, password hashing, auth proof
-  contracts/     # ABIs and getters (core: factory, logic, keyVault; auth: password, walletSig, dualFactor)
-  clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor)
+  contracts/     # ABIs and getters (core: factory, logic, keyVault; auth: password, walletSig, dualFactor, passwordMinuteSignature)
+  clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor, passwordMinuteSignature)
   events/        # Event definitions and receipt parsing
   errors/        # Error types (single source of truth for error exports)
-  internal/      # logger, versionCheck, version, assert
+  internal/      # logger, versionCheck, version, assert, evm/, authenticators/
   sdk/           # Monstera, MonsteraUtils
   types/         # Shared JSDoc types
 bin/             # CLI (monstera command)

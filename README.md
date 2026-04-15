@@ -69,8 +69,9 @@ const monstera = Monstera.connect({
 const passwordHash = ethers.keccak256(ethers.toUtf8Bytes('your-secure-password'));
 
 // Create a wallet
-const wallet = await monstera.createWallet({ 
-  authConfig: passwordHash 
+const wallet = await monstera.createWallet({
+  authenticatorAddr: monstera.addresses.passwordAuth,
+  authConfig: { passwordHash } 
 });
 
 console.log('Wallet created:', wallet.wallet);
