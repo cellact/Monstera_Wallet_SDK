@@ -389,6 +389,35 @@ class Monstera {
   }
 
   // ============================================================================
+  // Internal - auth prepare contexts 
+  // ============================================================================
+
+  /**
+   * Shared context for {@link prepareKeyVaultAuthProofOptions} (built-in authenticator resolution + encoding).
+   *
+   * @returns {import('../internal/authProof/prepareKeyVaultAuthProofOptions.js').KeyVaultAuthProofPrepareContext}
+   */
+  _authProofPrepareContext() {
+    return {
+      addresses: this.config.addresses,
+      chainId: this.config.chainId,
+      readProvider: this.readProvider,
+      getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
+    };
+  }
+
+  /**
+   * Shared context for {@link prepareCreateWalletFactoryOptions} (authConfig resolution + encoding).
+   *
+   * @returns {import('../internal/authConfig/encodeCreateWalletAuthConfig.js').CreateWalletAuthConfigPrepareContext}
+   */
+  _authConfigPrepareContext() {
+    return {
+      addresses: this.config.addresses
+    };
+  }
+
+  // ============================================================================
   // Initialize Methods (Write)
   // ============================================================================
 
@@ -787,31 +816,6 @@ class Monstera {
     return this.keyVault.getAccountAddresses(options);
   }
 
-  /**
-   * Shared context for {@link prepareKeyVaultAuthProofOptions} (built-in authenticator resolution + encoding).
-   *
-   * @returns {import('../internal/authProof/prepareKeyVaultAuthProofOptions.js').KeyVaultAuthProofPrepareContext}
-   */
-  _keyVaultAuthProofPrepareContext() {
-    return {
-      addresses: this.config.addresses,
-      chainId: this.config.chainId,
-      readProvider: this.readProvider,
-      getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
-    };
-  }
-
-  /**
-   * Shared context for {@link prepareCreateWalletFactoryOptions} (authConfig resolution + encoding).
-   *
-   * @returns {import('../internal/authConfig/encodeCreateWalletAuthConfig.js').CreateWalletAuthConfigPrepareContext}
-   */
-  _authConfigPrepareContext() {
-    return {
-      addresses: this.config.addresses
-    };
-  }
-
   // --- Signing Reads ---
 
   /**
@@ -823,7 +827,7 @@ class Monstera {
    */
   async signTransaction(options = {}) {
     return this.keyVault.signTransaction(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -836,7 +840,7 @@ class Monstera {
    */
   async signMessage(options = {}) {
     return this.keyVault.signMessage(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -849,7 +853,7 @@ class Monstera {
    */
   async sign(options = {}) {
     return this.keyVault.sign(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -865,7 +869,7 @@ class Monstera {
    */
   async executeWithAuth(options = {}) {
     return this.keyVault.executeWithAuth(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -916,7 +920,7 @@ class Monstera {
    */
   async signWithImportedKey(options = {}) {
     return this.keyVault.signWithImportedKey(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -955,7 +959,7 @@ class Monstera {
    */
   async signSolana(options = {}) {
     return this.keyVault.signSolana(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1194,7 +1198,7 @@ class Monstera {
    */
   async updateKeyVaultImplAddr(options = {}) {
     return this.keyVault.updateKeyVaultImplAddr(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1210,7 +1214,7 @@ class Monstera {
    */
   async updateAuthenticatorAddr(options = {}) {
     return this.keyVault.updateAuthenticatorAddr(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1226,7 +1230,7 @@ class Monstera {
    */
   async importKey(options = {}) {
     return this.keyVault.importKey(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1245,7 +1249,7 @@ class Monstera {
    */
   async deactivateKey(options = {}) {
     return this.keyVault.deactivateKey(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1264,7 +1268,7 @@ class Monstera {
    */
   async activateKey(options = {}) {
     return this.keyVault.activateKey(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
@@ -1279,7 +1283,7 @@ class Monstera {
    */
   async setChainBaseKeys(options = {}) {
     return this.keyVault.setChainBaseKeys(
-      await prepareKeyVaultAuthProofOptions(this._keyVaultAuthProofPrepareContext(), options)
+      await prepareKeyVaultAuthProofOptions(this._authProofPrepareContext(), options)
     );
   }
 
