@@ -93,9 +93,8 @@ class Monstera {
     this.keyVault = new KeyVaultClient(this.readProvider, this.writeSigner, config);
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, config);
 
-    // Check version in background (non-blocking, cached)
-    // Skip if disabled in config or already checked
-    if (config?.checkVersion !== false && !MonsteraUtils.versionCheckDone) {
+    // Check version in background only when explicitly enabled.
+    if (config?.checkVersion === true && !MonsteraUtils.versionCheckDone) {
       MonsteraUtils.checkVersionOnce(this.version);
     }
   }

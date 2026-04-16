@@ -7,7 +7,8 @@
  */
 
 import 'dotenv/config';
-import { describe, test, expect, beforeAll } from '@jest/globals';
+import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+import { registerSdkTeardown } from '../utils/teardown.js';
 import { ethers } from 'ethers';
 import { 
   createTestSDK, 
@@ -59,6 +60,8 @@ describe('Wallet Management Integration Tests', () => {
     storageAddr = walletData.storage;
     authenticatorAddr = walletData.authenticator;
   }, 30000);
+
+  registerSdkTeardown(afterAll, () => sdk);
 
   describe('initializeWalletLogic', () => {
     test('should successfully initialize wallet logic', async () => {

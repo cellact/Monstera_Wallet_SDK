@@ -9,7 +9,8 @@
  * - Or will create a new wallet (requires network access and funds)
  */
 import 'dotenv/config';
-import { describe, test, expect, beforeAll } from '@jest/globals';
+import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+import { registerSdkTeardown } from '../utils/teardown.js';
 import { ethers } from 'ethers';
 import { 
   createTestSDK, 
@@ -53,6 +54,8 @@ describe('Signing Integration Tests', () => {
 
     authProof = { password: createPasswordAuthProof(password) };
   });
+
+  registerSdkTeardown(afterAll, () => sdk);
 
   describe('signMessage', () => {
     test('should successfully sign a message', async () => {

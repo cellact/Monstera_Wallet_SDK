@@ -54,8 +54,8 @@ export async function fetchLatestVersion() {
 }
 
 /**
- * Check version and display warning if outdated
- * This is called automatically by the SDK
+ * Check version and display warning if outdated.
+ * This runs only when the SDK is configured with `checkVersion: true`.
  * @param {string} currentVersion - Current SDK version
  * @returns {Promise<void>}
  */

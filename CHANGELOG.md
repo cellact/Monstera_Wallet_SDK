@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **ESLint**: Root `.eslintrc.cjs` (`eslint:recommended`, ESM, Node/Jest env) so `npm run lint` runs; `__MONSTERA_VERSION__` is declared for Rollup-injected browser builds.
+- **Integration test teardown**: `tests/utils/teardown.js` exports `closeSdkConnections` and `registerSdkTeardown` to destroy ethers `JsonRpcProvider` instances after suites; integration tests and `testReadonlySDK` use it to avoid hanging Jest workers.
+
+### Changed
+
+- **BREAKING — version check**: Outbound npm registry check runs only when **`checkVersion: true`** is set on `Monstera.connect()`, `Monstera.readonly()`, or the config passed to `new Monstera(...)`. Omitted or `false` skips the check (previously ran unless explicitly disabled). To restore old behavior, pass `checkVersion: true`.
+- **`deriveSeed`**: Removed the unused `iterations` parameter from the public helper in `src/crypto/wallet.js`; derivation still uses PBKDF2 with 2048 iterations as before.
+- **`.npmignore`**: Explicitly excludes `.eslintrc.cjs` from published tarballs (alongside existing `package.json` `files` allowlist).
+
+### Fixed
+
+- **`SapphireWriteWrapper`**: On write failure, debug logs emit safe fields only (`methodName`, `errorName`, `errorCode`, `errorMessage`) instead of logging the raw `Error` object, which could expose sensitive provider/RPC payloads in debug mode.
+- **`src/internal/versionCheck.js`**: JSDoc updated to state the check runs only when `checkVersion: true` is configured.
+
 ## [1.0.0-alpha.5] - 2026-04-16
 
 ### Fixed

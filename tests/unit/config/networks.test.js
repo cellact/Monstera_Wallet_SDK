@@ -164,13 +164,12 @@ describe('Network Configuration - mainnet', () => {
             expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).toBeDefined();
         });
 
-        // TODO: Add test for mainnet default addresses that match the expected values
-        // test('should have factory, passwordAuth, walletSignatureAuth address for mainnet that match the expected values', () => {
-        //     expect(DEFAULT_ADDRESSES.mainnet.factory).toBe('');
-        //     expect(DEFAULT_ADDRESSES.mainnet.passwordAuth).toBe('');
-        //     expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).toBe('');
-        //     expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).not.toBeNull();
-        // });
+        test('should have factory, passwordAuth, walletSignatureAuth address for mainnet that match the expected values', () => {
+            expect(DEFAULT_ADDRESSES.mainnet.factory).toBe('');
+            expect(DEFAULT_ADDRESSES.mainnet.passwordAuth).toBe('');
+            expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).toBe('');
+            expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).not.toBeNull();
+        });
     });
 
     describe('buildNetworkConfig', () => {

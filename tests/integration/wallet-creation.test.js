@@ -7,7 +7,8 @@
  */
 
 import 'dotenv/config';
-import { describe, test, expect, beforeAll } from '@jest/globals';
+import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+import { closeSdkConnections, registerSdkTeardown } from '../utils/teardown.js';
 import { Monstera } from '../../src/index.js';
 import { ethers, Mnemonic } from 'ethers';
 import { ValidationError, WalletError } from '../../src/errors/index.js';
@@ -47,6 +48,8 @@ describe('Wallet Creation Integration Tests', () => {
 
     sdk = createTestSDK();
   });
+
+  registerSdkTeardown(afterAll, () => sdk);
 
   describe('createWallet', () => {
     test('should successfully create a wallet with default authenticator', async () => {
@@ -424,11 +427,15 @@ describe('Wallet Creation Integration Tests', () => {
       });
 
       // This should fail with a network error or validation error
-      await expect(
-        invalidSdk.createWallet({
-          authConfig: { passwordHash }
-        })
-      ).rejects.toThrow();
+      try {
+        await expect(
+          invalidSdk.createWallet({
+            authConfig: { passwordHash }
+          })
+        ).rejects.toThrow();
+      } finally {
+        await closeSdkConnections(invalidSdk);
+      }
     });
   });
 });

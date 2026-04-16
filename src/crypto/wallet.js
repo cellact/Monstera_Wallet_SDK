@@ -36,10 +36,9 @@ function generateMnemonic() {
  * 
  * @param {Mnemonic} mnemonic - BIP39 mnemonic phrase
  * @param {string} [password=''] - Optional password for seed derivation
- * @param {number} [iterations=2048] - PBKDF2 iterations
  * @returns {Buffer} Derived seed (64 bytes)
  */
-function deriveSeed(mnemonic, password = '', iterations = 2048) {
+function deriveSeed(mnemonic, password = '') {
   // Normalize mnemonic (remove extra whitespace)
   const normalizedMnemonic = mnemonic.trim().toLowerCase().replace(/\s+/g, ' ');
   log.debug('deriveSeed', { phraseLength: normalizedMnemonic.length });

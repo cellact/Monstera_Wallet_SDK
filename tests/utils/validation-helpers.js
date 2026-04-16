@@ -1,6 +1,7 @@
 import { ValidationError, WriteRequiresSignerError } from '../../src/errors/index.js';
 import { createTestSDK } from './setup.js';
 import { INVALID_ADDRESS } from './fixtures.js';
+import { closeSdkConnections } from './teardown.js';
 
 /**
  * Tests that a method throws ValidationError when a required parameter is missing
@@ -37,7 +38,11 @@ export async function testInvalidAddress(method, validParams, addressParam) {
  */
 export async function testReadonlySDK(method, params) {
   const readonlySdk = createTestSDK({ readonly: true });
-  await expect(method.call(readonlySdk, params)).rejects.toThrow(WriteRequiresSignerError);
+  try {
+    await expect(method.call(readonlySdk, params)).rejects.toThrow(WriteRequiresSignerError);
+  } finally {
+    await closeSdkConnections(readonlySdk);
+  }
 }
 
 /**

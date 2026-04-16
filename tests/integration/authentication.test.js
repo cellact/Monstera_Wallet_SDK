@@ -7,7 +7,8 @@
  */
 
 import 'dotenv/config';
-import { describe, test, expect, beforeAll } from '@jest/globals';
+import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
+import { registerSdkTeardown } from '../utils/teardown.js';
 import { ethers, Wallet } from 'ethers';
 import { ValidationError } from '../../src/errors/index.js';
 import { 
@@ -56,6 +57,8 @@ describe('Authentication Integration Tests', () => {
     walletAddr = walletData.wallet;
     keyVaultAddr = walletData.keyVault;
   }, 30000);
+
+  registerSdkTeardown(afterAll, () => sdk);
 
   describe('configurePassword', () => {
     test('should successfully configure password for a wallet', async () => {
@@ -129,14 +132,9 @@ describe('Authentication Integration Tests', () => {
         authConfig: { passwordHash }
       });
 
-      // // Encode whitelist addresses
-      // const whitelist = [testWalletAddr];
-      // const authConfig = createWalletSigAuthConfig(whitelist);
-
       // Configure wallet signature authenticator
       const result = await sdk.configureWalletSignature({
         keyVaultAddr: newWallet.keyVault,
-        // authConfig
         initialWhitelist: [testWalletAddr]
       });
 
@@ -150,11 +148,8 @@ describe('Authentication Integration Tests', () => {
     }, 30000);
 
     test('should fail with missing keyVaultAddr', async () => {
-      // const authConfig = createWalletSigAuthConfig([testWalletAddr]);
-
       await testMissingParam(
         sdk.configureWalletSignature.bind(sdk),
-        // { authConfig },
         { initialWhitelist: [testWalletAddr] },
         'keyVaultAddr'
       );
@@ -164,30 +159,23 @@ describe('Authentication Integration Tests', () => {
       await testMissingParam(
         sdk.configureWalletSignature.bind(sdk),
         { keyVaultAddr },
-        // 'authConfig'
         'initialWhitelist'
       );
     });
 
     test('should fail with invalid keyVaultAddr', async () => {
-      // const authConfig = createWalletSigAuthConfig([testWalletAddr]);
-
       await testInvalidAddress(
         sdk.configureWalletSignature.bind(sdk),
-        // { keyVaultAddr, authConfig },
         { keyVaultAddr, initialWhitelist: [testWalletAddr] },
         'keyVaultAddr'
       );
     });
 
     test('should fail with readonly SDK instance', async () => {
-      // const authConfig = createWalletSigAuthConfig([testWalletAddr]);
-
       await testReadonlySDK(
         sdk.configureWalletSignature,
         {
           keyVaultAddr,
-          // authConfig
           initialWhitelist: [testWalletAddr]
         }
       );

@@ -106,8 +106,13 @@ class SapphireWriteWrapper {
 
       return result;
     } catch (error) {
-      // Log raw error from ethers/provider before _translateError wraps it as WalletError
-      log.debug('Raw error (before wrap)', { error: error });
+      // Log only non-sensitive error metadata before translation.
+      log.debug('Write failed before error translation', {
+        methodName,
+        errorName: error?.name,
+        errorCode: error?.code ?? error?.error?.code,
+        errorMessage: error?.message
+      });
       // Re-throw WalletError as-is
       if (error instanceof WalletError) {
         log.debug('Re-throwing WalletError');
