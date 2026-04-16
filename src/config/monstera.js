@@ -17,9 +17,9 @@ import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
 import { ConfigError, ValidationError } from '../errors/index.js';
 import { isAddress } from '../internal/assert.js';
 import log from '../internal/logger.js';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { readFileSync } from 'fs';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 /**
  * Required contract addresses for SDK initialization
@@ -46,17 +46,11 @@ class MonsteraConfig {
       // @ts-ignore
       return __MONSTERA_VERSION__;
     }
-    // Node.js environment - read package.json directly
+    // Node.js environment - resolve package.json relative to this module
     try {
-      if (typeof window === 'undefined' && typeof import.meta !== 'undefined') {
-        // Get the directory of this file (src/config/)
-        const currentFile = fileURLToPath(import.meta.url);
-        const currentDir = dirname(currentFile);
-        
-        // Resolve to package.json (go up two levels: src/config -> src -> root)
-        const packageJsonPath = join(currentDir, '..', '..', 'package.json');
-        const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf-8'));
-        return packageJson.version;
+      if (typeof process !== 'undefined' && process?.versions?.node) {
+        const packageJson = require('../../package.json');
+        return packageJson?.version || 'unknown';
       }
     } catch (e) {
       // Log error for debugging (only in development)

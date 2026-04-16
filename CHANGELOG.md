@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.5] - 2026-04-16
+
+### Fixed
+
+- **SDK version when installed from npm**: `MonsteraConfig.version` no longer logged `Failed to load SDK version from package.json: fileURLToPath is not defined` and no longer resolved to `unknown` for consumers of the published ESM entry (`dist/monstera.mjs`). Node resolves the version via `createRequire(import.meta.url)` and `package.json` instead of `fileURLToPath` + `fs.readFileSync`.
+- **Rollup browser build**: Version injection targets `src/config/monstera.js` with a brace-safe replacement of `static get version()` and strips Node-only `createRequire` usage so browser bundles stay valid.
+
 ## [1.0.0-alpha.4] - 2026-04-15
 
 ### Added

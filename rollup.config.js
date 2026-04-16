@@ -44,25 +44,64 @@ function extractErrorClassNames() {
 
 const errorClassNames = extractErrorClassNames();
 
+function replaceVersionGetter(code, replacementGetter) {
+  const getterSignature = 'static get version() {';
+  const getterStart = code.indexOf(getterSignature);
+  if (getterStart === -1) {
+    throw new Error('browser-build: could not find MonsteraConfig.version getter');
+  }
+
+  const bodyStart = code.indexOf('{', getterStart);
+  let depth = 0;
+  let getterEnd = -1;
+
+  for (let i = bodyStart; i < code.length; i++) {
+    if (code[i] === '{') depth++;
+    if (code[i] === '}') {
+      depth--;
+      if (depth === 0) {
+        getterEnd = i;
+        break;
+      }
+    }
+  }
+
+  if (getterEnd === -1) {
+    throw new Error('browser-build: could not parse MonsteraConfig.version getter');
+  }
+
+  return `${code.slice(0, getterStart)}${replacementGetter}${code.slice(getterEnd + 1)}`;
+}
+
 // Plugin to inject version and remove Node.js-specific code for browser builds
 const createBrowserPlugin = () => ({
   name: 'browser-build',
   transform(code, id) {
-    if (id.includes('Monstera.js')) {
-      let transformed = code;
-      
-      // Replace version getter body with simple return
-      transformed = transformed.replace(
-        /\/\/ In browser builds, version is injected at build time[\s\S]*?return 'unknown';/,
-        `// Version injected at build time
-    return "${version}";`
+    const normalizedId = id.replace(/\\/g, '/');
+    if (normalizedId.includes('/config/monstera.js')) {
+      let transformed = replaceVersionGetter(
+        code,
+        `static get version() {
+    // Version injected at build time for browser bundles
+    return "${version}";
+  }`
       );
-      
+
+      // Remove Node-only import/require from browser output.
+      transformed = transformed.replace(/import \{ createRequire \} from 'module';\r?\n/, '');
+      transformed = transformed.replace(/const require = createRequire\(import\.meta\.url\);\r?\n\r?\n/, '\n');
+
+      if (transformed.includes('createRequire(')) {
+        throw new Error('browser-build: failed to strip Node-only createRequire usage');
+      }
+
       return {
         code: transformed,
         map: null // Let rollup generate sourcemap
       };
     }
+
+    return null;
   }
 });
 
