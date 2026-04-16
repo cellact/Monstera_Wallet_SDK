@@ -1,13 +1,15 @@
 /**
  * Shared factory: checksum-normalized authenticator contract address → encoder.
+ *
+ * @typedef {import('../../types/index.js').Address} Address
  */
 
 import { tryChecksumAddress } from '../evm/addresses.js';
 
 /**
  * @template T
- * @param {Array<{ address: string, encoder: T }>} entries
- * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: string) => T | undefined }}
+ * @param {Array<{ address: Address, encoder: T }>} entries
+ * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => T | undefined }}
  */
 export function createRegistryByChecksumAddress(entries) {
   /** @type {Map<string, T>} */
@@ -22,7 +24,7 @@ export function createRegistryByChecksumAddress(entries) {
 
   return {
     /**
-     * @param {string} authenticatorAddr
+     * @param {Address} authenticatorAddr
      * @returns {T | undefined}
      */
     getByAuthenticatorAddr(authenticatorAddr) {

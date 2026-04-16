@@ -3,20 +3,23 @@
  * using the on-chain authenticator for {@code keyVaultAddr}.
  *
  * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
- * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider
+ * @typedef {import('../../../types/index.js').Address} Address
+ * @typedef {import('../../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
+ * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsInput} EncodeAuthProofOptionsInput
+ * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
  *
  * @typedef {Object} KeyVaultAuthProofPrepareContext
  * @property {ContractAddresses} addresses
  * @property {string|number} chainId
  * @property {EthersAbstractProvider} readProvider
- * @property {(keyVaultAddr: string) => Promise<string>} getAuthenticatorAddr
+ * @property {(keyVaultAddr: Address) => Promise<Address>} getAuthenticatorAddr
  *
  * @typedef {Object} KeyVaultAuthProofEncodeContext
  * @property {ContractAddresses} addresses
  * @property {string|number} chainId
  * @property {EthersAbstractProvider} readProvider
- * @property {string} authenticatorAddr
- * @property {string} keyVaultAddr
+ * @property {Address} authenticatorAddr
+ * @property {Address} keyVaultAddr
  */
 
 import { requireAddress } from '../../assert.js';
@@ -26,8 +29,8 @@ import { createKeyVaultAuthProofEncoderRegistry } from './registry.js';
 
 /**
  * @param {KeyVaultAuthProofPrepareContext} ctx
- * @param {Record<string, unknown>} options - KeyVault call options (must include keyVaultAddr when authProof is an object)
- * @returns {Promise<Record<string, unknown>>}
+ * @param {EncodeAuthProofOptionsInput} options - KeyVault call options (must include {@code keyVaultAddr} when {@code authProof} is a structured object)
+ * @returns {Promise<EncodeAuthProofOptionsResult>}
  */
 export async function encodeAuthProofOptions(ctx, options) {
   const { authProof: authInput, ...rest } = options;

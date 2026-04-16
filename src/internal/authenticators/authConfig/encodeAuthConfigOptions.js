@@ -4,6 +4,8 @@
  * hex strings pass through for custom authenticators.
  *
  * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../../../types/index.js').EncodeAuthConfigCallerOptions} EncodeAuthConfigCallerOptions
+ * @typedef {import('../../../types/index.js').EncodeAuthConfigOptionsReturn} EncodeAuthConfigOptionsReturn
  *
  * @typedef {Object} CreateWalletAuthConfigPrepareContext
  * @property {ContractAddresses} addresses
@@ -16,8 +18,8 @@ import { createCreateWalletAuthEncoderRegistry } from './registry.js';
 
 /**
  * @param {CreateWalletAuthConfigPrepareContext} ctx
- * @param {Record<string, unknown>} options
- * @returns {Record<string, unknown>}
+ * @param {EncodeAuthConfigCallerOptions} options
+ * @returns {EncodeAuthConfigOptionsReturn}
  */
 export function encodeAuthConfigOptions(ctx, options) {
   const { authConfig: authInput, ...rest } = options;

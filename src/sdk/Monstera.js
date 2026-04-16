@@ -297,9 +297,9 @@ class Monstera {
 
   /**
    * Create an auth proof for a wallet
-   * 
-   * @param {CreateAuthProofWalletSignatureOptions} options 
-   * @returns {Promise<Bytes>} Auth proof (bytes)
+   *
+   * @param {CreateAuthProofWalletSignatureOptions} options
+   * @returns {Promise<Bytes>} ABI-encoded {@code (uint256 deadline, bytes signature)} (hex)
    */
   async createAuthProofWalletSignature(options = {}) {
     const { signer, keyVaultAddr } = options;
@@ -331,7 +331,7 @@ class Monstera {
    * ({@code AbiCoder.encode(['bytes'], [signature])}), using the SDK read provider for the latest block time.
    *
    * @param {CreateAuthProofMinuteSignatureOptions} options
-   * @returns {Promise<{ authProof: string, minuteBucket: number, derivedAddress: string }>}
+   * @returns {Promise<{ authProof: Bytes, minuteBucket: number, derivedAddress: Address }>}
    * @throws {ValidationError} If addresses or passwordHash are invalid
    */
   async createAuthProofMinuteSignature(options = {}) {
@@ -359,9 +359,9 @@ class Monstera {
 
   /**
    * Create an auth proof for a dual factor authenticator
-   * 
+   *
    * @param {CreateAuthProofDualFactorOptions} options
-   * @returns {Promise<Bytes>} Auth proof (bytes)
+   * @returns {Promise<Bytes>} ABI-encoded dual-factor auth proof (hex)
    * @throws {ValidationError} If addresses or passwordHash are invalid
    */
   async createAuthProofDualFactor(options = {}) {
@@ -529,7 +529,7 @@ class Monstera {
    * @param {Record<string, unknown>} options - Configure password minute signature options
    * @param {Address} options.keyVaultAddr - Key vault address 
    * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
-   * @returns {Promise<ConfigurePasswordMinuteSignatureResult>}
+   * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts

@@ -1,17 +1,21 @@
 /**
  * PasswordMinuteSignatureAuthenticator — minute-bucket password signature bundle.
+ *
+ * @typedef {import('../../../../types/index.js').Bytes} Bytes
+ * @typedef {import('../encodeAuthProofOptions.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
  */
 
 import { ValidationError } from '../../../../errors/index.js';
 import { createAuthProofMinuteSignature } from '../../../../crypto/wallet.js';
 
-/** @type {{ id: string, encode: (ctx: object, input: Record<string, unknown>) => Promise<string> }} */
+/** @type {{ id: string, encode: (ctx: KeyVaultAuthProofEncodeContext, input: Record<string, unknown>) => Promise<Bytes> }} */
 export const passwordMinuteSignatureKeyVaultAuthProofEncoder = {
   id: 'passwordMinuteSignatureAuth',
 
   /**
-   * @param {object} ctx
+   * @param {KeyVaultAuthProofEncodeContext} ctx
    * @param {Record<string, unknown>} input
+   * @returns {Promise<Bytes>}
    */
   async encode(ctx, input) {
     const { passwordHash } = input;

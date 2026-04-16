@@ -1,18 +1,22 @@
 /**
  * WalletSignatureAuthenticator — EIP-712 wallet auth proof bytes.
+ *
+ * @typedef {import('../../../../types/index.js').Bytes} Bytes
+ * @typedef {import('../encodeAuthProofOptions.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
  */
 
 import { HDNodeWallet, Wallet } from 'ethers';
 import { ValidationError } from '../../../../errors/index.js';
 import { createAuthProofWalletSignature } from '../../../../crypto/wallet.js';
 
-/** @type {{ id: string, encode: (ctx: object, input: Record<string, unknown>) => Promise<string> }} */
+/** @type {{ id: string, encode: (ctx: KeyVaultAuthProofEncodeContext, input: Record<string, unknown>) => Promise<Bytes> }} */
 export const walletSignatureKeyVaultAuthProofEncoder = {
   id: 'walletSignatureAuth',
 
   /**
-   * @param {object} ctx
+   * @param {KeyVaultAuthProofEncodeContext} ctx
    * @param {Record<string, unknown>} input
+   * @returns {Promise<Bytes>}
    */
   async encode(ctx, input) {
     const signer = input.signer;

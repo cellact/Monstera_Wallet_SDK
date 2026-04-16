@@ -5,10 +5,12 @@
  * 
  * @typedef {import('../types/index.js').Mnemonic} Mnemonic
  * @typedef {import('../types/index.js').Bytes} Bytes
+ * @typedef {import('../types/index.js').Bytes32} Bytes32
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').EthersWallet} EthersWallet
- * @typedef {import('../types/index.js').EthersHDNodeWallet} EthersHDNodeWallet
  * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider
+ * @typedef {import('../types/index.js').EthersHDNodeWallet} EthersHDNodeWallet
+ * @typedef {import('../types/index.js').EthersAbstractProvider} EthersAbstractProvider
  */
 
 import crypto from 'crypto';
@@ -73,8 +75,8 @@ function hashPassword(password) {
 
 /**
  * Creates a wallet signature auth config from whitelist
- * @param {string[]} whitelist - Array of whitelisted addresses
- * @returns {string} Encoded auth config
+ * @param {Address[]} whitelist - Array of whitelisted addresses
+ * @returns {Bytes} ABI-encoded {@code address[]} auth config (hex)
  */
 function createWalletSigAuthConfig(whitelist) {
   if (!Array.isArray(whitelist)) {
@@ -89,6 +91,12 @@ function createWalletSigAuthConfig(whitelist) {
   return ethers.AbiCoder.defaultAbiCoder().encode(["address[]"], [whitelist]);
 }
 
+/**
+ * Create dual factor auth config
+ * @param {Bytes32} passwordHash - Password hash
+ * @param {Address} guardianAddr - Guardian address
+ * @returns {Bytes} ABI-encoded {@code (bytes32,address)} auth config (hex)
+ */
 function createDualFactorAuthConfig(passwordHash, guardianAddr) {
   if (!passwordHash || typeof passwordHash !== 'string' || !ethers.isHexString(passwordHash, 32)) {
     throw new ValidationError('passwordHash must be a 32-byte hex string (0x-prefixed bytes32)', 'passwordHash', passwordHash);
@@ -101,12 +109,13 @@ function createDualFactorAuthConfig(passwordHash, guardianAddr) {
 /**
  * Create auth proof (EIP-712 authentication proof)
  * 
- * @param {EthersWallet | EthersHDNodeWallet} signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
- * @param {string | number} chainId - Chain ID
- * @param {Address} authenticatorAddr - Wallet signature authenticator contract address
- * @param {number} deadline - Deadline for the auth proof (Unix timestamp in seconds)
- * @param {Address} keyVaultAddr - Key vault address
- * @returns {Promise<Bytes>} Auth proof (bytes)
+ * @param {Object} options
+ * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
+ * @param {string | number} options.chainId - Chain ID
+ * @param {Address} options.authenticatorAddr - Wallet signature authenticator contract address
+ * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds)
+ * @param {Address} options.keyVaultAddr - Key vault address
+ * @returns {Promise<Bytes>} ABI-encoded {@code (uint256 deadline, bytes signature)} (hex)
  */
 async function createAuthProofWalletSignature(options = {}) {
   const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr } = options;
@@ -227,8 +236,8 @@ function floorTimestampToMinuteBucket(timestampSeconds) {
  * @param {Address} options.keyVaultAddr - Wallet / KeyVault address passed to {@code verify(wallet, authProof)}
  * @param {Address} options.authenticatorAddr - Authenticator contract address ({@code address(this)} in the digest): PasswordMinuteSignature or DualFactor for its minute leg
  * @param {number|string} options.chainId - Chain ID
- * @param {string} options.passwordHash - 32-byte hex string ({@code keccak256(utf8(password))})
- * @returns {Promise<{ authProof: string, minuteBucket: number, derivedAddress: string }>}
+ * @param {Bytes32} options.passwordHash - {@code keccak256(utf8(password))}
+ * @returns {Promise<{ authProof: Bytes, minuteBucket: number, derivedAddress: Address }>}
  */
 async function createAuthProofMinuteSignature(options = {}) {
   const { provider, keyVaultAddr, authenticatorAddr, chainId, passwordHash } = options;
@@ -297,10 +306,10 @@ async function createAuthProofMinuteSignature(options = {}) {
  * @param {Address} options.keyVaultAddr - KeyVault / wallet address ({@code verify} first argument)
  * @param {Address} options.authenticatorAddr - DualFactorAuthenticator address (minute digest + EIP-712 verifyingContract)
  * @param {number|string} options.chainId - Chain ID
- * @param {string} options.passwordHash - 32-byte hex ({@code keccak256(utf8(password))})
+ * @param {Bytes32} options.passwordHash - {@code keccak256(utf8(password))}
  * @param {EthersWallet | EthersHDNodeWallet} options.signer - Guardian key (must match configured guardian)
  * @param {number} options.deadline - Unix seconds; must be {@code >= block.timestamp} when verify runs
- * @returns {Promise<string>} ABI-encoded auth proof bytes (hex)
+ * @returns {Promise<Bytes>} ABI-encoded auth proof (hex)
  */
 async function createAuthProofDualFactor(options = {}) {
   const { provider, keyVaultAddr, passwordHash, signer, authenticatorAddr, deadline, chainId } = options;

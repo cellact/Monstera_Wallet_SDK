@@ -28,6 +28,7 @@
  * @typedef {import('ethers').Wallet} EthersWallet - Ethers.js Wallet type
  * @typedef {import('ethers').HDNodeWallet} EthersHDNodeWallet - Ethers.js HDNodeWallet type
  * @typedef {import('ethers').TransactionReceipt} TransactionReceipt - Ethers.js TransactionReceipt type
+ * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider - Ethers.js AbstractProvider (e.g. {@code getBlock})
  * @typedef {EthersSigner} WrappedEthersSigner - Sapphire-wrapped Ethers signer (from @oasisprotocol/sapphire-ethers-v6 wrapEthersSigner)
  */
 
@@ -228,6 +229,11 @@
  * Structured {@code authConfig} for PasswordMinuteSignatureAuthenticator at wallet creation.
  * @typedef {Object} CreateWalletPasswordMinuteSignatureAuthConfig
  * @property {Bytes32} passwordHash
+ */
+
+/**
+ * Plain object {@code authConfig} for built-in authenticators at wallet creation (before ABI encoding).
+ * @typedef {CreateWalletPasswordAuthConfig|CreateWalletWalletSignatureAuthConfig|CreateWalletDualFactorAuthConfig|CreateWalletPasswordMinuteSignatureAuthConfig} CreateWalletStructuredAuthConfig
  */
 
 /**
@@ -433,6 +439,44 @@
  * @property {Address} [authenticatorAddr] - DualFactorAuthenticator address (defaults to config)
  * @property {number} [deadline] - Deadline for the auth proof (optional, Unix timestamp, default 1h from now)
  * @property {number | string} [chainId] - Chain ID (optional, defaults to config)
+ */
+
+// /**
+//  * {@link CreateAuthProofMinuteSignatureOptions} plus a provider for on-chain time (crypto / internal callers).
+//  * @typedef {CreateAuthProofMinuteSignatureOptions & { provider: EthersAbstractProvider }} CreateAuthProofMinuteSignatureWithProviderOptions
+//  */
+
+// /**
+//  * {@link CreateAuthProofDualFactorOptions} plus a provider for the minute-bucket leg (crypto / internal callers).
+//  * @typedef {CreateAuthProofDualFactorOptions & { provider: EthersAbstractProvider }} CreateAuthProofDualFactorWithProviderOptions
+//  */
+
+/**
+ * Valid inputs to {@link encodeAuthConfigOptions} (structured or pre-encoded {@code authConfig}).
+ * @typedef {CreateWalletBaseOptions | CreateWalletFromMnemonicOptions | CreateWalletWithHookOptions | CreateWalletWithCustomLogicOptions} EncodeAuthConfigCallerOptions
+ */
+
+/**
+ * Output when structured {@code authConfig} was encoded: caller fields spread with encoded bytes and resolved {@code authenticatorAddr}.
+ * @typedef {Record<string, unknown> & { authConfig: Bytes; authenticatorAddr: Address }} EncodedAuthConfigCallOptions
+ */
+
+/**
+ * Return type of {@link encodeAuthConfigOptions}: unchanged caller options when {@code authConfig} was already hex, otherwise encoded payload.
+ * @typedef {EncodeAuthConfigCallerOptions | EncodedAuthConfigCallOptions} EncodeAuthConfigOptionsReturn
+ */
+
+/**
+ * KeyVault-style call options before/after {@link encodeAuthProofOptions}. When {@code authProof} is a plain object, {@code keyVaultAddr} is required.
+ * @typedef {Record<string, unknown> & {
+ *   authProof?: Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof;
+ *   keyVaultAddr?: Address;
+ * }} EncodeAuthProofOptionsInput
+ */
+
+/**
+ * Result of {@link encodeAuthProofOptions}: same fields as input with {@code authProof} as hex {@link Bytes} or {@link Uint8Array}.
+ * @typedef {Record<string, unknown> & { authProof: Bytes|Uint8Array }} EncodeAuthProofOptionsResult
  */
 
 // ============================================================================

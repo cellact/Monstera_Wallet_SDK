@@ -2,7 +2,8 @@
  * Registry: built-in authenticator address → create-wallet auth encoder (strategy).
  *
  * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
- * @typedef {{ id: string, encode: (authConfig: Record<string, unknown>) => import('../../../types/index.js').Bytes }} CreateWalletAuthEncoder
+ * @typedef {import('../../../types/index.js').Address} Address
+ * @typedef {{ id: string, encode: (authConfig: import('../../../types/index.js').CreateWalletStructuredAuthConfig) => import('../../../types/index.js').Bytes | import('../../../types/index.js').Bytes32 }} CreateWalletAuthEncoder
  */
 
 import { createRegistryByChecksumAddress } from '../registryByChecksumAddress.js';
@@ -13,7 +14,7 @@ import { passwordMinuteSignatureAuthCreateWalletEncoder } from './encoders/passw
 
 /**
  * @param {ContractAddresses} addresses
- * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: string) => CreateWalletAuthEncoder | undefined }}
+ * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => CreateWalletAuthEncoder | undefined }}
  */
 export function createCreateWalletAuthEncoderRegistry(addresses) {
   return createRegistryByChecksumAddress([

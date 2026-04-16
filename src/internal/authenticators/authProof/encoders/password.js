@@ -1,18 +1,22 @@
 /**
  * PasswordAuthenticator — KeyVault {@code authProof} is UTF-8 password bytes (as hex).
  * Expects {@code password} as {@link Uint8Array} (e.g. from {@code ethers.toUtf8Bytes} at the call site). This module does not UTF-8 encode plaintext strings.
+ *
+ * @typedef {import('../../../../types/index.js').Bytes} Bytes
+ * @typedef {import('../encodeAuthProofOptions.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
  */
 
 import { ethers } from 'ethers';
 import { ValidationError } from '../../../../errors/index.js';
 
-/** @type {{ id: string, encode: (ctx: object, input: Record<string, unknown>) => Promise<string> }} */
+/** @type {{ id: string, encode: (ctx: KeyVaultAuthProofEncodeContext, input: Record<string, unknown>) => Promise<Bytes> }} */
 export const passwordKeyVaultAuthProofEncoder = {
   id: 'passwordAuth',
 
   /**
-   * @param {object} _ctx
+   * @param {KeyVaultAuthProofEncodeContext} _ctx - Unused; encoder interface passes encode context from the registry
    * @param {Record<string, unknown>} input
+   * @returns {Promise<Bytes>}
    */
   async encode(_ctx, input) {
     const bytes = input.password;
