@@ -25,7 +25,7 @@ const require = createRequire(import.meta.url);
  * Required contract addresses for SDK initialization
  * All of these must be present and valid for the SDK to function.
  */
-const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth', 'dualFactorAuth'];
+const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth', 'dualFactorAuth', 'passwordMinuteSignatureAuth'];
 
 /**
  * Monstera SDK Configuration

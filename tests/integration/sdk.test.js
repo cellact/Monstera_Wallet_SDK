@@ -25,7 +25,7 @@ describe('SDK Integration', () => {
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-testnet');
-      expect(sdk.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
+      expect(sdk.chainId).toBe(parseInt(DEFAULT_TESTNET_CHAIN_ID, 16));
       expect(sdk.hasWriteAccess()).toBe(true);
     });
 
@@ -34,7 +34,7 @@ describe('SDK Integration', () => {
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-mainnet');
-      expect(sdk.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
+      expect(sdk.chainId).toBe(parseInt(DEFAULT_MAINNET_CHAIN_ID, 16));
       expect(sdk.hasWriteAccess()).toBe(true);
     });
 
@@ -69,11 +69,10 @@ describe('SDK Integration', () => {
       expect(() => Monstera.connect({ mainnet: false })).toThrow('signer is required');
     });
 
-    test('should disable version checking when checkVersion is false', () => {
+    test('should accept checkVersion false (version check is opt-in via checkVersion true)', () => {
       const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER, checkVersion: false });
       
       expect(sdk).toBeDefined();
-      // Version check should be disabled (no way to verify directly, but SDK should still work)
     });
   });
 
@@ -83,7 +82,7 @@ describe('SDK Integration', () => {
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-testnet');
-      expect(sdk.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
+      expect(sdk.chainId).toBe(parseInt(DEFAULT_TESTNET_CHAIN_ID, 16));
       expect(sdk.hasWriteAccess()).toBe(false);
     });
 
@@ -92,7 +91,7 @@ describe('SDK Integration', () => {
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-mainnet');
-      expect(sdk.chainId).toBe(DEFAULT_MAINNET_CHAIN_ID);
+      expect(sdk.chainId).toBe(parseInt(DEFAULT_MAINNET_CHAIN_ID, 16));
       expect(sdk.hasWriteAccess()).toBe(false);
     });
 
@@ -124,10 +123,11 @@ describe('SDK Integration', () => {
       const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER });
 
       expect(sdk.network).toBe('sapphire-testnet');
-      expect(sdk.chainId).toBe(DEFAULT_TESTNET_CHAIN_ID);
+      expect(sdk.chainId).toBe(parseInt(DEFAULT_TESTNET_CHAIN_ID, 16));
       expect(sdk.rpcUrl).toBeDefined();
       expect(sdk.addresses).toBeDefined();
-      expect(sdk.provider).toBeDefined();
+      // connect() does not set config.provider; reads use internal readProvider from rpcUrl
+      expect(sdk.provider).toBeNull();
     });
 
     test('should expose static network presets', () => {

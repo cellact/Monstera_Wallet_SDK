@@ -82,11 +82,13 @@ describe('MonsteraConfig', () => {
                 expectValidAddress(testnet.walletSignatureAuth);
             });
 
-            test('mainnet addresses should be null (not yet deployed)', () => {
+            test('mainnet addresses should match built-in Sapphire mainnet defaults', () => {
                 const mainnet = MonsteraConfig.defaultAddresses.mainnet;
-                expect(mainnet.factory).toBeNull();
-                expect(mainnet.passwordAuth).toBeNull();
-                expect(mainnet.walletSignatureAuth).toBeNull();
+                expectValidAddress(mainnet.factory);
+                expectValidAddress(mainnet.passwordAuth);
+                expectValidAddress(mainnet.walletSignatureAuth);
+                expectValidAddress(mainnet.dualFactorAuth);
+                expectValidAddress(mainnet.passwordMinuteSignatureAuth);
             });
         });
 
@@ -96,16 +98,18 @@ describe('MonsteraConfig', () => {
                 expect(Array.isArray(required)).toBe(true);
             });
 
-            test('should contain factory, passwordAuth, walletSignatureAuth', () => {
+            test('should contain factory, passwordAuth, walletSignatureAuth, dualFactorAuth, passwordMinuteSignatureAuth', () => {
                 const required = MonsteraConfig.requiredAddresses;
                 expect(required).toContain('factory');
                 expect(required).toContain('passwordAuth');
                 expect(required).toContain('walletSignatureAuth');
+                expect(required).toContain('dualFactorAuth');
+                expect(required).toContain('passwordMinuteSignatureAuth');
             });
 
-            test('should have exactly 3 required addresses', () => {
+            test('should have exactly 5 required addresses', () => {
                 const required = MonsteraConfig.requiredAddresses;
-                expect(required.length).toBe(3);
+                expect(required.length).toBe(5);
             });
         });
 
@@ -306,10 +310,14 @@ describe('MonsteraConfig', () => {
                 }).toThrow(ConfigError);
             });
 
-            test('should throw ConfigError for mainnet without addresses (defaults are null)', () => {
-                expect(() => {
-                    MonsteraConfig.resolveBaseConfig({ mainnet: true });
-                }).toThrow(ConfigError);
+            test('should resolve mainnet with built-in default addresses when none passed', () => {
+                const config = MonsteraConfig.resolveBaseConfig({ mainnet: true });
+                expect(config.network).toBe('sapphire-mainnet');
+                expectValidAddress(config.addresses.factory);
+                expectValidAddress(config.addresses.passwordAuth);
+                expectValidAddress(config.addresses.walletSignatureAuth);
+                expectValidAddress(config.addresses.dualFactorAuth);
+                expectValidAddress(config.addresses.passwordMinuteSignatureAuth);
             });
         });
 
@@ -338,7 +346,10 @@ describe('MonsteraConfig', () => {
                     addresses: customAddresses
                 });
                 
-                expect(config.addresses).toEqual(customAddresses);
+                expect(config.addresses).toEqual({
+                    ...MonsteraConfig.defaultAddresses.testnet,
+                    ...customAddresses
+                });
             });
         });
     });

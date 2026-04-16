@@ -98,7 +98,7 @@ describe('Authentication Integration Tests', () => {
       );
     });
 
-    test('should fail with missing authConfig', async () => {
+    test('should fail with missing passwordHash', async () => {
       await testMissingParam(
         sdk.configurePassword.bind(sdk),
         { keyVaultAddr },

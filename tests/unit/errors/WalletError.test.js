@@ -194,14 +194,14 @@ describe('WalletError', () => {
     });
 
     test('should create ContractRevertError with transactionHash', () => {
-      const error = new ContractRevertError('Transaction reverted', TEST_TX_HASH);
+      const error = new ContractRevertError('Transaction reverted', null, null, TEST_TX_HASH);
       expect(error.context.transactionHash).toBe(TEST_TX_HASH);
       expectValidTxHash(error.context.transactionHash);
     });
 
     test('should create ContractRevertError with receipt', () => {
       const receipt = { status: 0, gasUsed: '100000' };
-      const error = new ContractRevertError('Transaction reverted', null, receipt);
+      const error = new ContractRevertError('Transaction reverted', null, null, null, receipt);
       expect(error.context.receipt).toBe(receipt);
     });
 

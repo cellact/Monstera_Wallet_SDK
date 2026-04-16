@@ -59,14 +59,17 @@ describe('Network Configuration - testnet', () => {
             expect(DEFAULT_ADDRESSES.testnet.walletSignatureAuth).toBeDefined();
         });
 
-        test('should have factory, passwordAuth, walletSignatureAuth address for testnet that match the expected values', () => {
-            expectValidAddress(DEFAULT_ADDRESSES.testnet.factory);
-            expect(DEFAULT_ADDRESSES.testnet.factory).toBe('0x99a98ea83F5b62D2F26A72C85459ae6c75b44C2a');
-            expectValidAddress(DEFAULT_ADDRESSES.testnet.passwordAuth);
-            expect(DEFAULT_ADDRESSES.testnet.passwordAuth).toBe('0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7');
-            expectValidAddress(DEFAULT_ADDRESSES.testnet.walletSignatureAuth);
-            expect(DEFAULT_ADDRESSES.testnet.walletSignatureAuth).toBe('0xe31a99416d2E3a807a5e379AFbc2e230bff2Ee9a');
-            expect(DEFAULT_ADDRESSES.testnet.walletSignatureAuth).not.toBeNull();
+        test('should have built-in testnet contract addresses that match networks.js', () => {
+            expect(DEFAULT_ADDRESSES.testnet).toStrictEqual({
+                factory: '0xdf5D9880d80Ee8029ce0b675d66734Cd667eEEB3',
+                passwordAuth: '0xc3553935efaa9c02cF963bd551eF02b6d09CA1a5',
+                walletSignatureAuth: '0xc06E821da811b0735DA5493F1732a25EB7005412',
+                dualFactorAuth: '0xCAb1585C37118d066Bc3AD79919B4CAE5cd42BC2',
+                passwordMinuteSignatureAuth: '0x151ed065b04583ABB0Ceb21d37C266e41AA3c7E8'
+            });
+            for (const addr of Object.values(DEFAULT_ADDRESSES.testnet)) {
+                expectValidAddress(addr);
+            }
         });
     });
 
@@ -102,7 +105,9 @@ describe('Network Configuration - testnet', () => {
             expect(baseConfig.addresses).toStrictEqual({
                 factory: VALID_TEST_ADDRESS,
                 passwordAuth: DEFAULT_ADDRESSES.testnet.passwordAuth,
-                walletSignatureAuth: DEFAULT_ADDRESSES.testnet.walletSignatureAuth
+                walletSignatureAuth: DEFAULT_ADDRESSES.testnet.walletSignatureAuth,
+                dualFactorAuth: DEFAULT_ADDRESSES.testnet.dualFactorAuth,
+                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.testnet.passwordMinuteSignatureAuth
             });
         });
 
@@ -120,10 +125,12 @@ describe('Network Configuration - testnet', () => {
             expect(baseConfig.chainId).toBe(23295); // 0x5aff
             expect(baseConfig.rpcUrl).toBe(NETWORKS.testnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.testnet.explorerUrl);
-            expect(baseConfig.addresses).toStrictEqual({ 
-                factory: VALID_TEST_ADDRESS, 
-                passwordAuth: VALID_TEST_ADDRESS, 
-                walletSignatureAuth: VALID_TEST_ADDRESS 
+            expect(baseConfig.addresses).toStrictEqual({
+                factory: VALID_TEST_ADDRESS,
+                passwordAuth: VALID_TEST_ADDRESS,
+                walletSignatureAuth: VALID_TEST_ADDRESS,
+                dualFactorAuth: DEFAULT_ADDRESSES.testnet.dualFactorAuth,
+                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.testnet.passwordMinuteSignatureAuth
             });
         });
 
@@ -164,11 +171,17 @@ describe('Network Configuration - mainnet', () => {
             expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).toBeDefined();
         });
 
-        test('should have factory, passwordAuth, walletSignatureAuth address for mainnet that match the expected values', () => {
-            expect(DEFAULT_ADDRESSES.mainnet.factory).toBe('');
-            expect(DEFAULT_ADDRESSES.mainnet.passwordAuth).toBe('');
-            expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).toBe('');
-            expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).not.toBeNull();
+        test('should have built-in mainnet contract addresses that match networks.js', () => {
+            expect(DEFAULT_ADDRESSES.mainnet).toStrictEqual({
+                factory: '0x6170CA80482C5B07FA6c829aF6E5Cd8a3FBEef53',
+                passwordAuth: '0x9f79F00888DEb2DE3e6C300a8FF6884214378132',
+                walletSignatureAuth: '0x4b294756bB7F9DF7f3b8ad3A546246DE68068Af5',
+                dualFactorAuth: '0x5422f5b59F816A39587895e6d169d38C2fc1b2E5',
+                passwordMinuteSignatureAuth: '0x61D5299c91ff789d5a636A5046576c3c08397644'
+            });
+            for (const addr of Object.values(DEFAULT_ADDRESSES.mainnet)) {
+                expectValidAddress(addr);
+            }
         });
     });
 
@@ -204,7 +217,9 @@ describe('Network Configuration - mainnet', () => {
             expect(baseConfig.addresses).toStrictEqual({
                 factory: VALID_TEST_ADDRESS,
                 passwordAuth: DEFAULT_ADDRESSES.mainnet.passwordAuth,
-                walletSignatureAuth: DEFAULT_ADDRESSES.mainnet.walletSignatureAuth
+                walletSignatureAuth: DEFAULT_ADDRESSES.mainnet.walletSignatureAuth,
+                dualFactorAuth: DEFAULT_ADDRESSES.mainnet.dualFactorAuth,
+                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.mainnet.passwordMinuteSignatureAuth
             });
         });
 
@@ -222,10 +237,12 @@ describe('Network Configuration - mainnet', () => {
             expect(baseConfig.chainId).toBe(23294); // 0x5afe
             expect(baseConfig.rpcUrl).toBe(NETWORKS.mainnet.rpcUrl);
             expect(baseConfig.explorerUrl).toBe(NETWORKS.mainnet.explorerUrl);
-            expect(baseConfig.addresses).toStrictEqual({ 
-                factory: VALID_TEST_ADDRESS, 
-                passwordAuth: VALID_TEST_ADDRESS, 
-                walletSignatureAuth: VALID_TEST_ADDRESS 
+            expect(baseConfig.addresses).toStrictEqual({
+                factory: VALID_TEST_ADDRESS,
+                passwordAuth: VALID_TEST_ADDRESS,
+                walletSignatureAuth: VALID_TEST_ADDRESS,
+                dualFactorAuth: DEFAULT_ADDRESSES.mainnet.dualFactorAuth,
+                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.mainnet.passwordMinuteSignatureAuth
             });
         });
 
@@ -235,8 +252,8 @@ describe('Network Configuration - mainnet', () => {
                 addresses: { factory: VALID_TEST_ADDRESS }
             });
             expect(baseConfig.addresses.factory).toBe(VALID_TEST_ADDRESS);
-            expect(baseConfig.addresses.passwordAuth).toBeNull();
-            expect(baseConfig.addresses.walletSignatureAuth).toBeNull();
+            expect(baseConfig.addresses.passwordAuth).toBe(DEFAULT_ADDRESSES.mainnet.passwordAuth);
+            expect(baseConfig.addresses.walletSignatureAuth).toBe(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth);
         });
     });
 });
