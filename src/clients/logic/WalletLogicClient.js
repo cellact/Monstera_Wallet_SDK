@@ -16,6 +16,11 @@
  * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
+ * @typedef {import('../../types/index.js').WalletProxyIndexSdkOptions} WalletProxyIndexSdkOptions
+ * @typedef {import('../../types/index.js').WalletProxyAccountSliceSdkOptions} WalletProxyAccountSliceSdkOptions
+ * @typedef {import('../../types/index.js').InitializeWalletLogicSdkOptions} InitializeWalletLogicSdkOptions
+ * @typedef {import('../../types/index.js').WalletLogicUpdateKeyVaultImplSdkOptions} WalletLogicUpdateKeyVaultImplSdkOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -45,8 +50,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Get the keyVault contract address for a wallet 
    * 
-   * @param {Record<string, unknown>} options - KeyVault options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options - KeyVault options
    * @returns {Promise<Address>} KeyVault contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -69,8 +73,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Get the keyVault contract address for a wallet
    * 
-   * @param {Record<string, unknown>} options - KeyVault options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options - KeyVault options
    * @returns {Promise<Address>} KeyVault contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -93,8 +96,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Get the current authenticator contract address for a wallet
    * 
-   * @param {Record<string, unknown>} options - Get authenticator options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options - Get authenticator options
    * @returns {Promise<Address>} Authenticator address 
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -117,8 +119,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Check if a wallet is initialized
    * 
-   * @param {Record<string, unknown>} options - Is initialized options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options - Is initialized options
    * @returns {Promise<boolean>} True if wallet is initialized, false otherwise
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -141,9 +142,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Get account address at an index from wallet
    * 
-   * @param {Record<string, unknown>} options - Account address options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
-   * @param {number} options.index - Account index (uint32)
+   * @param {WalletProxyIndexSdkOptions} options - Account address options
    * @returns {Promise<Address>} Account address
    * @throws {ValidationError} If walletAddr is missing or invalid, or if index is invalid
    */
@@ -167,10 +166,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Get account addresses from wallet
    * 
-   * @param {Record<string, unknown>} options - Account addresses options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
-   * @param {number} options.fromIndex - From index (uint32)
-   * @param {number} options.count - Count (uint32)
+   * @param {WalletProxyAccountSliceSdkOptions} options - Account addresses options
    * @returns {Promise<Address[]>} Array of account addresses
    * @throws {ValidationError} If walletAddr is missing or invalid, or if fromIndex/count are invalid
    */
@@ -289,9 +285,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Initialize a wallet logic with a new keyVault 
    * 
-   * @param {Record<string, unknown>} options - Initialize wallet logic options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {InitializeWalletLogicSdkOptions} options - Initialize wallet logic options
    * @returns {Promise<TransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -354,10 +348,7 @@ class WalletLogicClient extends BaseContractClient {
    * 
    * @dev Delegates to KeyVault which enforces authentication.
    * 
-   * @param {Record<string, unknown>} options - Update keyVault implementation options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
-   * @param {Bytes} options.authProof - Authentication proof (raw password bytes or wallet signature auth proof)
-   * @param {Address} options.newImplAddr - New keyVault contract address
+   * @param {WalletLogicUpdateKeyVaultImplSdkOptions} options - Update keyVault implementation options
    * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

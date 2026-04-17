@@ -31,7 +31,6 @@
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').Bytes} Bytes
  * @typedef {import('../types/index.js').Bytes32} Bytes32
- * @typedef {import('../types/index.js').Mnemonic} Mnemonic
  * @typedef {import('../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../types/index.js').AuthenticatorClientInstance} AuthenticatorClientInstance
  * @typedef {import('../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
@@ -48,6 +47,29 @@
  * @typedef {import('../internal/authenticators/authProof/encodeAuthProofOptions.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
  * @typedef {import('../internal/authenticators/authConfig/encodeAuthConfigOptions.js').CreateWalletAuthConfigPrepareContext} CreateWalletAuthConfigPrepareContext
  * @typedef {import('../types/index.js').CreateAuthProofDualFactorOptions} CreateAuthProofDualFactorOptions
+ * @typedef {import('../types/index.js').ChainId} ChainId
+ * @typedef {import('../types/index.js').ExecuteWithAuthSdkOptions} ExecuteWithAuthSdkOptions
+ * @typedef {import('../types/index.js').InitializeWalletLogicSdkOptions} InitializeWalletLogicSdkOptions
+ * @typedef {import('../types/index.js').KeyVaultAccountSliceSdkOptions} KeyVaultAccountSliceSdkOptions
+ * @typedef {import('../types/index.js').KeyVaultAddrIndexSdkOptions} KeyVaultAddrIndexSdkOptions
+ * @typedef {import('../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
+ * @typedef {import('../types/index.js').KeyVaultImportedKeySdkOptions} KeyVaultImportedKeySdkOptions
+ * @typedef {import('../types/index.js').MonsteraAddWhitelistSdkOptions} MonsteraAddWhitelistSdkOptions
+ * @typedef {import('../types/index.js').MonsteraConfigureDualFactorSdkOptions} MonsteraConfigureDualFactorSdkOptions
+ * @typedef {import('../types/index.js').MonsteraConfigurePasswordHashOptions} MonsteraConfigurePasswordHashOptions
+ * @typedef {import('../types/index.js').MonsteraConfigurePasswordMinuteSdkOptions} MonsteraConfigurePasswordMinuteSdkOptions
+ * @typedef {import('../types/index.js').MonsteraConfigureWalletSignatureSdkOptions} MonsteraConfigureWalletSignatureSdkOptions
+ * @typedef {import('../types/index.js').MonsteraDeactivateActivateKeySdkOptions} MonsteraDeactivateActivateKeySdkOptions
+ * @typedef {import('../types/index.js').MonsteraRemoveWhitelistSdkOptions} MonsteraRemoveWhitelistSdkOptions
+ * @typedef {import('../types/index.js').MonsteraTransferAdminSdkOptions} MonsteraTransferAdminSdkOptions
+ * @typedef {import('../types/index.js').MonsteraUpdateGuardianSdkOptions} MonsteraUpdateGuardianSdkOptions
+ * @typedef {import('../types/index.js').MonsteraUpdateKeyVaultImplSdkOptions} MonsteraUpdateKeyVaultImplSdkOptions
+ * @typedef {import('../types/index.js').MonsteraUpdatePasswordDualFactorSdkOptions} MonsteraUpdatePasswordDualFactorSdkOptions
+ * @typedef {import('../types/index.js').MonsteraUpdatePasswordSdkOptions} MonsteraUpdatePasswordSdkOptions
+ * @typedef {import('../types/index.js').MonsteraUpdateWalletLogicImplSdkOptions} MonsteraUpdateWalletLogicImplSdkOptions
+ * @typedef {import('../types/index.js').MonsteraVerifyPasswordSdkOptions} MonsteraVerifyPasswordSdkOptions
+ * @typedef {import('../types/index.js').MonsteraWhitelistCheckSdkOptions} MonsteraWhitelistCheckSdkOptions
+ * @typedef {import('../types/index.js').WalletProxyOptions} WalletProxyOptions
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -229,7 +251,7 @@ class Monstera {
   /**
    * Chain ID for the configured network
    * @readonly
-   * @returns {number} Chain ID
+   * @returns {ChainId} Chain ID
    */
   get chainId() { return this.config.chainId; }
 
@@ -446,9 +468,7 @@ class Monstera {
   /**
    * Initialize a wallet logic with a new keyVault 
    * 
-   * @param {Record<string, unknown>} options - Initialize wallet logic options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {InitializeWalletLogicSdkOptions} options
    * @returns {Promise<TransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -465,9 +485,7 @@ class Monstera {
   /**
    * Configure password
    * 
-   * @param {Record<string, unknown>} options - Configure password options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
+   * @param {MonsteraConfigurePasswordHashOptions} options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -485,9 +503,7 @@ class Monstera {
   /**
    * Configure the wallet signature authenticator
    * 
-   * @param {Record<string, unknown>} options - Configure options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Address[]} options.initialWhitelist - Initial whitelist addresses
+   * @param {MonsteraConfigureWalletSignatureSdkOptions} options
    * @returns {Promise<ConfigureWalletSignatureResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -505,10 +521,7 @@ class Monstera {
   /**
    * Configure password dual factor
    * 
-   * @param {Record<string, unknown>} options - Configure dual factor options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
-   * @param {Address} options.guardianAddr - Guardian address (non-zero)
+   * @param {MonsteraConfigureDualFactorSdkOptions} options
    * @returns {Promise<ConfigurePasswordDualFactorResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -526,9 +539,7 @@ class Monstera {
   /**
    * Configure password minute signature
    * 
-   * @param {Record<string, unknown>} options - Configure password minute signature options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
+   * @param {MonsteraConfigurePasswordMinuteSdkOptions} options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -670,8 +681,7 @@ class Monstera {
   /**
    * Check if an address is a wallet created by this factory
    * 
-   * @param {Record<string, unknown>} options - Is wallet options
-   * @param {Address} options.walletAddr - Wallet address to check
+   * @param {WalletProxyOptions} options
    * @returns {Promise<boolean>} True if address is a wallet created by this factory, false otherwise
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -702,8 +712,7 @@ class Monstera {
   /**
    * Get the keyVault contract address for a wallet
    * 
-   * @param {Record<string, unknown>} options - KeyVault options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options
    * @returns {Promise<Address>} KeyVault contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -714,8 +723,7 @@ class Monstera {
   /**
    * Get the storage contract address for a wallet
    * 
-   * @param {Record<string, unknown>} options - Storage options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options
    * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -738,8 +746,7 @@ class Monstera {
   /**
    * Get the secret vault address for a wallet
    * 
-   * @param {Record<string, unknown>} options - Secret vault options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options
    * @returns {Promise<Address>} Secret vault contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -752,8 +759,7 @@ class Monstera {
   /**
    * Get the storage contract address holding the keys
    * 
-   * @param {Record<string, unknown>} options - Get storage address options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -764,8 +770,7 @@ class Monstera {
   /**
    * Get the current authenticator contract address for a wallet 
    * 
-   * @param {Record<string, unknown>} options - Get authenticator options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<Address>} Authenticator address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -776,8 +781,7 @@ class Monstera {
   /**
    * Get the current KeyVaultImplementation contract address
    * 
-   * @param {Record<string, unknown>} options - Get implementation options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<Address>} Implementation address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -788,8 +792,7 @@ class Monstera {
   /**
    * Check if a given keyVault is initialized 
    * 
-   * @param {Record<string, unknown>} options - Check if keyVault is initialized options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<boolean>} True if keyVault is initialized, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -800,9 +803,7 @@ class Monstera {
   /**
    * Get one of a wallet's account addresses for a given index
    * 
-   * @param {Record<string, unknown>} options - Get account address options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {number} options.index - Account index (uint32)
+   * @param {KeyVaultAddrIndexSdkOptions} options
    * @returns {Promise<Address>} Account address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if index is invalid
    */
@@ -813,10 +814,7 @@ class Monstera {
   /**
    * Get multiple account addresses from a wallet for a given range of indexes
    * 
-   * @param {Record<string, unknown>} options - Get account addresses options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {number} options.fromIndex - From index (uint32)
-   * @param {number} options.count - Count (uint32)
+   * @param {KeyVaultAccountSliceSdkOptions} options
    * @returns {Promise<Address[]>} Array of account addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if fromIndex/count are invalid
    */
@@ -868,10 +866,7 @@ class Monstera {
   /**
    * Execute a function with an auth proof (authenticated function)
    * 
-   * @param {Record<string, unknown>} options - Execute function options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} options.authProof - Authentication proof (bytes or structured object)
-   * @param {Bytes} options.implCall - Implementation call (bytes)
+   * @param {ExecuteWithAuthSdkOptions} options
    * @returns {Promise<Bytes>} Execute function result (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -884,8 +879,7 @@ class Monstera {
   /**
    * Get all imported key IDs (V2)
    *
-   * @param {Record<string, unknown>} options - Get imported key IDs options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<Bytes32[]>} Array of imported key IDs
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -896,9 +890,7 @@ class Monstera {
   /**
    * Get metadata for an imported key (V2)
    *
-   * @param {Record<string, unknown>} options - Get key metadata options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes32} options.keyId - Imported key ID
+   * @param {KeyVaultImportedKeySdkOptions} options
    * @returns {Promise<KeyMetadataResult>} Key metadata (curve, chain, active, labelHash)
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -909,9 +901,7 @@ class Monstera {
   /**
    * Check if a key exists (V2)
    *
-   * @param {Record<string, unknown>} options - Key exists options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes32} options.keyId - Key ID to check
+   * @param {KeyVaultImportedKeySdkOptions} options
    * @returns {Promise<boolean>} True if key exists, false otherwise
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -935,9 +925,7 @@ class Monstera {
   /**
    * Get the address for an imported key (V2)
    *
-   * @param {Record<string, unknown>} options - Get imported key address options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes32} options.keyId - Imported key ID
+   * @param {KeyVaultImportedKeySdkOptions} options
    * @returns {Promise<Bytes>} Address (Ethereum address, Solana pubkey, etc. as bytes)
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -948,9 +936,7 @@ class Monstera {
   /**
    * Get Solana address at HD index (V2)
    *
-   * @param {Record<string, unknown>} options - Get Solana address options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {number} options.index - HD index (uint32)
+   * @param {KeyVaultAddrIndexSdkOptions} options
    * @returns {Promise<Bytes>} Solana public key (bytes)
    * @throws {ValidationError} If keyVaultAddr or index is missing or invalid
    */
@@ -976,8 +962,7 @@ class Monstera {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Record<string, unknown>} options - Check if wallet is configured options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -988,9 +973,7 @@ class Monstera {
   /**
    * Verify password
    * 
-   * @param {Record<string, unknown>} options - Verify password options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
+   * @param {MonsteraVerifyPasswordSdkOptions} options
    * @returns {Promise<boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -1005,8 +988,7 @@ class Monstera {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Record<string, unknown>} options - Is configured options
-   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -1017,9 +999,7 @@ class Monstera {
   /**
    * Check if an address is whitelisted for a wallet
    * 
-   * @param {Record<string, unknown>} options - Is whitelisted options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Address} options.addressToCheck - Address to check if it is whitelisted
+   * @param {MonsteraWhitelistCheckSdkOptions} options
    * @returns {Promise<boolean>} True if address is whitelisted, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -1030,8 +1010,7 @@ class Monstera {
   /**
    * Get all whitelisted addresses for a wallet
    * 
-   * @param {Record<string, unknown>} options - Get whitelist options
-   * @param {Address} options.keyVaultAddr - Key vault address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<Address[]>} Whitelist addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -1052,10 +1031,7 @@ class Monstera {
   /**
    * Verify a signature
    * 
-   * @param {Record<string, unknown>} options - Verify options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
-   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
+   * @param {CreateAuthProofWalletSignatureOptions} options
    * @returns {Promise<boolean>} True if signature is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -1067,8 +1043,7 @@ class Monstera {
   /**
    * Check if a wallet is configured with password dual factor
    * 
-   * @param {Record<string, unknown>} options - Check if wallet is configured options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -1079,11 +1054,7 @@ class Monstera {
   /**
    * Verify dual-factor auth proof (minute password signature + guardian EIP-712).
    *
-   * @param {Record<string, unknown>} options - Verify options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
-   * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
-   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
+   * @param {CreateAuthProofDualFactorOptions} options
    * @returns {Promise<boolean>} True if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -1095,8 +1066,7 @@ class Monstera {
   /**
    * Get the guardian of a wallet
    * 
-   * @param {Record<string, unknown>} options - Get guardian options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<Address>} Guardian address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -1117,8 +1087,7 @@ class Monstera {
   /**
    * Check if a wallet is configured with password minute signature
    * 
-   * @param {Record<string, unknown>} options - Check if wallet is configured options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options
    * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -1128,9 +1097,8 @@ class Monstera {
 
   /**
    * Verfiy minute-bucket ECDSA siganture using password hash
-   * 
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
+   *
+   * @param {CreateAuthProofMinuteSignatureOptions} options
    * @returns {Promise<boolean>} True if signature matches derived signer for current minute bucket
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {NetworkError} If failed to read latest block from provider
@@ -1159,8 +1127,7 @@ class Monstera {
    * 
    * This updates the orchestration layer, not the key security.
    * 
-   * @param {Record<string, unknown>} options - Update logic options
-   * @param {Address} options.newLogicAddr - New walletLogic contract address
+   * @param {MonsteraUpdateWalletLogicImplSdkOptions} options
    * @returns {Promise<UpdateWalletLogicImplAddrResult>}
    * @throws {ValidationError} If newLogicAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1174,8 +1141,7 @@ class Monstera {
   /**
    * Transfer admin ownership role to a new address (Admin function)
    * 
-   * @param {Record<string, unknown>} options - Transfer admin options
-   * @param {Address} options.newAdminAddr - New admin address
+   * @param {MonsteraTransferAdminSdkOptions} options
    * @returns {Promise<TransferAdminResult>}
    * @throws {ValidationError} If newAdminAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1190,10 +1156,7 @@ class Monstera {
   /**
    * Update the keyVaultImplementation contract address (authenticated function)
    * 
-   * @param {Record<string, unknown>} options - Update keyVaultImplementation options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
-   * @param {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} options.authProof - Authentication proof (bytes or structured object)
-   * @param {Address} options.newImplAddr - New keyVaultImplementation contract address
+   * @param {MonsteraUpdateKeyVaultImplSdkOptions} options
    * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1241,10 +1204,7 @@ class Monstera {
   /**
    * Deactivate an imported key (V2, soft delete)
    *
-   * @param {Record<string, unknown>} options - Deactivate key options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} options.authProof - Authentication proof (bytes or structured object)
-   * @param {Bytes32} options.keyId - Key ID to deactivate
+   * @param {MonsteraDeactivateActivateKeySdkOptions} options
    * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1260,10 +1220,7 @@ class Monstera {
   /**
    * Reactivate a previously deactivated key (V2)
    *
-   * @param {Record<string, unknown>} options - Activate key options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes|Uint8Array|KeyVaultPasswordAuthProof|KeyVaultWalletSignatureAuthProof|KeyVaultDualFactorAuthProof|KeyVaultPasswordMinuteSignatureAuthProof} options.authProof - Authentication proof (bytes or structured object)
-   * @param {Bytes32} options.keyId - Key ID to activate
+   * @param {MonsteraDeactivateActivateKeySdkOptions} options
    * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1296,10 +1253,7 @@ class Monstera {
   /**
    * Update the password of a wallet
    * 
-   * @param {Record<string, unknown>} options - Update password options
-   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string) 
-   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32); keccak256 hash of UTF-8 password
+   * @param {MonsteraUpdatePasswordSdkOptions} options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1313,11 +1267,7 @@ class Monstera {
   /**
    * Add a new address to the whitelist
    * 
-   * @param {Record<string, unknown>} options - Add to whitelist options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
-   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
-   * @param {Address} options.addressToAdd - Address to add to the whitelist
+   * @param {MonsteraAddWhitelistSdkOptions} options
    * @returns {Promise<AddToWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1332,11 +1282,7 @@ class Monstera {
   /**
    * Remove an address from the whitelist
    * 
-   * @param {Record<string, unknown>} options - Remove from whitelist options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
-   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
-   * @param {Address} options.addressToRemove - Address to remove from the whitelist
+   * @param {MonsteraRemoveWhitelistSdkOptions} options
    * @returns {Promise<RemoveFromWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1351,12 +1297,7 @@ class Monstera {
   /**
    * Update password hash (dual-factor auth required).
    *
-   * @param {Record<string, unknown>} options - Update password options
-   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
-   * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
-   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32); keccak256 hash of UTF-8 password
-   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
+   * @param {MonsteraUpdatePasswordDualFactorSdkOptions} options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1371,12 +1312,7 @@ class Monstera {
   /**
    * Update guardian (dual-factor auth required).
    *
-   * @param {Record<string, unknown>} options - Update guardian options
-   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes32} options.passwordHash - Password hash (bytes32); keccak256 hash of UTF-8 password
-   * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet) used to sign the auth proof
-   * @param {Address} options.newGuardian - New guardian address (non-zero)
-   * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds) (optional)
+   * @param {MonsteraUpdateGuardianSdkOptions} options
    * @returns {Promise<UpdateGuardianResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1391,10 +1327,7 @@ class Monstera {
   /**
    * Update password hash (current password bytes must match stored hash).
    *
-   * @param {Record<string, unknown>} options - Update password options
-   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
-   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32); keccak256 hash of UTF-8 password
+   * @param {MonsteraUpdatePasswordSdkOptions} options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

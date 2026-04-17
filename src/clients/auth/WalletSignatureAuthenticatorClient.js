@@ -13,6 +13,13 @@
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
+ * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
+ * @typedef {import('../../types/index.js').MonsteraWhitelistCheckSdkOptions} MonsteraWhitelistCheckSdkOptions
+ * @typedef {import('../../types/index.js').SdkLoggingAndVersionOptions} SdkLoggingAndVersionOptions
+ * @typedef {import('../../types/index.js').WalletSignatureAuthenticatorVerifySdkOptions} WalletSignatureAuthenticatorVerifySdkOptions
+ * @typedef {import('../../types/index.js').WalletSignatureAddToWhitelistSdkOptions} WalletSignatureAddToWhitelistSdkOptions
+ * @typedef {import('../../types/index.js').WalletSignatureAuthenticatorConfigureSdkOptions} WalletSignatureAuthenticatorConfigureSdkOptions
+ * @typedef {import('../../types/index.js').WalletSignatureRemoveFromWhitelistSdkOptions} WalletSignatureRemoveFromWhitelistSdkOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -42,8 +49,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Record<string, unknown>} options - Is configured options
-   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
+   * @param {KeyVaultAddrOptions} options - Is configured options
    * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -67,9 +73,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Check if an address is whitelisted for a wallet
    * 
-   * @param {Record<string, unknown>} options - Is whitelisted options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Address} options.addressToCheck - Address to check if it is whitelisted
+   * @param {MonsteraWhitelistCheckSdkOptions} options - Is whitelisted options
    * @returns {Promise<boolean>} True if address is whitelisted, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -94,8 +98,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Get all whitelisted addresses for a wallet
    * 
-   * @param {Record<string, unknown>} options - Get whitelist options
-   * @param {Address} options.keyVaultAddr - Key vault address 
+   * @param {KeyVaultAddrOptions} options - Get whitelist options
    * @returns {Promise<Address[]>} Whitelist addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -139,9 +142,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Verify a signature
    * 
-   * @param {Record<string, unknown>} options - Verify options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature), Signature is over EIP-712 typed data: WalletAuth(wallet, deadline)
+   * @param {WalletSignatureAuthenticatorVerifySdkOptions} options - Verify options
    * @returns {Promise<boolean>} True if signature is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */ 
@@ -170,10 +171,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Add a new address to the whitelist
    * 
-   * @param {Record<string, unknown>} options - Add to whitelist options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {Address} options.addressToAdd - Address to add to the whitelist
+   * @param {WalletSignatureAddToWhitelistSdkOptions} options - Add to whitelist options
    * @returns {Promise<AddToWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -207,9 +205,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Configure the wallet signature authenticator
    * 
-   * @param {Record<string, unknown>} options - Configure options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authConfig - Authentication configuration (bytes); config is the whitelist addresses 
+   * @param {WalletSignatureAuthenticatorConfigureSdkOptions} options - Configure options
    * @returns {Promise<ConfigureWalletSignatureResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -242,10 +238,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Remove an address from the whitelist
    * 
-   * @param {Record<string, unknown>} options - Remove from whitelist options
-   * @param {Address} options.keyVaultAddr - Key vault address 
-   * @param {Bytes} options.authProof - Authentication proof (bytes); authProof = abi.encode(uint256 deadline, bytes signature)
-   * @param {Address} options.addressToRemove - Address to remove from the whitelist
+   * @param {WalletSignatureRemoveFromWhitelistSdkOptions} options - Remove from whitelist options
    * @returns {Promise<RemoveFromWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

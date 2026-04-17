@@ -8,9 +8,11 @@
  * @typedef {import('../types/index.js').Bytes32} Bytes32
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').EthersWallet} EthersWallet
- * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider
  * @typedef {import('../types/index.js').EthersHDNodeWallet} EthersHDNodeWallet
  * @typedef {import('../types/index.js').EthersAbstractProvider} EthersAbstractProvider
+ * @typedef {import('../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
+ * @typedef {import('../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
+ * @typedef {import('../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
  */
 
 import crypto from 'crypto';
@@ -108,13 +110,8 @@ function createDualFactorAuthConfig(passwordHash, guardianAddr) {
 
 /**
  * Create auth proof (EIP-712 authentication proof)
- * 
- * @param {Object} options
- * @param {EthersWallet | EthersHDNodeWallet} options.signer - Signer (Wallet or HDNodeWallet); account trying to prove it is allowed to access 
- * @param {string | number} options.chainId - Chain ID
- * @param {Address} options.authenticatorAddr - Wallet signature authenticator contract address
- * @param {number} options.deadline - Deadline for the auth proof (Unix timestamp in seconds)
- * @param {Address} options.keyVaultAddr - Key vault address
+ *
+ * @param {CreateAuthProofWalletSignatureOptions} options
  * @returns {Promise<Bytes>} ABI-encoded {@code (uint256 deadline, bytes signature)} (hex)
  */
 async function createAuthProofWalletSignature(options = {}) {
@@ -231,12 +228,7 @@ function floorTimestampToMinuteBucket(timestampSeconds) {
  * approach as common Hardhat scripts. The deployed Sapphire contract derives the signing key via
  * {@code Sapphire.generateSigningKeyPair}; if your on-chain verify fails, those derivations may differ.
  *
- * @param {Object} options
- * @param {EthersAbstractProvider} options.provider - Provider used only for {@code getBlock('latest')} (on-chain time)
- * @param {Address} options.keyVaultAddr - Wallet / KeyVault address passed to {@code verify(wallet, authProof)}
- * @param {Address} options.authenticatorAddr - Authenticator contract address ({@code address(this)} in the digest): PasswordMinuteSignature or DualFactor for its minute leg
- * @param {number|string} options.chainId - Chain ID
- * @param {Bytes32} options.passwordHash - {@code keccak256(utf8(password))}
+ * @param {CreateAuthProofMinuteSignatureWithProviderOptions} options
  * @returns {Promise<{ authProof: Bytes, minuteBucket: number, derivedAddress: Address }>}
  */
 async function createAuthProofMinuteSignature(options = {}) {
@@ -301,14 +293,7 @@ async function createAuthProofMinuteSignature(options = {}) {
  * signature, then the guardian {@code signer} signs EIP-712 {@code DualFactorAuth(wallet, deadline)} for the
  * same contract domain as on-chain {@code EIP712("DualFactorAuthenticator", "1")}.
  *
- * @param {Object} options
- * @param {EthersAbstractProvider} options.provider - Provider for latest block (minute bucket)
- * @param {Address} options.keyVaultAddr - KeyVault / wallet address ({@code verify} first argument)
- * @param {Address} options.authenticatorAddr - DualFactorAuthenticator address (minute digest + EIP-712 verifyingContract)
- * @param {number|string} options.chainId - Chain ID
- * @param {Bytes32} options.passwordHash - {@code keccak256(utf8(password))}
- * @param {EthersWallet | EthersHDNodeWallet} options.signer - Guardian key (must match configured guardian)
- * @param {number} options.deadline - Unix seconds; must be {@code >= block.timestamp} when verify runs
+ * @param {CreateAuthProofDualFactorWithProviderOptions} options
  * @returns {Promise<Bytes>} ABI-encoded auth proof (hex)
  */
 async function createAuthProofDualFactor(options = {}) {

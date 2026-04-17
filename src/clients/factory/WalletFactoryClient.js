@@ -17,6 +17,10 @@
  * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
  * @typedef {import('../../types/index.js').CreateWalletBaseOptions} CreateWalletBaseOptions
  * @typedef {import('../../types/index.js').CreateWalletFromMnemonicOptions} CreateWalletFromMnemonicOptions
+ * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
+ * @typedef {import('../../types/index.js').SdkLoggingAndVersionOptions} SdkLoggingAndVersionOptions
+ * @typedef {import('../../types/index.js').MonsteraUpdateWalletLogicImplSdkOptions} MonsteraUpdateWalletLogicImplSdkOptions
+ * @typedef {import('../../types/index.js').MonsteraTransferAdminSdkOptions} MonsteraTransferAdminSdkOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -81,8 +85,7 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Check if an address is a wallet created by this factory
    * 
-   * @param {Record<string, unknown>} options - Is wallet options
-   * @param {Address} options.walletAddr - Wallet address to check
+   * @param {WalletProxyOptions} options - Is wallet options
    * @returns {Promise<boolean>} True if address is a wallet created by this factory, false otherwise
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -146,8 +149,7 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Get the keyVault contract address for a wallet
    * 
-   * @param {Record<string, unknown>} options - KeyVault options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options - KeyVault options
    * @returns {Promise<Address>} KeyVault contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -171,8 +173,7 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Get the storage contract address for a wallet
    * 
-   * @param {Record<string, unknown>} options - Storage options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options - Storage options
    * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -218,8 +219,7 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Get the secretVault address mapped to a wallet
    * 
-   * @param {Record<string, unknown>} options - SecretVault options
-   * @param {Address} options.walletAddr - Wallet proxy address (from createWallet)
+   * @param {WalletProxyOptions} options - SecretVault options
    * @returns {Promise<Address>} SecretVault contract address
    * @throws {ValidationError} If walletAddr is missing or invalid
    */
@@ -469,8 +469,7 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * This updates the orchestration layer, not the key security.
    * 
-   * @param {Record<string, unknown>} options - Update logic options
-   * @param {Address} options.newLogicAddr - New walletLogic contract address
+   * @param {MonsteraUpdateWalletLogicImplSdkOptions} options - Update logic options
    * @returns {Promise<UpdateWalletLogicImplAddrResult>}
    * @throws {ValidationError} If newLogicAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -501,8 +500,7 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Transfer admin ownership role to a new address (Admin function)
    * 
-   * @param {Record<string, unknown>} options - Transfer admin options
-   * @param {Address} options.newAdminAddr - New admin address
+   * @param {MonsteraTransferAdminSdkOptions} options - Transfer admin options
    * @returns {Promise<TransferAdminResult>}
    * @throws {ValidationError} If newAdminAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

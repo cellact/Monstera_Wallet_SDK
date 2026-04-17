@@ -14,6 +14,11 @@
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
+ * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
+ * @typedef {import('../../types/index.js').DualFactorAuthenticatorVerifySdkOptions} DualFactorAuthenticatorVerifySdkOptions
+ * @typedef {import('../../types/index.js').DualFactorAuthenticatorUpdatePasswordSdkOptions} DualFactorAuthenticatorUpdatePasswordSdkOptions
+ * @typedef {import('../../types/index.js').DualFactorAuthenticatorConfigureSdkOptions} DualFactorAuthenticatorConfigureSdkOptions
+ * @typedef {import('../../types/index.js').DualFactorAuthenticatorUpdateGuardianSdkOptions} DualFactorAuthenticatorUpdateGuardianSdkOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -43,8 +48,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Record<string, unknown>} options - Check if wallet is configured options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options - Check if wallet is configured options
    * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -73,9 +77,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
    * minute key signs the EIP-191 digest for the current minute bucket; guardian signs EIP-712 typed data
    * with struct hash {@code keccak256(abi.encode(AUTH_TYPEHASH, wallet, deadline))} and {@code deadline} not expired.
    *
-   * @param {Record<string, unknown>} options - Verify options
-   * @param {Address} options.keyVaultAddr - Wallet / KeyVault address passed to the authenticator
-   * @param {Bytes} options.authProof - ABI-encoded tuple above (not raw password bytes)
+   * @param {DualFactorAuthenticatorVerifySdkOptions} options - Verify options
    * @returns {Promise<boolean>} True if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -100,8 +102,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   /**
    * Get the guardian of a wallet
    * 
-   * @param {Record<string, unknown>} options - Get guardian options 
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
+   * @param {KeyVaultAddrOptions} options - Get guardian options 
    * @returns {Promise<Address>} Guardian address
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -149,10 +150,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   /**
    * Update the password hash of a wallet using valid dual factor auth proof
    * 
-   * @param {Record<string, unknown>} options - Update password options
-   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes} options.authProof - {@code abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}
-   * @param {Bytes32} options.newPasswordHash - New password hash (non-zero bytes32)
+   * @param {DualFactorAuthenticatorUpdatePasswordSdkOptions} options - Update password options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -194,11 +192,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   /**
    * Configure the dual factor authenticator for a wallet
    *
-   * {@code config = abi.encode(bytes32 passwordHash, address guardian)} with non-zero hash and guardian.
-   *
-   * @param {Record<string, unknown>} options - Configure options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authConfig - ABI-encoded {@code (passwordHash, guardian)} (min length 64 bytes on-chain)
+   * @param {DualFactorAuthenticatorConfigureSdkOptions} options - Configure options
    * @returns {Promise<ConfigurePasswordDualFactorResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -231,10 +225,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   /**
    * Update the guardian of a wallet using valid dual factor auth proof
    *
-   * @param {Record<string, unknown>} options - Update guardian options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - {@code abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}
-   * @param {Address} options.newGuardian - New guardian address (non-zero)
+   * @param {DualFactorAuthenticatorUpdateGuardianSdkOptions} options - Update guardian options
    * @returns {Promise<UpdateGuardianResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

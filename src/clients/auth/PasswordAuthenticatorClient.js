@@ -12,6 +12,10 @@
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
+ * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
+ * @typedef {import('../../types/index.js').PasswordAuthenticatorVerifySdkOptions} PasswordAuthenticatorVerifySdkOptions
+ * @typedef {import('../../types/index.js').MonsteraUpdatePasswordSdkOptions} MonsteraUpdatePasswordSdkOptions
+ * @typedef {import('../../types/index.js').AuthenticatorConfigurePasswordHashSdkOptions} AuthenticatorConfigurePasswordHashSdkOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -41,8 +45,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Check if a wallet is configured
    * 
-   * @param {Record<string, unknown>} options - Check if wallet is configured options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address 
+   * @param {KeyVaultAddrOptions} options - Check if wallet is configured options
    * @returns {Promise<boolean>} True if wallet is configured, false otherwise
    * @throws {ValidationError} If keyVaultAddr is missing or invalid
    */
@@ -66,9 +69,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Verify password using valid password auth proof
    * 
-   * @param {Record<string, unknown>} options - Verify password options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authProof - The raw password bytes (utf8 encoded string)
+   * @param {PasswordAuthenticatorVerifySdkOptions} options - Verify password options
    * @returns {Promise<boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -97,10 +98,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Update the password of a wallet
    * 
-   * @param {Record<string, unknown>} options - Update password options
-   * @param {Address} options.keyVaultAddr - KeyVault address of the wallet
-   * @param {Bytes} options.currentPassword - Raw password bytes (utf8 encoded string)
-   * @param {Bytes32} options.newPasswordHash - New password hash (bytes32)
+   * @param {MonsteraUpdatePasswordSdkOptions} options - Update password options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -145,9 +143,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
    * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes
    * ({@code keccak256} of UTF-8 password bytes).
    *
-   * @param {Record<string, unknown>} options - Configure password options
-   * @param {Address} options.keyVaultAddr - KeyVault contract address
-   * @param {Bytes} options.authConfig - 32-byte password hash
+   * @param {AuthenticatorConfigurePasswordHashSdkOptions} options - Configure password options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
