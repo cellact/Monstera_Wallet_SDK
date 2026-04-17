@@ -10,7 +10,7 @@
  * @typedef {import('../types/index.js').WriteConnectOptions} WriteConnectOptions
  * @typedef {import('../types/index.js').ReadConnectOptions} ReadConnectOptions
  * @typedef {import('../types/index.js').InitializeOptions} InitializeOptions
- * @typedef {import('../types/index.js').TransactionResult} TransactionResult
+ * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../types/index.js').ConfigurePasswordResult} ConfigurePasswordResult
  * @typedef {import('../types/index.js').ConfigureWalletSignatureResult} ConfigureWalletSignatureResult
  * @typedef {import('../types/index.js').WalletCreationResult} WalletCreationResult
@@ -70,6 +70,9 @@
  * @typedef {import('../types/index.js').MonsteraVerifyPasswordSdkOptions} MonsteraVerifyPasswordSdkOptions
  * @typedef {import('../types/index.js').MonsteraWhitelistCheckSdkOptions} MonsteraWhitelistCheckSdkOptions
  * @typedef {import('../types/index.js').WalletProxyOptions} WalletProxyOptions
+ * @typedef {import('../types/index.js').ImportKeyResult} ImportKeyResult
+ * @typedef {import('../types/index.js').DeactivateKeyResult} DeactivateKeyResult
+ * @typedef {import('../types/index.js').ActivateKeyResult} ActivateKeyResult
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -456,7 +459,7 @@ class Monstera {
    * Initialize a KeyVault contract
    * 
    * @param {InitializeOptions} options - Initialize key vault options
-   * @returns {Promise<TransactionResult>}
+   * @returns {Promise<BaseTransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -469,7 +472,7 @@ class Monstera {
    * Initialize a wallet logic with a new keyVault 
    * 
    * @param {InitializeWalletLogicSdkOptions} options
-   * @returns {Promise<TransactionResult>}
+   * @returns {Promise<BaseTransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -1189,7 +1192,7 @@ class Monstera {
    * Import an external private key (V2)
    *
    * @param {ImportKeyOptions} options - Import key options
-   * @returns {Promise<TransactionResult & { keyId: Bytes32; curve: number; chain: number }>}
+   * @returns {Promise<ImportKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -1205,7 +1208,7 @@ class Monstera {
    * Deactivate an imported key (V2, soft delete)
    *
    * @param {MonsteraDeactivateActivateKeySdkOptions} options
-   * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
+   * @returns {Promise<DeactivateKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -1221,7 +1224,7 @@ class Monstera {
    * Reactivate a previously deactivated key (V2)
    *
    * @param {MonsteraDeactivateActivateKeySdkOptions} options
-   * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
+   * @returns {Promise<ActivateKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -1237,7 +1240,7 @@ class Monstera {
    * Set base keys for a chain's HD derivation (V2)
    *
    * @param {SetChainBaseKeysOptions} options - Set chain base keys options
-   * @returns {Promise<TransactionResult>}
+   * @returns {Promise<BaseTransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts

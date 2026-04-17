@@ -12,7 +12,7 @@
  * (via createWriteSigner in providers/sapphire.js). This wrapper focuses
  * on execution, receipt handling, and result normalization.
  * 
- * @typedef {import('../types/index.js').TransactionResult} TransactionResult
+ * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../types/index.js').ExecuteWriteOptions} ExecuteWriteOptions
  */
 
@@ -30,7 +30,7 @@ class SapphireWriteWrapper {
   /**
    * Execute a write transaction through Sapphire-wrapped signer
    * 
-   * @template TResult extends TransactionResult
+   * @template TResult extends BaseTransactionResult
    * @param {() => Promise<any>} txFn - Function that returns a transaction promise (e.g., () => contract.method(...))   
    * @param {ExecuteWriteOptions} options - Options for the write transaction
    * @returns {Promise<TResult>}

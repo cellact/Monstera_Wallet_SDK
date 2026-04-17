@@ -117,10 +117,7 @@
 
 /**
  * Optional signer, provider, and logging/version overrides when constructing Monstera with a resolved NetworkConfig.
- * @typedef {SdkLoggingAndVersionOptions & {
- *   signer?: EthersSigner | string;
- *   provider?: EthersProvider;
- * }} MonsteraConfigExtension
+ * @typedef {SdkLoggingAndVersionOptions & { signer?: EthersSigner | string; provider?: EthersProvider }} MonsteraConfigExtension
  */
 
 /**
@@ -136,43 +133,49 @@
  * Base transaction result returned by executeWrite. All write results include these four fields.
  * Specific result types extend this with parsed event data and extraData.
  *
- * @typedef {Object} TransactionResult
+ * @typedef {Object} BaseTransactionResult
  * @property {boolean} success - Whether the transaction succeeded
  * @property {TransactionHash} transactionHash - Transaction hash
  * @property {number} blockNumber - Block number where transaction was mined
  * @property {string} gasUsed - Gas used (as string)
  */
 
-/** @typedef {TransactionResult & { wallet: Address; keyVault: Address; storage: Address; authenticator: Address; mnemonic: Mnemonic }} WalletCreationResult */
+/** @typedef {BaseTransactionResult & { wallet: Address; keyVault: Address; storage: Address; authenticator: Address; mnemonic: Mnemonic }} WalletCreationResult */
 
-/** @typedef {TransactionResult & { wallet: Address }} ConfigurePasswordResult */
+/** @typedef {BaseTransactionResult & { wallet: Address }} ConfigurePasswordResult */
 
-/** @typedef {TransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigureWalletSignatureResult */
+/** @typedef {BaseTransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigureWalletSignatureResult */
 
-/** @typedef {TransactionResult & { wallet: Address; guardian: Address }} ConfigurePasswordDualFactorResult */
+/** @typedef {BaseTransactionResult & { wallet: Address; guardian: Address }} ConfigurePasswordDualFactorResult */
 
-/** @typedef {TransactionResult & { newAdmin?: Address; implementation?: Address }} UpdateResult */
+/** @typedef {BaseTransactionResult & { newAdmin?: Address; implementation?: Address }} UpdateResult */
 
-/** @typedef {TransactionResult & { newAdmin?: Address; factoryAddress?: Address }} TransferAdminResult */
+/** @typedef {BaseTransactionResult & { newAdmin?: Address; factoryAddress?: Address }} TransferAdminResult */
 
-/** @typedef {TransactionResult & { walletAddr?: Address }} UpdatePasswordResult */
+/** @typedef {BaseTransactionResult & { walletAddr?: Address }} UpdatePasswordResult */
 
 /**
  * Shared shape for admin updates that swap a proxy implementation (WalletLogic or KeyVault).
- * @typedef {TransactionResult & { oldImpl: Address; newImpl: Address }} UpdateProxyImplementationResult
+ * @typedef {BaseTransactionResult & { oldImpl: Address; newImpl: Address }} UpdateProxyImplementationResult
  */
 
 /** @typedef {UpdateProxyImplementationResult} UpdateWalletLogicImplAddrResult */
 
 /** @typedef {UpdateProxyImplementationResult} UpdateKeyVaultImplAddrResult */
 
-/** @typedef {TransactionResult & { oldAuth: Address; newAuth: Address }} UpdateAuthenticatorAddrResult */
+/** @typedef {BaseTransactionResult & { oldAuth: Address; newAuth: Address }} UpdateAuthenticatorAddrResult */
 
-/** @typedef {TransactionResult & { wallet: Address; added: Address }} AddToWhitelistResult */
+/** @typedef {BaseTransactionResult & { wallet: Address; added: Address }} AddToWhitelistResult */
 
-/** @typedef {TransactionResult & { wallet: Address; removed: Address }} RemoveFromWhitelistResult */
+/** @typedef {BaseTransactionResult & { wallet: Address; removed: Address }} RemoveFromWhitelistResult */
 
-/** @typedef {TransactionResult & { wallet: Address; newGuardian: Address }} UpdateGuardianResult */
+/** @typedef {BaseTransactionResult & { wallet: Address; newGuardian: Address }} UpdateGuardianResult */
+
+/** @typedef {BaseTransactionResult & { keyId: Bytes32; curve: number; chain: number }} ImportKeyResult */
+
+/** @typedef {BaseTransactionResult & { keyId: Bytes32 }} DeactivateKeyResult */
+
+/** @typedef {BaseTransactionResult & { keyId: Bytes32 }} ActivateKeyResult */
 
 // ============================================================================
 // Write / Read Wrapper Option Types

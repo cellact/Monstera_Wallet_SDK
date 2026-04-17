@@ -12,7 +12,7 @@
  * @typedef {import('../../types/index.js').KeyVaultClientSignHashOptions} KeyVaultClientSignHashOptions
  * @typedef {import('../../types/index.js').InitializeOptions} InitializeOptions
  * @typedef {import('../../types/index.js').KeyVaultClientUpdateAuthenticatorOptions} KeyVaultClientUpdateAuthenticatorOptions
- * @typedef {import('../../types/index.js').TransactionResult} TransactionResult
+ * @typedef {import('../../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../../types/index.js').UpdateAuthenticatorAddrResult} UpdateAuthenticatorAddrResult
  * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
  * @typedef {import('../../types/index.js').Address} Address
@@ -30,6 +30,9 @@
  * @typedef {import('../../types/index.js').KeyVaultClientExecuteWithAuthSdkOptions} KeyVaultClientExecuteWithAuthSdkOptions
  * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplSdkOptions} KeyVaultClientUpdateKeyVaultImplSdkOptions
  * @typedef {import('../../types/index.js').KeyVaultClientDeactivateActivateKeySdkOptions} KeyVaultClientDeactivateActivateKeySdkOptions
+ * @typedef {import('../../types/index.js').ImportKeyResult} ImportKeyResult
+ * @typedef {import('../../types/index.js').DeactivateKeyResult} DeactivateKeyResult
+ * @typedef {import('../../types/index.js').ActivateKeyResult} ActivateKeyResult
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -494,7 +497,7 @@ class KeyVaultClient extends BaseContractClient {
    * Initialize a KeyVault contract
    * 
    * @param {InitializeOptions} options - Initialize key vault options
-   * @returns {Promise<TransactionResult>}
+   * @returns {Promise<BaseTransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -586,7 +589,7 @@ class KeyVaultClient extends BaseContractClient {
    * Import an external private key (V2)
    *
    * @param {KeyVaultClientImportKeyOptions} options - Import key options
-   * @returns {Promise<TransactionResult & { keyId: Bytes32; curve: number; chain: number }>}
+   * @returns {Promise<ImportKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -624,7 +627,7 @@ class KeyVaultClient extends BaseContractClient {
    * Deactivate an imported key (V2, soft delete)
    *
    * @param {KeyVaultClientDeactivateActivateKeySdkOptions} options - Deactivate key options
-   * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
+   * @returns {Promise<DeactivateKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -657,7 +660,7 @@ class KeyVaultClient extends BaseContractClient {
    * Reactivate a previously deactivated key (V2)
    *
    * @param {KeyVaultClientDeactivateActivateKeySdkOptions} options - Activate key options
-   * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
+   * @returns {Promise<ActivateKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -690,7 +693,7 @@ class KeyVaultClient extends BaseContractClient {
    * Set base keys for a chain's HD derivation (V2)
    *
    * @param {KeyVaultClientSetChainBaseKeysOptions} options - Set chain base keys options
-   * @returns {Promise<TransactionResult>}
+   * @returns {Promise<BaseTransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts

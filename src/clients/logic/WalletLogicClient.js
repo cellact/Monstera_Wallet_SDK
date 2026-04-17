@@ -12,7 +12,7 @@
  * @typedef {import('../../types/index.js').SignHashWalletOptions} SignHashWalletOptions
  * @typedef {import('../../types/index.js').UpdateAuthenticatorWalletOptions} UpdateAuthenticatorWalletOptions
  * @typedef {import('../../types/index.js').UpdateResult} UpdateResult
- * @typedef {import('../../types/index.js').TransactionResult} TransactionResult
+ * @typedef {import('../../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes} Bytes
@@ -286,7 +286,7 @@ class WalletLogicClient extends BaseContractClient {
    * Initialize a wallet logic with a new keyVault 
    * 
    * @param {InitializeWalletLogicSdkOptions} options - Initialize wallet logic options
-   * @returns {Promise<TransactionResult>}
+   * @returns {Promise<BaseTransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts

@@ -12,7 +12,7 @@
  * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../types/index.js').Address} Address
- * @typedef {import('../types/index.js').TransactionResult} TransactionResult
+ * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../types/index.js').ExecuteReadInputOptions} ExecuteReadInputOptions
  * @typedef {import('../types/index.js').ExecuteWriteInputOptions} ExecuteWriteInputOptions
  */
@@ -124,7 +124,7 @@ class BaseContractClient {
    * Any additional properties in options (besides operation, methodName, parseEvents, requireEvents, extraData) 
    * are included in the error context.
    * 
-   * @template TResult extends TransactionResult
+   * @template TResult extends BaseTransactionResult
    * @param {ExecuteWriteInputOptions} options - Complete options for the write operation
    * @returns {Promise<TResult>}
    * 
