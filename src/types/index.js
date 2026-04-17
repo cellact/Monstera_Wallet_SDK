@@ -173,9 +173,14 @@
 
 /** @typedef {BaseTransactionResult & { keyId: Bytes32; curve: number; chain: number }} ImportKeyResult */
 
-/** @typedef {BaseTransactionResult & { keyId: Bytes32 }} DeactivateKeyResult */
+/**
+ * Parsed event payload shared by deactivate and activate imported key (same {@code keyId} field).
+ * @typedef {BaseTransactionResult & { keyId: Bytes32 }} KeyVaultKeyIdMutationResult
+ */
 
-/** @typedef {BaseTransactionResult & { keyId: Bytes32 }} ActivateKeyResult */
+/** @typedef {KeyVaultKeyIdMutationResult} DeactivateKeyResult */
+
+/** @typedef {KeyVaultKeyIdMutationResult} ActivateKeyResult */
 
 // ============================================================================
 // Write / Read Wrapper Option Types
@@ -249,7 +254,27 @@
 
 /**
  * Plain object {@code authConfig} for built-in authenticators at wallet creation (before ABI encoding).
- * @typedef {CreateWalletPasswordHashOnlyAuthConfig|CreateWalletWalletSignatureAuthConfig|CreateWalletDualFactorAuthConfig|CreateWalletPasswordMinuteSignatureAuthConfig} CreateWalletStructuredAuthConfig
+ *
+ * Union of four logical variants: password (PasswordAuthenticator), wallet-signature whitelist, dual-factor,
+ * and password-minute-signature. TypeScript may show only three members in hovers because
+ * {@link CreateWalletPasswordAuthConfig} and {@link CreateWalletPasswordMinuteSignatureAuthConfig} share the
+ * same underlying shape ({@link CreateWalletPasswordHashOnlyAuthConfig}); runtime still dispatches by
+ * {@code authenticatorAddr}.
+ *
+ * @typedef {(
+ *   | CreateWalletPasswordAuthConfig
+ *   | CreateWalletPasswordMinuteSignatureAuthConfig
+ *   | CreateWalletWalletSignatureAuthConfig
+ *   | CreateWalletDualFactorAuthConfig
+ * )} CreateWalletStructuredAuthConfig
+ */
+
+/**
+ * Built-in registry entry: maps structured create-wallet {@code authConfig} to encoded bytes for a fixed authenticator.
+ *
+ * @typedef {Object} CreateWalletAuthEncoder
+ * @property {string} id - Encoder identifier (logging / diagnostics)
+ * @property {(authConfig: CreateWalletStructuredAuthConfig) => Bytes|Bytes32} encode - Encode structured config for on-chain {@code authConfig}
  */
 
 /**
@@ -319,6 +344,86 @@
 /**
  * Allowed {@code authProof} input for KeyVault authenticated calls: raw bytes, UTF-8 password buffer, or a built-in structured proof object.
  * @typedef {Bytes|Uint8Array|KeyVaultPasswordAuthProofInput|KeyVaultWalletSignatureAuthProofInput|KeyVaultDualFactorAuthProofInput|KeyVaultPasswordMinuteSignatureAuthProofInput} AuthProofInputOptions
+ */
+
+/**
+ * Structured object branch of {@link AuthProofInputOptions} for built-in KeyVault authProof encoders (see {@code encodeAuthProofOptions}); not raw hex / {@link Uint8Array}.
+ *
+ * @typedef {(
+ *   | KeyVaultPasswordAuthProofInput
+ *   | KeyVaultWalletSignatureAuthProofInput
+ *   | KeyVaultDualFactorAuthProofInput
+ *   | KeyVaultPasswordMinuteSignatureAuthProofInput
+ * )} KeyVaultStructuredAuthProofInput
+ */
+
+/**
+ * Context passed into {@code encodeAuthProofOptions} before the on-chain authenticator address is resolved.
+ *
+ * @typedef {Object} KeyVaultAuthProofPrepareContext
+ * @property {ContractAddresses} addresses
+ * @property {ChainId} chainId
+ * @property {EthersAbstractProvider} readProvider
+ * @property {(keyVaultAddr: Address) => Promise<Address>} getAuthenticatorAddr
+ */
+
+/**
+ * Context passed to each built-in KeyVault authProof encoder after the authenticator is known.
+ *
+ * @typedef {Object} KeyVaultAuthProofEncodeContext
+ * @property {ContractAddresses} addresses
+ * @property {ChainId} chainId
+ * @property {EthersAbstractProvider} readProvider
+ * @property {Address} authenticatorAddr
+ * @property {Address} keyVaultAddr
+ */
+
+/**
+ * One entry in {@link createKeyVaultAuthProofEncoderRegistry} (async encoder for a fixed built-in authenticator).
+ *
+ * @typedef {Object} KeyVaultAuthProofEncoder
+ * @property {string} id - Encoder identifier (logging / diagnostics)
+ * @property {(ctx: KeyVaultAuthProofEncodeContext, input: KeyVaultStructuredAuthProofInput) => Promise<Bytes>} encode
+ */
+
+/**
+ * Registry: authenticator address → {@link KeyVaultAuthProofEncoder}.
+ *
+ * @typedef {Object} KeyVaultAuthProofEncoderRegistry
+ * @property {(authenticatorAddr: Address) => KeyVaultAuthProofEncoder | undefined} getByAuthenticatorAddr
+ */
+
+/**
+ * PasswordAuthenticator encoder: {@code input} is {@link KeyVaultPasswordAuthProofInput} only.
+ * Structurally assignable to {@link KeyVaultAuthProofEncoder} for the registry.
+ *
+ * @typedef {Object} KeyVaultAuthProofPasswordEncoder
+ * @property {string} id
+ * @property {(ctx: KeyVaultAuthProofEncodeContext, input: KeyVaultPasswordAuthProofInput) => Promise<Bytes>} encode
+ */
+
+/**
+ * WalletSignatureAuthenticator encoder: {@code input} is {@link KeyVaultWalletSignatureAuthProofInput} only.
+ *
+ * @typedef {Object} KeyVaultAuthProofWalletSignatureEncoder
+ * @property {string} id
+ * @property {(ctx: KeyVaultAuthProofEncodeContext, input: KeyVaultWalletSignatureAuthProofInput) => Promise<Bytes>} encode
+ */
+
+/**
+ * DualFactorAuthenticator encoder: {@code input} is {@link KeyVaultDualFactorAuthProofInput} only.
+ *
+ * @typedef {Object} KeyVaultAuthProofDualFactorEncoder
+ * @property {string} id
+ * @property {(ctx: KeyVaultAuthProofEncodeContext, input: KeyVaultDualFactorAuthProofInput) => Promise<Bytes>} encode
+ */
+
+/**
+ * PasswordMinuteSignatureAuthenticator encoder: {@code input} is {@link KeyVaultPasswordMinuteSignatureAuthProofInput} only.
+ *
+ * @typedef {Object} KeyVaultAuthProofPasswordMinuteEncoder
+ * @property {string} id
+ * @property {(ctx: KeyVaultAuthProofEncodeContext, input: KeyVaultPasswordMinuteSignatureAuthProofInput) => Promise<Bytes>} encode
  */
 
 // ============================================================================
@@ -754,12 +859,13 @@
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { authConfig: Bytes }} WalletSignatureAuthenticatorConfigureSdkOptions
+ * {@code IAuthenticator.configure} with opaque variable-length {@code authConfig} bytes (wallet signature whitelist encoding, dual-factor ABI tuple, etc.).
+ * @typedef {KeyVaultAddrOptions & { authConfig: Bytes }} AuthenticatorConfigureVariableBytesSdkOptions
  */
 
-/**
- * @typedef {KeyVaultAddrOptions & { authConfig: Bytes }} DualFactorAuthenticatorConfigureSdkOptions
- */
+/** @typedef {AuthenticatorConfigureVariableBytesSdkOptions} WalletSignatureAuthenticatorConfigureSdkOptions */
+
+/** @typedef {AuthenticatorConfigureVariableBytesSdkOptions} DualFactorAuthenticatorConfigureSdkOptions */
 
 /**
  * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToAdd: Address }} WalletSignatureAddToWhitelistSdkOptions

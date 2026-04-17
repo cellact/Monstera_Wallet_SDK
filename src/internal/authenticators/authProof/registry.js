@@ -2,8 +2,7 @@
  * Registry: built-in KeyVault authenticator address → async authProof encoder (strategy).
  *
  * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../../types/index.js').KeyVaultAuthProofEncoderRegistry} KeyVaultAuthProofEncoderRegistry
  */
 
 import { createRegistryByChecksumAddress } from '../registryByChecksumAddress.js';
@@ -14,7 +13,7 @@ import { passwordMinuteSignatureKeyVaultAuthProofEncoder } from './encoders/pass
 
 /**
  * @param {ContractAddresses} addresses
- * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => { id: string, encode: (ctx: object, input: Record<string, unknown>) => Promise<Bytes> } | undefined }}
+ * @returns {KeyVaultAuthProofEncoderRegistry}
  */
 export function createKeyVaultAuthProofEncoderRegistry(addresses) {
   return createRegistryByChecksumAddress([

@@ -2,20 +2,22 @@
  * DualFactorAuthenticator — dual-factor auth proof bytes.
  *
  * @typedef {import('../../../../types/index.js').Bytes} Bytes
- * @typedef {import('../encodeAuthProofOptions.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
+ * @typedef {import('../../../../types/index.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
+ * @typedef {import('../../../../types/index.js').KeyVaultDualFactorAuthProofInput} KeyVaultDualFactorAuthProofInput
+ * @typedef {import('../../../../types/index.js').KeyVaultAuthProofDualFactorEncoder} KeyVaultAuthProofDualFactorEncoder
  */
 
 import { HDNodeWallet, Wallet } from 'ethers';
 import { ValidationError } from '../../../../errors/index.js';
 import { createAuthProofDualFactor } from '../../../../crypto/wallet.js';
 
-/** @type {{ id: string, encode: (ctx: KeyVaultAuthProofEncodeContext, input: Record<string, unknown>) => Promise<Bytes> }} */
+/** @type {KeyVaultAuthProofDualFactorEncoder} */
 export const dualFactorKeyVaultAuthProofEncoder = {
   id: 'dualFactorAuth',
 
   /**
    * @param {KeyVaultAuthProofEncodeContext} ctx
-   * @param {Record<string, unknown>} input
+   * @param {KeyVaultDualFactorAuthProofInput} input
    * @returns {Promise<Bytes>}
    */
   async encode(ctx, input) {

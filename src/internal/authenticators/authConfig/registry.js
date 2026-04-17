@@ -3,7 +3,7 @@
  *
  * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {{ id: string, encode: (authConfig: import('../../../types/index.js').CreateWalletStructuredAuthConfig) => import('../../../types/index.js').Bytes | import('../../../types/index.js').Bytes32 }} CreateWalletAuthEncoder
+ * @typedef {import('../../../types/index.js').CreateWalletAuthEncoder} CreateWalletAuthEncoder
  */
 
 import { createRegistryByChecksumAddress } from '../registryByChecksumAddress.js';

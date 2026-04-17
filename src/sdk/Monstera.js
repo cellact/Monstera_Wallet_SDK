@@ -44,7 +44,7 @@
  * @typedef {import('../types/index.js').SignSolanaOptions} SignSolanaOptions
  * @typedef {import('../types/index.js').ImportKeyOptions} ImportKeyOptions
  * @typedef {import('../types/index.js').SetChainBaseKeysOptions} SetChainBaseKeysOptions
- * @typedef {import('../internal/authenticators/authProof/encodeAuthProofOptions.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
+ * @typedef {import('../types/index.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
  * @typedef {import('../internal/authenticators/authConfig/encodeAuthConfigOptions.js').CreateWalletAuthConfigPrepareContext} CreateWalletAuthConfigPrepareContext
  * @typedef {import('../types/index.js').CreateAuthProofDualFactorOptions} CreateAuthProofDualFactorOptions
  * @typedef {import('../types/index.js').ChainId} ChainId

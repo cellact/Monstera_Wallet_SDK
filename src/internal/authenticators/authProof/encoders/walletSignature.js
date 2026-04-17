@@ -2,20 +2,22 @@
  * WalletSignatureAuthenticator — EIP-712 wallet auth proof bytes.
  *
  * @typedef {import('../../../../types/index.js').Bytes} Bytes
- * @typedef {import('../encodeAuthProofOptions.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
+ * @typedef {import('../../../../types/index.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
+ * @typedef {import('../../../../types/index.js').KeyVaultWalletSignatureAuthProofInput} KeyVaultWalletSignatureAuthProofInput
+ * @typedef {import('../../../../types/index.js').KeyVaultAuthProofWalletSignatureEncoder} KeyVaultAuthProofWalletSignatureEncoder
  */
 
 import { HDNodeWallet, Wallet } from 'ethers';
 import { ValidationError } from '../../../../errors/index.js';
 import { createAuthProofWalletSignature } from '../../../../crypto/wallet.js';
 
-/** @type {{ id: string, encode: (ctx: KeyVaultAuthProofEncodeContext, input: Record<string, unknown>) => Promise<Bytes> }} */
+/** @type {KeyVaultAuthProofWalletSignatureEncoder} */
 export const walletSignatureKeyVaultAuthProofEncoder = {
   id: 'walletSignatureAuth',
 
   /**
    * @param {KeyVaultAuthProofEncodeContext} ctx
-   * @param {Record<string, unknown>} input
+   * @param {KeyVaultWalletSignatureAuthProofInput} input
    * @returns {Promise<Bytes>}
    */
   async encode(ctx, input) {
