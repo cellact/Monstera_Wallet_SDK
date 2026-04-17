@@ -7,11 +7,11 @@
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').SignTransactionOptions} SignTransactionOptions
- * @typedef {import('../../types/index.js').SignMessageOptions} SignMessageOptions
- * @typedef {import('../../types/index.js').SignHashOptions} SignHashOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientSignTransactionOptions} KeyVaultClientSignTransactionOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientSignMessageOptions} KeyVaultClientSignMessageOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientSignHashOptions} KeyVaultClientSignHashOptions
  * @typedef {import('../../types/index.js').InitializeOptions} InitializeOptions
- * @typedef {import('../../types/index.js').UpdateAuthenticatorOptions} UpdateAuthenticatorOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientUpdateAuthenticatorOptions} KeyVaultClientUpdateAuthenticatorOptions
  * @typedef {import('../../types/index.js').TransactionResult} TransactionResult
  * @typedef {import('../../types/index.js').UpdateAuthenticatorAddrResult} UpdateAuthenticatorAddrResult
  * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
@@ -19,17 +19,17 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyMetadataResult} KeyMetadataResult
- * @typedef {import('../../types/index.js').SignWithImportedKeyOptions} SignWithImportedKeyOptions
- * @typedef {import('../../types/index.js').SignSolanaOptions} SignSolanaOptions
- * @typedef {import('../../types/index.js').ImportKeyOptions} ImportKeyOptions
- * @typedef {import('../../types/index.js').SetChainBaseKeysOptions} SetChainBaseKeysOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientSignWithImportedKeyOptions} KeyVaultClientSignWithImportedKeyOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientSignSolanaOptions} KeyVaultClientSignSolanaOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientImportKeyOptions} KeyVaultClientImportKeyOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientSetChainBaseKeysOptions} KeyVaultClientSetChainBaseKeysOptions
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
  * @typedef {import('../../types/index.js').KeyVaultAddrIndexSdkOptions} KeyVaultAddrIndexSdkOptions
  * @typedef {import('../../types/index.js').KeyVaultAccountSliceSdkOptions} KeyVaultAccountSliceSdkOptions
  * @typedef {import('../../types/index.js').KeyVaultImportedKeySdkOptions} KeyVaultImportedKeySdkOptions
- * @typedef {import('../../types/index.js').ExecuteWithAuthSdkOptions} ExecuteWithAuthSdkOptions
- * @typedef {import('../../types/index.js').MonsteraUpdateKeyVaultImplSdkOptions} MonsteraUpdateKeyVaultImplSdkOptions
- * @typedef {import('../../types/index.js').MonsteraDeactivateActivateKeySdkOptions} MonsteraDeactivateActivateKeySdkOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientExecuteWithAuthSdkOptions} KeyVaultClientExecuteWithAuthSdkOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplSdkOptions} KeyVaultClientUpdateKeyVaultImplSdkOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientDeactivateActivateKeySdkOptions} KeyVaultClientDeactivateActivateKeySdkOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -200,7 +200,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Sign a raw transaction (authenticated function)
    * 
-   * @param {SignTransactionOptions} options - Sign transaction options
+   * @param {KeyVaultClientSignTransactionOptions} options - Sign transaction options
    * @returns {Promise<Bytes>} Signed transaction
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -232,7 +232,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Sign an EIP-191 message (authenticated function)
    * 
-   * @param {SignMessageOptions} options - Sign message options
+   * @param {KeyVaultClientSignMessageOptions} options - Sign message options
    * @returns {Promise<Bytes>} Signed message (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -258,7 +258,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Sign a 32-byte hash (authenticated function)
    * 
-   * @param {SignHashOptions} options - Sign hash options
+   * @param {KeyVaultClientSignHashOptions} options - Sign hash options
    * @returns {Promise<Bytes>} Signed hash (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -284,7 +284,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Execute a function with an auth proof (authenticated function)
    * 
-   * @param {ExecuteWithAuthSdkOptions} options - Execute function options
+   * @param {KeyVaultClientExecuteWithAuthSdkOptions} options - Execute function options
    * @returns {Promise<Bytes>} Execute function result (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -385,7 +385,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Sign a hash with an imported key (V2, authenticated view)
    *
-   * @param {SignWithImportedKeyOptions} options - Sign with imported key options
+   * @param {KeyVaultClientSignWithImportedKeyOptions} options - Sign with imported key options
    * @returns {Promise<Bytes>} Signature (format depends on curve)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -462,7 +462,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Sign a Solana message (V2, authenticated view)
    *
-   * @param {SignSolanaOptions} options - Sign Solana options
+   * @param {KeyVaultClientSignSolanaOptions} options - Sign Solana options
    * @returns {Promise<Bytes>} Signature
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -520,7 +520,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Update the keyVaultImplementation contract address (authenticated function)
    * 
-   * @param {MonsteraUpdateKeyVaultImplSdkOptions} options - Update keyVaultImplementation options
+   * @param {KeyVaultClientUpdateKeyVaultImplSdkOptions} options - Update keyVaultImplementation options
    * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -552,7 +552,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Update the authenticator (Authenticated function)
    * 
-   * @param {UpdateAuthenticatorOptions} options - Update authenticator options
+   * @param {KeyVaultClientUpdateAuthenticatorOptions} options - Update authenticator options
    * @returns {Promise<UpdateAuthenticatorAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -585,7 +585,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Import an external private key (V2)
    *
-   * @param {ImportKeyOptions} options - Import key options
+   * @param {KeyVaultClientImportKeyOptions} options - Import key options
    * @returns {Promise<TransactionResult & { keyId: Bytes32; curve: number; chain: number }>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -623,7 +623,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Deactivate an imported key (V2, soft delete)
    *
-   * @param {MonsteraDeactivateActivateKeySdkOptions} options - Deactivate key options
+   * @param {KeyVaultClientDeactivateActivateKeySdkOptions} options - Deactivate key options
    * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -656,7 +656,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Reactivate a previously deactivated key (V2)
    *
-   * @param {MonsteraDeactivateActivateKeySdkOptions} options - Activate key options
+   * @param {KeyVaultClientDeactivateActivateKeySdkOptions} options - Activate key options
    * @returns {Promise<TransactionResult & { keyId: Bytes32 }>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -689,7 +689,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Set base keys for a chain's HD derivation (V2)
    *
-   * @param {SetChainBaseKeysOptions} options - Set chain base keys options
+   * @param {KeyVaultClientSetChainBaseKeysOptions} options - Set chain base keys options
    * @returns {Promise<TransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

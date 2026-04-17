@@ -346,6 +346,12 @@
  */
 
 /**
+ * Union of all **created / on-wire** {@code authProof} payloads for direct contract clients (e.g. {@link KeyVaultClient}).
+ * Does not include structured {@link AuthProofInputOptions}; use that in {@link Monstera} (with {@link encodeAuthProofOptions}) before calling the client.
+ * @typedef {PasswordAuthenticatorVerifyAuthProof|EncodedAuthProofWalletSignature|EncodedAuthProofDualFactor|EncodedAuthProofPasswordMinute} AuthProofOptions
+ */
+
+/**
  * Base for signing options that target a KeyVault by address.
  * @typedef {Object} KeyVaultSigningBase
  * @property {Address} keyVaultAddr - KeyVault contract address
@@ -433,6 +439,86 @@
  * @property {number} chain - Chain type (enum: 0=ETHEREUM, 1=SOLANA, etc.)
  * @property {Bytes} basePrivateKey - Base private key for HD derivation
  * @property {Bytes} baseChainCode - Base chain code for HD derivation
+ */
+
+// ============================================================================
+// KeyVaultClient: options with created {@link AuthProofOptions} only
+// ============================================================================
+//
+// Low-level {@link KeyVaultClient} methods expect encoded proof bytes (or raw password bytes where applicable).
+// {@link Monstera} uses {@link AuthProofInputOptions} and encoding helpers instead.
+
+/**
+ * Signing base for {@link KeyVaultClient}.
+ * @typedef {Object} KeyVaultClientSigningBase
+ * @property {Address} keyVaultAddr - KeyVault contract address
+ * @property {AuthProofOptions} authProof - Created authentication proof bytes
+ * @property {number|bigint} index - Account index (uint32)
+ */
+
+/**
+ * @typedef {KeyVaultClientSigningBase & { nonce: number|bigint; gasPrice: number|bigint; gasLimit: number|bigint; to: Address; value: number|bigint; txData: Bytes; chainId: number|bigint }} KeyVaultClientSignTransactionOptions
+ */
+
+/**
+ * @typedef {KeyVaultClientSigningBase & { message: Bytes }} KeyVaultClientSignMessageOptions
+ */
+
+/**
+ * @typedef {KeyVaultClientSigningBase & { hash: Bytes32 }} KeyVaultClientSignHashOptions
+ */
+
+/**
+ * Same shape as {@link KeyVaultClientSignMessageOptions} (Solana signing path).
+ * @typedef {KeyVaultClientSignMessageOptions} KeyVaultClientSignSolanaOptions
+ */
+
+/**
+ * @typedef {Object} KeyVaultClientSignWithImportedKeyOptions
+ * @property {Address} keyVaultAddr - KeyVault contract address
+ * @property {AuthProofOptions} authProof - Created authentication proof bytes
+ * @property {Bytes32} keyId - Imported key ID
+ * @property {Bytes32} digest - 32-byte hash to sign
+ */
+
+/**
+ * @typedef {Object} KeyVaultClientImportKeyOptions
+ * @property {Address} keyVaultAddr - KeyVault contract address
+ * @property {AuthProofOptions} authProof - Created authentication proof bytes
+ * @property {Bytes32} keyId - Unique identifier for the key
+ * @property {Bytes} privateKey - Private key to import
+ * @property {Bytes} [publicKey] - Optional public key (defaults to 0x)
+ * @property {number} curve - Curve type (enum: 0=SECP256K1, 1=ED25519, etc.)
+ * @property {number} chain - Chain type (enum: 0=ETHEREUM, 1=SOLANA, etc.)
+ * @property {string} label - Human-readable label for the key
+ */
+
+/**
+ * @typedef {Object} KeyVaultClientSetChainBaseKeysOptions
+ * @property {Address} keyVaultAddr - KeyVault contract address
+ * @property {AuthProofOptions} authProof - Created authentication proof bytes
+ * @property {number} chain - Chain type (enum: 0=ETHEREUM, 1=SOLANA, etc.)
+ * @property {Bytes} basePrivateKey - Base private key for HD derivation
+ * @property {Bytes} baseChainCode - Base chain code for HD derivation
+ */
+
+/**
+ * @typedef {Object} KeyVaultClientExecuteWithAuthSdkOptions
+ * @property {Address} keyVaultAddr - KeyVault contract address
+ * @property {AuthProofOptions} authProof - Created authentication proof bytes
+ * @property {Bytes} implCall - Implementation call (bytes)
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: AuthProofOptions; newImplAddr: Address }} KeyVaultClientUpdateKeyVaultImplSdkOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: AuthProofOptions; keyId: Bytes32 }} KeyVaultClientDeactivateActivateKeySdkOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: AuthProofOptions; newAuthenticatorAddr: Address; newAuthConfig: Bytes }} KeyVaultClientUpdateAuthenticatorOptions
  */
 
 // ============================================================================
