@@ -103,6 +103,10 @@ const sdk = Monstera.connect({
 
 **Note:** You can override individual addresses or all of them. Addresses not provided will use the defaults for the selected network.
 
+### npm version check (optional)
+
+Pass **`checkVersion: true`** to `Monstera.connect()` or `Monstera.readonly()` to run a one-time check against the npm registry for a newer SDK version (Node.js). If omitted or `false`, no outbound registry request is made.
+
 ### Custom RPC URLs
 
 Override the default RPC URL:

@@ -17,7 +17,7 @@ Create an SDK instance with write capabilities (requires signer).
 - `addresses` (optional): Object with contract addresses to override defaults (`factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`)
 - `logLevel` (optional): `'error'` | `'warn'` | `'info'` | `'debug'` (default: `'error'`)
 - `debug` (optional): If `true`, sets log level to `'debug'`
-- `checkVersion` (optional): If `false`, skips npm version check on connect
+- `checkVersion` (optional): If **`true`**, runs the npm registry version check once on connect (Node.js). If omitted or `false`, the check is skipped.
 
 **Returns:** `Monstera` instance with write capabilities
 
@@ -32,7 +32,7 @@ Create a read-only SDK instance (no signer required).
 - `addresses` (optional): Object with contract addresses to override defaults
 - `logLevel` (optional): Same as `connect()`
 - `debug` (optional): Same as `connect()`
-- `checkVersion` (optional): Same as `connect()`
+- `checkVersion` (optional): Same as `connect()` — must be **`true`** to enable the version check.
 
 **Returns:** `Monstera` instance (read-only)
 
@@ -164,6 +164,11 @@ await sdk.getAccountAddresses({ keyVaultAddr, fromIndex, count });
 await sdk.signTransaction({ keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId });
 await sdk.signMessage({ keyVaultAddr, authProof, index, message });
 await sdk.sign({ keyVaultAddr, authProof, index, hash });
+await sdk.signSolana({ keyVaultAddr, authProof, index, message });
+await sdk.getSolanaAddr({ keyVaultAddr, index });
+await sdk.importKey({ keyVaultAddr, authProof, keyId, privateKey, curve, chain, label });
+await sdk.signWithImportedKey({ keyVaultAddr, authProof, keyId, digest });
+await sdk.getImportedKeyAddr({ keyVaultAddr, keyId });
 await sdk.executeWithAuth({ keyVaultAddr, authProof, implCall });
 await sdk.initialize({ keyVaultAddr, storageAddr, authenticatorAddr, accessToken });
 await sdk.updateKeyVaultImplAddr({ keyVaultAddr, authProof, newImplAddr });

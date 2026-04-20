@@ -9,12 +9,11 @@ The SDK is organized into modular components:
 - **`base/`**: Base classes (BaseContractClient, SapphireWriteWrapper)
 - **`config/`**: Network presets (networks.js), address defaults, and SDK configuration (monstera.js)
 - **`providers/`**: Ethers provider creation and Sapphire wrapper integration
-- **`crypto/`**: Mnemonic generation, seed derivation, password hashing, and auth proof creation
 - **`contracts/`**: Contract ABIs and typed contract getters (core + authenticators)
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Consistent error types with stable error codes
-- **`internal/`**: Logger, version check, validation (`assert`), EVM helpers (`evm/`), built-in authenticator encoders (`authenticators/`)
+- **`internal/`**: Logger, version check, validation (`assert`), EVM helpers (`evm/`), built-in authenticator encoders (`authenticators/`), wallet crypto helpers (`crypto/wallet.js`: mnemonic/seed derivation, password hashing, EIP-712 and minute/dual-factor auth proof builders — **not** a public package export)
 - **`sdk/`**: Main SDK class (Monstera) and MonsteraUtils
 - **`types/`**: Shared JSDoc type definitions
 - **`bin/`**: CLI tool (monstera command)
@@ -33,12 +32,11 @@ src/             # Source code
   base/          # BaseContractClient, SapphireWriteWrapper
   config/        # Network presets (networks.js), SDK config (monstera.js)
   providers/     # Provider and Sapphire wrapper
-  crypto/        # Mnemonic, seed derivation, password hashing, auth proof
   contracts/     # ABIs and getters (core: factory, logic, keyVault; auth: password, walletSig, dualFactor, passwordMinuteSignature)
   clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor, passwordMinuteSignature)
   events/        # Event definitions and receipt parsing
   errors/        # Error types (single source of truth for error exports)
-  internal/      # logger, versionCheck, version, assert, evm/, authenticators/
+  internal/      # logger, versionCheck, version, assert, evm/, authenticators/, crypto/ (wallet.js — internal only)
   sdk/           # Monstera, MonsteraUtils
   types/         # Shared JSDoc types
 bin/             # CLI (monstera command)

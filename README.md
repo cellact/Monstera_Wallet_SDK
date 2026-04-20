@@ -35,7 +35,7 @@ Responsibilities are split so that no single contract can compromise a wallet on
 - 🔐 **Encrypted Transactions** - Automatic Sapphire wrapper for confidential transactions
 - 🌐 **Network Support** - Built-in testnet and mainnet presets
 - 🔑 **Wallet Management** - Create and manage smart contract wallets
-- 🔒 **Multiple Authenticators** - Password, wallet signature, and dual-factor authentication
+- 🔒 **Multiple Authenticators** - Password, wallet signature, dual-factor, and password-minute-signature authentication
 - 📋 **Optional Logging** - Configurable log levels (`error`, `warn`, `info`, `debug`); logs never include secrets
 - ⚡ **Simple API** - Clean, intuitive interface with comprehensive error handling
 
