@@ -7,9 +7,8 @@
  * @typedef {import('../../../../types/index.js').KeyVaultAuthProofDualFactorEncoder} KeyVaultAuthProofDualFactorEncoder
  */
 
-import { HDNodeWallet, Wallet } from 'ethers';
-import { ValidationError } from '../../../../errors/index.js';
 import { createAuthProofDualFactor } from '../../../../crypto/wallet.js';
+import { requireWalletOrHdNode, requireBytes32 } from '../../../../internal/assert.js';
 
 /** @type {KeyVaultAuthProofDualFactorEncoder} */
 export const dualFactorKeyVaultAuthProofEncoder = {
@@ -22,20 +21,10 @@ export const dualFactorKeyVaultAuthProofEncoder = {
    */
   async encode(ctx, input) {
     const { passwordHash, signer } = input;
-    if (!signer || (!(signer instanceof Wallet) && !(signer instanceof HDNodeWallet))) {
-      throw new ValidationError(
-        'authProof object requires signer (Wallet or HDNodeWallet) and passwordHash',
-        'authProof',
-        input
-      );
-    }
-    if (!passwordHash || typeof passwordHash !== 'string') {
-      throw new ValidationError(
-        'authProof object requires passwordHash (bytes32 hex string)',
-        'authProof',
-        input
-      );
-    }
+
+    requireWalletOrHdNode(signer, 'signer');
+    requireBytes32(passwordHash, 'passwordHash');
+
     let deadline = input.deadline;
     if (deadline == null) {
       deadline = Math.floor(Date.now() / 1000) + 3600;

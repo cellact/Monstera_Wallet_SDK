@@ -9,7 +9,7 @@
  */
 
 import { ValidationError } from '../errors/index.js';
-import { Mnemonic, ethers } from 'ethers';
+import { Mnemonic, ethers, HDNodeWallet, Wallet } from 'ethers';
 
 /**
  * Check if a value is a valid Ethereum address
@@ -227,6 +227,19 @@ function requireArray(value, name = 'array') {
   }
 }
 
+/**
+ * Require a Wallet or HDNodeWallet value
+ * 
+ * @param {Wallet | HDNodeWallet} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {Error} If value is not a Wallet or HDNodeWallet
+ */
+function requireWalletOrHdNode(value, name = 'signer') {
+  if (!value || !(value instanceof Wallet || value instanceof HDNodeWallet)) {
+    throw new ValidationError(`${name} is required and must be a Wallet or HDNodeWallet`, name, value);
+  }
+}
+
 export {
   isAddress,
   requireAddress,
@@ -237,5 +250,6 @@ export {
   requireNonNegativeInteger,
   requirePositiveInteger,
   requireArray, 
-  requireBytes32
+  requireBytes32,
+  requireWalletOrHdNode
 };

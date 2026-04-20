@@ -16,8 +16,8 @@
  */
 
 import crypto from 'crypto';
-import { ethers, HDNodeWallet, Wallet } from 'ethers';
-import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32 } from '../internal/assert.js';
+import { ethers, Wallet } from 'ethers';
+import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32, requireWalletOrHdNode } from '../internal/assert.js';
 import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 import log from '../internal/logger.js';
 
@@ -94,7 +94,7 @@ function createWalletSigAuthConfig(whitelist) {
  * @param {Bytes32} passwordHash - Password hash
  * @param {Address} guardianAddr - Guardian address
  * @returns {Bytes} ABI-encoded {@code (bytes32,address)} auth config (hex)
- * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string or guardianAddr is not a valid address
+ * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string or guardianAddr is not a valid address or signer is not a Wallet or HDNodeWallet
  */
 function createDualFactorAuthConfig(passwordHash, guardianAddr) {
   requireBytes32(passwordHash, 'passwordHash');
@@ -108,14 +108,13 @@ function createDualFactorAuthConfig(passwordHash, guardianAddr) {
  *
  * @param {CreateAuthProofWalletSignatureOptions} options
  * @returns {Promise<Bytes>} ABI-encoded {@code (uint256 deadline, bytes signature)} (hex)
+ * @throws {ValidationError} If signer is not a Wallet or HDNodeWallet, chainId is not a string or number, authenticatorAddr is not a valid address, keyVaultAddr is not a valid address, deadline is not a number or is not an integer (Unix timestamp in seconds), or deadline is in the past
  */
 async function createAuthProofWalletSignature(options = {}) {
   const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr } = options;
 
   // Validate signer
-  if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
-    throw new ValidationError('Signer must be a Wallet or HDNodeWallet', 'signer', signer);
-  }
+  requireWalletOrHdNode(signer, 'signer');
 
   // Validate chainId (can be string or number)
   if (typeof chainId !== 'string' && typeof chainId !== 'number') {
@@ -285,17 +284,14 @@ async function createAuthProofMinuteSignature(options = {}) {
  *
  * @param {CreateAuthProofDualFactorWithProviderOptions} options
  * @returns {Promise<Bytes>} ABI-encoded auth proof (hex)
+ * @throws {ValidationError} If provider is not a valid provider, keyVaultAddr is not a valid address, passwordHash is not a valid 32-byte hex string, signer is not a Wallet or HDNodeWallet, authenticatorAddr is not a valid address, chainId is not a string or number, deadline is not a number or is not an integer (Unix timestamp in seconds), or deadline is in the past
  */
 async function createAuthProofDualFactor(options = {}) {
   const { provider, keyVaultAddr, passwordHash, signer, authenticatorAddr, deadline, chainId } = options;
 
-  if (!signer || !(signer instanceof Wallet || signer instanceof HDNodeWallet)) {
-    throw new ValidationError(
-      'Signer must be a Wallet or HDNodeWallet (guardian key)',
-      'signer',
-      signer
-    );
-  }
+  requireBytes32(passwordHash, 'passwordHash');
+  requireWalletOrHdNode(signer, 'signer');
+
   if (typeof deadline !== 'number' || !Number.isInteger(deadline)) {
     throw new ValidationError('Deadline must be an integer (Unix timestamp in seconds)', 'deadline', deadline);
   }

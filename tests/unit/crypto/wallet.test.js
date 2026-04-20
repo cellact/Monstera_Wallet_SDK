@@ -93,7 +93,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
       await expect(
         createAuthProofWalletSignature({
           signer: undefined,
@@ -102,7 +102,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ (123),
@@ -111,7 +111,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ ('invalid'),
@@ -120,7 +120,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ (randomAddress()),
@@ -129,7 +129,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('Signer must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
     });
 
     test('should throw an error if the chainId is not a string or number', async () => {

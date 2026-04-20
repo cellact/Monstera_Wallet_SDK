@@ -7,9 +7,8 @@
  * @typedef {import('../../../../types/index.js').KeyVaultAuthProofWalletSignatureEncoder} KeyVaultAuthProofWalletSignatureEncoder
  */
 
-import { HDNodeWallet, Wallet } from 'ethers';
-import { ValidationError } from '../../../../errors/index.js';
 import { createAuthProofWalletSignature } from '../../../../crypto/wallet.js';
+import { requireWalletOrHdNode } from '../../../../internal/assert.js';
 
 /** @type {KeyVaultAuthProofWalletSignatureEncoder} */
 export const walletSignatureKeyVaultAuthProofEncoder = {
@@ -19,16 +18,13 @@ export const walletSignatureKeyVaultAuthProofEncoder = {
    * @param {KeyVaultAuthProofEncodeContext} ctx
    * @param {KeyVaultWalletSignatureAuthProofInput} input
    * @returns {Promise<Bytes>}
+   * @throws {ValidationError} If signer is not a Wallet or HDNodeWallet
    */
   async encode(ctx, input) {
     const signer = input.signer;
-    if (!signer || (!(signer instanceof Wallet) && !(signer instanceof HDNodeWallet))) {
-      throw new ValidationError(
-        'authProof object requires signer (Wallet or HDNodeWallet)',
-        'authProof',
-        input
-      );
-    }
+
+    requireWalletOrHdNode(signer, 'signer');
+
     let deadline = input.deadline;
     if (deadline == null) {
       deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
