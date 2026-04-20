@@ -5,7 +5,7 @@
  * and that initialization works correctly with various configurations.
  */
 
-import { describe, test, expect, beforeEach } from '@jest/globals';
+import { describe, test, expect } from '@jest/globals';
 import { Monstera } from '../../src/index.js';
 import { ethers } from 'ethers';
 import { expectValidAddress } from '../utils/assertions.js';
@@ -63,6 +63,8 @@ describe('SDK Integration', () => {
       // Should still have defaults for other addresses
       expect(sdk.addresses.passwordAuth).toBeDefined();
       expect(sdk.addresses.walletSignatureAuth).toBeDefined();
+      expect(sdk.addresses.dualFactorAuth).toBeDefined();
+      expect(sdk.addresses.passwordMinuteSignatureAuth).toBeDefined();
     });
 
     test('should throw error if signer is missing', () => {
