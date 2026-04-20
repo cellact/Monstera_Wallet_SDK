@@ -21,10 +21,10 @@ import {
   createAuthProofWalletSignature,
   createWalletSigAuthConfig,
   createDualFactorAuthConfig,
-  floorTimestampToMinuteBucket,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor
 } from '../../../src/crypto/wallet.js';
+import { floorTimestampToMinuteBucket, nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 import { NetworkError } from '../../../src/errors/index.js';
 
 describe('Wallet Crypto Utilities', () => {
@@ -306,7 +306,7 @@ describe('Wallet Crypto Utilities', () => {
 
     test('should throw an error if the deadline is in the past', async () => {
       const { chainId, authenticatorAddr, keyVaultAddr } = defaultParams;
-      const pastDeadline = Math.floor(Date.now() / 1000) - 1000;
+      const pastDeadline = nowUnixTimestampSeconds() - 1000;
 
       await expect(
         createAuthProofWalletSignature({
@@ -316,7 +316,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline: pastDeadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('Deadline must be in the future');
+      ).rejects.toThrow('deadline must be in the future');
     });
   });
 
@@ -376,21 +376,6 @@ describe('Wallet Crypto Utilities', () => {
       expect(() =>
         createDualFactorAuthConfig(hash, INVALID_ADDRESS)
       ).toThrow('guardianAddr must be a valid Ethereum address');
-    });
-  });
-
-  describe('floorTimestampToMinuteBucket', () => {
-    test('should floor timestamps to minute boundaries in seconds', () => {
-      expect(floorTimestampToMinuteBucket(0)).toBe(0);
-      expect(floorTimestampToMinuteBucket(59)).toBe(0);
-      expect(floorTimestampToMinuteBucket(60)).toBe(60);
-      expect(floorTimestampToMinuteBucket(125)).toBe(120);
-      expect(floorTimestampToMinuteBucket(1735689625)).toBe(1735689600);
-    });
-
-    test('should coerce numeric-like values with Number()', () => {
-      expect(floorTimestampToMinuteBucket(Number('120'))).toBe(120);
-      expect(floorTimestampToMinuteBucket(/** @type {any} */ ('180'))).toBe(180);
     });
   });
 
@@ -585,7 +570,7 @@ describe('Wallet Crypto Utilities', () => {
     });
 
     test('should throw if deadline is in the past', async () => {
-      const past = Math.floor(Date.now() / 1000) - 3600;
+      const past = nowUnixTimestampSeconds() - 3600;
 
       await expect(
         createAuthProofDualFactor({
@@ -597,7 +582,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline: past,
           chainId: '23295'
         })
-      ).rejects.toThrow('Deadline must be in the future');
+      ).rejects.toThrow('deadline must be in the future');
     });
 
     test('should throw if signer is not a Wallet or HDNodeWallet', async () => {

@@ -9,6 +9,7 @@
 
 import { createAuthProofWalletSignature } from '../../../../crypto/wallet.js';
 import { requireWalletOrHdNode } from '../../../../internal/assert.js';
+import { nowUnixTimestampSeconds } from '../../../../internal/utils/time.js';
 
 /** @type {KeyVaultAuthProofWalletSignatureEncoder} */
 export const walletSignatureKeyVaultAuthProofEncoder = {
@@ -27,7 +28,7 @@ export const walletSignatureKeyVaultAuthProofEncoder = {
 
     let deadline = input.deadline;
     if (deadline == null) {
-      deadline = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+      deadline = nowUnixTimestampSeconds() + 3600; // 1 hour from now
     }
     return createAuthProofWalletSignature({
       signer,

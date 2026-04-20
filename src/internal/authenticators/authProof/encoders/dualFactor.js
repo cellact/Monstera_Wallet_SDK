@@ -9,6 +9,7 @@
 
 import { createAuthProofDualFactor } from '../../../../crypto/wallet.js';
 import { requireWalletOrHdNode, requireBytes32 } from '../../../../internal/assert.js';
+import { nowUnixTimestampSeconds } from '../../../../internal/utils/time.js';
 
 /** @type {KeyVaultAuthProofDualFactorEncoder} */
 export const dualFactorKeyVaultAuthProofEncoder = {
@@ -27,7 +28,7 @@ export const dualFactorKeyVaultAuthProofEncoder = {
 
     let deadline = input.deadline;
     if (deadline == null) {
-      deadline = Math.floor(Date.now() / 1000) + 3600;
+      deadline = nowUnixTimestampSeconds() + 3600;
     }
     return createAuthProofDualFactor({
       provider: ctx.readProvider,

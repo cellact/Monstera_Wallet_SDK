@@ -17,7 +17,8 @@
 
 import crypto from 'crypto';
 import { ethers, Wallet } from 'ethers';
-import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32, requireWalletOrHdNode, requireStringOrNumber, requirePositiveInteger } from '../internal/assert.js';
+import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32, requireWalletOrHdNode, requireStringOrNumber, requirePositiveInteger, isInFuture  } from '../internal/assert.js';
+import { floorTimestampToMinuteBucket } from '../internal/utils/time.js';
 import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 import log from '../internal/logger.js';
 
@@ -126,10 +127,7 @@ async function createAuthProofWalletSignature(options = {}) {
   // Validate deadline (must be number, Unix timestamp in seconds) and in the future
   requirePositiveInteger(deadline, 'deadline');
 
-  const nowInSeconds = Math.floor(Date.now() / 1000);
-  if (deadline < nowInSeconds) {
-    throw new ValidationError('Deadline must be in the future', 'deadline', deadline);
-  }
+  isInFuture(deadline, 'deadline');
 
   log.info('Creating auth proof');
   log.debug('createAuthProofWalletSignature', { keyVaultAddr, authenticatorAddr, chainId, deadline });
@@ -199,16 +197,6 @@ async function createAuthProofWalletSignature(options = {}) {
       }
     );
   }
-}
-
-/**
- * Floor unix timestamp (seconds) to the start of its minute bucket.
- *
- * @param {number} timestampSeconds
- * @returns {number}
- */
-function floorTimestampToMinuteBucket(timestampSeconds) {
-  return Math.floor(Number(timestampSeconds) / 60) * 60;
 }
 
 /**
@@ -288,10 +276,7 @@ async function createAuthProofDualFactor(options = {}) {
   requireWalletOrHdNode(signer, 'signer');
   requirePositiveInteger(deadline, 'deadline');
 
-  const nowInSeconds = Math.floor(Date.now() / 1000);
-  if (deadline < nowInSeconds) {
-    throw new ValidationError('Deadline must be in the future', 'deadline', deadline);
-  }
+  isInFuture(deadline, 'deadline');
 
   log.info('Creating dual-factor auth proof');
   log.debug('createAuthProofDualFactor', { keyVaultAddr, authenticatorAddr, chainId, deadline });

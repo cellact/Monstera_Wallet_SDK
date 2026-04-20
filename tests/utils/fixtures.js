@@ -1,4 +1,5 @@
 import { ethers, Wallet } from 'ethers';
+import { nowUnixTimestampSeconds } from '../../src/internal/utils/time.js';
 
 /**
  * UTF-8 password bytes for APIs that expect raw bytes (e.g. {@code currentPassword} on password helpers).
@@ -24,7 +25,7 @@ export function createWalletSigAuthConfig(whitelist) {
  * @returns {number} Unix timestamp
  */
 export function calculateDeadline(hoursFromNow = 1) {
-  return Math.floor(Date.now() / 1000) + (hoursFromNow * 3600);
+  return nowUnixTimestampSeconds() + (hoursFromNow * 3600);
 }
 
 /**

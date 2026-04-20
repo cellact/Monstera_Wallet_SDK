@@ -78,6 +78,7 @@
 import MonsteraConfig from '../config/monstera.js';
 import MonsteraUtils from './MonsteraUtils.js';
 import log from '../internal/logger.js';
+import { nowUnixTimestampSeconds } from '../internal/utils/time.js';
 import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
@@ -337,8 +338,7 @@ class Monstera {
 
     // Set deadline default if not provided
     if (!deadline) {
-      const nowInSeconds = Math.floor(Date.now() / 1000);
-      deadline = nowInSeconds + 3600; // 1 hour from now
+      deadline = nowUnixTimestampSeconds() + 3600; // 1 hour from now
     }
 
     // Set chainId default if not provided
@@ -400,8 +400,7 @@ class Monstera {
 
     // Set deadline default if not provided
     if (!deadline) {
-      const nowInSeconds = Math.floor(Date.now() / 1000);
-      deadline = nowInSeconds + 3600; // 1 hour from now
+      deadline = nowUnixTimestampSeconds() + 3600; // 1 hour from now
     }
 
     // Set chainId default if not provided

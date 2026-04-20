@@ -10,6 +10,7 @@
 
 import { ValidationError } from '../errors/index.js';
 import { Mnemonic, ethers, HDNodeWallet, Wallet } from 'ethers';
+import { nowUnixTimestampSeconds } from './utils/time.js';
 
 /**
  * Check if a value is a valid Ethereum address
@@ -253,6 +254,20 @@ function requireStringOrNumber(value, name = 'string or number') {
   }
 }
 
+/**
+ * Check if a value is in the future
+ * 
+ * @param {number} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {Error} If value is not in the future
+ */
+function isInFuture(value, name = 'date') {
+  const nowInSeconds = nowUnixTimestampSeconds();
+  if (value < nowInSeconds) {
+    throw new ValidationError(`${name} must be in the future`, name, value);
+  }
+}
+
 export {
   isAddress,
   requireAddress,
@@ -265,5 +280,6 @@ export {
   requireArray, 
   requireBytes32,
   requireWalletOrHdNode, 
-  requireStringOrNumber
+  requireStringOrNumber,
+  isInFuture
 };

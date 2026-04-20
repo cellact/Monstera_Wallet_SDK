@@ -32,6 +32,7 @@ import {
   testInvalidAddress, 
   testReadonlySDK 
 } from '../utils/validation-helpers.js';
+import { nowUnixTimestampSeconds } from '../../src/internal/utils/time.js';
 
 describe('Authentication Integration Tests', () => {
   let sdk;
@@ -810,7 +811,7 @@ describe('Authentication Integration Tests', () => {
     });
 
     test('should fail with deadline in the past', async () => {
-      const pastDeadline = Math.floor(Date.now() / 1000) - 3600; // 1 hour ago
+      const pastDeadline = nowUnixTimestampSeconds() - 3600; // 1 hour ago
 
       await expect(
         sdk.createAuthProofWalletSignature({
