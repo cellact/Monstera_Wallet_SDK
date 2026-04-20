@@ -86,6 +86,22 @@ function requireBytes32(value, name = 'bytes32') {
 }
 
 /**
+ * Require a Uint8Array value
+ * 
+ * @param {Uint8Array} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {Error} If value is not provided or is not a non-empty Uint8Array
+ */
+function requireUtf8Bytes(value, name = 'utf8Bytes') {
+  if (!(value instanceof Uint8Array)) {
+    throw new ValidationError(`${name} is required and must be a Uint8Array`, name, value);
+  }
+  if (value.length === 0) {
+    throw new ValidationError(`${name} must be a non-empty Uint8Array`, name, value);
+  }
+}
+
+/**
  * Require a string value
  * 
  * @param {string} value - Value to validate
@@ -268,6 +284,19 @@ function isInFuture(value, name = 'date') {
   }
 }
 
+/**
+ * Require a boolean value
+ * 
+ * @param {boolean} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {Error} If value is not a boolean
+ */
+function requireBoolean(value, name = 'boolean') {
+  if (typeof value !== 'boolean') {
+    throw new ValidationError(`${name} is required and must be a boolean`, name, value);
+  }
+}
+
 export {
   isAddress,
   requireAddress,
@@ -281,5 +310,7 @@ export {
   requireBytes32,
   requireWalletOrHdNode, 
   requireStringOrNumber,
-  isInFuture
+  isInFuture,
+  requireBoolean,
+  requireUtf8Bytes
 };

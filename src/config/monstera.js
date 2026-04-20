@@ -17,7 +17,7 @@
 
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
 import { ConfigError, ValidationError } from '../errors/index.js';
-import { isAddress, requireArray } from '../internal/assert.js';
+import { isAddress, requireArray, requireBoolean } from '../internal/assert.js';
 import log from '../internal/logger.js';
 import { createRequire } from 'module';
 
@@ -109,9 +109,7 @@ class MonsteraConfig {
   static resolveBaseConfig(options) {
     const { mainnet, rpcUrl, addresses } = options || {};
 
-    if (typeof mainnet !== 'boolean') {
-      throw new ConfigError('mainnet is required and must be a boolean (true for mainnet, false for testnet)', 'mainnet');
-    }
+    requireBoolean(mainnet, 'mainnet');
 
     // Convert boolean to network string
     const network = mainnet ? 'mainnet' : 'testnet';

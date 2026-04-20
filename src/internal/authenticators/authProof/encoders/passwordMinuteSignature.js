@@ -7,8 +7,8 @@
  * @typedef {import('../../../../types/index.js').KeyVaultAuthProofPasswordMinuteEncoder} KeyVaultAuthProofPasswordMinuteEncoder
  */
 
-import { ValidationError } from '../../../../errors/index.js';
 import { createAuthProofMinuteSignature } from '../../../../crypto/wallet.js';
+import { requireBytes32 } from '../../../../internal/assert.js';
 
 /** @type {KeyVaultAuthProofPasswordMinuteEncoder} */
 export const passwordMinuteSignatureKeyVaultAuthProofEncoder = {
@@ -18,16 +18,11 @@ export const passwordMinuteSignatureKeyVaultAuthProofEncoder = {
    * @param {KeyVaultAuthProofEncodeContext} ctx
    * @param {KeyVaultPasswordMinuteSignatureAuthProofInput} input
    * @returns {Promise<Bytes>}
+   * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string
    */
   async encode(ctx, input) {
     const { passwordHash } = input;
-    if (!passwordHash || typeof passwordHash !== 'string') {
-      throw new ValidationError(
-        'authProof object requires passwordHash (bytes32 hex string)',
-        'authProof',
-        input
-      );
-    }
+    requireBytes32(passwordHash, 'passwordHash');
     const result = await createAuthProofMinuteSignature({
       provider: ctx.readProvider,
       keyVaultAddr: ctx.keyVaultAddr,

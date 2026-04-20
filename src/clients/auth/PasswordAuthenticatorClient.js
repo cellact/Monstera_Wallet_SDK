@@ -21,7 +21,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getPasswordAuthenticatorContract } from '../../contracts/authenticators/PasswordAuthenticator.js';
 import { PasswordAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireBytes32 } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 
 class PasswordAuthenticatorClient extends BaseContractClient {
@@ -109,7 +109,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, currentPassword, newPasswordHash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(currentPassword, 'currentPassword');
-    requireBytes(newPasswordHash, 'newPasswordHash');
+    requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('PasswordAuthenticator: updatePassword');
     log.debug('Updating password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
