@@ -76,10 +76,14 @@ describe('MonsteraConfig', () => {
                 expect(testnet.factory).toBeDefined();
                 expect(testnet.passwordAuth).toBeDefined();
                 expect(testnet.walletSignatureAuth).toBeDefined();
+                expect(testnet.dualFactorAuth).toBeDefined();
+                expect(testnet.passwordMinuteSignatureAuth).toBeDefined();
                 
                 expectValidAddress(testnet.factory);
                 expectValidAddress(testnet.passwordAuth);
                 expectValidAddress(testnet.walletSignatureAuth);
+                expectValidAddress(testnet.dualFactorAuth);
+                expectValidAddress(testnet.passwordMinuteSignatureAuth);
             });
 
             test('mainnet addresses should match built-in Sapphire mainnet defaults', () => {
@@ -123,8 +127,16 @@ describe('MonsteraConfig', () => {
                 const sensitive = MonsteraConfig.SENSITIVE_PARAMS;
                 expect(sensitive).toContain('authConfig');
                 expect(sensitive).toContain('authProof');
+                expect(sensitive).toContain('currentPassword');
+                expect(sensitive).toContain('newPasswordHash');
                 expect(sensitive).toContain('mnemonic');
                 expect(sensitive).toContain('seed');
+                expect(sensitive).toContain('hookData');
+                expect(sensitive).toContain('logicData');
+                expect(sensitive).toContain('txData');
+                expect(sensitive).toContain('data');
+                expect(sensitive).toContain('message');
+                expect(sensitive).toContain('hash');
                 expect(sensitive).toContain('privateKey');
                 expect(sensitive).toContain('password');
             });
@@ -152,6 +164,8 @@ describe('MonsteraConfig', () => {
                 expectValidAddress(config.addresses.factory);
                 expectValidAddress(config.addresses.passwordAuth);
                 expectValidAddress(config.addresses.walletSignatureAuth);
+                expectValidAddress(config.addresses.dualFactorAuth);
+                expectValidAddress(config.addresses.passwordMinuteSignatureAuth);
             });
 
             test('should resolve testnet config with custom RPC URL', () => {
@@ -163,6 +177,10 @@ describe('MonsteraConfig', () => {
                 expect(config.network).toBe('sapphire-testnet');
                 expect(config.rpcUrl).toBe(CUSTOM_RPC_URL);
                 expect(config.addresses.factory).toBeDefined();
+                expectValidAddress(config.addresses.dualFactorAuth);
+                expectValidAddress(config.addresses.passwordMinuteSignatureAuth);
+                expectValidAddress(config.addresses.dualFactorAuth);
+                expectValidAddress(config.addresses.passwordMinuteSignatureAuth);
             });
 
             test('should resolve testnet config with partial address override', () => {
@@ -174,6 +192,8 @@ describe('MonsteraConfig', () => {
                 expect(config.addresses.factory).toBe(VALID_TEST_ADDRESS);
                 expectValidAddress(config.addresses.passwordAuth);
                 expectValidAddress(config.addresses.walletSignatureAuth);
+                expectValidAddress(config.addresses.dualFactorAuth);
+                expectValidAddress(config.addresses.passwordMinuteSignatureAuth);
             });
 
             test('should resolve testnet config with all addresses override', () => {
@@ -182,13 +202,17 @@ describe('MonsteraConfig', () => {
                     addresses: { 
                         factory: VALID_TEST_ADDRESS,
                         passwordAuth: VALID_TEST_ADDRESS,
-                        walletSignatureAuth: VALID_TEST_ADDRESS
+                        walletSignatureAuth: VALID_TEST_ADDRESS,
+                        dualFactorAuth: VALID_TEST_ADDRESS,
+                        passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
                     }
                 });
                 
                 expect(config.addresses.factory).toBe(VALID_TEST_ADDRESS);
                 expect(config.addresses.passwordAuth).toBe(VALID_TEST_ADDRESS);
                 expect(config.addresses.walletSignatureAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.dualFactorAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.passwordMinuteSignatureAuth).toBe(VALID_TEST_ADDRESS);
             });
         });
 
@@ -199,7 +223,9 @@ describe('MonsteraConfig', () => {
                     addresses: {
                         factory: VALID_TEST_ADDRESS,
                         passwordAuth: VALID_TEST_ADDRESS,
-                        walletSignatureAuth: VALID_TEST_ADDRESS
+                        walletSignatureAuth: VALID_TEST_ADDRESS,
+                        dualFactorAuth: VALID_TEST_ADDRESS,
+                        passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
                     }
                 });
                 
@@ -212,6 +238,8 @@ describe('MonsteraConfig', () => {
                 expect(config.addresses.factory).toBe(VALID_TEST_ADDRESS);
                 expect(config.addresses.passwordAuth).toBe(VALID_TEST_ADDRESS);
                 expect(config.addresses.walletSignatureAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.dualFactorAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.passwordMinuteSignatureAuth).toBe(VALID_TEST_ADDRESS);
             });
 
             test('should resolve mainnet config with custom RPC URL', () => {
@@ -221,12 +249,19 @@ describe('MonsteraConfig', () => {
                     addresses: {
                         factory: VALID_TEST_ADDRESS,
                         passwordAuth: VALID_TEST_ADDRESS,
-                        walletSignatureAuth: VALID_TEST_ADDRESS
+                        walletSignatureAuth: VALID_TEST_ADDRESS,
+                        dualFactorAuth: VALID_TEST_ADDRESS,
+                        passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
                     }
                 });
                 
                 expect(config.network).toBe('sapphire-mainnet');
                 expect(config.rpcUrl).toBe(CUSTOM_RPC_URL);
+                expect(config.addresses.factory).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.passwordAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.walletSignatureAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.dualFactorAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.passwordMinuteSignatureAuth).toBe(VALID_TEST_ADDRESS);
             });
 
             test('should resolve mainnet config with partial address override', () => {
@@ -240,6 +275,10 @@ describe('MonsteraConfig', () => {
                 });
                 
                 expect(config.addresses.factory).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.passwordAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.walletSignatureAuth).toBe(VALID_TEST_ADDRESS);
+                expect(config.addresses.dualFactorAuth).toBeDefined();
+                expect(config.addresses.passwordMinuteSignatureAuth).toBeDefined();
             });
         });
 
@@ -332,13 +371,17 @@ describe('MonsteraConfig', () => {
                 // Other addresses should come from defaults
                 expect(config.addresses.passwordAuth).toBeDefined();
                 expect(config.addresses.walletSignatureAuth).toBeDefined();
+                expect(config.addresses.dualFactorAuth).toBeDefined();
+                expect(config.addresses.passwordMinuteSignatureAuth).toBeDefined();
             });
 
             test('should allow overriding all addresses', () => {
                 const customAddresses = {
                     factory: VALID_TEST_ADDRESS,
                     passwordAuth: VALID_TEST_ADDRESS,
-                    walletSignatureAuth: VALID_TEST_ADDRESS
+                    walletSignatureAuth: VALID_TEST_ADDRESS,
+                    dualFactorAuth: VALID_TEST_ADDRESS,
+                    passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
                 };
                 
                 const config = MonsteraConfig.resolveBaseConfig({ 

@@ -11,6 +11,8 @@
  * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
+ * @typedef {import('../types/index.js').BaseConnectNetworkOptions} BaseConnectNetworkOptions
+ * @typedef {import('../types/index.js').RequiredContractAddressKeys} RequiredContractAddressKeys
  */
 
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
@@ -24,6 +26,8 @@ const require = createRequire(import.meta.url);
 /**
  * Required contract addresses for SDK initialization
  * All of these must be present and valid for the SDK to function.
+ *
+ * @type {RequiredContractAddressKeys}
  */
 const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth', 'dualFactorAuth', 'passwordMinuteSignatureAuth'];
 
@@ -85,7 +89,7 @@ class MonsteraConfig {
    * Required contract addresses for the SDK to function
    * @static
    * @readonly
-   * @returns {string[]} Array of required address keys
+   * @returns {RequiredContractAddressKeys} Ordered list of required {@link ContractAddresses} keys
    */
   static get requiredAddresses() {
     return REQUIRED_ADDRESSES;
@@ -97,10 +101,7 @@ class MonsteraConfig {
    * Internal helper: merges network presets + address defaults, validates required addresses,
    * and returns a normalized config object used by the Monstera constructor.
    * 
-   * @param {Record<string, unknown>} options
-   * @param {boolean} options.mainnet - true for mainnet, false for testnet
-   * @param {string} [options.rpcUrl] - Optional custom RPC URL
-   * @param {Partial<ContractAddresses>} [options.addresses] - Optional contract address overrides
+   * @param {BaseConnectNetworkOptions} options - Base connect network options
    * @returns {NetworkConfig}
    * @throws {ConfigError} If network or required addresses are invalid/missing
    * @static
@@ -129,8 +130,8 @@ class MonsteraConfig {
    * 
    * @private
    * @static
-   * @param {Record<string, unknown>} addresses - Contract addresses to validate
-   * @param {string[]} required - List of required address keys
+   * @param {Partial<ContractAddresses>} addresses - Contract addresses to validate
+   * @param {RequiredContractAddressKeys} required - List of required address keys (non-empty)
    * @throws {ConfigError} If required addresses are missing
    * @throws {ValidationError} If address format is invalid
    */

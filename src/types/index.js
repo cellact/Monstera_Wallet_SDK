@@ -47,6 +47,16 @@
  */
 
 /**
+ * Keys of {@link ContractAddresses} that must be present after configuration is resolved.
+ * @typedef {'factory'|'passwordAuth'|'walletSignatureAuth'|'dualFactorAuth'|'passwordMinuteSignatureAuth'} RequiredContractAddressKey
+ */
+
+/**
+ * Canonical ordered list of required contract address keys (validation and static `requiredAddresses`).
+ * @typedef {RequiredContractAddressKey[]} RequiredContractAddressKeys
+ */
+
+/**
  * @typedef {Object} DefaultContractAddresses
  * @property {Partial<ContractAddresses>} testnet - Testnet contract addresses
  * @property {Partial<ContractAddresses>} mainnet - Mainnet contract addresses (may have null values)
