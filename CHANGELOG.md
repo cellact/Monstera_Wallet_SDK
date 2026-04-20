@@ -7,21 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.6] - 2026-04-20
+
 ### Added
 
 - **ESLint**: Root `.eslintrc.cjs` (`eslint:recommended`, ESM, Node/Jest env) so `npm run lint` runs; `__MONSTERA_VERSION__` is declared for Rollup-injected browser builds.
 - **Integration test teardown**: `tests/utils/teardown.js` exports `closeSdkConnections` and `registerSdkTeardown` to destroy ethers `JsonRpcProvider` instances after suites; integration tests and `testReadonlySDK` use it to avoid hanging Jest workers.
+- **Assertions**: `requireUtf8Bytes`, `requireBoolean`, `requireStringOrNumber`, `requireWalletOrHdNode`, `requireBytes32`, `requireArray`, and `isInFuture`; internal time helpers consolidated for deadline checks; expanded unit tests for assertion helpers and for `src/internal/crypto/wallet.js`.
+- **Integration tests — authentication**: Suite split into `tests/integration/authentication/` (password, wallet signature + `createAuthProofWalletSignature`, dual-factor, password-minute, SDK auth registry); added coverage for dual-factor and minute-signature flows and for `getAuthClient` / `getAvailableAuthTypes`.
+- **Integration tests — signing**: `getSolanaAddr`, `signSolana`, `importKey` / `getImportedKeyAddr` / `signWithImportedKey`, and stronger message/hash signing checks (some paths depend on chain KeyVault V2 behavior).
 
 ### Changed
 
 - **BREAKING — version check**: Outbound npm registry check runs only when **`checkVersion: true`** is set on `Monstera.connect()`, `Monstera.readonly()`, or the config passed to `new Monstera(...)`. Omitted or `false` skips the check (previously ran unless explicitly disabled). To restore old behavior, pass `checkVersion: true`.
-- **`deriveSeed`**: Removed the unused `iterations` parameter from the public helper in `src/crypto/wallet.js`; derivation still uses PBKDF2 with 2048 iterations as before.
+- **`deriveSeed`**: Removed the unused `iterations` parameter; derivation still uses PBKDF2 with 2048 iterations. Implementation lives under internal crypto (see below).
+- **Internal layout**: Wallet crypto helpers moved from `src/crypto/wallet.js` to **`src/internal/crypto/wallet.js`** (non-public surface; all imports updated). Deep imports must follow the new path if you bypass the package root.
+- **Password KeyVault auth proof encoder** (`internal/authenticators/authProof/encoders/password.js`): Validates `password` with `requireUtf8Bytes` for consistent non-empty `Uint8Array` rules.
 - **`.npmignore`**: Explicitly excludes `.eslintrc.cjs` from published tarballs (alongside existing `package.json` `files` allowlist).
 
 ### Fixed
 
 - **`SapphireWriteWrapper`**: On write failure, debug logs emit safe fields only (`methodName`, `errorName`, `errorCode`, `errorMessage`) instead of logging the raw `Error` object, which could expose sensitive provider/RPC payloads in debug mode.
 - **`src/internal/versionCheck.js`**: JSDoc updated to state the check runs only when `checkVersion: true` is configured.
+- **Rollup / Node ESM output (`dist/monstera.mjs`)**: Dedicated plugin pipeline for the ESM build vs the browser IIFE build; **`crypto` is marked `external`** and Node resolution prefers built-ins so PBKDF2/seed derivation uses Node’s `crypto` module (avoids `pbkdf2Sync is not a function` when browser-oriented crypto polyfills were bundled into the ESM output).
 
 ## [1.0.0-alpha.5] - 2026-04-16
 
