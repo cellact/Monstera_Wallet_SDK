@@ -105,8 +105,23 @@ const createBrowserPlugin = () => ({
   }
 });
 
-// Shared plugin configuration for both builds
-const createPlugins = () => [
+/**
+ * Plugins for {@link PATHS.esmOutput}: Node and modern bundlers must use Node's built-in `crypto`
+ * (e.g. PBKDF2 in wallet seed derivation). Browser-style crypto polyfills break under Node
+ * (`pbkdf2Sync is not a function`).
+ */
+const createNodeEsmPlugins = () => [
+  nodeResolve({
+    preferBuiltins: true,
+    browser: false
+  }),
+  createBrowserPlugin()
+];
+
+/**
+ * Plugins for {@link PATHS.iifeOutput}: browser/global build needs Node polyfills.
+ */
+const createBrowserPlugins = () => [
   polyfillNode({
     include: ['crypto'],
     sourceMap: true
@@ -140,8 +155,8 @@ export default [
       sourcemap: true,
       banner: '/* Monstera SDK - ESM Build */'
     },
-    plugins: createPlugins(),
-    external: ['ethers', 'module', 'url', 'path']
+    plugins: createNodeEsmPlugins(),
+    external: ['ethers', 'module', 'url', 'path', 'crypto']
   },
   
   // IIFE global build for script-tag usage
@@ -186,7 +201,7 @@ if (typeof window !== 'undefined') {
       `;
       })()
     },
-    plugins: createPlugins(),
+    plugins: createBrowserPlugins(),
     external: ['ethers', 'module', 'url', 'path']
   }
 ];
