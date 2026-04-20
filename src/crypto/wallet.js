@@ -17,7 +17,7 @@
 
 import crypto from 'crypto';
 import { ethers, HDNodeWallet, Wallet } from 'ethers';
-import { requireAddress } from '../internal/assert.js';
+import { requireAddress, requireString, requireMnemonic, requireArray } from '../internal/assert.js';
 import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 import log from '../internal/logger.js';
 
@@ -41,8 +41,10 @@ function generateMnemonic() {
  * @param {Mnemonic} mnemonic - BIP39 mnemonic phrase
  * @param {string} [password=''] - Optional password for seed derivation
  * @returns {Buffer} Derived seed (64 bytes)
+ * @throws {ValidationError} If mnemonic is not a valid BIP39 mnemonic
  */
 function deriveSeed(mnemonic, password = '') {
+  requireMnemonic(mnemonic, 'mnemonic');
   // Normalize mnemonic (remove extra whitespace)
   const normalizedMnemonic = mnemonic.trim().toLowerCase().replace(/\s+/g, ' ');
   log.debug('deriveSeed', { phraseLength: normalizedMnemonic.length });
@@ -65,12 +67,10 @@ function deriveSeed(mnemonic, password = '') {
  * 
  * @param {string} password - Password to hash
  * @returns {Bytes} Keccak256 hash as hex string (0x prefixed)
+ * @throws {ValidationError} If password is not a string or is empty
  */
 function hashPassword(password) {
-  if (!password || typeof password !== 'string') {
-    throw new ValidationError('Password must be a non-empty string', 'password', password);
-  }
-  
+  requireString(password, 'password');
   // Use ethers to hash with keccak256
   return ethers.keccak256(ethers.toUtf8Bytes(password));
 }
@@ -79,14 +79,11 @@ function hashPassword(password) {
  * Creates a wallet signature auth config from whitelist
  * @param {Address[]} whitelist - Array of whitelisted addresses
  * @returns {Bytes} ABI-encoded {@code address[]} auth config (hex)
+ * @throws {ValidationError} If whitelist is not an array or contains invalid addresses
  */
 function createWalletSigAuthConfig(whitelist) {
-  if (!Array.isArray(whitelist)) {
-    throw new ValidationError('Whitelist must be an array', 'whitelist', whitelist);
-  }
-  if (whitelist.length === 0) {
-    throw new ValidationError('Whitelist must contain at least one address', 'whitelist', whitelist);
-  }
+  requireArray(whitelist, 'whitelist');
+ 
   for (const address of whitelist) {
     requireAddress(address, 'address');
   }

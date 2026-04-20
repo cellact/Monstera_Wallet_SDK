@@ -197,6 +197,22 @@ function requirePositiveInteger(value, name = 'number') {
   requireNumber(value, name, { allowZero: false, allowNegative: false, requireInteger: true });
 }
 
+/**
+ * Require an array value
+ * 
+ * @param {Array} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {Error} If value is not an array or is empty
+ */
+function requireArray(value, name = 'array') {
+  if (!Array.isArray(value)) {
+    throw new ValidationError(`${name} is required and must be an array`, name, value);
+  }
+  if (value.length === 0) {
+    throw new ValidationError(`${name} must be a non-empty array`, name, value);
+  }
+}
+
 export {
   isAddress,
   requireAddress,
@@ -205,5 +221,6 @@ export {
   requireMnemonic,
   requireNumber,
   requireNonNegativeInteger,
-  requirePositiveInteger
+  requirePositiveInteger,
+  requireArray
 };

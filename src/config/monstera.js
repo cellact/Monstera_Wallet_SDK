@@ -17,7 +17,7 @@
 
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
 import { ConfigError, ValidationError } from '../errors/index.js';
-import { isAddress } from '../internal/assert.js';
+import { isAddress, requireArray } from '../internal/assert.js';
 import log from '../internal/logger.js';
 import { createRequire } from 'module';
 
@@ -133,12 +133,10 @@ class MonsteraConfig {
    * @param {Partial<ContractAddresses>} addresses - Contract addresses to validate
    * @param {RequiredContractAddressKeys} required - List of required address keys (non-empty)
    * @throws {ConfigError} If required addresses are missing
-   * @throws {ValidationError} If address format is invalid
+   * @throws {ValidationError} If address format is invalid or required is not an array
    */
   static _validateAddresses(addresses, required) {
-    if (!required || !Array.isArray(required) || required.length === 0) {
-      throw new ConfigError('Required addresses list must be a non-empty array', 'required');
-    }
+    requireArray(required, 'required');
 
     const missing = required.filter(key => !addresses[key]);
     

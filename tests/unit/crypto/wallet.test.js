@@ -46,10 +46,10 @@ describe('Wallet Crypto Utilities', () => {
     });
 
     test('should throw an error if the password is not a string or is empty', () => {
-      expect(() => hashPassword(null)).toThrow('Password must be a non-empty string');
-      expect(() => hashPassword(undefined)).toThrow('Password must be a non-empty string');
-      expect(() => hashPassword(123)).toThrow('Password must be a non-empty string');
-      expect(() => hashPassword({ password: 'password' })).toThrow('Password must be a non-empty string');
+      expect(() => hashPassword(null)).toThrow('password is required and must be a string');
+      expect(() => hashPassword(undefined)).toThrow('password is required and must be a string');
+      expect(() => hashPassword(123)).toThrow('password is required and must be a string');
+      expect(() => hashPassword({ password: 'password' })).toThrow('password is required and must be a string');
     });
   });
 
