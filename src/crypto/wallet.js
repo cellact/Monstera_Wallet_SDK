@@ -17,7 +17,7 @@
 
 import crypto from 'crypto';
 import { ethers, Wallet } from 'ethers';
-import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32, requireWalletOrHdNode } from '../internal/assert.js';
+import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32, requireWalletOrHdNode, requireStringOrNumber, requirePositiveInteger } from '../internal/assert.js';
 import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 import log from '../internal/logger.js';
 
@@ -117,18 +117,15 @@ async function createAuthProofWalletSignature(options = {}) {
   requireWalletOrHdNode(signer, 'signer');
 
   // Validate chainId (can be string or number)
-  if (typeof chainId !== 'string' && typeof chainId !== 'number') {
-    throw new ValidationError('chainId must be a string or number', 'chainId', chainId);
-  }
+  requireStringOrNumber(chainId, 'chainId');
 
   // Validate addresses
   requireAddress(authenticatorAddr, 'authenticatorAddr');
   requireAddress(keyVaultAddr, 'keyVaultAddr');
 
   // Validate deadline (must be number, Unix timestamp in seconds) and in the future
-  if (typeof deadline !== 'number' || !Number.isInteger(deadline)) {
-    throw new ValidationError('Deadline must be an integer (Unix timestamp in seconds)', 'deadline', deadline);
-  }
+  requirePositiveInteger(deadline, 'deadline');
+
   const nowInSeconds = Math.floor(Date.now() / 1000);
   if (deadline < nowInSeconds) {
     throw new ValidationError('Deadline must be in the future', 'deadline', deadline);
@@ -234,9 +231,7 @@ async function createAuthProofMinuteSignature(options = {}) {
   }
   requireAddress(keyVaultAddr, 'keyVaultAddr');
   requireAddress(authenticatorAddr, 'authenticatorAddr');
-  if (typeof chainId !== 'string' && typeof chainId !== 'number') {
-    throw new ValidationError('chainId must be a string or number', 'chainId', chainId);
-  }
+  requireStringOrNumber(chainId, 'chainId');
   requireBytes32(passwordHash, 'passwordHash');
 
   const block = await provider.getBlock('latest');
@@ -291,10 +286,8 @@ async function createAuthProofDualFactor(options = {}) {
 
   requireBytes32(passwordHash, 'passwordHash');
   requireWalletOrHdNode(signer, 'signer');
+  requirePositiveInteger(deadline, 'deadline');
 
-  if (typeof deadline !== 'number' || !Number.isInteger(deadline)) {
-    throw new ValidationError('Deadline must be an integer (Unix timestamp in seconds)', 'deadline', deadline);
-  }
   const nowInSeconds = Math.floor(Date.now() / 1000);
   if (deadline < nowInSeconds) {
     throw new ValidationError('Deadline must be in the future', 'deadline', deadline);

@@ -143,7 +143,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('chainId must be a string or number');
+      ).rejects.toThrow('chainId is required and must be a string or number');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -152,7 +152,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('chainId must be a string or number');
+      ).rejects.toThrow('chainId is required and must be a string or number');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -161,7 +161,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('chainId must be a string or number');
+      ).rejects.toThrow('chainId is required and must be a string or number');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -170,7 +170,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('chainId must be a string or number');
+      ).rejects.toThrow('chainId is required and must be a string or number');
     });
 
     test('should throw an error if the authenticatorAddr is not a valid address', async () => {
@@ -266,7 +266,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline: null,
           keyVaultAddr
         })
-      ).rejects.toThrow('Deadline must be an integer (Unix timestamp in seconds)');
+      ).rejects.toThrow('deadline is required');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -275,7 +275,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline: undefined,
           keyVaultAddr
         })
-      ).rejects.toThrow('Deadline must be an integer (Unix timestamp in seconds)');
+      ).rejects.toThrow('deadline is required');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -284,7 +284,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline: 123.5,
           keyVaultAddr
         })
-      ).rejects.toThrow('Deadline must be an integer (Unix timestamp in seconds)');
+      ).rejects.toThrow('deadline must be an integer');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -293,7 +293,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline: /** @type {any} */ ({ deadline }),
           keyVaultAddr
         })
-      ).rejects.toThrow('Deadline must be an integer (Unix timestamp in seconds)');
+      ).rejects.toThrow('deadline is required and must be a number or BigInt');
     });
 
     test('should throw an error if the deadline is in the past', async () => {

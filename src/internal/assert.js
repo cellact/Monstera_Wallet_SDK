@@ -240,6 +240,12 @@ function requireWalletOrHdNode(value, name = 'signer') {
   }
 }
 
+function requireStringOrNumber(value, name = 'string or number') {
+  if (!value || typeof value !== 'string' && typeof value !== 'number') {
+    throw new ValidationError(`${name} is required and must be a string or number`, name, value);
+  }
+}
+
 export {
   isAddress,
   requireAddress,
@@ -251,5 +257,6 @@ export {
   requirePositiveInteger,
   requireArray, 
   requireBytes32,
-  requireWalletOrHdNode
+  requireWalletOrHdNode, 
+  requireStringOrNumber
 };
