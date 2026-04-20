@@ -17,7 +17,7 @@
 
 import crypto from 'crypto';
 import { ethers, HDNodeWallet, Wallet } from 'ethers';
-import { requireAddress, requireString, requireMnemonic, requireArray } from '../internal/assert.js';
+import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32 } from '../internal/assert.js';
 import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
 import log from '../internal/logger.js';
 
@@ -83,7 +83,6 @@ function hashPassword(password) {
  */
 function createWalletSigAuthConfig(whitelist) {
   requireArray(whitelist, 'whitelist');
- 
   for (const address of whitelist) {
     requireAddress(address, 'address');
   }
@@ -95,11 +94,10 @@ function createWalletSigAuthConfig(whitelist) {
  * @param {Bytes32} passwordHash - Password hash
  * @param {Address} guardianAddr - Guardian address
  * @returns {Bytes} ABI-encoded {@code (bytes32,address)} auth config (hex)
+ * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string or guardianAddr is not a valid address
  */
 function createDualFactorAuthConfig(passwordHash, guardianAddr) {
-  if (!passwordHash || typeof passwordHash !== 'string' || !ethers.isHexString(passwordHash, 32)) {
-    throw new ValidationError('passwordHash must be a 32-byte hex string (0x-prefixed bytes32)', 'passwordHash', passwordHash);
-  }
+  requireBytes32(passwordHash, 'passwordHash');
   requireAddress(guardianAddr, 'guardianAddr');
 
   return ethers.AbiCoder.defaultAbiCoder().encode(["bytes32", "address"], [passwordHash, guardianAddr]);
@@ -227,6 +225,7 @@ function floorTimestampToMinuteBucket(timestampSeconds) {
  *
  * @param {CreateAuthProofMinuteSignatureWithProviderOptions} options
  * @returns {Promise<{ authProof: Bytes, minuteBucket: number, derivedAddress: Address }>}
+ * @throws {ValidationError} If provider is not a valid provider, keyVaultAddr is not a valid address, authenticatorAddr is not a valid address, chainId is not a string or number, or passwordHash is not a valid 32-byte hex string
  */
 async function createAuthProofMinuteSignature(options = {}) {
   const { provider, keyVaultAddr, authenticatorAddr, chainId, passwordHash } = options;
@@ -239,13 +238,7 @@ async function createAuthProofMinuteSignature(options = {}) {
   if (typeof chainId !== 'string' && typeof chainId !== 'number') {
     throw new ValidationError('chainId must be a string or number', 'chainId', chainId);
   }
-  if (!passwordHash || typeof passwordHash !== 'string' || !ethers.isHexString(passwordHash, 32)) {
-    throw new ValidationError(
-      'passwordHash must be a 32-byte hex string (0x-prefixed bytes32)',
-      'passwordHash',
-      passwordHash
-    );
-  }
+  requireBytes32(passwordHash, 'passwordHash');
 
   const block = await provider.getBlock('latest');
   if (!block) {

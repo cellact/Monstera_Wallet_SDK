@@ -9,7 +9,7 @@
  */
 
 import { ValidationError } from '../errors/index.js';
-import { Mnemonic } from 'ethers';
+import { Mnemonic, ethers } from 'ethers';
 
 /**
  * Check if a value is a valid Ethereum address
@@ -68,6 +68,20 @@ function requireBytes(value, name = 'bytes') {
   }
   
   throw new ValidationError(`${name} must be a string (hex) or Uint8Array`, name, value);
+}
+
+/**
+ * Require a 32-byte hex string value
+ * 
+ * @param {string} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {Error} If value is not provided or is not a valid 32-byte hex string
+ */
+function requireBytes32(value, name = 'bytes32') {
+  requireString(value, name);
+  if (!ethers.isHexString(value, 32)) {
+    throw new ValidationError(`${name} must be a 32-byte hex string value`, name, value);
+  }
 }
 
 /**
@@ -222,5 +236,6 @@ export {
   requireNumber,
   requireNonNegativeInteger,
   requirePositiveInteger,
-  requireArray
+  requireArray, 
+  requireBytes32
 };
