@@ -5,7 +5,7 @@
 import { describe, test, expect } from '@jest/globals';
 import { expectValidAddress, expectValidHex } from '../../utils/assertions.js';
 import { VALID_TEST_ADDRESS, INVALID_TEST_ADDRESS_NO_PREFIX } from '../../utils/fixtures.js';
-import { 
+import {
   isAddress,
   requireAddress,
   requireBytes,
@@ -13,9 +13,14 @@ import {
   requireMnemonic,
   requireNumber,
   requireNonNegativeInteger,
-  requirePositiveInteger
+  requirePositiveInteger,
+  requireArray,
+  requireBytes32,
+  requireWalletOrHdNode,
+  requireStringOrNumber,
+  isInFuture
 } from '../../../src/internal/assert.js';
-import { ethers } from 'ethers';
+import { ethers, Wallet } from 'ethers';
 
 describe('Assert Utilities', () => {
     describe('isAddress', () => {
@@ -295,6 +300,126 @@ describe('Assert Utilities', () => {
 
         test('throws error for non-integer number', () => {
             expect(() => requirePositiveInteger(1.5)).toThrow('number must be an integer');
+        });
+    });
+
+    describe('requireArray', () => {
+        test('does not throw for non-empty array', () => {
+            expect(() => requireArray([1], 'items')).not.toThrow();
+            expect(() => requireArray(['a'], 'tags')).not.toThrow();
+        });
+
+        test('throws when value is not an array', () => {
+            expect(() => requireArray(null, 'items')).toThrow(
+                'items is required and must be an array'
+            );
+            expect(() => requireArray(undefined, 'items')).toThrow(
+                'items is required and must be an array'
+            );
+            expect(() => requireArray({ 0: 'x' }, 'items')).toThrow(
+                'items is required and must be an array'
+            );
+        });
+
+        test('throws when array is empty', () => {
+            expect(() => requireArray([], 'items')).toThrow(
+                'items must be a non-empty array'
+            );
+        });
+    });
+
+    describe('requireBytes32', () => {
+        const bytes32 = ethers.keccak256(ethers.toUtf8Bytes('bytes32-test'));
+
+        test('does not throw for valid 32-byte hex string', () => {
+            expect(() => requireBytes32(bytes32, 'hash')).not.toThrow();
+        });
+
+        test('throws when value is missing or empty string', () => {
+            expect(() => requireBytes32(undefined)).toThrow(
+                'bytes32 is required and must be a string'
+            );
+            expect(() => requireBytes32(null)).toThrow(
+                'bytes32 is required and must be a string'
+            );
+            expect(() => requireBytes32('')).toThrow(
+                'bytes32 is required and must be a string'
+            );
+        });
+
+        test('throws when hex is not exactly 32 bytes', () => {
+            expect(() => requireBytes32('0x1234')).toThrow(
+                'bytes32 must be a 32-byte hex string value'
+            );
+            expect(() => requireBytes32(VALID_TEST_ADDRESS)).toThrow(
+                'bytes32 must be a 32-byte hex string value'
+            );
+        });
+    });
+
+    describe('requireWalletOrHdNode', () => {
+        test('does not throw for ethers Wallet', () => {
+            const w = Wallet.createRandom();
+            expect(() => requireWalletOrHdNode(w)).not.toThrow();
+        });
+
+        test('does not throw for HDNodeWallet', () => {
+            const mnemonic = ethers.Mnemonic.fromEntropy(ethers.randomBytes(16)).phrase;
+            const hd = ethers.HDNodeWallet.fromPhrase(mnemonic);
+            expect(() => requireWalletOrHdNode(hd, 'signer')).not.toThrow();
+        });
+
+        test('throws for null, undefined, or plain objects', () => {
+            expect(() => requireWalletOrHdNode(null)).toThrow(
+                'signer is required and must be a Wallet or HDNodeWallet'
+            );
+            expect(() => requireWalletOrHdNode(undefined)).toThrow(
+                'signer is required and must be a Wallet or HDNodeWallet'
+            );
+            const notSigner = {};
+            expect(() => requireWalletOrHdNode(notSigner, 'signer')).toThrow(
+                'signer is required and must be a Wallet or HDNodeWallet'
+            );
+        });
+    });
+
+    describe('requireStringOrNumber', () => {
+        test('does not throw for non-empty string or number', () => {
+            expect(() => requireStringOrNumber('23295', 'chainId')).not.toThrow();
+            expect(() => requireStringOrNumber('0x5aff', 'chainId')).not.toThrow();
+            expect(() => requireStringOrNumber(23295, 'chainId')).not.toThrow();
+        });
+
+        test('throws for null, undefined, objects, arrays', () => {
+            expect(() => requireStringOrNumber(null)).toThrow(
+                'string or number is required and must be a string or number'
+            );
+            expect(() => requireStringOrNumber(undefined)).toThrow(
+                'string or number is required and must be a string or number'
+            );
+            expect(() => requireStringOrNumber(/** @type {any} */ ([]))).toThrow(
+                'string or number is required and must be a string or number'
+            );
+        });
+
+        test('throws for numeric 0 due to falsy check', () => {
+            expect(() => requireStringOrNumber(0, 'chainId')).toThrow(
+                'chainId is required and must be a string or number'
+            );
+        });
+    });
+
+    describe('isInFuture', () => {
+        test('does not throw when value is strictly after current unix seconds', () => {
+            const future = Math.floor(Date.now() / 1000) + 86400 * 365;
+            expect(() => isInFuture(future, 'deadline')).not.toThrow();
+        });
+
+        test('throws when value is before now', () => {
+            const past = 946684800;
+            expect(() => isInFuture(past, 'deadline')).toThrow(
+                'deadline must be in the future'
+            );
         });
     });
 });

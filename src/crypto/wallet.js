@@ -365,7 +365,6 @@ export {
   deriveSeed,
   hashPassword,
   createAuthProofWalletSignature,
-  floorTimestampToMinuteBucket,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor,
   createWalletSigAuthConfig,
