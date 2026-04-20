@@ -107,6 +107,15 @@
  */
 
 /**
+ * Input for internal `buildNetworkConfig` (`src/config/networks.js`): preset key plus optional RPC and address overrides.
+ * Distinct from {@link BaseConnectNetworkOptions}, which uses `mainnet: boolean` rather than `network`.
+ * @typedef {Object} BuildNetworkConfigInput
+ * @property {'testnet'|'mainnet'} network - Preset key (`testnet` or `mainnet`)
+ * @property {string} [rpcUrl] - Optional RPC URL (defaults to preset)
+ * @property {Partial<ContractAddresses>} [addresses] - Optional contract address overrides merged with defaults
+ */
+
+/**
  * Options shared by write and read connect flows.
  * @typedef {BaseConnectNetworkOptions & SdkLoggingAndVersionOptions} BaseConnectOptions
  */

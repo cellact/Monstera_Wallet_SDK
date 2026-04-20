@@ -6,6 +6,7 @@
  * 
  * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../types/index.js').BuildNetworkConfigInput} BuildNetworkConfigInput
  */
 
 /**
@@ -49,11 +50,8 @@ const DEFAULT_ADDRESSES = {
 
 /**
  * Build network configuration from network name
- * 
- * @param {Record<string, unknown>} config - Network configuration
- * @param {'testnet'|'mainnet'} config.network - Network name (guaranteed to be valid)
- * @param {string} [config.rpcUrl] - RPC URL (optional, uses default if not provided)
- * @param {Partial<ContractAddresses>} [config.addresses] - Contract addresses (optional)
+ *
+ * @param {BuildNetworkConfigInput} config - Preset key and optional overrides
  * @returns {NetworkConfig}
  */
 function buildNetworkConfig(config) {

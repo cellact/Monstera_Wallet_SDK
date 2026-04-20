@@ -53,10 +53,12 @@ describe('Network Configuration - testnet', () => {
             expect(DEFAULT_ADDRESSES.testnet).toBeDefined();
         });
 
-        test('should have factory, passwordAuth, walletSignatureAuth address for testnet', () => {
+        test('should have factory, passwordAuth, walletSignatureAuth, dualFactorAuth, passwordMinuteSignatureAuth address for testnet', () => {
             expect(DEFAULT_ADDRESSES.testnet.factory).toBeDefined();
             expect(DEFAULT_ADDRESSES.testnet.passwordAuth).toBeDefined();
             expect(DEFAULT_ADDRESSES.testnet.walletSignatureAuth).toBeDefined();
+            expect(DEFAULT_ADDRESSES.testnet.dualFactorAuth).toBeDefined();
+            expect(DEFAULT_ADDRESSES.testnet.passwordMinuteSignatureAuth).toBeDefined();
         });
 
         test('should have built-in testnet contract addresses that match networks.js', () => {
@@ -117,7 +119,9 @@ describe('Network Configuration - testnet', () => {
                 addresses: { 
                     factory: VALID_TEST_ADDRESS, 
                     passwordAuth: VALID_TEST_ADDRESS, 
-                    walletSignatureAuth: VALID_TEST_ADDRESS 
+                    walletSignatureAuth: VALID_TEST_ADDRESS,
+                    dualFactorAuth: VALID_TEST_ADDRESS,
+                    passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
                 } 
             });
             expect(baseConfig).toBeDefined();
@@ -129,8 +133,8 @@ describe('Network Configuration - testnet', () => {
                 factory: VALID_TEST_ADDRESS,
                 passwordAuth: VALID_TEST_ADDRESS,
                 walletSignatureAuth: VALID_TEST_ADDRESS,
-                dualFactorAuth: DEFAULT_ADDRESSES.testnet.dualFactorAuth,
-                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.testnet.passwordMinuteSignatureAuth
+                dualFactorAuth: VALID_TEST_ADDRESS,
+                passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
             });
         });
 
@@ -142,6 +146,8 @@ describe('Network Configuration - testnet', () => {
             expect(baseConfig.addresses.factory).toBe(VALID_TEST_ADDRESS);
             expect(baseConfig.addresses.passwordAuth).toBe(DEFAULT_ADDRESSES.testnet.passwordAuth);
             expect(baseConfig.addresses.walletSignatureAuth).toBe(DEFAULT_ADDRESSES.testnet.walletSignatureAuth);
+            expect(baseConfig.addresses.dualFactorAuth).toBe(DEFAULT_ADDRESSES.testnet.dualFactorAuth);
+            expect(baseConfig.addresses.passwordMinuteSignatureAuth).toBe(DEFAULT_ADDRESSES.testnet.passwordMinuteSignatureAuth);
         });
     });
 });
@@ -165,10 +171,12 @@ describe('Network Configuration - mainnet', () => {
             expect(DEFAULT_ADDRESSES.mainnet).toBeDefined();
         });
 
-        test('should have factory, passwordAuth, walletSignatureAuth address for mainnet', () => {
+        test('should have factory, passwordAuth, walletSignatureAuth, dualFactorAuth, passwordMinuteSignatureAuth address for mainnet', () => {
             expect(DEFAULT_ADDRESSES.mainnet.factory).toBeDefined();
             expect(DEFAULT_ADDRESSES.mainnet.passwordAuth).toBeDefined();
             expect(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth).toBeDefined();
+            expect(DEFAULT_ADDRESSES.mainnet.dualFactorAuth).toBeDefined();
+            expect(DEFAULT_ADDRESSES.mainnet.passwordMinuteSignatureAuth).toBeDefined();
         });
 
         test('should have built-in mainnet contract addresses that match networks.js', () => {
@@ -229,7 +237,9 @@ describe('Network Configuration - mainnet', () => {
                 addresses: { 
                     factory: VALID_TEST_ADDRESS, 
                     passwordAuth: VALID_TEST_ADDRESS, 
-                    walletSignatureAuth: VALID_TEST_ADDRESS 
+                    walletSignatureAuth: VALID_TEST_ADDRESS,
+                    dualFactorAuth: VALID_TEST_ADDRESS,
+                    passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
                 } 
             });
             expect(baseConfig).toBeDefined();
@@ -241,8 +251,8 @@ describe('Network Configuration - mainnet', () => {
                 factory: VALID_TEST_ADDRESS,
                 passwordAuth: VALID_TEST_ADDRESS,
                 walletSignatureAuth: VALID_TEST_ADDRESS,
-                dualFactorAuth: DEFAULT_ADDRESSES.mainnet.dualFactorAuth,
-                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.mainnet.passwordMinuteSignatureAuth
+                dualFactorAuth: VALID_TEST_ADDRESS,
+                passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
             });
         });
 
@@ -254,6 +264,8 @@ describe('Network Configuration - mainnet', () => {
             expect(baseConfig.addresses.factory).toBe(VALID_TEST_ADDRESS);
             expect(baseConfig.addresses.passwordAuth).toBe(DEFAULT_ADDRESSES.mainnet.passwordAuth);
             expect(baseConfig.addresses.walletSignatureAuth).toBe(DEFAULT_ADDRESSES.mainnet.walletSignatureAuth);
+            expect(baseConfig.addresses.dualFactorAuth).toBe(DEFAULT_ADDRESSES.mainnet.dualFactorAuth);
+            expect(baseConfig.addresses.passwordMinuteSignatureAuth).toBe(DEFAULT_ADDRESSES.mainnet.passwordMinuteSignatureAuth);
         });
     });
 });
