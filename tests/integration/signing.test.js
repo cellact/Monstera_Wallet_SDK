@@ -11,7 +11,7 @@
 import 'dotenv/config';
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
 import { registerSdkTeardown } from '../utils/teardown.js';
-import { ethers } from 'ethers';
+import { ethers, Wallet } from 'ethers';
 import { 
   createTestSDK, 
   getTestConfig, 
@@ -19,17 +19,22 @@ import {
 } from '../utils/setup.js';
 import { 
   createPasswordAuthProof,
-  INVALID_ADDRESS,
   ZERO_ADDRESS
 } from '../utils/fixtures.js';
 import { 
   expectValidHex,
-  expectValidAddress
+  expectValidAddress,
+  expectTransactionResult
 } from '../utils/assertions.js';
 import { 
   testMissingParam, 
   testInvalidAddress 
 } from '../utils/validation-helpers.js';
+
+/** @see WalletStorageV2.CurveType — secp256k1 */
+const CURVE_SECP256K1 = 0;
+/** @see WalletStorageV2.ChainType — Ethereum address derived from key */
+const CHAIN_ETHEREUM = 0;
 
 describe('Signing Integration Tests', () => {
   let sdk;
@@ -94,6 +99,14 @@ describe('Signing Integration Tests', () => {
 
       expect(signature).toBeDefined();
       expect(typeof signature).toBe('string');
+      expectValidHex(signature);
+
+      const accountAddr = await sdk.getAccountAddr({
+        keyVaultAddr,
+        index: accountIndex
+      });
+      const recovered = ethers.verifyMessage('', signature);
+      expect(recovered.toLowerCase()).toBe(accountAddr.toLowerCase());
     });
 
     test('should fail with wrong password', async () => {
@@ -493,6 +506,163 @@ describe('Signing Integration Tests', () => {
       const recovered1 = ethers.verifyMessage('test message', sig1);
       expect(recovered0.toLowerCase()).toBe(addr0.toLowerCase());
       expect(recovered1.toLowerCase()).toBe(addr1.toLowerCase());
-        });
     });
+  });
+
+  describe('signSolana', () => {
+    test('should return a 64-byte ed25519 signature for the message', async () => {
+      const messageBytes = ethers.toUtf8Bytes('Hello, Monstera!');
+
+      const signature = await sdk.signSolana({
+        keyVaultAddr,
+        authProof,
+        index: accountIndex,
+        message: messageBytes
+      });
+
+      expectValidHex(signature);
+      expect(ethers.getBytes(signature).length).toBe(64);
+    }, 30000);
+
+    test('should produce different signatures for different messages', async () => {
+      const sigA = await sdk.signSolana({
+        keyVaultAddr,
+        authProof,
+        index: accountIndex,
+        message: ethers.toUtf8Bytes('msg-a')
+      });
+      const sigB = await sdk.signSolana({
+        keyVaultAddr,
+        authProof,
+        index: accountIndex,
+        message: ethers.toUtf8Bytes('msg-b')
+      });
+
+      expect(sigA).not.toBe(sigB);
+    }, 30000);
+
+    test('should fail with wrong password', async () => {
+      const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
+
+      await expect(
+        sdk.signSolana({
+          keyVaultAddr,
+          authProof: wrongAuthProof,
+          index: accountIndex,
+          message: ethers.toUtf8Bytes('x')
+        })
+      ).rejects.toThrow();
+    });
+
+    test('should fail with missing message', async () => {
+      await testMissingParam(
+        sdk.signSolana.bind(sdk),
+        {
+          keyVaultAddr,
+          authProof,
+          index: accountIndex
+        },
+        'message'
+      );
+    });
+
+    test('should fail with missing index', async () => {
+      await testMissingParam(
+        sdk.signSolana.bind(sdk),
+        {
+          keyVaultAddr,
+          authProof,
+          message: ethers.toUtf8Bytes('x')
+        },
+        'index'
+      );
+    });
+  });
+
+  describe('signWithImportedKey', () => {
+    let importedKeyId;
+    let importedSigningWallet;
+
+    beforeAll(async () => {
+      importedSigningWallet = Wallet.createRandom();
+      importedKeyId = ethers.keccak256(
+        ethers.toUtf8Bytes(`wallet-sdk-signing-import-${Date.now()}-${Math.random()}`)
+      );
+
+      const importResult = await sdk.importKey({
+        keyVaultAddr,
+        authProof,
+        keyId: importedKeyId,
+        privateKey: ethers.getBytes(importedSigningWallet.privateKey),
+        curve: CURVE_SECP256K1,
+        chain: CHAIN_ETHEREUM,
+        label: 'integration-signing-imported-ecdsa'
+      });
+
+      expectTransactionResult(importResult);
+      expect(await sdk.keyExists({ keyVaultAddr, keyId: importedKeyId })).toBe(true);
+    }, 120000);
+
+    test('should sign a digest and recover the imported Ethereum address', async () => {
+      const digest = ethers.keccak256(ethers.toUtf8Bytes('signWithImportedKey integration'));
+
+      const signature = await sdk.signWithImportedKey({
+        keyVaultAddr,
+        authProof,
+        keyId: importedKeyId,
+        digest
+      });
+
+      expectValidHex(signature);
+
+      const recovered = ethers.recoverAddress(digest, signature);
+      expect(recovered.toLowerCase()).toBe(importedSigningWallet.address.toLowerCase());
+
+      const importedAddrBytes = await sdk.getImportedKeyAddr({
+        keyVaultAddr,
+        keyId: importedKeyId
+      });
+
+      expectValidHex(importedAddrBytes);
+      const importedAddr = ethers.getAddress(ethers.hexlify(importedAddrBytes));
+      expect(importedAddr.toLowerCase()).toBe(importedSigningWallet.address.toLowerCase());
+    }, 30000);
+
+    test('should fail with missing digest', async () => {
+      await testMissingParam(
+        sdk.signWithImportedKey.bind(sdk),
+        {
+          keyVaultAddr,
+          authProof,
+          keyId: importedKeyId
+        },
+        'digest'
+      );
+    });
+
+    test('should fail with missing keyId', async () => {
+      await testMissingParam(
+        sdk.signWithImportedKey.bind(sdk),
+        {
+          keyVaultAddr,
+          authProof,
+          digest: ethers.keccak256(ethers.toUtf8Bytes('x'))
+        },
+        'keyId'
+      );
+    });
+
+    test('should fail with wrong password', async () => {
+      const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
+
+      await expect(
+        sdk.signWithImportedKey({
+          keyVaultAddr,
+          authProof: wrongAuthProof,
+          keyId: importedKeyId,
+          digest: ethers.keccak256(ethers.toUtf8Bytes('x'))
+        })
+      ).rejects.toThrow();
+    });
+  });
 });
