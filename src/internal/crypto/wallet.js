@@ -1,26 +1,25 @@
 /**
- * Wallet Crypto Utilities
- * 
- * Handles mnemonic generation, seed derivation, and auth config encoding
- * 
- * @typedef {import('../types/index.js').Mnemonic} Mnemonic
- * @typedef {import('../types/index.js').Bytes} Bytes
- * @typedef {import('../types/index.js').Bytes32} Bytes32
- * @typedef {import('../types/index.js').Address} Address
- * @typedef {import('../types/index.js').EthersWallet} EthersWallet
- * @typedef {import('../types/index.js').EthersHDNodeWallet} EthersHDNodeWallet
- * @typedef {import('../types/index.js').EthersAbstractProvider} EthersAbstractProvider
- * @typedef {import('../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
- * @typedef {import('../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
- * @typedef {import('../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
+ * Internal wallet crypto utilities (mnemonic, seed, auth config encoding, auth proof builders).
+ * Not part of the public package API; import only from other `src/` modules.
+ *
+ * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
+ * @typedef {import('../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../types/index.js').Bytes32} Bytes32
+ * @typedef {import('../../types/index.js').Address} Address
+ * @typedef {import('../../types/index.js').EthersWallet} EthersWallet
+ * @typedef {import('../../types/index.js').EthersHDNodeWallet} EthersHDNodeWallet
+ * @typedef {import('../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
+ * @typedef {import('../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
+ * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
+ * @typedef {import('../../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
  */
 
 import crypto from 'crypto';
 import { ethers, Wallet } from 'ethers';
-import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32, requireWalletOrHdNode, requireStringOrNumber, requirePositiveInteger, isInFuture  } from '../internal/assert.js';
-import { floorTimestampToMinuteBucket } from '../internal/utils/time.js';
-import { NetworkError, ValidationError, WalletError } from '../errors/index.js';
-import log from '../internal/logger.js';
+import { requireAddress, requireString, requireMnemonic, requireArray, requireBytes32, requireWalletOrHdNode, requireStringOrNumber, requirePositiveInteger, isInFuture  } from '../assert.js';
+import { floorTimestampToMinuteBucket } from '../utils/time.js';
+import { NetworkError, ValidationError, WalletError } from '../../errors/index.js';
+import log from '../logger.js';
 
 /**
  * Generate a new mnemonic phrase (12 words)

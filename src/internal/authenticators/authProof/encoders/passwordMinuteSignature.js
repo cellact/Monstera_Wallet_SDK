@@ -7,7 +7,7 @@
  * @typedef {import('../../../../types/index.js').KeyVaultAuthProofPasswordMinuteEncoder} KeyVaultAuthProofPasswordMinuteEncoder
  */
 
-import { createAuthProofMinuteSignature } from '../../../../crypto/wallet.js';
+import { createAuthProofMinuteSignature } from '../../../crypto/wallet.js';
 import { requireBytes32 } from '../../../../internal/assert.js';
 
 /** @type {KeyVaultAuthProofPasswordMinuteEncoder} */

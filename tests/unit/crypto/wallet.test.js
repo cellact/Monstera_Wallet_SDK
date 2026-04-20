@@ -23,7 +23,7 @@ import {
   createDualFactorAuthConfig,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor
-} from '../../../src/crypto/wallet.js';
+} from '../../../src/internal/crypto/wallet.js';
 import { floorTimestampToMinuteBucket, nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 import { NetworkError } from '../../../src/errors/index.js';
 

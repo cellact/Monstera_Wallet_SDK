@@ -83,7 +83,7 @@ import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
-import { createAuthProofWalletSignature, createAuthProofMinuteSignature, createAuthProofDualFactor, createWalletSigAuthConfig, createDualFactorAuthConfig } from '../crypto/wallet.js';
+import { createAuthProofWalletSignature, createAuthProofMinuteSignature, createAuthProofDualFactor, createWalletSigAuthConfig, createDualFactorAuthConfig } from '../internal/crypto/wallet.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
 import { encodeAuthConfigOptions } from '../internal/authenticators/authConfig/encodeAuthConfigOptions.js';

@@ -6,7 +6,7 @@
  * @typedef {import('../../../../types/index.js').CreateWalletWalletSignatureAuthConfig} CreateWalletWalletSignatureAuthConfig
  */
 
-import { createWalletSigAuthConfig } from '../../../../crypto/wallet.js';
+import { createWalletSigAuthConfig } from '../../../crypto/wallet.js';
 
 /** @type {{ id: string, encode: (authConfig: CreateWalletWalletSignatureAuthConfig) => Bytes }} */
 export const walletSignatureAuthCreateWalletEncoder = {
