@@ -240,6 +240,13 @@ function requireWalletOrHdNode(value, name = 'signer') {
   }
 }
 
+/**
+ * Require a string or number value
+ * 
+ * @param {string|number} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {Error} If value is not a string or number
+ */
 function requireStringOrNumber(value, name = 'string or number') {
   if (!value || typeof value !== 'string' && typeof value !== 'number') {
     throw new ValidationError(`${name} is required and must be a string or number`, name, value);
