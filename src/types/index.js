@@ -289,11 +289,55 @@
  */
 
 /**
+ * ABI-encoded dual-factor authenticator config at wallet creation ({@code abi.encode(bytes32,address)}).
+ * @see {@link module:internal/crypto/wallet.js} {@code createDualFactorAuthConfig}
+ * @typedef {Bytes} EncodedDualFactorCreateWalletAuthConfig
+ */
+
+/**
+ * ABI-encoded WalletSignatureAuthenticator whitelist ({@code abi.encode(address[])}).
+ * @see {@link module:internal/crypto/wallet.js} {@code createWalletSigAuthConfig}
+ * @typedef {Bytes} EncodedWalletSignatureCreateWalletAuthConfig
+ */
+
+/**
+ * Password-hash-only authenticator config for PasswordAuthenticator at creation (contract expects bytes32).
+ * @see {@link module:internal/authenticators/authConfig/encoders/password.js} {@code passwordAuthCreateWalletEncoder}
+ * @typedef {Bytes32} EncodedPasswordAuthenticatorCreateWalletAuthConfig
+ */
+
+/**
+ * Same bytes32-on-chain shape as {@link EncodedPasswordAuthenticatorCreateWalletAuthConfig} for PasswordMinuteSignatureAuthenticator at creation.
+ * @see {@link module:internal/authenticators/authConfig/encoders/passwordMinuteSignature.js} {@code passwordMinuteSignatureAuthCreateWalletEncoder}
+ * @typedef {Bytes32} EncodedPasswordMinuteSignatureCreateWalletAuthConfig
+ */
+
+/**
+ * Encoded outputs from built-in create-wallet authenticator encoders only (no arbitrary pass-through).
+ *
+ * Structural aliases: dual-factor and wallet-signature configs are dynamic {@link Bytes}; password variants are fixed {@link Bytes32}.
+ *
+ * @typedef {(
+ *   | EncodedDualFactorCreateWalletAuthConfig
+ *   | EncodedWalletSignatureCreateWalletAuthConfig
+ *   | EncodedPasswordAuthenticatorCreateWalletAuthConfig
+ *   | EncodedPasswordMinuteSignatureCreateWalletAuthConfig
+ * )} CreateWalletBuiltinEncodedAuthConfig
+ */
+
+/**
+ * Encoded {@code authConfig} acceptable to WalletFactoryClient: built-in variants {@link CreateWalletBuiltinEncodedAuthConfig},
+ * or any pre-encoded hex string when using a non built-in authenticator ({@link Bytes}).
+ *
+ * @typedef {CreateWalletBuiltinEncodedAuthConfig|Bytes} CreateWalletEncodedAuthConfig
+ */
+
+/**
  * Built-in registry entry: maps structured create-wallet {@code authConfig} to encoded bytes for a fixed authenticator.
  *
  * @typedef {Object} CreateWalletAuthEncoder
  * @property {string} id - Encoder identifier (logging / diagnostics)
- * @property {(authConfig: CreateWalletStructuredAuthConfig) => Bytes|Bytes32} encode - Encode structured config for on-chain {@code authConfig}
+ * @property {(authConfig: CreateWalletStructuredAuthConfig) => CreateWalletBuiltinEncodedAuthConfig} encode - Encode structured config for on-chain {@code authConfig}
  */
 
 /**
@@ -313,6 +357,25 @@
 
 /**
  * @typedef {CreateWalletBaseOptions & { customLogicImplAddr: Address; logicData: Bytes }} CreateWalletWithCustomLogicOptions
+ */
+
+/**
+ * Base options for WalletFactoryClient: {@code authConfig} is already encoded for the factory (never a structured object).
+ * @typedef {Object} CreateWalletFactoryBaseOptions
+ * @property {CreateWalletEncodedAuthConfig} authConfig - Hex-encoded authenticator configuration
+ * @property {Address} [authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
+ */
+
+/**
+ * @typedef {CreateWalletFactoryBaseOptions & { mnemonic: Mnemonic }} CreateWalletFactoryFromMnemonicOptions
+ */
+
+/**
+ * @typedef {CreateWalletFactoryBaseOptions & { hookAddr: Address; hookData: Bytes }} CreateWalletFactoryWithHookOptions
+ */
+
+/**
+ * @typedef {CreateWalletFactoryBaseOptions & { customLogicImplAddr: Address; logicData: Bytes }} CreateWalletFactoryWithCustomLogicOptions
  */
 
 // ============================================================================
@@ -742,7 +805,8 @@
 
 /**
  * Output when structured {@code authConfig} was encoded: caller fields spread with encoded bytes and resolved {@code authenticatorAddr}.
- * @typedef {Record<string, unknown> & { authConfig: Bytes; authenticatorAddr: Address }} EncodedAuthConfigCallOptions
+ * {@code authConfig} matches {@link CreateWalletEncodedAuthConfig} for built-in encoders.
+ * @typedef {Record<string, unknown> & { authConfig: CreateWalletEncodedAuthConfig; authenticatorAddr: Address }} EncodedAuthConfigCallOptions
  */
 
 /**

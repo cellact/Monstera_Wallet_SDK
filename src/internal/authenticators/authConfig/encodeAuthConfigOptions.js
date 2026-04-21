@@ -1,9 +1,11 @@
 /**
- * Map public create-wallet options to the shape expected by {@link WalletFactoryClient}:
- * structured {@code authConfig} objects are encoded via the built-in authenticator registry;
- * hex strings pass through for custom authenticators.
+ * Map public create-wallet options to the shape expected by WalletFactoryClient:
+ * structured {@code authConfig} objects are encoded via the built-in authenticator registry to {@link CreateWalletBuiltinEncodedAuthConfig};
+ * hex strings pass through unchanged as {@link CreateWalletEncodedAuthConfig}.
  *
  * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../../../types/index.js').CreateWalletBuiltinEncodedAuthConfig} CreateWalletBuiltinEncodedAuthConfig
+ * @typedef {import('../../../types/index.js').CreateWalletEncodedAuthConfig} CreateWalletEncodedAuthConfig
  * @typedef {import('../../../types/index.js').EncodeAuthConfigCallerOptions} EncodeAuthConfigCallerOptions
  * @typedef {import('../../../types/index.js').EncodeAuthConfigOptionsReturn} EncodeAuthConfigOptionsReturn
  *
@@ -19,7 +21,7 @@ import { createCreateWalletAuthEncoderRegistry } from './registry.js';
 /**
  * @param {CreateWalletAuthConfigPrepareContext} ctx
  * @param {EncodeAuthConfigCallerOptions} options
- * @returns {EncodeAuthConfigOptionsReturn}
+ * @returns {EncodeAuthConfigOptionsReturn} Object suitable for WalletFactoryClient; encoded branch has {@code authConfig}: {@link CreateWalletEncodedAuthConfig}
  */
 export function encodeAuthConfigOptions(ctx, options) {
   const { authConfig: authInput, ...rest } = options;
