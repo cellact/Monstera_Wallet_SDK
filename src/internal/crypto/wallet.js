@@ -16,6 +16,9 @@
  * @typedef {import('../../types/index.js').CreateWalletWalletSignatureAuthConfig} CreateWalletWalletSignatureAuthConfig
  * @typedef {import('../../types/index.js').EncodedWalletSignatureCreateWalletAuthConfig} EncodedWalletSignatureCreateWalletAuthConfig
  * @typedef {import('../../types/index.js').EncodedDualFactorCreateWalletAuthConfig} EncodedDualFactorCreateWalletAuthConfig
+ * @typedef {import('../../types/index.js').EncodedAuthProofWalletSignature} EncodedAuthProofWalletSignature
+ * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureResult} CreateAuthProofMinuteSignatureResult
+ * @typedef {import('../../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
  */
 
 import crypto from 'crypto';
@@ -110,7 +113,7 @@ function createDualFactorAuthConfig(passwordHash, guardianAddr) {
  * Create auth proof (EIP-712 authentication proof)
  *
  * @param {CreateAuthProofWalletSignatureOptions} options
- * @returns {Promise<Bytes>} ABI-encoded {@code (uint256 deadline, bytes signature)} (hex)
+ * @returns {Promise<EncodedAuthProofWalletSignature>} encoded auth proof 
  * @throws {ValidationError} If signer is not a Wallet or HDNodeWallet, chainId is not a string or number, authenticatorAddr is not a valid address, keyVaultAddr is not a valid address, deadline is not a number or is not an integer (Unix timestamp in seconds), or deadline is in the past
  */
 async function createAuthProofWalletSignature(options = {}) {
@@ -205,12 +208,8 @@ async function createAuthProofWalletSignature(options = {}) {
  * Build {@code authProof} for PasswordMinuteSignatureAuthenticator: {@code abi.encode(bytes signature)}
  * over the EIP-191 digest of the same {@code payloadHash} the contract uses.
  *
- * Uses {@code new Wallet(keccak256(abi.encodePacked(passwordHash, minuteBucket)))} to sign — the same
- * approach as common Hardhat scripts. The deployed Sapphire contract derives the signing key via
- * {@code Sapphire.generateSigningKeyPair}; if your on-chain verify fails, those derivations may differ.
- *
  * @param {CreateAuthProofMinuteSignatureWithProviderOptions} options
- * @returns {Promise<{ authProof: Bytes, minuteBucket: number, derivedAddress: Address }>}
+ * @returns {Promise<CreateAuthProofMinuteSignatureResult>} encoded auth proof 
  * @throws {ValidationError} If provider is not a valid provider, keyVaultAddr is not a valid address, authenticatorAddr is not a valid address, chainId is not a string or number, or passwordHash is not a valid 32-byte hex string
  */
 async function createAuthProofMinuteSignature(options = {}) {
@@ -268,7 +267,7 @@ async function createAuthProofMinuteSignature(options = {}) {
  * same contract domain as on-chain {@code EIP712("DualFactorAuthenticator", "1")}.
  *
  * @param {CreateAuthProofDualFactorWithProviderOptions} options
- * @returns {Promise<Bytes>} ABI-encoded auth proof (hex)
+ * @returns {Promise<EncodedAuthProofDualFactor>} encoded auth proof 
  * @throws {ValidationError} If provider is not a valid provider, keyVaultAddr is not a valid address, passwordHash is not a valid 32-byte hex string, signer is not a Wallet or HDNodeWallet, authenticatorAddr is not a valid address, chainId is not a string or number, deadline is not a number or is not an integer (Unix timestamp in seconds), or deadline is in the past
  */
 async function createAuthProofDualFactor(options = {}) {

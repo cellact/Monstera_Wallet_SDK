@@ -28,6 +28,7 @@
  * @typedef {import('../types/index.js').RemoveFromWhitelistResult} RemoveFromWhitelistResult
  * @typedef {import('../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
  * @typedef {import('../types/index.js').CreateAuthProofMinuteSignatureOptions} CreateAuthProofMinuteSignatureOptions
+ * @typedef {import('../types/index.js').CreateAuthProofMinuteSignatureResult} CreateAuthProofMinuteSignatureResult
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').Bytes} Bytes
  * @typedef {import('../types/index.js').Bytes32} Bytes32
@@ -73,6 +74,9 @@
  * @typedef {import('../types/index.js').ImportKeyResult} ImportKeyResult
  * @typedef {import('../types/index.js').DeactivateKeyResult} DeactivateKeyResult
  * @typedef {import('../types/index.js').ActivateKeyResult} ActivateKeyResult
+ * @typedef {import('../types/index.js').RequiredContractAddressKeys} RequiredContractAddressKeys
+ * @typedef {import('../types/index.js').EncodedAuthProofWalletSignature} EncodedAuthProofWalletSignature
+ * @typedef {import('../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -235,7 +239,7 @@ class Monstera {
    * Required contract addresses for the SDK to function
    * @static
    * @readonly
-   * @returns {string[]} Array of required address keys
+   * @returns {RequiredContractAddressKeys} Ordered list of required {@link ContractAddresses} keys
    */
   static get requiredAddresses() {
     return MonsteraConfig.requiredAddresses;
@@ -322,10 +326,10 @@ class Monstera {
   }
 
   /**
-   * Create an auth proof for a wallet
+   * Build {@code authProof} for WalletSignatureAuthenticator
    *
    * @param {CreateAuthProofWalletSignatureOptions} options
-   * @returns {Promise<Bytes>} ABI-encoded {@code (uint256 deadline, bytes signature)} (hex)
+   * @returns {Promise<EncodedAuthProofWalletSignature>} encoded auth proof 
    */
   async createAuthProofWalletSignature(options = {}) {
     const { signer, keyVaultAddr } = options;
@@ -353,10 +357,9 @@ class Monstera {
 
   /**
    * Build {@code authProof} for PasswordMinuteSignatureAuthenticator
-   * ({@code AbiCoder.encode(['bytes'], [signature])}), using the SDK read provider for the latest block time.
    *
    * @param {CreateAuthProofMinuteSignatureOptions} options
-   * @returns {Promise<{ authProof: Bytes, minuteBucket: number, derivedAddress: Address }>}
+   * @returns {Promise<CreateAuthProofMinuteSignatureResult>}
    * @throws {ValidationError} If addresses or passwordHash are invalid
    */
   async createAuthProofMinuteSignature(options = {}) {
@@ -383,10 +386,10 @@ class Monstera {
   }
 
   /**
-   * Create an auth proof for a dual factor authenticator
-   *
+   * Build {@code authProof} for DualFactorAuthenticator
+   * 
    * @param {CreateAuthProofDualFactorOptions} options
-   * @returns {Promise<Bytes>} ABI-encoded dual-factor auth proof (hex)
+   * @returns {Promise<EncodedAuthProofDualFactor>} encoded auth proof 
    * @throws {ValidationError} If addresses or passwordHash are invalid
    */
   async createAuthProofDualFactor(options = {}) {

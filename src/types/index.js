@@ -534,6 +534,15 @@
  */
 
 /**
+ * Result of minute-signature auth proof creation ({@code internal/crypto/wallet.js}, {@code createAuthProofMinuteSignature}).
+ *
+ * @typedef {Object} CreateAuthProofMinuteSignatureResult
+ * @property {EncodedAuthProofPasswordMinute} authProof - ABI-encoded signature for {@code PasswordMinuteSignatureAuthenticator.verify}
+ * @property {number} minuteBucket - Unix timestamp floored to minute bucket used for signing
+ * @property {Address} derivedAddress - Ephemeral signer address derived from password hash and minute bucket
+ */
+
+/**
  * Union of all **created / on-wire** {@code authProof} payloads for direct contract clients (e.g. {@link KeyVaultClient}).
  * Does not include structured {@link AuthProofInputOptions}; use that in {@link Monstera} (with {@link encodeAuthProofOptions}) before calling the client.
  * @typedef {PasswordAuthenticatorVerifyAuthProof|EncodedAuthProofWalletSignature|EncodedAuthProofDualFactor|EncodedAuthProofPasswordMinute} AuthProofOptions
