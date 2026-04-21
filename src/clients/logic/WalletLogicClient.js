@@ -17,10 +17,10 @@
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
- * @typedef {import('../../types/index.js').WalletProxyIndexSdkOptions} WalletProxyIndexSdkOptions
- * @typedef {import('../../types/index.js').WalletProxyAccountSliceSdkOptions} WalletProxyAccountSliceSdkOptions
+ * @typedef {import('../../types/index.js').WalletProxyIndexOptions} WalletProxyIndexOptions
+ * @typedef {import('../../types/index.js').WalletProxyAccountSliceOptions} WalletProxyAccountSliceOptions
  * @typedef {import('../../types/index.js').InitializeWalletLogicOptions} InitializeWalletLogicOptions
- * @typedef {import('../../types/index.js').WalletLogicUpdateKeyVaultImplSdkOptions} WalletLogicUpdateKeyVaultImplSdkOptions
+ * @typedef {import('../../types/index.js').WalletLogicUpdateKeyVaultImplOptions} WalletLogicUpdateKeyVaultImplOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -142,7 +142,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Get account address at an index from wallet
    * 
-   * @param {WalletProxyIndexSdkOptions} options - Account address options
+   * @param {WalletProxyIndexOptions} options - Account address options
    * @returns {Promise<Address>} Account address
    * @throws {ValidationError} If walletAddr is missing or invalid, or if index is invalid
    */
@@ -166,7 +166,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Get account addresses from wallet
    * 
-   * @param {WalletProxyAccountSliceSdkOptions} options - Account addresses options
+   * @param {WalletProxyAccountSliceOptions} options - Account addresses options
    * @returns {Promise<Address[]>} Array of account addresses
    * @throws {ValidationError} If walletAddr is missing or invalid, or if fromIndex/count are invalid
    */
@@ -348,7 +348,7 @@ class WalletLogicClient extends BaseContractClient {
    * 
    * @dev Delegates to KeyVault which enforces authentication.
    * 
-   * @param {WalletLogicUpdateKeyVaultImplSdkOptions} options - Update keyVault implementation options
+   * @param {WalletLogicUpdateKeyVaultImplOptions} options - Update keyVault implementation options
    * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

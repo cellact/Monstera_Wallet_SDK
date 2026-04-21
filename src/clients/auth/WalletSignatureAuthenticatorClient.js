@@ -16,10 +16,10 @@
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
  * @typedef {import('../../types/index.js').WhitelistCheckOptions} WhitelistCheckOptions
  * @typedef {import('../../types/index.js').SdkLoggingAndVersionOptions} SdkLoggingAndVersionOptions
- * @typedef {import('../../types/index.js').WalletSignatureAuthenticatorVerifySdkOptions} WalletSignatureAuthenticatorVerifySdkOptions
- * @typedef {import('../../types/index.js').WalletSignatureAddToWhitelistSdkOptions} WalletSignatureAddToWhitelistSdkOptions
- * @typedef {import('../../types/index.js').WalletSignatureAuthenticatorConfigureSdkOptions} WalletSignatureAuthenticatorConfigureSdkOptions
- * @typedef {import('../../types/index.js').WalletSignatureRemoveFromWhitelistSdkOptions} WalletSignatureRemoveFromWhitelistSdkOptions
+ * @typedef {import('../../types/index.js').WalletSignatureAuthenticatorVerifyOptions} WalletSignatureAuthenticatorVerifyOptions
+ * @typedef {import('../../types/index.js').WalletSignatureAddToWhitelistOptions} WalletSignatureAddToWhitelistOptions
+ * @typedef {import('../../types/index.js').WalletSignatureAuthenticatorConfigureOptions} WalletSignatureAuthenticatorConfigureOptions
+ * @typedef {import('../../types/index.js').WalletSignatureRemoveFromWhitelistOptions} WalletSignatureRemoveFromWhitelistOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -142,7 +142,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Verify a signature
    * 
-   * @param {WalletSignatureAuthenticatorVerifySdkOptions} options - Verify options
+   * @param {WalletSignatureAuthenticatorVerifyOptions} options - Verify options
    * @returns {Promise<boolean>} True if signature is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */ 
@@ -171,7 +171,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Add a new address to the whitelist
    * 
-   * @param {WalletSignatureAddToWhitelistSdkOptions} options - Add to whitelist options
+   * @param {WalletSignatureAddToWhitelistOptions} options - Add to whitelist options
    * @returns {Promise<AddToWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -205,7 +205,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Configure the wallet signature authenticator
    * 
-   * @param {WalletSignatureAuthenticatorConfigureSdkOptions} options - Configure options
+   * @param {WalletSignatureAuthenticatorConfigureOptions} options - Configure options
    * @returns {Promise<ConfigureWalletSignatureResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -238,7 +238,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Remove an address from the whitelist
    * 
-   * @param {WalletSignatureRemoveFromWhitelistSdkOptions} options - Remove from whitelist options
+   * @param {WalletSignatureRemoveFromWhitelistOptions} options - Remove from whitelist options
    * @returns {Promise<RemoveFromWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

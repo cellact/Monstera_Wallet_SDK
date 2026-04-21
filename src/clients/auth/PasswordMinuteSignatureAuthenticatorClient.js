@@ -14,9 +14,9 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').PasswordMinuteSignatureAuthenticatorVerifySdkOptions} PasswordMinuteSignatureAuthenticatorVerifySdkOptions
+ * @typedef {import('../../types/index.js').PasswordMinuteSignatureAuthenticatorVerifyOptions} PasswordMinuteSignatureAuthenticatorVerifyOptions
  * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
- * @typedef {import('../../types/index.js').AuthenticatorConfigurePasswordHashSdkOptions} AuthenticatorConfigurePasswordHashSdkOptions
+ * @typedef {import('../../types/index.js').AuthenticatorConfigurePasswordHashOptions} AuthenticatorConfigurePasswordHashOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -77,7 +77,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
    * {@code (passwordHash, minuteBucket)} via Sapphire, and checks
    * {@code recover(digest, signature)} matches that derived address.
    *
-   * @param {PasswordMinuteSignatureAuthenticatorVerifySdkOptions} options - Verify options
+   * @param {PasswordMinuteSignatureAuthenticatorVerifyOptions} options - Verify options
    * @returns {Promise<boolean>} True if the signature is valid for the current minute bucket
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -151,7 +151,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
    * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes,
    * the keccak256 hash of the UTF-8 password ({@code keccak256(utf8Bytes(password))}).
    *
-   * @param {AuthenticatorConfigurePasswordHashSdkOptions} options - Configure password options
+   * @param {AuthenticatorConfigurePasswordHashOptions} options - Configure password options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

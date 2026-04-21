@@ -729,11 +729,11 @@
  */
 
 /**
- * @typedef {KeyVaultClientAuthBase & { newImplAddr: Address }} KeyVaultClientUpdateKeyVaultImplSdkOptions
+ * @typedef {KeyVaultClientAuthBase & { newImplAddr: Address }} KeyVaultClientUpdateKeyVaultImplOptions
  */
 
 /**
- * @typedef {KeyVaultClientAuthBase & ImportedKeyBase} KeyVaultClientDeactivateActivateKeySdkOptions
+ * @typedef {KeyVaultClientAuthBase & ImportedKeyBase} KeyVaultClientDeactivateActivateKeyOptions
  */
 
 /**
@@ -852,19 +852,19 @@
 
 /**
  * Wallet proxy plus HD index (WalletLogic account reads).
- * @typedef {WalletProxyOptions & { index: number }} WalletProxyIndexSdkOptions
+ * @typedef {WalletProxyOptions & { index: number }} WalletProxyIndexOptions
  */
 
 /**
  * Wallet proxy plus contiguous address slice (WalletLogic account reads).
- * @typedef {WalletProxyOptions & { fromIndex: number; count: number }} WalletProxyAccountSliceSdkOptions
+ * @typedef {WalletProxyOptions & { fromIndex: number; count: number }} WalletProxyAccountSliceOptions
  */
 
 /**
  * Authenticated KeyVault implementation upgrade via WalletLogic proxy.
  * {@code authProof} is opaque bytes for the wallet's authenticator (contract validates). Typical layouts:
  * {@link EncodedAuthProofDualFactor}, {@link EncodedAuthProofWalletSignature}, {@link EncodedAuthProofPasswordMinute}, or {@link PasswordAuthenticatorVerifyAuthProof} (raw UTF-8) for password-only flows — match your vault's authenticator.
- * @typedef {WalletProxyOptions & { authProof: Bytes; newImplAddr: Address }} WalletLogicUpdateKeyVaultImplSdkOptions
+ * @typedef {WalletProxyOptions & { authProof: Bytes; newImplAddr: Address }} WalletLogicUpdateKeyVaultImplOptions
  */
 
 /**
@@ -955,52 +955,52 @@
 
 /**
  * {@code PasswordAuthenticator.verify} — expects raw UTF-8 password bytes ({@link PasswordAuthenticatorVerifyAuthProof}), not ABI-encoded.
- * @typedef {KeyVaultAddrOptions & { authProof: PasswordAuthenticatorVerifyAuthProof }} PasswordAuthenticatorVerifySdkOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: PasswordAuthenticatorVerifyAuthProof }} PasswordAuthenticatorVerifyOptions
  */
 
 /**
  * {@code PasswordMinuteSignatureAuthenticator.verify} — expects {@link EncodedAuthProofPasswordMinute}.
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordMinute }} PasswordMinuteSignatureAuthenticatorVerifySdkOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordMinute }} PasswordMinuteSignatureAuthenticatorVerifyOptions
  */
 
 /**
  * {@code WalletSignatureAuthenticator.verify} — expects {@link EncodedAuthProofWalletSignature}.
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature }} WalletSignatureAuthenticatorVerifySdkOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature }} WalletSignatureAuthenticatorVerifyOptions
  */
 
 /**
  * {@code DualFactorAuthenticator.verify} — expects {@link EncodedAuthProofDualFactor}.
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor }} DualFactorAuthenticatorVerifySdkOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor }} DualFactorAuthenticatorVerifyOptions
  */
 
 /**
  * {@code IAuthenticator.configure} with fixed 32-byte {@code authConfig} (password hash authenticators).
- * @typedef {KeyVaultAddrOptions & { authConfig: Bytes32 }} AuthenticatorConfigurePasswordHashSdkOptions
+ * @typedef {KeyVaultAddrOptions & { authConfig: Bytes32 }} AuthenticatorConfigurePasswordHashOptions
  */
 
 /**
  * {@code IAuthenticator.configure} with opaque variable-length {@code authConfig} bytes (wallet signature whitelist encoding, dual-factor ABI tuple, etc.).
- * @typedef {KeyVaultAddrOptions & { authConfig: Bytes }} AuthenticatorConfigureVariableBytesSdkOptions
+ * @typedef {KeyVaultAddrOptions & { authConfig: Bytes }} AuthenticatorConfigureVariableBytesOptions
  */
 
-/** @typedef {AuthenticatorConfigureVariableBytesSdkOptions} WalletSignatureAuthenticatorConfigureSdkOptions */
+/** @typedef {AuthenticatorConfigureVariableBytesOptions} WalletSignatureAuthenticatorConfigureOptions */
 
-/** @typedef {AuthenticatorConfigureVariableBytesSdkOptions} DualFactorAuthenticatorConfigureSdkOptions */
-
-/**
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToAdd: Address }} WalletSignatureAddToWhitelistSdkOptions
- */
+/** @typedef {AuthenticatorConfigureVariableBytesOptions} DualFactorAuthenticatorConfigureOptions */
 
 /**
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToRemove: Address }} WalletSignatureRemoveFromWhitelistSdkOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToAdd: Address }} WalletSignatureAddToWhitelistOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor; newPasswordHash: Bytes32 }} DualFactorAuthenticatorUpdatePasswordSdkOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToRemove: Address }} WalletSignatureRemoveFromWhitelistOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor; newGuardian: Address }} DualFactorAuthenticatorUpdateGuardianSdkOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor; newPasswordHash: Bytes32 }} DualFactorAuthenticatorUpdatePasswordOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor; newGuardian: Address }} DualFactorAuthenticatorUpdateGuardianOptions
  */
 
 // ============================================================================

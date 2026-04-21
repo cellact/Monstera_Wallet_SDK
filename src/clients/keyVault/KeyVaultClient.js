@@ -28,8 +28,8 @@
  * @typedef {import('../../types/index.js').KeyVaultAccountSliceOptions} KeyVaultAccountSliceOptions
  * @typedef {import('../../types/index.js').KeyVaultImportedKeyOptions} KeyVaultImportedKeyOptions
  * @typedef {import('../../types/index.js').KeyVaultClientExecuteWithAuthOptions} KeyVaultClientExecuteWithAuthOptions
- * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplSdkOptions} KeyVaultClientUpdateKeyVaultImplSdkOptions
- * @typedef {import('../../types/index.js').KeyVaultClientDeactivateActivateKeySdkOptions} KeyVaultClientDeactivateActivateKeySdkOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplOptions} KeyVaultClientUpdateKeyVaultImplOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientDeactivateActivateKeyOptions} KeyVaultClientDeactivateActivateKeyOptions
  * @typedef {import('../../types/index.js').ImportKeyResult} ImportKeyResult
  * @typedef {import('../../types/index.js').DeactivateKeyResult} DeactivateKeyResult
  * @typedef {import('../../types/index.js').ActivateKeyResult} ActivateKeyResult
@@ -529,7 +529,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Update the keyVaultImplementation contract address (authenticated function)
    * 
-   * @param {KeyVaultClientUpdateKeyVaultImplSdkOptions} options - Update keyVaultImplementation options
+   * @param {KeyVaultClientUpdateKeyVaultImplOptions} options - Update keyVaultImplementation options
    * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -632,7 +632,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Deactivate an imported key (V2, soft delete)
    *
-   * @param {KeyVaultClientDeactivateActivateKeySdkOptions} options - Deactivate key options
+   * @param {KeyVaultClientDeactivateActivateKeyOptions} options - Deactivate key options
    * @returns {Promise<DeactivateKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -665,7 +665,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Reactivate a previously deactivated key (V2)
    *
-   * @param {KeyVaultClientDeactivateActivateKeySdkOptions} options - Activate key options
+   * @param {KeyVaultClientDeactivateActivateKeyOptions} options - Activate key options
    * @returns {Promise<ActivateKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

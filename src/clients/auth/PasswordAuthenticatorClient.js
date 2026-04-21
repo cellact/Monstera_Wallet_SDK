@@ -13,9 +13,9 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').PasswordAuthenticatorVerifySdkOptions} PasswordAuthenticatorVerifySdkOptions
+ * @typedef {import('../../types/index.js').PasswordAuthenticatorVerifyOptions} PasswordAuthenticatorVerifyOptions
  * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
- * @typedef {import('../../types/index.js').AuthenticatorConfigurePasswordHashSdkOptions} AuthenticatorConfigurePasswordHashSdkOptions
+ * @typedef {import('../../types/index.js').AuthenticatorConfigurePasswordHashOptions} AuthenticatorConfigurePasswordHashOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -69,7 +69,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Verify password using valid password auth proof
    * 
-   * @param {PasswordAuthenticatorVerifySdkOptions} options - Verify password options
+   * @param {PasswordAuthenticatorVerifyOptions} options - Verify password options
    * @returns {Promise<boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -143,7 +143,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
    * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes
    * ({@code keccak256} of UTF-8 password bytes).
    *
-   * @param {AuthenticatorConfigurePasswordHashSdkOptions} options - Configure password options
+   * @param {AuthenticatorConfigurePasswordHashOptions} options - Configure password options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
