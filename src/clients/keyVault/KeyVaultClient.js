@@ -24,10 +24,10 @@
  * @typedef {import('../../types/index.js').KeyVaultClientImportKeyOptions} KeyVaultClientImportKeyOptions
  * @typedef {import('../../types/index.js').KeyVaultClientSetChainBaseKeysOptions} KeyVaultClientSetChainBaseKeysOptions
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').KeyVaultAddrIndexSdkOptions} KeyVaultAddrIndexSdkOptions
- * @typedef {import('../../types/index.js').KeyVaultAccountSliceSdkOptions} KeyVaultAccountSliceSdkOptions
- * @typedef {import('../../types/index.js').KeyVaultImportedKeySdkOptions} KeyVaultImportedKeySdkOptions
- * @typedef {import('../../types/index.js').KeyVaultClientExecuteWithAuthSdkOptions} KeyVaultClientExecuteWithAuthSdkOptions
+ * @typedef {import('../../types/index.js').KeyVaultAddrIndexOptions} KeyVaultAddrIndexOptions
+ * @typedef {import('../../types/index.js').KeyVaultAccountSliceOptions} KeyVaultAccountSliceOptions
+ * @typedef {import('../../types/index.js').KeyVaultImportedKeyOptions} KeyVaultImportedKeyOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientExecuteWithAuthOptions} KeyVaultClientExecuteWithAuthOptions
  * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplSdkOptions} KeyVaultClientUpdateKeyVaultImplSdkOptions
  * @typedef {import('../../types/index.js').KeyVaultClientDeactivateActivateKeySdkOptions} KeyVaultClientDeactivateActivateKeySdkOptions
  * @typedef {import('../../types/index.js').ImportKeyResult} ImportKeyResult
@@ -160,7 +160,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Get one of a wallet's account addresses for a given index
    * 
-   * @param {KeyVaultAddrIndexSdkOptions} options - Get account address options
+   * @param {KeyVaultAddrIndexOptions} options - Get account address options
    * @returns {Promise<Address>} Account address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if index is invalid
    */
@@ -184,7 +184,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Get multiple account addresses from a wallet for a given range of indexes
    * 
-   * @param {KeyVaultAccountSliceSdkOptions} options - Get account addresses options
+   * @param {KeyVaultAccountSliceOptions} options - Get account addresses options
    * @returns {Promise<Address[]>} Array of account addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if fromIndex/count are invalid
    */
@@ -293,7 +293,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Execute a function with an auth proof (authenticated function)
    * 
-   * @param {KeyVaultClientExecuteWithAuthSdkOptions} options - Execute function options
+   * @param {KeyVaultClientExecuteWithAuthOptions} options - Execute function options
    * @returns {Promise<Bytes>} Execute function result (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -344,7 +344,7 @@ class KeyVaultClient extends BaseContractClient {
    * 
    * @dev Returns curve, chain, active status, etc. Not the private key.
    *
-   * @param {KeyVaultImportedKeySdkOptions} options - Get key metadata options
+   * @param {KeyVaultImportedKeyOptions} options - Get key metadata options
    * @returns {Promise<KeyMetadataResult>} Key metadata (curve, chain, active, labelHash)
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -369,7 +369,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Check if a key exists (V2)
    *
-   * @param {KeyVaultImportedKeySdkOptions} options - Key exists options
+   * @param {KeyVaultImportedKeyOptions} options - Key exists options
    * @returns {Promise<boolean>} True if key exists, false otherwise
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -421,7 +421,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Get the address for an imported key (V2)
    *
-   * @param {KeyVaultImportedKeySdkOptions} options - Get imported key address options
+   * @param {KeyVaultImportedKeyOptions} options - Get imported key address options
    * @returns {Promise<Bytes>} Address (Ethereum address, Solana pubkey, etc. as bytes)
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -446,7 +446,7 @@ class KeyVaultClient extends BaseContractClient {
   /**
    * Get Solana address at HD index (V2)
    *
-   * @param {KeyVaultAddrIndexSdkOptions} options - Get Solana address options
+   * @param {KeyVaultAddrIndexOptions} options - Get Solana address options
    * @returns {Promise<Bytes>} Solana public key (bytes)
    * @throws {ValidationError} If keyVaultAddr or index is missing or invalid
    */

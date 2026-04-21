@@ -14,7 +14,7 @@
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
  * @typedef {import('../../types/index.js').PasswordAuthenticatorVerifySdkOptions} PasswordAuthenticatorVerifySdkOptions
- * @typedef {import('../../types/index.js').MonsteraUpdatePasswordSdkOptions} MonsteraUpdatePasswordSdkOptions
+ * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
  * @typedef {import('../../types/index.js').AuthenticatorConfigurePasswordHashSdkOptions} AuthenticatorConfigurePasswordHashSdkOptions
  */
 
@@ -98,7 +98,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   /**
    * Update the password of a wallet
    * 
-   * @param {MonsteraUpdatePasswordSdkOptions} options - Update password options
+   * @param {UpdatePasswordOptions} options - Update password options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

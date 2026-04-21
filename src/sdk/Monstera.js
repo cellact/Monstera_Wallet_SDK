@@ -49,27 +49,27 @@
  * @typedef {import('../types/index.js').AuthConfigContext} AuthConfigContext
  * @typedef {import('../types/index.js').CreateAuthProofDualFactorOptions} CreateAuthProofDualFactorOptions
  * @typedef {import('../types/index.js').ChainId} ChainId
- * @typedef {import('../types/index.js').ExecuteWithAuthSdkOptions} ExecuteWithAuthSdkOptions
- * @typedef {import('../types/index.js').InitializeWalletLogicSdkOptions} InitializeWalletLogicSdkOptions
- * @typedef {import('../types/index.js').KeyVaultAccountSliceSdkOptions} KeyVaultAccountSliceSdkOptions
- * @typedef {import('../types/index.js').KeyVaultAddrIndexSdkOptions} KeyVaultAddrIndexSdkOptions
+ * @typedef {import('../types/index.js').ExecuteWithAuthOptions} ExecuteWithAuthOptions
+ * @typedef {import('../types/index.js').InitializeWalletLogicOptions} InitializeWalletLogicOptions
+ * @typedef {import('../types/index.js').KeyVaultAccountSliceOptions} KeyVaultAccountSliceOptions
+ * @typedef {import('../types/index.js').KeyVaultAddrIndexOptions} KeyVaultAddrIndexOptions
  * @typedef {import('../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../types/index.js').KeyVaultImportedKeySdkOptions} KeyVaultImportedKeySdkOptions
- * @typedef {import('../types/index.js').MonsteraAddWhitelistSdkOptions} MonsteraAddWhitelistSdkOptions
- * @typedef {import('../types/index.js').MonsteraConfigureDualFactorSdkOptions} MonsteraConfigureDualFactorSdkOptions
- * @typedef {import('../types/index.js').MonsteraConfigurePasswordHashOptions} MonsteraConfigurePasswordHashOptions
- * @typedef {import('../types/index.js').MonsteraConfigurePasswordMinuteSdkOptions} MonsteraConfigurePasswordMinuteSdkOptions
- * @typedef {import('../types/index.js').MonsteraConfigureWalletSignatureSdkOptions} MonsteraConfigureWalletSignatureSdkOptions
- * @typedef {import('../types/index.js').MonsteraDeactivateActivateKeySdkOptions} MonsteraDeactivateActivateKeySdkOptions
- * @typedef {import('../types/index.js').MonsteraRemoveWhitelistSdkOptions} MonsteraRemoveWhitelistSdkOptions
- * @typedef {import('../types/index.js').MonsteraTransferAdminSdkOptions} MonsteraTransferAdminSdkOptions
- * @typedef {import('../types/index.js').MonsteraUpdateGuardianSdkOptions} MonsteraUpdateGuardianSdkOptions
- * @typedef {import('../types/index.js').MonsteraUpdateKeyVaultImplSdkOptions} MonsteraUpdateKeyVaultImplSdkOptions
- * @typedef {import('../types/index.js').MonsteraUpdatePasswordDualFactorSdkOptions} MonsteraUpdatePasswordDualFactorSdkOptions
- * @typedef {import('../types/index.js').MonsteraUpdatePasswordSdkOptions} MonsteraUpdatePasswordSdkOptions
- * @typedef {import('../types/index.js').MonsteraUpdateWalletLogicImplSdkOptions} MonsteraUpdateWalletLogicImplSdkOptions
- * @typedef {import('../types/index.js').MonsteraVerifyPasswordSdkOptions} MonsteraVerifyPasswordSdkOptions
- * @typedef {import('../types/index.js').MonsteraWhitelistCheckSdkOptions} MonsteraWhitelistCheckSdkOptions
+ * @typedef {import('../types/index.js').KeyVaultImportedKeyOptions} KeyVaultImportedKeyOptions
+ * @typedef {import('../types/index.js').AddWhitelistOptions} AddWhitelistOptions
+ * @typedef {import('../types/index.js').ConfigureDualFactorOptions} ConfigureDualFactorOptions
+ * @typedef {import('../types/index.js').ConfigurePasswordOptions} ConfigurePasswordOptions
+ * @typedef {import('../types/index.js').ConfigurePasswordMinuteOptions} ConfigurePasswordMinuteOptions
+ * @typedef {import('../types/index.js').ConfigureWalletSignatureOptions} ConfigureWalletSignatureOptions
+ * @typedef {import('../types/index.js').DeactivateActivateKeyOptions} DeactivateActivateKeyOptions
+ * @typedef {import('../types/index.js').RemoveWhitelistOptions} RemoveWhitelistOptions
+ * @typedef {import('../types/index.js').TransferAdminOptions} TransferAdminOptions
+ * @typedef {import('../types/index.js').UpdateGuardianOptions} UpdateGuardianOptions
+ * @typedef {import('../types/index.js').UpdateKeyVaultImplOptions} UpdateKeyVaultImplOptions
+ * @typedef {import('../types/index.js').UpdatePasswordDualFactorOptions} UpdatePasswordDualFactorOptions
+ * @typedef {import('../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
+ * @typedef {import('../types/index.js').UpdateWalletLogicImplOptions} UpdateWalletLogicImplOptions
+ * @typedef {import('../types/index.js').VerifyPasswordOptions} VerifyPasswordOptions
+ * @typedef {import('../types/index.js').WhitelistCheckOptions} WhitelistCheckOptions
  * @typedef {import('../types/index.js').WalletProxyOptions} WalletProxyOptions
  * @typedef {import('../types/index.js').ImportKeyResult} ImportKeyResult
  * @typedef {import('../types/index.js').DeactivateKeyResult} DeactivateKeyResult
@@ -473,7 +473,7 @@ class Monstera {
   /**
    * Initialize a wallet logic with a new keyVault 
    * 
-   * @param {InitializeWalletLogicSdkOptions} options
+   * @param {InitializeWalletLogicOptions} options
    * @returns {Promise<BaseTransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -490,7 +490,7 @@ class Monstera {
   /**
    * Configure password
    * 
-   * @param {MonsteraConfigurePasswordHashOptions} options
+   * @param {ConfigurePasswordOptions} options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -508,7 +508,7 @@ class Monstera {
   /**
    * Configure the wallet signature authenticator
    * 
-   * @param {MonsteraConfigureWalletSignatureSdkOptions} options
+   * @param {ConfigureWalletSignatureOptions} options
    * @returns {Promise<ConfigureWalletSignatureResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -526,7 +526,7 @@ class Monstera {
   /**
    * Configure password dual factor
    * 
-   * @param {MonsteraConfigureDualFactorSdkOptions} options
+   * @param {ConfigureDualFactorOptions} options
    * @returns {Promise<ConfigurePasswordDualFactorResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -544,7 +544,7 @@ class Monstera {
   /**
    * Configure password minute signature
    * 
-   * @param {MonsteraConfigurePasswordMinuteSdkOptions} options
+   * @param {ConfigurePasswordMinuteOptions} options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -808,7 +808,7 @@ class Monstera {
   /**
    * Get one of a wallet's account addresses for a given index
    * 
-   * @param {KeyVaultAddrIndexSdkOptions} options
+   * @param {KeyVaultAddrIndexOptions} options
    * @returns {Promise<Address>} Account address
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if index is invalid
    */
@@ -819,7 +819,7 @@ class Monstera {
   /**
    * Get multiple account addresses from a wallet for a given range of indexes
    * 
-   * @param {KeyVaultAccountSliceSdkOptions} options
+   * @param {KeyVaultAccountSliceOptions} options
    * @returns {Promise<Address[]>} Array of account addresses
    * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if fromIndex/count are invalid
    */
@@ -871,7 +871,7 @@ class Monstera {
   /**
    * Execute a function with an auth proof (authenticated function)
    * 
-   * @param {ExecuteWithAuthSdkOptions} options
+   * @param {ExecuteWithAuthOptions} options
    * @returns {Promise<Bytes>} Execute function result (bytes)
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -895,7 +895,7 @@ class Monstera {
   /**
    * Get metadata for an imported key (V2)
    *
-   * @param {KeyVaultImportedKeySdkOptions} options
+   * @param {KeyVaultImportedKeyOptions} options
    * @returns {Promise<KeyMetadataResult>} Key metadata (curve, chain, active, labelHash)
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -906,7 +906,7 @@ class Monstera {
   /**
    * Check if a key exists (V2)
    *
-   * @param {KeyVaultImportedKeySdkOptions} options
+   * @param {KeyVaultImportedKeyOptions} options
    * @returns {Promise<boolean>} True if key exists, false otherwise
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -930,7 +930,7 @@ class Monstera {
   /**
    * Get the address for an imported key (V2)
    *
-   * @param {KeyVaultImportedKeySdkOptions} options
+   * @param {KeyVaultImportedKeyOptions} options
    * @returns {Promise<Bytes>} Address (Ethereum address, Solana pubkey, etc. as bytes)
    * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
    */
@@ -941,7 +941,7 @@ class Monstera {
   /**
    * Get Solana address at HD index (V2)
    *
-   * @param {KeyVaultAddrIndexSdkOptions} options
+   * @param {KeyVaultAddrIndexOptions} options
    * @returns {Promise<Bytes>} Solana public key (bytes)
    * @throws {ValidationError} If keyVaultAddr or index is missing or invalid
    */
@@ -978,7 +978,7 @@ class Monstera {
   /**
    * Verify password
    * 
-   * @param {MonsteraVerifyPasswordSdkOptions} options
+   * @param {VerifyPasswordOptions} options
    * @returns {Promise<boolean>} True if password is valid, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -1004,7 +1004,7 @@ class Monstera {
   /**
    * Check if an address is whitelisted for a wallet
    * 
-   * @param {MonsteraWhitelistCheckSdkOptions} options
+   * @param {WhitelistCheckOptions} options
    * @returns {Promise<boolean>} True if address is whitelisted, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -1132,7 +1132,7 @@ class Monstera {
    * 
    * This updates the orchestration layer, not the key security.
    * 
-   * @param {MonsteraUpdateWalletLogicImplSdkOptions} options
+   * @param {UpdateWalletLogicImplOptions} options
    * @returns {Promise<UpdateWalletLogicImplAddrResult>}
    * @throws {ValidationError} If newLogicAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1146,7 +1146,7 @@ class Monstera {
   /**
    * Transfer admin ownership role to a new address (Admin function)
    * 
-   * @param {MonsteraTransferAdminSdkOptions} options
+   * @param {TransferAdminOptions} options
    * @returns {Promise<TransferAdminResult>}
    * @throws {ValidationError} If newAdminAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1161,7 +1161,7 @@ class Monstera {
   /**
    * Update the keyVaultImplementation contract address (authenticated function)
    * 
-   * @param {MonsteraUpdateKeyVaultImplSdkOptions} options
+   * @param {UpdateKeyVaultImplOptions} options
    * @returns {Promise<UpdateKeyVaultImplAddrResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1209,7 +1209,7 @@ class Monstera {
   /**
    * Deactivate an imported key (V2, soft delete)
    *
-   * @param {MonsteraDeactivateActivateKeySdkOptions} options
+   * @param {DeactivateActivateKeyOptions} options
    * @returns {Promise<DeactivateKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1225,7 +1225,7 @@ class Monstera {
   /**
    * Reactivate a previously deactivated key (V2)
    *
-   * @param {MonsteraDeactivateActivateKeySdkOptions} options
+   * @param {DeactivateActivateKeyOptions} options
    * @returns {Promise<ActivateKeyResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1258,7 +1258,7 @@ class Monstera {
   /**
    * Update the password of a wallet
    * 
-   * @param {MonsteraUpdatePasswordSdkOptions} options
+   * @param {UpdatePasswordOptions} options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1272,7 +1272,7 @@ class Monstera {
   /**
    * Add a new address to the whitelist
    * 
-   * @param {MonsteraAddWhitelistSdkOptions} options
+   * @param {AddWhitelistOptions} options
    * @returns {Promise<AddToWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1287,7 +1287,7 @@ class Monstera {
   /**
    * Remove an address from the whitelist
    * 
-   * @param {MonsteraRemoveWhitelistSdkOptions} options
+   * @param {RemoveWhitelistOptions} options
    * @returns {Promise<RemoveFromWhitelistResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1302,7 +1302,7 @@ class Monstera {
   /**
    * Update password hash (dual-factor auth required).
    *
-   * @param {MonsteraUpdatePasswordDualFactorSdkOptions} options
+   * @param {UpdatePasswordDualFactorOptions} options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1317,7 +1317,7 @@ class Monstera {
   /**
    * Update guardian (dual-factor auth required).
    *
-   * @param {MonsteraUpdateGuardianSdkOptions} options
+   * @param {UpdateGuardianOptions} options
    * @returns {Promise<UpdateGuardianResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -1332,7 +1332,7 @@ class Monstera {
   /**
    * Update password hash (current password bytes must match stored hash).
    *
-   * @param {MonsteraUpdatePasswordSdkOptions} options
+   * @param {UpdatePasswordOptions} options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

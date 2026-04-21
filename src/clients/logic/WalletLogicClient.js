@@ -19,7 +19,7 @@
  * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
  * @typedef {import('../../types/index.js').WalletProxyIndexSdkOptions} WalletProxyIndexSdkOptions
  * @typedef {import('../../types/index.js').WalletProxyAccountSliceSdkOptions} WalletProxyAccountSliceSdkOptions
- * @typedef {import('../../types/index.js').InitializeWalletLogicSdkOptions} InitializeWalletLogicSdkOptions
+ * @typedef {import('../../types/index.js').InitializeWalletLogicOptions} InitializeWalletLogicOptions
  * @typedef {import('../../types/index.js').WalletLogicUpdateKeyVaultImplSdkOptions} WalletLogicUpdateKeyVaultImplSdkOptions
  */
 
@@ -285,7 +285,7 @@ class WalletLogicClient extends BaseContractClient {
   /**
    * Initialize a wallet logic with a new keyVault 
    * 
-   * @param {InitializeWalletLogicSdkOptions} options - Initialize wallet logic options
+   * @param {InitializeWalletLogicOptions} options - Initialize wallet logic options
    * @returns {Promise<BaseTransactionResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

@@ -23,8 +23,8 @@
  * @typedef {import('../../types/index.js').CreateWalletFactoryWithHookOptions} CreateWalletFactoryWithHookOptions
  * @typedef {import('../../types/index.js').CreateWalletFactoryWithCustomLogicOptions} CreateWalletFactoryWithCustomLogicOptions
  * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
- * @typedef {import('../../types/index.js').MonsteraUpdateWalletLogicImplSdkOptions} MonsteraUpdateWalletLogicImplSdkOptions
- * @typedef {import('../../types/index.js').MonsteraTransferAdminSdkOptions} MonsteraTransferAdminSdkOptions
+ * @typedef {import('../../types/index.js').UpdateWalletLogicImplOptions} UpdateWalletLogicImplOptions
+ * @typedef {import('../../types/index.js').TransferAdminOptions} TransferAdminOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -473,7 +473,7 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * This updates the orchestration layer, not the key security.
    * 
-   * @param {MonsteraUpdateWalletLogicImplSdkOptions} options - Update logic options
+   * @param {UpdateWalletLogicImplOptions} options - Update logic options
    * @returns {Promise<UpdateWalletLogicImplAddrResult>}
    * @throws {ValidationError} If newLogicAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -504,7 +504,7 @@ class WalletFactoryClient extends BaseContractClient {
   /**
    * Transfer admin ownership role to a new address (Admin function)
    * 
-   * @param {MonsteraTransferAdminSdkOptions} options - Transfer admin options
+   * @param {TransferAdminOptions} options - Transfer admin options
    * @returns {Promise<TransferAdminResult>}
    * @throws {ValidationError} If newAdminAddr is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

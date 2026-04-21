@@ -341,7 +341,6 @@
  */
 
 /**
- * Options shared by createWalletWithHook and createWalletWithCustomLogic.
  * @typedef {Object} CreateWalletBaseOptions
  * @property {CreateWalletStructuredAuthConfig} authConfig - Structured auth config options
  * @property {Address} [authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
@@ -726,7 +725,7 @@
  */
 
 /**
- * @typedef {KeyVaultClientAuthBase & { implCall: Bytes }} KeyVaultClientExecuteWithAuthSdkOptions
+ * @typedef {KeyVaultClientAuthBase & { implCall: Bytes }} KeyVaultClientExecuteWithAuthOptions
  */
 
 /**
@@ -873,85 +872,85 @@
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & WalletProxyOptions } InitializeWalletLogicSdkOptions
+ * @typedef {KeyVaultAddrOptions & WalletProxyOptions } InitializeWalletLogicOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { passwordHash: Bytes32 }} MonsteraConfigurePasswordHashOptions
+ * @typedef {KeyVaultAddrOptions & { passwordHash: Bytes32 }} ConfigurePasswordOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { initialWhitelist: Address[] }} MonsteraConfigureWalletSignatureSdkOptions
+ * @typedef {KeyVaultAddrOptions & { initialWhitelist: Address[] }} ConfigureWalletSignatureOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { passwordHash: Bytes32; guardianAddr: Address }} MonsteraConfigureDualFactorSdkOptions
+ * @typedef {KeyVaultAddrOptions & { passwordHash: Bytes32; guardianAddr: Address }} ConfigureDualFactorOptions
  */
 
 /**
- * @typedef {MonsteraConfigurePasswordHashOptions} MonsteraConfigurePasswordMinuteSdkOptions
+ * @typedef {ConfigurePasswordOptions} ConfigurePasswordMinuteOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { index: number }} KeyVaultAddrIndexSdkOptions
+ * @typedef {KeyVaultAddrOptions & { index: number }} KeyVaultAddrIndexOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { fromIndex: number; count: number }} KeyVaultAccountSliceSdkOptions
+ * @typedef {KeyVaultAddrOptions & { fromIndex: number; count: number }} KeyVaultAccountSliceOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & ImportedKeyBase} KeyVaultImportedKeySdkOptions
+ * @typedef {KeyVaultAddrOptions & ImportedKeyBase} KeyVaultImportedKeyOptions
  */
 
 /**
- * @typedef {KeyVaultAuthBase & { implCall: Bytes }} ExecuteWithAuthSdkOptions
+ * @typedef {KeyVaultAuthBase & { implCall: Bytes }} ExecuteWithAuthOptions
  */
 
 /**
- * @typedef {KeyVaultAuthBase & { newImplAddr: Address }} MonsteraUpdateKeyVaultImplSdkOptions
+ * @typedef {KeyVaultAuthBase & { newImplAddr: Address }} UpdateKeyVaultImplOptions
  */
 
 /**
- * @typedef {KeyVaultAuthBase & ImportedKeyBase} MonsteraDeactivateActivateKeySdkOptions
+ * @typedef {KeyVaultAuthBase & ImportedKeyBase} DeactivateActivateKeyOptions
  */
 
 /**
- * @typedef {{ newLogicAddr: Address }} MonsteraUpdateWalletLogicImplSdkOptions
+ * @typedef {{ newLogicAddr: Address }} UpdateWalletLogicImplOptions
  */
 
 /**
- * @typedef {{ newAdminAddr: Address }} MonsteraTransferAdminSdkOptions
+ * @typedef {{ newAdminAddr: Address }} TransferAdminOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array }} MonsteraVerifyPasswordSdkOptions
+ * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array }} VerifyPasswordOptions
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { addressToCheck: Address }} MonsteraWhitelistCheckSdkOptions
+ * @typedef {KeyVaultAddrOptions & { addressToCheck: Address }} WhitelistCheckOptions
  */
 
 /**
- * @typedef {CreateAuthProofWalletSignatureOptions & { addressToAdd: Address }} MonsteraAddWhitelistSdkOptions
+ * @typedef {CreateAuthProofWalletSignatureOptions & { addressToAdd: Address }} AddWhitelistOptions
  */
 
 /**
- * @typedef {CreateAuthProofWalletSignatureOptions & { addressToRemove: Address }} MonsteraRemoveWhitelistSdkOptions
+ * @typedef {CreateAuthProofWalletSignatureOptions & { addressToRemove: Address }} RemoveWhitelistOptions
  */
 
 /**
- * @typedef {CreateAuthProofDualFactorOptions & { newPasswordHash: Bytes32 }} MonsteraUpdatePasswordDualFactorSdkOptions
+ * @typedef {CreateAuthProofDualFactorOptions & { newPasswordHash: Bytes32 }} UpdatePasswordDualFactorOptions
  */
 
 /**
- * @typedef {CreateAuthProofDualFactorOptions & { newGuardian: Address }} MonsteraUpdateGuardianSdkOptions
+ * @typedef {CreateAuthProofDualFactorOptions & { newGuardian: Address }} UpdateGuardianOptions
  */
 
 /**
  * currentPassword is raw password bytes (utf8 password bytes)
  * newPasswordHash is the new password hash (bytes32)
- * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array; newPasswordHash: Bytes32 }} MonsteraUpdatePasswordSdkOptions
+ * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array; newPasswordHash: Bytes32 }} UpdatePasswordOptions
  */
 
 /**

@@ -14,7 +14,7 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').MonsteraWhitelistCheckSdkOptions} MonsteraWhitelistCheckSdkOptions
+ * @typedef {import('../../types/index.js').WhitelistCheckOptions} WhitelistCheckOptions
  * @typedef {import('../../types/index.js').SdkLoggingAndVersionOptions} SdkLoggingAndVersionOptions
  * @typedef {import('../../types/index.js').WalletSignatureAuthenticatorVerifySdkOptions} WalletSignatureAuthenticatorVerifySdkOptions
  * @typedef {import('../../types/index.js').WalletSignatureAddToWhitelistSdkOptions} WalletSignatureAddToWhitelistSdkOptions
@@ -73,7 +73,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   /**
    * Check if an address is whitelisted for a wallet
    * 
-   * @param {MonsteraWhitelistCheckSdkOptions} options - Is whitelisted options
+   * @param {WhitelistCheckOptions} options - Is whitelisted options
    * @returns {Promise<boolean>} True if address is whitelisted, false otherwise
    * @throws {ValidationError} If required parameters are missing or invalid
    */
