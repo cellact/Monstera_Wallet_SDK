@@ -299,9 +299,7 @@
 /**
  * Options shared by createWalletWithHook and createWalletWithCustomLogic.
  * @typedef {Object} CreateWalletBaseOptions
- * @property {Bytes|CreateWalletStructuredAuthConfig} authConfig -
- *   Hex-encoded authenticator config bytes, or a plain object when using a built-in {@code authenticatorAddr}
- *   from {@link Monstera#addresses} (SDK encodes to bytes).
+ * @property {CreateWalletStructuredAuthConfig} authConfig - Structured auth config options
  * @property {Address} [authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
  */
 

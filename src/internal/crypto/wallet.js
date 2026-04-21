@@ -12,6 +12,8 @@
  * @typedef {import('../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
  * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
  * @typedef {import('../../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
+ * @typedef {import('../../types/index.js').CreateWalletDualFactorAuthConfig} CreateWalletDualFactorAuthConfig
+ * @typedef {import('../../types/index.js').CreateWalletWalletSignatureAuthConfig} CreateWalletWalletSignatureAuthConfig
  */
 
 import crypto from 'crypto';
@@ -77,7 +79,7 @@ function hashPassword(password) {
 
 /**
  * Creates a wallet signature auth config from whitelist
- * @param {Address[]} whitelist - Array of whitelisted addresses
+ * @param {CreateWalletWalletSignatureAuthConfig}
  * @returns {Bytes} ABI-encoded {@code address[]} auth config (hex)
  * @throws {ValidationError} If whitelist is not an array or contains invalid addresses
  */
@@ -91,8 +93,7 @@ function createWalletSigAuthConfig(whitelist) {
 
 /**
  * Create dual factor auth config
- * @param {Bytes32} passwordHash - Password hash
- * @param {Address} guardianAddr - Guardian address
+ * @param {CreateWalletDualFactorAuthConfig}
  * @returns {Bytes} ABI-encoded {@code (bytes32,address)} auth config (hex)
  * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string or guardianAddr is not a valid address or signer is not a Wallet or HDNodeWallet
  */
