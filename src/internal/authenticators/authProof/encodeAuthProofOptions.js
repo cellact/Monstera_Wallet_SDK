@@ -2,7 +2,7 @@
  * Resolve structured {@code authProof} objects to bytes for KeyVault authenticated calls
  * using the on-chain authenticator for {@code keyVaultAddr}.
  *
- * @typedef {import('../../../types/index.js').KeyVaultAuthProofPrepareContext} KeyVaultAuthProofPrepareContext
+ * @typedef {import('../../../types/index.js').AuthProofContext} AuthProofContext
  * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsInput} EncodeAuthProofOptionsInput
  * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
  * @typedef {import('../../../types/index.js').KeyVaultStructuredAuthProofInput} KeyVaultStructuredAuthProofInput
@@ -14,7 +14,7 @@ import log from '../../logger.js';
 import { createKeyVaultAuthProofEncoderRegistry } from './registry.js';
 
 /**
- * @param {KeyVaultAuthProofPrepareContext} ctx
+ * @param {AuthProofContext} ctx
  * @param {EncodeAuthProofOptionsInput} options - KeyVault call options (must include {@code keyVaultAddr} when {@code authProof} is a structured object)
  * @returns {Promise<EncodeAuthProofOptionsResult>}
  */

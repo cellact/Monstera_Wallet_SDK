@@ -440,11 +440,18 @@
 /**
  * Context passed into {@code encodeAuthProofOptions} before the on-chain authenticator address is resolved.
  *
- * @typedef {Object} KeyVaultAuthProofPrepareContext
+ * @typedef {Object} AuthProofContext
  * @property {ContractAddresses} addresses
  * @property {ChainId} chainId
  * @property {EthersAbstractProvider} readProvider
  * @property {(keyVaultAddr: Address) => Promise<Address>} getAuthenticatorAddr
+ */
+
+/**
+ * Context passed into {@link encodeAuthConfigOptions} for built-in authenticator resolution (registry keyed by contract addresses).
+ *
+ * @typedef {Object} AuthConfigContext
+ * @property {ContractAddresses} addresses
  */
 
 /**

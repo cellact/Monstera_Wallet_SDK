@@ -3,14 +3,11 @@
  * structured {@code authConfig} objects are encoded via the built-in authenticator registry to {@link CreateWalletBuiltinEncodedAuthConfig};
  * hex strings pass through unchanged as {@link CreateWalletEncodedAuthConfig}.
  *
- * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../../../types/index.js').AuthConfigContext} AuthConfigContext
  * @typedef {import('../../../types/index.js').CreateWalletBuiltinEncodedAuthConfig} CreateWalletBuiltinEncodedAuthConfig
  * @typedef {import('../../../types/index.js').CreateWalletEncodedAuthConfig} CreateWalletEncodedAuthConfig
  * @typedef {import('../../../types/index.js').EncodeAuthConfigCallerOptions} EncodeAuthConfigCallerOptions
  * @typedef {import('../../../types/index.js').EncodeAuthConfigOptionsReturn} EncodeAuthConfigOptionsReturn
- *
- * @typedef {Object} CreateWalletAuthConfigPrepareContext
- * @property {ContractAddresses} addresses
  */
 
 import log from '../../logger.js';
@@ -19,7 +16,7 @@ import { ValidationError } from '../../../errors/index.js';
 import { createCreateWalletAuthEncoderRegistry } from './registry.js';
 
 /**
- * @param {CreateWalletAuthConfigPrepareContext} ctx
+ * @param {AuthConfigContext} ctx
  * @param {EncodeAuthConfigCallerOptions} options
  * @returns {EncodeAuthConfigOptionsReturn} Object suitable for WalletFactoryClient; encoded branch has {@code authConfig}: {@link CreateWalletEncodedAuthConfig}
  */
