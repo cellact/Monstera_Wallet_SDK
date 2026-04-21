@@ -24,7 +24,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getDualFactorAuthenticatorContract } from '../../contracts/authenticators/DualFactorAuthenticator.js';
 import { DualFactorAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireBytes32 } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 
 class DualFactorAuthenticatorClient extends BaseContractClient {
@@ -161,7 +161,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, authProof, newPasswordHash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
-    requireBytes(newPasswordHash, 'newPasswordHash');
+    requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('DualFactorAuthenticator: updatePassword');
     log.debug('Updating password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data 
 

@@ -26,7 +26,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletLogicContract } from '../../contracts/core/walletLogic.js';
 import { KeyVaultEvents } from '../../events/index.js';
-import { requireAddress, requireBytes, requireNonNegativeInteger } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireBytes32, requireNonNegativeInteger } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 
 class WalletLogicClient extends BaseContractClient {
@@ -263,7 +263,7 @@ class WalletLogicClient extends BaseContractClient {
     const { walletAddr, authProof, index, hash } = options;
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
-    requireBytes(hash, 'hash');
+    requireBytes32(hash, 'hash');
     log.info('WalletLogic: sign');
     log.debug('Signing Ethereum hash for wallet at index', { walletAddr, index }); // TODO: log the options leaving out sensitive data 
 

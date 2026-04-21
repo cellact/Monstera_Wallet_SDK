@@ -38,7 +38,13 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getKeyVaultContract } from '../../contracts/core/keyVault.js';
 import { KeyVaultEvents } from '../../events/index.js';
-import { requireAddress, requireBytes, requireNonNegativeInteger, requireString } from '../../internal/assert.js';
+import {
+  requireAddress,
+  requireBytes,
+  requireBytes32,
+  requireNonNegativeInteger,
+  requireString
+} from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 
 class KeyVaultClient extends BaseContractClient {
@@ -269,7 +275,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, authProof, index, hash } = options;
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
-    requireBytes(hash, 'hash');
+    requireBytes32(hash, 'hash');
     log.info('KeyVault: sign');
     log.debug('Signing Ethereum hash for keyVault at index', { keyVaultAddr, index }); // TODO: log the options leaving out sensitive data 
 
@@ -345,7 +351,7 @@ class KeyVaultClient extends BaseContractClient {
   async getKeyMetadata(options = {}) {
     const { keyVaultAddr, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(keyId, 'keyId');
+    requireBytes32(keyId, 'keyId');
     log.info('KeyVault: getKeyMetadata');
     log.debug('Getting metadata for imported key in keyVault', { keyVaultAddr, keyId });
 
@@ -370,7 +376,7 @@ class KeyVaultClient extends BaseContractClient {
   async keyExists(options = {}) {
     const { keyVaultAddr, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(keyId, 'keyId');
+    requireBytes32(keyId, 'keyId');
     log.info('KeyVault: keyExists');
     log.debug('Checking if key exists in keyVault', { keyVaultAddr, keyId });
 
@@ -396,8 +402,8 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, authProof, keyId, digest } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
-    requireBytes(keyId, 'keyId');
-    requireBytes(digest, 'digest');
+    requireBytes32(keyId, 'keyId');
+    requireBytes32(digest, 'digest');
     log.info('KeyVault: signWithImportedKey');
     log.debug('Signing with imported key in keyVault', { keyVaultAddr, keyId }); // TODO: log the options leaving out sensitive data 
 
@@ -422,7 +428,7 @@ class KeyVaultClient extends BaseContractClient {
   async getImportedKeyAddr(options = {}) {
     const { keyVaultAddr, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(keyId, 'keyId');
+    requireBytes32(keyId, 'keyId');
     log.info('KeyVault: getImportedKeyAddr');
     log.debug('Getting address for imported key in keyVault', { keyVaultAddr, keyId });
 
@@ -507,7 +513,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(storageAddr, 'storageAddr');
     requireAddress(authenticatorAddr, 'authenticatorAddr');
-    requireBytes(accessToken, 'accessToken');
+    requireBytes32(accessToken, 'accessToken');
     log.info('KeyVault: initialize');
     log.debug('Initializing keyVault with storage and authenticator addresses', { keyVaultAddr, storageAddr, authenticatorAddr }); // TODO: log the options leaving out sensitive data 
 
@@ -599,7 +605,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, authProof, keyId, privateKey, publicKey, curve, chain, label } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
-    requireBytes(keyId, 'keyId');
+    requireBytes32(keyId, 'keyId');
     requireBytes(privateKey, 'privateKey');
     requireBytes(publicKey ?? '0x', 'publicKey');
     requireNonNegativeInteger(curve, 'curve');
@@ -637,7 +643,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, authProof, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
-    requireBytes(keyId, 'keyId');
+    requireBytes32(keyId, 'keyId');
     log.info('KeyVault: deactivateKey');
     log.debug('Deactivating key in keyVault', { keyVaultAddr, keyId }); // TODO: log the options leaving out sensitive data 
 
@@ -670,7 +676,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, authProof, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
-    requireBytes(keyId, 'keyId');
+    requireBytes32(keyId, 'keyId');
     log.info('KeyVault: activateKey');
     log.debug('Activating key in keyVault', { keyVaultAddr, keyId }); // TODO: log the options leaving out sensitive data 
 

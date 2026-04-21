@@ -21,7 +21,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getPasswordAuthenticatorContract } from '../../contracts/authenticators/PasswordAuthenticator.js';
 import { PasswordAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes, requireBytes32 } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireBytes32, requireUtf8Bytes } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 
 class PasswordAuthenticatorClient extends BaseContractClient {
@@ -76,7 +76,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   async verify(options = {}) {
     const { keyVaultAddr, authProof } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireUtf8Bytes(authProof, 'authProof');
     log.info('PasswordAuthenticator: verify');
     log.debug('Verifying password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
@@ -108,7 +108,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   async updatePassword(options = {}) {
     const { keyVaultAddr, currentPassword, newPasswordHash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(currentPassword, 'currentPassword');
+    requireUtf8Bytes(currentPassword, 'currentPassword');
     requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('PasswordAuthenticator: updatePassword');
     log.debug('Updating password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
@@ -153,7 +153,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   async configure(options = {}) {
     const { keyVaultAddr, authConfig } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authConfig, 'authConfig');
+    requireBytes32(authConfig, 'authConfig');
     log.info('PasswordAuthenticator: configure');
     log.debug('Configuring password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 

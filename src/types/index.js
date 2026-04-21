@@ -451,7 +451,7 @@
 
 /**
  * Raw UTF-8 password bytes for {@code PasswordAuthenticator.verify} (not ABI-encoded).
- * @typedef {Bytes} PasswordAuthenticatorVerifyAuthProof
+ * @typedef {Uint8Array} PasswordAuthenticatorVerifyAuthProof
  */
 
 /**
@@ -847,8 +847,7 @@
  */
 
 /**
- * currentPassword is raw password bytes (utf8 encoded string)
- * @typedef {KeyVaultAddrOptions & { currentPassword: Bytes }} MonsteraVerifyPasswordSdkOptions
+ * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array }} MonsteraVerifyPasswordSdkOptions
  */
 
 /**
@@ -872,9 +871,9 @@
  */
 
 /**
- * currentPassword is raw password bytes (utf8 encoded string)
+ * currentPassword is raw password bytes (utf8 password bytes)
  * newPasswordHash is the new password hash (bytes32)
- * @typedef {KeyVaultAddrOptions & { currentPassword: Bytes; newPasswordHash: Bytes32 }} MonsteraUpdatePasswordSdkOptions
+ * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array; newPasswordHash: Bytes32 }} MonsteraUpdatePasswordSdkOptions
  */
 
 /**

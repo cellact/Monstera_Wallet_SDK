@@ -49,8 +49,8 @@ async function main() {
     keyVaultAddr: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");
-  if (!isConfigured) {
-    console.error("❌ ERROR: Wallet is not configured");
+  if (isConfigured) {
+    console.error("Wallet is already configured. Skipping configuration...");
     process.exit(1);
   }
 

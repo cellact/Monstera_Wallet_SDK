@@ -22,7 +22,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getPasswordMinuteSignatureAuthenticatorContract } from '../../contracts/authenticators/PasswordMinuteSignatureAuthenticator.js';
 import { PasswordMinuteSignatureAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireBytes32, requireUtf8Bytes } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 
 class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
@@ -116,8 +116,8 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   async updatePassword(options = {}) {
     const { keyVaultAddr, currentPassword, newPasswordHash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(currentPassword, 'currentPassword');
-    requireBytes(newPasswordHash, 'newPasswordHash');
+    requireUtf8Bytes(currentPassword, 'currentPassword');
+    requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('PasswordMinuteSignatureAuthenticator: updatePassword');
     log.debug('Updating password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
@@ -161,7 +161,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   async configure(options = {}) {
     const { keyVaultAddr, authConfig } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authConfig, 'authConfig');
+    requireBytes32(authConfig, 'authConfig');
     log.info('PasswordMinuteSignatureAuthenticator: configure');
     log.debug('Configuring password for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data
 
