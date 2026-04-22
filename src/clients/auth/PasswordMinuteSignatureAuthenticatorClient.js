@@ -16,7 +16,7 @@
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
  * @typedef {import('../../types/index.js').PasswordMinuteSignatureAuthenticatorVerifyOptions} PasswordMinuteSignatureAuthenticatorVerifyOptions
  * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
- * @typedef {import('../../types/index.js').AuthenticatorConfigurePasswordHashOptions} AuthenticatorConfigurePasswordHashOptions
+ * @typedef {import('../../types/index.js').PasswordMinuteSignatureAuthenticatorConfigureOptions} PasswordMinuteSignatureAuthenticatorConfigureOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -151,7 +151,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
    * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes,
    * the keccak256 hash of the UTF-8 password ({@code keccak256(utf8Bytes(password))}).
    *
-   * @param {AuthenticatorConfigurePasswordHashOptions} options - Configure password options
+   * @param {PasswordMinuteSignatureAuthenticatorConfigureOptions} options - Configure password options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

@@ -4,7 +4,7 @@
  * Client for interacting with WalletFactory contract methods.
  * Handles wallet creation and factory administration.
  *
- * Creation methods expect {@link CreateWalletEncodedAuthConfig}: hex-encoded {@code authConfig}
+ * Creation methods expect {@link EncodedAuthConfigOptions}: hex-encoded {@code authConfig}
  * for the factory contract (output of built-in encoders, {@code encodeAuthConfigOptions}, manual encoding, or custom authenticators).
  * Monstera create-wallet APIs accept structured configs and encode before calling these methods.
  * 
@@ -17,7 +17,7 @@
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
- * @typedef {import('../../types/index.js').CreateWalletEncodedAuthConfig} CreateWalletEncodedAuthConfig
+ * @typedef {import('../../types/index.js').EncodedAuthConfigOptions} EncodedAuthConfigOptions
  * @typedef {import('../../types/index.js').CreateWalletFactoryBaseOptions} CreateWalletFactoryBaseOptions
  * @typedef {import('../../types/index.js').CreateWalletFactoryFromMnemonicOptions} CreateWalletFactoryFromMnemonicOptions
  * @typedef {import('../../types/index.js').CreateWalletFactoryWithHookOptions} CreateWalletFactoryWithHookOptions
