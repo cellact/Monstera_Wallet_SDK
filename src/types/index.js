@@ -340,15 +340,15 @@
  */
 
 /**
- * Same bytes32-on-chain shape as {@link EncodedAuthConfigPassword} for PasswordMinuteSignatureAuthenticator at creation.
+ * Alias of {@link EncodedAuthConfigPassword} for PasswordMinuteSignatureAuthenticator create-wallet encoding (same bytes32 on-chain).
  * @see {@link module:internal/authenticators/authConfig/encoders/passwordMinuteSignature.js} {@code passwordMinuteSignatureAuthCreateWalletEncoder}
- * @typedef {Bytes32} EncodedAuthConfigPasswordMinuteSignature
+ * @typedef {EncodedAuthConfigPassword} EncodedAuthConfigPasswordMinuteSignature
  */
 
 /**
  * Encoded outputs from built-in create-wallet authenticator encoders only (no arbitrary pass-through).
  *
- * Structural aliases: dual-factor and wallet-signature configs are dynamic {@link Bytes}; password variants are fixed {@link Bytes32}.
+ * Structural shapes: dual-factor and wallet-signature configs are dynamic {@link Bytes}; password-hash configs (both password authenticators) are {@link Bytes32}.
  *
  * @typedef {(
  *   | EncodedAuthConfigDualFactor
