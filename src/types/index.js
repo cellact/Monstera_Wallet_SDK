@@ -249,25 +249,20 @@
 // ============================================================================
 
 /**
- * Structured {@code authConfig}: password hash only (PasswordAuthenticator and PasswordMinuteSignatureAuthenticator at creation share this shape).
- * @typedef {Object} CreateWalletPasswordHashOnlyAuthConfig
+ * @typedef {Object} PasswordAuthConfigInputOptions
  * @property {Bytes32} passwordHash - keccak256(utf8(password))
  */
 
-/** @typedef {CreateWalletPasswordHashOnlyAuthConfig} CreateWalletPasswordAuthConfig */
-
-/** @typedef {CreateWalletPasswordHashOnlyAuthConfig} CreateWalletPasswordMinuteSignatureAuthConfig */
+/** @typedef {PasswordAuthConfigInputOptions} PasswordMinuteSignatureAuthConfigInputOptions */
 
 /**
- * Structured {@code authConfig} for WalletSignatureAuthenticator at wallet creation.
- * @typedef {Object} CreateWalletWalletSignatureAuthConfig
+ * @typedef {Object} WalletSignatureAuthConfigInputOptions
  * @property {Address[]} initialWhitelist - Initial whitelist (at least one address)
  */
 
 /**
- * Structured {@code authConfig} for DualFactorAuthenticator at wallet creation.
- * @typedef {Object} CreateWalletDualFactorAuthConfig
- * @property {Bytes32} passwordHash
+ * @typedef {Object} DualFactorAuthConfigInputOptions
+ * @property {Bytes32} passwordHash - keccak256(utf8(password))
  * @property {Address} guardianAddr
  */
 
@@ -276,15 +271,15 @@
  *
  * Union of four logical variants: password (PasswordAuthenticator), wallet-signature whitelist, dual-factor,
  * and password-minute-signature. TypeScript may show only three members in hovers because
- * {@link CreateWalletPasswordAuthConfig} and {@link CreateWalletPasswordMinuteSignatureAuthConfig} share the
- * same underlying shape ({@link CreateWalletPasswordHashOnlyAuthConfig}); runtime still dispatches by
+ * {@link PasswordAuthConfigInputOptions} and {@link PasswordMinuteSignatureAuthConfigInputOptions} share the
+ * same underlying shape ({@link PasswordAuthConfigInputOptions}); runtime still dispatches by
  * {@code authenticatorAddr}.
  *
  * @typedef {(
- *   | CreateWalletPasswordAuthConfig
- *   | CreateWalletPasswordMinuteSignatureAuthConfig
- *   | CreateWalletWalletSignatureAuthConfig
- *   | CreateWalletDualFactorAuthConfig
+ *   | PasswordAuthConfigInputOptions
+ *   | PasswordMinuteSignatureAuthConfigInputOptions
+ *   | WalletSignatureAuthConfigInputOptions
+ *   | DualFactorAuthConfigInputOptions
  * )} AuthConfigInputOptions
  */
 
