@@ -2,21 +2,21 @@
  * PasswordMinuteSignatureAuthenticator — minute-bucket password signature bundle.
  *
  * @typedef {import('../../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../../types/index.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
- * @typedef {import('../../../../types/index.js').KeyVaultPasswordMinuteSignatureAuthProofInput} KeyVaultPasswordMinuteSignatureAuthProofInput
- * @typedef {import('../../../../types/index.js').KeyVaultAuthProofPasswordMinuteEncoder} KeyVaultAuthProofPasswordMinuteEncoder
+ * @typedef {import('../../../../types/index.js').AuthProofEncodeContext} AuthProofEncodeContext
+ * @typedef {import('../../../../types/index.js').PasswordMinuteSignatureAuthProofInputOptions} PasswordMinuteSignatureAuthProofInputOptions
+ * @typedef {import('../../../../types/index.js').PasswordMinuteAuthProofEncoderOptions} PasswordMinuteAuthProofEncoderOptions
  */
 
 import { createAuthProofMinuteSignature } from '../../../crypto/wallet.js';
 import { requireBytes32 } from '../../../../internal/assert.js';
 
-/** @type {KeyVaultAuthProofPasswordMinuteEncoder} */
+/** @type {PasswordMinuteAuthProofEncoderOptions} */
 export const passwordMinuteSignatureKeyVaultAuthProofEncoder = {
   id: 'passwordMinuteSignatureAuth',
 
   /**
-   * @param {KeyVaultAuthProofEncodeContext} ctx
-   * @param {KeyVaultPasswordMinuteSignatureAuthProofInput} input
+   * @param {AuthProofEncodeContext} ctx
+   * @param {PasswordMinuteSignatureAuthProofInputOptions} input
    * @returns {Promise<Bytes>}
    * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string
    */

@@ -3,19 +3,19 @@
  * using the on-chain authenticator for {@code keyVaultAddr}.
  *
  * @typedef {import('../../../types/index.js').AuthProofContext} AuthProofContext
- * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsInput} EncodeAuthProofOptionsInput
+ * @typedef {import('../../../types/index.js').EncodeAuthProofInputOptions} EncodeAuthProofInputOptions
  * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
- * @typedef {import('../../../types/index.js').KeyVaultStructuredAuthProofInput} KeyVaultStructuredAuthProofInput
+ * @typedef {import('../../../types/index.js').AuthProofInputOptions} AuthProofInputOptions
  */
 
 import { requireAddress } from '../../assert.js';
 import { ValidationError } from '../../../errors/index.js';
 import log from '../../logger.js';
-import { createKeyVaultAuthProofEncoderRegistry } from './registry.js';
+import { createAuthProofEncoderRegistry } from './registry.js';
 
 /**
  * @param {AuthProofContext} ctx
- * @param {EncodeAuthProofOptionsInput} options - KeyVault call options (must include {@code keyVaultAddr} when {@code authProof} is a structured object)
+ * @param {EncodeAuthProofInputOptions} options - KeyVault call options (must include {@code keyVaultAddr} when {@code authProof} is a structured object)
  * @returns {Promise<EncodeAuthProofOptionsResult>}
  */
 export async function encodeAuthProofOptions(ctx, options) {
@@ -41,7 +41,7 @@ export async function encodeAuthProofOptions(ctx, options) {
   requireAddress(keyVaultAddr, 'keyVaultAddr');
 
   const authenticatorAddr = await ctx.getAuthenticatorAddr(keyVaultAddr);
-  const registry = createKeyVaultAuthProofEncoderRegistry(ctx.addresses);
+  const registry = createAuthProofEncoderRegistry(ctx.addresses);
   const encoder = registry.getByAuthenticatorAddr(authenticatorAddr);
 
   if (!encoder) {
@@ -62,7 +62,7 @@ export async function encodeAuthProofOptions(ctx, options) {
     keyVaultAddr
   };
 
-  const bytes = await encoder.encode(encodeCtx, /** @type {KeyVaultStructuredAuthProofInput} */ (authInput));
+  const bytes = await encoder.encode(encodeCtx, /** @type {AuthProofInputOptions} */ (authInput));
 
   return { ...rest, authProof: bytes };
 }

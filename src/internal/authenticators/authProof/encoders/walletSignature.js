@@ -2,22 +2,22 @@
  * WalletSignatureAuthenticator — EIP-712 wallet auth proof bytes.
  *
  * @typedef {import('../../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../../types/index.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
- * @typedef {import('../../../../types/index.js').KeyVaultWalletSignatureAuthProofInput} KeyVaultWalletSignatureAuthProofInput
- * @typedef {import('../../../../types/index.js').KeyVaultAuthProofWalletSignatureEncoder} KeyVaultAuthProofWalletSignatureEncoder
+ * @typedef {import('../../../../types/index.js').AuthProofEncodeContext} AuthProofEncodeContext
+ * @typedef {import('../../../../types/index.js').WalletSignatureAuthProofInputOptions} WalletSignatureAuthProofInputOptions
+ * @typedef {import('../../../../types/index.js').WalletSignatureAuthProofEncoderOptions} WalletSignatureAuthProofEncoderOptions
  */
 
 import { createAuthProofWalletSignature } from '../../../crypto/wallet.js';
 import { requireWalletOrHdNode } from '../../../../internal/assert.js';
 import { nowUnixTimestampSeconds } from '../../../../internal/utils/time.js';
 
-/** @type {KeyVaultAuthProofWalletSignatureEncoder} */
+/** @type {WalletSignatureAuthProofEncoderOptions} */
 export const walletSignatureKeyVaultAuthProofEncoder = {
   id: 'walletSignatureAuth',
 
   /**
-   * @param {KeyVaultAuthProofEncodeContext} ctx
-   * @param {KeyVaultWalletSignatureAuthProofInput} input
+   * @param {AuthProofEncodeContext} ctx
+   * @param {WalletSignatureAuthProofInputOptions} input
    * @returns {Promise<Bytes>}
    * @throws {ValidationError} If signer is not a Wallet or HDNodeWallet
    */

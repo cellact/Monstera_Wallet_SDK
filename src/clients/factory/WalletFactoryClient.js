@@ -18,10 +18,10 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
  * @typedef {import('../../types/index.js').EncodedAuthConfigOptions} EncodedAuthConfigOptions
- * @typedef {import('../../types/index.js').CreateWalletFactoryBaseOptions} CreateWalletFactoryBaseOptions
- * @typedef {import('../../types/index.js').CreateWalletFactoryFromMnemonicOptions} CreateWalletFactoryFromMnemonicOptions
- * @typedef {import('../../types/index.js').CreateWalletFactoryWithHookOptions} CreateWalletFactoryWithHookOptions
- * @typedef {import('../../types/index.js').CreateWalletFactoryWithCustomLogicOptions} CreateWalletFactoryWithCustomLogicOptions
+ * @typedef {import('../../types/index.js').FactoryClientCreateWalletBaseOptions} FactoryClientCreateWalletBaseOptions
+ * @typedef {import('../../types/index.js').FactoryClientCreateWalletFromMnemonicOptions} FactoryClientCreateWalletFromMnemonicOptions
+ * @typedef {import('../../types/index.js').FactoryClientCreateWalletWithHookOptions} FactoryClientCreateWalletWithHookOptions
+ * @typedef {import('../../types/index.js').FactoryClientCreateWalletWithCustomLogicOptions} FactoryClientCreateWalletWithCustomLogicOptions
  * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
  * @typedef {import('../../types/index.js').UpdateWalletLogicImplOptions} UpdateWalletLogicImplOptions
  * @typedef {import('../../types/index.js').TransferAdminOptions} TransferAdminOptions
@@ -256,7 +256,7 @@ class WalletFactoryClient extends BaseContractClient {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {CreateWalletFactoryBaseOptions} options - Wallet creation options ({@code authConfig} must be encoded)
+   * @param {FactoryClientCreateWalletBaseOptions} options - Wallet creation options ({@code authConfig} must be encoded)
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -297,7 +297,7 @@ class WalletFactoryClient extends BaseContractClient {
    *      2. KeyVault (auth + signing, user-updateable)
    *      3. WalletLogic proxy (orchestration, admin-updateable)
    * 
-   * @param {CreateWalletFactoryFromMnemonicOptions} options - Wallet creation options ({@code authConfig} must be encoded)
+   * @param {FactoryClientCreateWalletFromMnemonicOptions} options - Wallet creation options ({@code authConfig} must be encoded)
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -343,7 +343,7 @@ class WalletFactoryClient extends BaseContractClient {
    * The hook is called after the wallet is created.
    * The hook contract must implement IWalletCreationHook interface.
    * 
-   * @param {CreateWalletFactoryWithHookOptions} options - Wallet creation options ({@code authConfig} must be encoded)
+   * @param {FactoryClientCreateWalletWithHookOptions} options - Wallet creation options ({@code authConfig} must be encoded)
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -388,7 +388,7 @@ class WalletFactoryClient extends BaseContractClient {
    * Use this when you want to interact with KeyVault directly,
    * or when deploying your own custom logic contract separately.
    * 
-   * @param {CreateWalletFactoryBaseOptions} options - Wallet creation options ({@code authConfig} must be encoded)
+   * @param {FactoryClientCreateWalletBaseOptions} options - Wallet creation options ({@code authConfig} must be encoded)
    * @returns {Promise<WalletCreationResult>} 
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -433,7 +433,7 @@ class WalletFactoryClient extends BaseContractClient {
    * - Custom logic wallets are NOT affected by admin beacon updates
    * - Each wallet gets its own independent clone
    * 
-   * @param {CreateWalletFactoryWithCustomLogicOptions} options - Wallet creation options ({@code authConfig} must be encoded)
+   * @param {FactoryClientCreateWalletWithCustomLogicOptions} options - Wallet creation options ({@code authConfig} must be encoded)
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

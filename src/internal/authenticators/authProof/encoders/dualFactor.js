@@ -2,22 +2,22 @@
  * DualFactorAuthenticator — dual-factor auth proof bytes.
  *
  * @typedef {import('../../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../../types/index.js').KeyVaultAuthProofEncodeContext} KeyVaultAuthProofEncodeContext
- * @typedef {import('../../../../types/index.js').KeyVaultDualFactorAuthProofInput} KeyVaultDualFactorAuthProofInput
- * @typedef {import('../../../../types/index.js').KeyVaultAuthProofDualFactorEncoder} KeyVaultAuthProofDualFactorEncoder
+ * @typedef {import('../../../../types/index.js').AuthProofEncodeContext} AuthProofEncodeContext
+ * @typedef {import('../../../../types/index.js').DualFactorAuthProofInputOptions} DualFactorAuthProofInputOptions
+ * @typedef {import('../../../../types/index.js').DualFactorAuthProofEncoderOptions} DualFactorAuthProofEncoderOptions
  */
 
 import { createAuthProofDualFactor } from '../../../crypto/wallet.js';
 import { requireWalletOrHdNode, requireBytes32 } from '../../../../internal/assert.js';
 import { nowUnixTimestampSeconds } from '../../../../internal/utils/time.js';
 
-/** @type {KeyVaultAuthProofDualFactorEncoder} */
+/** @type {DualFactorAuthProofEncoderOptions} */
 export const dualFactorKeyVaultAuthProofEncoder = {
   id: 'dualFactorAuth',
 
   /**
-   * @param {KeyVaultAuthProofEncodeContext} ctx
-   * @param {KeyVaultDualFactorAuthProofInput} input
+   * @param {AuthProofEncodeContext} ctx
+   * @param {DualFactorAuthProofInputOptions} input
    * @returns {Promise<Bytes>}
    */
   async encode(ctx, input) {

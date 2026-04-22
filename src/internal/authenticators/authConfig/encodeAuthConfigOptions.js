@@ -5,8 +5,8 @@
  *
  * @typedef {import('../../../types/index.js').AuthConfigContext} AuthConfigContext
  * @typedef {import('../../../types/index.js').EncodedAuthConfigOptions} EncodedAuthConfigOptions
- * @typedef {import('../../../types/index.js').EncodeAuthConfigCallerOptions} EncodeAuthConfigCallerOptions
- * @typedef {import('../../../types/index.js').EncodeAuthConfigOptionsReturn} EncodeAuthConfigOptionsReturn
+ * @typedef {import('../../../types/index.js').EncodeAuthConfigInputOptions} EncodeAuthConfigInputOptions
+ * @typedef {import('../../../types/index.js').EncodeAuthConfigOptionsResult} EncodeAuthConfigOptionsResult
  */
 
 import log from '../../logger.js';
@@ -16,8 +16,8 @@ import { createCreateWalletAuthEncoderRegistry } from './registry.js';
 
 /**
  * @param {AuthConfigContext} ctx
- * @param {EncodeAuthConfigCallerOptions} options
- * @returns {EncodeAuthConfigOptionsReturn} Object suitable for WalletFactoryClient; encoded branch has {@code authConfig}: {@link EncodedAuthConfigOptions}
+ * @param {EncodeAuthConfigInputOptions} options
+ * @returns {EncodeAuthConfigOptionsResult} Object suitable for WalletFactoryClient; encoded branch has {@code authConfig}: {@link EncodedAuthConfigOptions}
  */
 export function encodeAuthConfigOptions(ctx, options) {
   const { authConfig: authInput, ...rest } = options;

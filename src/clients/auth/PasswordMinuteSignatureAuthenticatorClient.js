@@ -14,9 +14,9 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').PasswordMinuteSignatureAuthenticatorVerifyOptions} PasswordMinuteSignatureAuthenticatorVerifyOptions
+ * @typedef {import('../../types/index.js').PasswordMinuteClientVerifyOptions} PasswordMinuteClientVerifyOptions
  * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
- * @typedef {import('../../types/index.js').PasswordMinuteSignatureAuthenticatorConfigureOptions} PasswordMinuteSignatureAuthenticatorConfigureOptions
+ * @typedef {import('../../types/index.js').PasswordMinuteClientConfigureOptions} PasswordMinuteClientConfigureOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -77,7 +77,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
    * {@code (passwordHash, minuteBucket)} via Sapphire, and checks
    * {@code recover(digest, signature)} matches that derived address.
    *
-   * @param {PasswordMinuteSignatureAuthenticatorVerifyOptions} options - Verify options
+   * @param {PasswordMinuteClientVerifyOptions} options - Verify options
    * @returns {Promise<boolean>} True if the signature is valid for the current minute bucket
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -151,7 +151,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
    * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes,
    * the keccak256 hash of the UTF-8 password ({@code keccak256(utf8Bytes(password))}).
    *
-   * @param {PasswordMinuteSignatureAuthenticatorConfigureOptions} options - Configure password options
+   * @param {PasswordMinuteClientConfigureOptions} options - Configure password options
    * @returns {Promise<ConfigurePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available

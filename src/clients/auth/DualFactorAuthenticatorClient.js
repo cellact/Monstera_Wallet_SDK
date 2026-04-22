@@ -15,10 +15,10 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').DualFactorAuthenticatorVerifyOptions} DualFactorAuthenticatorVerifyOptions
- * @typedef {import('../../types/index.js').DualFactorAuthenticatorUpdatePasswordOptions} DualFactorAuthenticatorUpdatePasswordOptions
- * @typedef {import('../../types/index.js').DualFactorAuthenticatorConfigureOptions} DualFactorAuthenticatorConfigureOptions
- * @typedef {import('../../types/index.js').DualFactorAuthenticatorUpdateGuardianOptions} DualFactorAuthenticatorUpdateGuardianOptions
+ * @typedef {import('../../types/index.js').DualFactorClientVerifyOptions} DualFactorClientVerifyOptions
+ * @typedef {import('../../types/index.js').DualFactorClientUpdatePasswordOptions} DualFactorClientUpdatePasswordOptions
+ * @typedef {import('../../types/index.js').DualFactorClientConfigureOptions} DualFactorClientConfigureOptions
+ * @typedef {import('../../types/index.js').DualFactorClientUpdateGuardianOptions} DualFactorClientUpdateGuardianOptions
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -77,7 +77,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
    * minute key signs the EIP-191 digest for the current minute bucket; guardian signs EIP-712 typed data
    * with struct hash {@code keccak256(abi.encode(AUTH_TYPEHASH, wallet, deadline))} and {@code deadline} not expired.
    *
-   * @param {DualFactorAuthenticatorVerifyOptions} options - Verify options
+   * @param {DualFactorClientVerifyOptions} options - Verify options
    * @returns {Promise<boolean>} True if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid
    */
@@ -150,7 +150,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   /**
    * Update the password hash of a wallet using valid dual factor auth proof
    * 
-   * @param {DualFactorAuthenticatorUpdatePasswordOptions} options - Update password options
+   * @param {DualFactorClientUpdatePasswordOptions} options - Update password options
    * @returns {Promise<UpdatePasswordResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -192,7 +192,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   /**
    * Configure the dual factor authenticator for a wallet
    *
-   * @param {DualFactorAuthenticatorConfigureOptions} options - Configure options
+   * @param {DualFactorClientConfigureOptions} options - Configure options
    * @returns {Promise<ConfigurePasswordDualFactorResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
@@ -225,7 +225,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   /**
    * Update the guardian of a wallet using valid dual factor auth proof
    *
-   * @param {DualFactorAuthenticatorUpdateGuardianOptions} options - Update guardian options
+   * @param {DualFactorClientUpdateGuardianOptions} options - Update guardian options
    * @returns {Promise<UpdateGuardianResult>}
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
