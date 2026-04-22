@@ -4,18 +4,18 @@
  * @typedef {import('../../../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../../../types/index.js').Address} Address
  * @typedef {import('../../../../types/index.js').DualFactorAuthConfigInputOptions} DualFactorAuthConfigInputOptions
- * @typedef {import('../../../../types/index.js').EncodedDualFactorCreateWalletAuthConfig} EncodedDualFactorCreateWalletAuthConfig
+ * @typedef {import('../../../../types/index.js').EncodedAuthConfigDualFactor} EncodedAuthConfigDualFactor
  */
 
 import { createDualFactorAuthConfig } from '../../../crypto/wallet.js';
 
-/** @type {{ id: string, encode: (authConfig: DualFactorAuthConfigInputOptions) => EncodedDualFactorCreateWalletAuthConfig }} */
+/** @type {{ id: string, encode: (authConfig: DualFactorAuthConfigInputOptions) => EncodedAuthConfigDualFactor }} */
 export const dualFactorAuthCreateWalletEncoder = {
   id: 'dualFactorAuth',
 
   /**
    * @param {DualFactorAuthConfigInputOptions} authConfig
-   * @returns {EncodedDualFactorCreateWalletAuthConfig}
+   * @returns {EncodedAuthConfigDualFactor}
    */
   encode(authConfig) {
     const { passwordHash, guardianAddr } = authConfig;

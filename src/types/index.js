@@ -286,25 +286,25 @@
 /**
  * ABI-encoded dual-factor authenticator config at wallet creation ({@code abi.encode(bytes32,address)}).
  * @see {@link module:internal/crypto/wallet.js} {@code createDualFactorAuthConfig}
- * @typedef {Bytes} EncodedDualFactorCreateWalletAuthConfig
+ * @typedef {Bytes} EncodedAuthConfigDualFactor
  */
 
 /**
  * ABI-encoded WalletSignatureAuthenticator whitelist ({@code abi.encode(address[])}).
  * @see {@link module:internal/crypto/wallet.js} {@code createWalletSigAuthConfig}
- * @typedef {Bytes} EncodedWalletSignatureCreateWalletAuthConfig
+ * @typedef {Bytes} EncodedAuthConfigWalletSignature
  */
 
 /**
  * Password-hash-only authenticator config for PasswordAuthenticator at creation (contract expects bytes32).
  * @see {@link module:internal/authenticators/authConfig/encoders/password.js} {@code passwordAuthCreateWalletEncoder}
- * @typedef {Bytes32} EncodedPasswordAuthenticatorCreateWalletAuthConfig
+ * @typedef {Bytes32} EncodedAuthConfigPassword
  */
 
 /**
- * Same bytes32-on-chain shape as {@link EncodedPasswordAuthenticatorCreateWalletAuthConfig} for PasswordMinuteSignatureAuthenticator at creation.
+ * Same bytes32-on-chain shape as {@link EncodedAuthConfigPassword} for PasswordMinuteSignatureAuthenticator at creation.
  * @see {@link module:internal/authenticators/authConfig/encoders/passwordMinuteSignature.js} {@code passwordMinuteSignatureAuthCreateWalletEncoder}
- * @typedef {Bytes32} EncodedPasswordMinuteSignatureCreateWalletAuthConfig
+ * @typedef {Bytes32} EncodedAuthConfigPasswordMinuteSignature
  */
 
 /**
@@ -313,18 +313,11 @@
  * Structural aliases: dual-factor and wallet-signature configs are dynamic {@link Bytes}; password variants are fixed {@link Bytes32}.
  *
  * @typedef {(
- *   | EncodedDualFactorCreateWalletAuthConfig
- *   | EncodedWalletSignatureCreateWalletAuthConfig
- *   | EncodedPasswordAuthenticatorCreateWalletAuthConfig
- *   | EncodedPasswordMinuteSignatureCreateWalletAuthConfig
- * )} CreateWalletBuiltinEncodedAuthConfig
- */
-
-/**
- * Encoded {@code authConfig} acceptable to WalletFactoryClient: built-in variants {@link CreateWalletBuiltinEncodedAuthConfig},
- * or any pre-encoded hex string when using a non built-in authenticator ({@link Bytes}).
- *
- * @typedef {CreateWalletBuiltinEncodedAuthConfig|Bytes} EncodedAuthConfigOptions
+ *   | EncodedAuthConfigDualFactor
+ *   | EncodedAuthConfigWalletSignature
+ *   | EncodedAuthConfigPassword
+ *   | EncodedAuthConfigPasswordMinuteSignature
+ * )} EncodedAuthConfigOptions
  */
 
 /**
@@ -332,7 +325,7 @@
  *
  * @typedef {Object} CreateWalletAuthEncoder
  * @property {string} id - Encoder identifier (logging / diagnostics)
- * @property {(authConfig: AuthConfigInputOptions) => CreateWalletBuiltinEncodedAuthConfig} encode - Encode structured config for on-chain {@code authConfig}
+ * @property {(authConfig: AuthConfigInputOptions) => EncodedAuthConfigOptions} encode - Encode structured config for on-chain {@code authConfig}
  */
 
 /**
@@ -970,18 +963,18 @@
 
 /**
  * {@code IAuthenticator.configure} with fixed 32-byte {@code authConfig} (password hash authenticators).
- * @typedef {KeyVaultAddrOptions & { authConfig: EncodedPasswordAuthenticatorCreateWalletAuthConfig }} PasswordAuthenticatorConfigureOptions
+ * @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigPassword }} PasswordAuthenticatorConfigureOptions
  */
 
 /**
  * {@code IAuthenticator.configure} with fixed 32-byte {@code authConfig} (password hash authenticators).
- * @typedef {KeyVaultAddrOptions & { authConfig: EncodedPasswordMinuteSignatureCreateWalletAuthConfig }} PasswordMinuteSignatureAuthenticatorConfigureOptions
+ * @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigPasswordMinuteSignature }} PasswordMinuteSignatureAuthenticatorConfigureOptions
  */
 
-/** @typedef {KeyVaultAddrOptions & { authConfig: EncodedWalletSignatureCreateWalletAuthConfig }} WalletSignatureAuthenticatorConfigureOptions */
+/** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigWalletSignature }} WalletSignatureAuthenticatorConfigureOptions */
 
 
-/** @typedef {KeyVaultAddrOptions & { authConfig: EncodedDualFactorCreateWalletAuthConfig }} DualFactorAuthenticatorConfigureOptions */
+/** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigDualFactor }} DualFactorAuthenticatorConfigureOptions */
 
 /**
  * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToAdd: Address }} WalletSignatureAddToWhitelistOptions

@@ -1,10 +1,9 @@
 /**
  * Map public create-wallet options to the shape expected by WalletFactoryClient:
- * structured {@code authConfig} objects are encoded via the built-in authenticator registry to {@link CreateWalletBuiltinEncodedAuthConfig};
- * hex strings pass through unchanged as {@link EncodedAuthConfigOptions}.
+ * structured {@code authConfig} objects are encoded via the built-in authenticator registry to {@link EncodedAuthConfigOptions};
+ * hex strings pass through unchanged.
  *
  * @typedef {import('../../../types/index.js').AuthConfigContext} AuthConfigContext
- * @typedef {import('../../../types/index.js').CreateWalletBuiltinEncodedAuthConfig} CreateWalletBuiltinEncodedAuthConfig
  * @typedef {import('../../../types/index.js').EncodedAuthConfigOptions} EncodedAuthConfigOptions
  * @typedef {import('../../../types/index.js').EncodeAuthConfigCallerOptions} EncodeAuthConfigCallerOptions
  * @typedef {import('../../../types/index.js').EncodeAuthConfigOptionsReturn} EncodeAuthConfigOptionsReturn

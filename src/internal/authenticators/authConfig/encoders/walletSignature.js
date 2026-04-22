@@ -3,18 +3,18 @@
  *
  * @typedef {import('../../../../types/index.js').Address} Address
  * @typedef {import('../../../../types/index.js').WalletSignatureAuthConfigInputOptions} WalletSignatureAuthConfigInputOptions
- * @typedef {import('../../../../types/index.js').EncodedWalletSignatureCreateWalletAuthConfig} EncodedWalletSignatureCreateWalletAuthConfig
+ * @typedef {import('../../../../types/index.js').EncodedAuthConfigWalletSignature} EncodedAuthConfigWalletSignature
  */
 
 import { createWalletSigAuthConfig } from '../../../crypto/wallet.js';
 
-/** @type {{ id: string, encode: (authConfig: WalletSignatureAuthConfigInputOptions) => EncodedWalletSignatureCreateWalletAuthConfig }} */
+/** @type {{ id: string, encode: (authConfig: WalletSignatureAuthConfigInputOptions) => EncodedAuthConfigWalletSignature }} */
 export const walletSignatureAuthCreateWalletEncoder = {
   id: 'walletSignatureAuth',
 
   /**
    * @param {WalletSignatureAuthConfigInputOptions} authConfig
-   * @returns {EncodedWalletSignatureCreateWalletAuthConfig}
+   * @returns {EncodedAuthConfigWalletSignature}
    */
   encode(authConfig) {
     const { initialWhitelist } = authConfig;

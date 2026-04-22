@@ -14,8 +14,8 @@
  * @typedef {import('../../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
  * @typedef {import('../../types/index.js').DualFactorAuthConfigInputOptions} DualFactorAuthConfigInputOptions
  * @typedef {import('../../types/index.js').WalletSignatureAuthConfigInputOptions} WalletSignatureAuthConfigInputOptions
- * @typedef {import('../../types/index.js').EncodedWalletSignatureCreateWalletAuthConfig} EncodedWalletSignatureCreateWalletAuthConfig
- * @typedef {import('../../types/index.js').EncodedDualFactorCreateWalletAuthConfig} EncodedDualFactorCreateWalletAuthConfig
+ * @typedef {import('../../types/index.js').EncodedAuthConfigWalletSignature} EncodedAuthConfigWalletSignature
+ * @typedef {import('../../types/index.js').EncodedAuthConfigDualFactor} EncodedAuthConfigDualFactor
  * @typedef {import('../../types/index.js').EncodedAuthProofWalletSignature} EncodedAuthProofWalletSignature
  * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureResult} CreateAuthProofMinuteSignatureResult
  * @typedef {import('../../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
@@ -85,7 +85,7 @@ function hashPassword(password) {
 /**
  * Creates a wallet signature auth config from whitelist
  * @param {WalletSignatureAuthConfigInputOptions}
- * @returns {EncodedWalletSignatureCreateWalletAuthConfig} ABI-encoded {@code address[]} auth config (hex)
+ * @returns {EncodedAuthConfigWalletSignature} ABI-encoded {@code address[]} auth config (hex)
  * @throws {ValidationError} If whitelist is not an array or contains invalid addresses
  */
 function createWalletSigAuthConfig(whitelist) {
@@ -99,7 +99,7 @@ function createWalletSigAuthConfig(whitelist) {
 /**
  * Create dual factor auth config
  * @param {DualFactorAuthConfigInputOptions}
- * @returns {EncodedDualFactorCreateWalletAuthConfig} ABI-encoded {@code (bytes32,address)} auth config (hex)
+ * @returns {EncodedAuthConfigDualFactor} ABI-encoded {@code (bytes32,address)} auth config (hex)
  * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string or guardianAddr is not a valid address or signer is not a Wallet or HDNodeWallet
  */
 function createDualFactorAuthConfig(passwordHash, guardianAddr) {

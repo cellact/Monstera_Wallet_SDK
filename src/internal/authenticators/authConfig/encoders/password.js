@@ -2,18 +2,18 @@
  * PasswordAuthenticator — create-wallet {@code authConfig} (bytes32 hash).
  *
  * @typedef {import('../../../../types/index.js').PasswordAuthConfigInputOptions} PasswordAuthConfigInputOptions
- * @typedef {import('../../../../types/index.js').EncodedPasswordAuthenticatorCreateWalletAuthConfig} EncodedPasswordAuthenticatorCreateWalletAuthConfig
+ * @typedef {import('../../../../types/index.js').EncodedAuthConfigPassword} EncodedAuthConfigPassword
  */
 
 import { requireBytes32 } from '../../../../internal/assert.js';
 
-/** @type {{ id: string, encode: (authConfig: PasswordAuthConfigInputOptions) => EncodedPasswordAuthenticatorCreateWalletAuthConfig }} */
+/** @type {{ id: string, encode: (authConfig: PasswordAuthConfigInputOptions) => EncodedAuthConfigPassword }} */
 export const passwordAuthCreateWalletEncoder = {
   id: 'passwordAuth',
 
   /**
    * @param {PasswordAuthConfigInputOptions} authConfig
-   * @returns {EncodedPasswordAuthenticatorCreateWalletAuthConfig}
+   * @returns {EncodedAuthConfigPassword}
    * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string
    */
   encode(authConfig) {
