@@ -3,6 +3,36 @@
  *
  * Central JSDoc types: base types are defined once and extended via intersection
  * to avoid repetition and keep the file maintainable.
+ *
+ * Sections (match `// ==========` banners in order):
+ * Foundation (basic → SDK plumbing):
+ *  1. Utility Types
+ *  2. Ethers.js Type Aliases
+ *  3. Contract & Network Base Types
+ *  4. Connect Options
+ *  5. Monstera Constructor Config
+ *  6. Transaction Result Types
+ *  7. ExecuteWrite / ExecuteRead / ParseEvent
+ * Auth config at create-wallet (structured inputs → encoded bytes → helpers that call encoders):
+ *  8. Auth Config — Structured Inputs
+ *  9. Auth Config — Encoded Types, Encoder & Context
+ * 10. Wallet Creation & Factory Client Options
+ * 11. Encode Auth Config Options
+ * Post-create wallet wiring, then auth proof end-to-end (inputs → encode pipeline → wire bytes → call bundles):
+ * 12. Initialization
+ * 13. Auth Proof — Structured Inputs
+ * 14. Auth Proof — Encode Contexts & Encoder Registry
+ * 15. Auth Proof — Encoded / On-Wire Payloads
+ * 16. Auth Proof — Call Bundles & Signing Options
+ * 17. Create Auth Proof (builders & internal variants)
+ * 18. Encode Auth Proof Options
+ * KeyVault layers & facade:
+ * 19. KeyVault V2 — Imported Keys & Multi-Chain
+ * 20. KeyVaultClient Options (encoded proofs only)
+ * 21. Update Authenticator Options
+ * 22. Monstera Facade Option Types
+ * 23. Version Check Types
+ * 24. Client Type Aliases
  */
 
 // ============================================================================
@@ -145,7 +175,7 @@
  */
 
 // ============================================================================
-// Transaction Result Base & Extensions
+// Transaction Result Types
 // ============================================================================
 
 /**
@@ -202,7 +232,7 @@
 /** @typedef {KeyVaultKeyIdMutationResult} ActivateKeyResult */
 
 // ============================================================================
-// Write / Read Wrapper Option Types
+// ExecuteWrite / ExecuteRead / ParseEvent
 // ============================================================================
 
 /**
@@ -245,8 +275,10 @@
  */
 
 // ============================================================================
-// Wallet Creation Option Types
+// Auth Config — Structured Inputs
 // ============================================================================
+//
+// Plain {@code authConfig} objects for built-in authenticators at wallet creation (before ABI encoding).
 
 /**
  * @typedef {Object} PasswordAuthConfigInputOptions
@@ -282,6 +314,12 @@
  *   | DualFactorAuthConfigInputOptions
  * )} AuthConfigInputOptions
  */
+
+// ============================================================================
+// Auth Config — Encoded Types, Encoder & Context
+// ============================================================================
+//
+// On-chain {@code authConfig} byte shapes, the create-wallet encoder entry type, and context for {@link encodeAuthConfigOptions}.
 
 /**
  * ABI-encoded dual-factor authenticator config at wallet creation ({@code abi.encode(bytes32,address)}).
@@ -329,6 +367,17 @@
  */
 
 /**
+ * Context passed into {@link encodeAuthConfigOptions} for built-in authenticator resolution (registry keyed by contract addresses).
+ *
+ * @typedef {Object} AuthConfigContext
+ * @property {ContractAddresses} addresses
+ */
+
+// ============================================================================
+// Wallet Creation & Factory Client Options
+// ============================================================================
+
+/**
  * @typedef {Object} CreateWalletBaseOptions
  * @property {AuthConfigInputOptions} authConfig - Structured auth config options
  * @property {Address} [authenticatorAddr] - Authenticator contract address (optional, defaults to PasswordAuthenticator)
@@ -366,7 +415,35 @@
  */
 
 // ============================================================================
-// Initialization Option Types
+// Encode Auth Config Options
+// ============================================================================
+
+/**
+ * Valid inputs to {@link encodeAuthConfigOptions} (structured or pre-encoded {@code authConfig}).
+ * @typedef {(
+ *   | CreateWalletBaseOptions
+ *   | CreateWalletFromMnemonicOptions
+ *   | CreateWalletWithHookOptions
+ *   | CreateWalletWithCustomLogicOptions
+ * )} EncodeAuthConfigInputOptions
+ */
+
+/**
+ * Output when structured {@code authConfig} was encoded: caller fields spread with encoded bytes and resolved {@code authenticatorAddr}.
+ * {@code authConfig} matches {@link EncodedAuthConfigOptions} for built-in encoders.
+ * @typedef {Record<string, unknown> & {
+ *   authConfig: EncodedAuthConfigOptions;
+ *   authenticatorAddr: Address
+ * }} EncodedAuthConfigCallOptions
+ */
+
+/**
+ * Return type of {@link encodeAuthConfigOptions}: unchanged caller options when {@code authConfig} was already hex, otherwise encoded payload.
+ * @typedef {EncodeAuthConfigInputOptions | EncodedAuthConfigCallOptions} EncodeAuthConfigOptionsResult
+ */
+
+// ============================================================================
+// Initialization
 // ============================================================================
 
 /**
@@ -378,7 +455,7 @@
  */
 
 // ============================================================================
-// Signing Context Base Types (keyVault vs wallet, then transaction/message/hash)
+// Auth Proof — Structured Inputs
 // ============================================================================
 
 /**
@@ -418,6 +495,10 @@
  * )} AuthProofInputOptions
  */
 
+// ============================================================================
+// Auth Proof — Encode Contexts & Encoder Registry
+// ============================================================================
+
 /**
  * Context passed into {@code encodeAuthProofOptions} before the on-chain authenticator address is resolved.
  *
@@ -426,13 +507,6 @@
  * @property {ChainId} chainId
  * @property {EthersAbstractProvider} readProvider
  * @property {(keyVaultAddr: Address) => Promise<Address>} getAuthenticatorAddr
- */
-
-/**
- * Context passed into {@link encodeAuthConfigOptions} for built-in authenticator resolution (registry keyed by contract addresses).
- *
- * @typedef {Object} AuthConfigContext
- * @property {ContractAddresses} addresses
  */
 
 /**
@@ -495,8 +569,10 @@
  */
 
 // ============================================================================
-// On-chain authProof bytes (contract layouts) vs structured create-auth inputs
+// Auth Proof — Encoded / On-Wire Payloads
 // ============================================================================
+//
+// ABI layouts and unions for {@code authProof} as consumed on-chain (after encoding), not structured SDK inputs.
 
 /**
  * Raw UTF-8 password bytes for {@code PasswordAuthenticator.verify} (not ABI-encoded).
@@ -540,6 +616,12 @@
  *   | EncodedAuthProofPasswordMinute
  * )} AuthProofOptions
  */
+
+// ============================================================================
+// Auth Proof — Call Bundles & Signing Options
+// ============================================================================
+//
+// Options objects that combine addresses with {@link AuthProofInputOptions} or {@link AuthProofOptions}, then signing helpers.
 
 /**
  * KeyVault address plus {@link AuthProofInputOptions} (Monstera / SDK encoding path).
@@ -603,6 +685,64 @@
 
 /**
  * @typedef {WalletSigningBase & { hash: Bytes32 }} SignHashWalletOptions
+ */
+
+// ============================================================================
+// Create Auth Proof (builders & internal variants)
+// ============================================================================
+
+/**
+ * @typedef {Object} CreateAuthProofBaseOptions
+ * @property {Address} keyVaultAddr - KeyVault address of the wallet to authenticate
+ * @property {Address} [authenticatorAddr] - Built-in authenticator address (defaults to config)
+ * @property {ChainId} [chainId] - Chain ID (optional, defaults to config)
+ */
+
+/**
+ * Inputs to build {@link EncodedAuthProofWalletSignature} (wallet-signature authenticator).
+ * @typedef {CreateAuthProofBaseOptions & WalletSignatureAuthProofInputOptions } CreateAuthProofWalletSignatureOptions
+ */
+
+/**
+ * Inputs to build a password-based proof for flows that encode the password path (not the same bytes as {@link PasswordAuthenticatorVerifyAuthProof}).
+ * @typedef {CreateAuthProofBaseOptions & PasswordAuthProofInputOptions } CreateAuthProofPasswordOptions
+ */
+
+/**
+ * Inputs to build {@link EncodedAuthProofPasswordMinute} (minute-bucket ECDSA path).
+ * @typedef {CreateAuthProofBaseOptions & PasswordMinuteSignatureAuthProofInputOptions } CreateAuthProofMinuteSignatureOptions
+ */
+
+/**
+ * Inputs to build {@link EncodedAuthProofDualFactor} (dual-factor authenticator).
+ * @typedef {CreateAuthProofBaseOptions & DualFactorAuthProofInputOptions } CreateAuthProofDualFactorOptions
+ */
+
+/**
+ * {@link CreateAuthProofMinuteSignatureOptions} plus a provider for on-chain time (crypto / internal callers).
+ * @typedef {CreateAuthProofMinuteSignatureOptions & { provider: EthersAbstractProvider }} CreateAuthProofMinuteSignatureWithProviderOptions
+ */
+
+/**
+ * {@link CreateAuthProofDualFactorOptions} plus a provider for the minute-bucket leg (crypto / internal callers).
+ * @typedef {CreateAuthProofDualFactorOptions & { provider: EthersAbstractProvider }} CreateAuthProofDualFactorWithProviderOptions
+ */
+
+// ============================================================================
+// Encode Auth Proof Options
+// ============================================================================
+
+/**
+ * KeyVault-style call options before/after {@link encodeAuthProofOptions}. When {@code authProof} is a plain object, {@code keyVaultAddr} is required.
+ * @typedef {Record<string, unknown> & {
+ *   authProof?: AuthProofInputOptions;
+ *   keyVaultAddr?: Address;
+ * }} EncodeAuthProofInputOptions
+ */
+
+/**
+ * Result of {@link encodeAuthProofOptions}: same fields as input with {@code authProof} as hex {@link Bytes} or {@link Uint8Array}.
+ * @typedef {Record<string, unknown> & { authProof: Bytes|Uint8Array }} EncodeAuthProofOptionsResult
  */
 
 // ============================================================================
@@ -743,81 +883,13 @@
  */
 
 // ============================================================================
-// Auth Proof Option Types
-// ============================================================================
-
-/**
- * @typedef {Object} CreateAuthProofBaseOptions
- * @property {Address} keyVaultAddr - KeyVault address of the wallet to authenticate
- * @property {Address} [authenticatorAddr] - Built-in authenticator address (defaults to config)
- * @property {ChainId} [chainId] - Chain ID (optional, defaults to config)
- */
-
-/**
- * Inputs to build {@link EncodedAuthProofWalletSignature} (wallet-signature authenticator).
- * @typedef {CreateAuthProofBaseOptions & WalletSignatureAuthProofInputOptions } CreateAuthProofWalletSignatureOptions
- */
-
-/**
- * Inputs to build a password-based proof for flows that encode the password path (not the same bytes as {@link PasswordAuthenticatorVerifyAuthProof}).
- * @typedef {CreateAuthProofBaseOptions & PasswordAuthProofInputOptions } CreateAuthProofPasswordOptions
- */
-
-/**
- * Inputs to build {@link EncodedAuthProofPasswordMinute} (minute-bucket ECDSA path).
- * @typedef {CreateAuthProofBaseOptions & PasswordMinuteSignatureAuthProofInputOptions } CreateAuthProofMinuteSignatureOptions
- */
-
-/**
- * Inputs to build {@link EncodedAuthProofDualFactor} (dual-factor authenticator).
- * @typedef {CreateAuthProofBaseOptions & DualFactorAuthProofInputOptions } CreateAuthProofDualFactorOptions
- */
-
-/**
- * {@link CreateAuthProofMinuteSignatureOptions} plus a provider for on-chain time (crypto / internal callers).
- * @typedef {CreateAuthProofMinuteSignatureOptions & { provider: EthersAbstractProvider }} CreateAuthProofMinuteSignatureWithProviderOptions
- */
-
-/**
- * {@link CreateAuthProofDualFactorOptions} plus a provider for the minute-bucket leg (crypto / internal callers).
- * @typedef {CreateAuthProofDualFactorOptions & { provider: EthersAbstractProvider }} CreateAuthProofDualFactorWithProviderOptions
- */
-
-/**
- * Valid inputs to {@link encodeAuthConfigOptions} (structured or pre-encoded {@code authConfig}).
- * @typedef {CreateWalletBaseOptions | CreateWalletFromMnemonicOptions | CreateWalletWithHookOptions | CreateWalletWithCustomLogicOptions} EncodeAuthConfigInputOptions
- */
-
-/**
- * Output when structured {@code authConfig} was encoded: caller fields spread with encoded bytes and resolved {@code authenticatorAddr}.
- * {@code authConfig} matches {@link EncodedAuthConfigOptions} for built-in encoders.
- * @typedef {Record<string, unknown> & { 
- *   authConfig: EncodedAuthConfigOptions; 
- *   authenticatorAddr: Address 
- * }} EncodedAuthConfigCallOptions
- */
-
-/**
- * Return type of {@link encodeAuthConfigOptions}: unchanged caller options when {@code authConfig} was already hex, otherwise encoded payload.
- * @typedef {EncodeAuthConfigInputOptions | EncodedAuthConfigCallOptions} EncodeAuthConfigOptionsResult
- */
-
-/**
- * KeyVault-style call options before/after {@link encodeAuthProofOptions}. When {@code authProof} is a plain object, {@code keyVaultAddr} is required.
- * @typedef {Record<string, unknown> & {
- *   authProof?: AuthProofInputOptions;
- *   keyVaultAddr?: Address;
- * }} EncodeAuthProofInputOptions
- */
-
-/**
- * Result of {@link encodeAuthProofOptions}: same fields as input with {@code authProof} as hex {@link Bytes} or {@link Uint8Array}.
- * @typedef {Record<string, unknown> & { authProof: Bytes|Uint8Array }} EncodeAuthProofOptionsResult
- */
-
-// ============================================================================
 // Monstera facade: small option objects (thin delegation to clients)
 // ============================================================================
+//
+// Grouped below: proxies & addresses → configure / iteration → KeyVault ops →
+// proof-building flows → thin authenticator client option objects.
+
+// --- Proxies & address bundles ---
 
 /**
  * @typedef {{ walletAddr: Address }} WalletProxyOptions
@@ -839,6 +911,8 @@
  * {@link EncodedAuthProofDualFactor}, {@link EncodedAuthProofWalletSignature}, {@link EncodedAuthProofPasswordMinute}, or {@link PasswordAuthenticatorVerifyAuthProof} (raw UTF-8) for password-only flows — match your vault's authenticator.
  * @typedef {WalletProxyOptions & { authProof: Bytes; newImplAddr: Address }} WalletLogicUpdateKeyVaultImplOptions
  */
+
+// --- Configure authenticators & account slices ---
 
 /**
  * @typedef {{ keyVaultAddr: Address }} KeyVaultAddrOptions
@@ -876,6 +950,8 @@
  * @typedef {KeyVaultAddrOptions & ImportedKeyBase} KeyVaultImportedKeyOptions
  */
 
+// --- KeyVault & wallet admin (authenticated) ---
+
 /**
  * @typedef {KeyVaultAuthBaseOptions & { implCall: Bytes }} ExecuteWithAuthOptions
  */
@@ -895,6 +971,8 @@
 /**
  * @typedef {{ newAdminAddr: Address }} TransferAdminOptions
  */
+
+// --- Flows composed with CreateAuthProof* ---
 
 /**
  * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array }} VerifyPasswordOptions
@@ -925,6 +1003,8 @@
  * newPasswordHash is the new password hash (bytes32)
  * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array; newPasswordHash: Bytes32 }} UpdatePasswordOptions
  */
+
+// --- Authenticator client methods (encoded {@code authProof} / {@code authConfig}) ---
 
 /**
  * {@code PasswordAuthenticator.verify} — expects raw UTF-8 password bytes ({@link PasswordAuthenticatorVerifyAuthProof}), not ABI-encoded.
