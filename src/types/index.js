@@ -676,6 +676,33 @@
  */
 
 /**
+ * Options for {@link Monstera.prototype.signAuthorization}.
+ *
+ * @typedef {KeyVaultAuthBaseOptions & {
+ *   delegateAddr: Address;
+ *   index?: number|bigint;
+ *   nonce?: number|bigint;
+ *   chainId?: ChainId;
+ *   provider?: EthersAbstractProvider;
+ * }} SignAuthorizationOptions
+ */
+
+/**
+ * Split secp256k1 signature for an authorization (ethers-style `yParity`, `r`, `s`).
+ * @typedef {{ r: string, s: string, yParity: 0|1 }} AuthorizationSplitSignature
+ */
+
+/**
+ * Ethers-compatible signed authorization: delegate `address`, `nonce`, `chainId`, and split `signature`.
+ * @typedef {{
+ *   address: string,
+ *   nonce: bigint,
+ *   chainId: bigint,
+ *   signature: AuthorizationSplitSignature
+ * }} SignedAuthorizationResult
+ */
+
+/**
  * @typedef {WalletSigningBase & { nonce: number|bigint; gasPrice: number|bigint; gasLimit: number|bigint; to: Address; value: number|bigint; data: Bytes; chainId: number|bigint }} SignTransactionWalletOptions
  */
 
@@ -828,6 +855,17 @@
 
 /**
  * @typedef {KeyVaultClientSigningBaseOptions & { hash: Bytes32 }} KeyVaultClientSignHashOptions
+ */
+
+/**
+ * ABI calldata for {@code signAuthorizationImpl} (placeholder base keys; KeyVault substitutes real values).
+ *
+ * @typedef {{
+ *   index: number|bigint;
+ *   delegateAddr: Address;
+ *   nonce: number|bigint;
+ *   chainId: number|bigint;
+ * }} CreateImplCallOptions
  */
 
 /**

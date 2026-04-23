@@ -77,6 +77,8 @@
  * @typedef {import('../types/index.js').RequiredContractAddressKeys} RequiredContractAddressKeys
  * @typedef {import('../types/index.js').EncodedAuthProofWalletSignature} EncodedAuthProofWalletSignature
  * @typedef {import('../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
+ * @typedef {import('../types/index.js').SignAuthorizationOptions} SignAuthorizationOptions
+ * @typedef {import('../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -87,7 +89,14 @@ import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
-import { createAuthProofWalletSignature, createAuthProofMinuteSignature, createAuthProofDualFactor, createWalletSigAuthConfig, createDualFactorAuthConfig } from '../internal/crypto/wallet.js';
+import {
+  createAuthProofWalletSignature,
+  createAuthProofMinuteSignature,
+  createAuthProofDualFactor,
+  createWalletSigAuthConfig,
+  createDualFactorAuthConfig
+} from '../internal/crypto/wallet.js';
+import { executeSignAuthorization } from '../internal/crypto/signAuthorization.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
 import { encodeAuthConfigOptions } from '../internal/authenticators/authConfig/encodeAuthConfigOptions.js';
@@ -865,6 +874,27 @@ class Monstera {
   async sign(options = {}) {
     return this.keyVault.sign(
       await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+    );
+  }
+
+
+  /**
+   * EIP-7702-style authorization signing via KeyVault (same digest as ethers {@link ethers.hashAuthorization}).
+   * Orchestration lives in {@code internal/crypto/signAuthorization.js}; hashing / verification / encoding helpers in {@code internal/crypto/wallet.js}.
+   *
+   * When {@code chainId} or {@code nonce} are omitted they are read from {@code options.provider}, else from {@link Monstera.prototype.readProvider} / {@link Monstera.prototype.writeSigner}. For an authorization on a chain different from the SDK RPC, pass {@code provider} connected to that chain so nonce and chain id stay consistent.
+   *
+   * @param {SignAuthorizationOptions} options
+   * @returns {Promise<SignedAuthorizationResult>}
+   */
+  async signAuthorization(options = {}) {
+    return executeSignAuthorization(
+      {
+        keyVault: this.keyVault,
+        fallbackProvider: this.readProvider ?? this.writeSigner?.provider ?? null
+      },
+      await encodeAuthProofOptions(this._authProofPrepareContext(), options),
+      options
     );
   }
 
