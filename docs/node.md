@@ -179,6 +179,7 @@ The SDK includes comprehensive Node.js examples in `examples/nodejs/`:
 - **`4_getAddress.js`** - Get account addresses
 - **`6.1_signTransaction.js`** - Sign transactions
 - **`6.2_getAccounts.js`** - Get multiple account addresses
+- **`signAuthorization.js`** - EIP-7702-style authorization signing via `sdk.signAuthorization`
 
 **Authentication:**
 - **`authenticator.js`** - Authenticator operations

@@ -21,7 +21,7 @@ Your backend never sees private keys and never has to handle raw key material.
   Each account is a normal Ethereum address with its own balance and history.
 - The user authenticates once (password, wallet signature, dual-factor, etc.).  
   Authentication is attached to the wallet, **not** to individual accounts.
-- When you call `sign*` from the SDK:
+- When you call `sign*` from the SDK (including `signAuthorization` for EIP-7702-style delegations):
   - You send an `authProof` plus signing params.
   - The wallet’s authenticator verifies the proof.
   - If valid, the KeyVault derives the requested account key and signs **inside the enclave**.
@@ -93,7 +93,7 @@ That's it! Contract addresses use network presets; override with `addresses` or 
 
 Check out the `examples/` directory for comprehensive examples:
 
-- **Node.js**: `examples/nodejs/` - Wallet creation, authentication, signing, and more
+- **Node.js**: `examples/nodejs/` - Wallet creation, authentication, signing (transactions, messages, EIP-7702 authorizations via `signAuthorization`), and more
 - **Browser**: `examples/browser/` - ESM and IIFE usage examples
 
 ## Security

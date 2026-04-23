@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.7] - 2026-04-23
+
+### Added
+
+- **`Monstera.prototype.signAuthorization`**: EIP-7702-style authorization signing through the KeyVault (digest aligned with ethers `Authorization` / `hashAuthorization`). Omitting `chainId` or `nonce` resolves them via `options.provider`, else `readProvider` / the connected signer’s provider. Orchestration lives in `src/internal/crypto/signAuthorization.js`; encoding and hashing helpers in `src/internal/crypto/wallet.js`.
+- **Types (JSDoc)**: `SignAuthorizationOptions`, `SignedAuthorizationResult`, and `AuthorizationSplitSignature` in `src/types/index.js`.
+- **Example**: `examples/nodejs/signAuthorization.js` shows encoding an `authProof` and calling `signAuthorization`.
+
+### Changed
+
+- **JSDoc types (`src/types/index.js`)**: Reorganized by topic; dropped `Sdk` suffixes on client/authenticator option types; shortened Monstera-centric names; aligned **Client** option naming; unified encode auth-proof / auth-config `*Input` / `*Result` typedefs and encoder contexts; renamed create-wallet structured `authConfig` options; clarified auth-config naming and typing for `configure(authConfig)`; simplified built-in unions and renamed encoded `authConfig` aliases. Consumers who reference these typedef names in their own JSDoc or TS tooling may need to follow the new names (**source-only** change; runtime API unchanged).
+- **`EncodedAuthConfigPasswordMinuteSignature`**: Updated alongside the encoded auth-config / minute-signature type work.
+- **Documentation (types)**: Tighter auth-proof and required-address JSDoc; factory clients model encoded auth config; create-wallet base options document structured `authConfig` where required.
+
+### Fixed
+
+- **Input validation**: Stricter validation for bytes32 fields and password UTF-8 bytes.
+
 ## [1.0.0-alpha.6] - 2026-04-20
 
 ### Added

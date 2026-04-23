@@ -164,6 +164,7 @@ await sdk.getAccountAddresses({ keyVaultAddr, fromIndex, count });
 await sdk.signTransaction({ keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId });
 await sdk.signMessage({ keyVaultAddr, authProof, index, message });
 await sdk.sign({ keyVaultAddr, authProof, index, hash });
+await sdk.signAuthorization({ keyVaultAddr, authProof, delegateAddr, index, chainId, nonce, provider });
 await sdk.signSolana({ keyVaultAddr, authProof, index, message });
 await sdk.getSolanaAddr({ keyVaultAddr, index });
 await sdk.importKey({ keyVaultAddr, authProof, keyId, privateKey, curve, chain, label });
@@ -181,6 +182,22 @@ const dualFactorAuth = sdk.getAuthClient('dualFactor');
 const passwordMinuteSigAuth = sdk.getAuthClient('passwordMinuteSignature');
 const availableTypes = sdk.getAvailableAuthTypes(); // includes 'walletSignature', 'password', 'dualFactor', 'passwordMinuteSignature'
 ```
+
+### `sdk.signAuthorization(options)`
+
+Sign an EIP-7702-style **authorization** for a delegate contract through the KeyVault. The signed payload uses the same digest as ethers v6 `hashAuthorization` for the authorization tuple. Use this when you need an authority signature over `(chainId, address, nonce)` for account abstraction / delegation flows.
+
+**Parameters:**
+
+- `keyVaultAddr` (required): KeyVault contract address
+- `authProof` (required): Same rules as other KeyVault calls — hex bytes, `Uint8Array`, or a plain object for the vault’s built-in authenticator (e.g. `{ password: Uint8Array }`)
+- `delegateAddr` (required): Delegate (implementation) contract address for the authorization
+- `index` (optional): HD account index (default `0`)
+- `chainId` (optional): Chain ID; if omitted, fetched from `provider` / SDK read provider / signer provider
+- `nonce` (optional): Authority nonce for the authorization; if omitted, read from chain via provider
+- `provider` (optional): ethers `Provider` for resolving `chainId` and/or `nonce` when those are omitted (defaults to `readProvider` or the write signer’s provider)
+
+**Returns:** `Promise<SignedAuthorizationResult>` — ethers-shaped result: `address` (delegate), `chainId`, `nonce` as `bigint`, and `signature` with `r`, `s`, `yParity`.
 
 ## Exports
 
