@@ -7,8 +7,6 @@
  * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../types/index.js').NetworkPresets} NetworkPresets
- * @typedef {import('../types/index.js').WriteConnectOptions} WriteConnectOptions
- * @typedef {import('../types/index.js').ReadConnectOptions} ReadConnectOptions
  * @typedef {import('../types/index.js').InitializeOptions} InitializeOptions
  * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../types/index.js').ConfigurePasswordResult} ConfigurePasswordResult
@@ -79,6 +77,7 @@
  * @typedef {import('../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
  * @typedef {import('../types/index.js').SignAuthorizationOptions} SignAuthorizationOptions
  * @typedef {import('../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
+ * @typedef {import('../types/index.js').ConnectOptions} ConnectOptions
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -143,58 +142,35 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Connect to Monstera on a given network
-   * 
-   * Creates and configures an SDK client. Signer is required for write operations.
-   * 
-   * @param {WriteConnectOptions} options - Connect options
+   * Connect to Monstera on a given network (read by default, write when a signer is provided)
+   *
+   * Without a truthy `signer`, creates a read-only client (optional `provider`, else RPC from config).
+   * With a `signer`, creates a write-capable client (same behavior as the previous write-only connect).
+   *
+   * @param {ConnectOptions} options - Connect options
    * @returns {Monstera} SDK instance
    */
   static connect(options) {
-    const { signer } = options || {};
-
-    if (!signer) {
-      throw new ValidationError(
-        'signer is required for connect() (ethers Signer or private key string)',
-        'signer',
-        signer
-      );
-    }
-  
     const base = MonsteraConfig.resolveBaseConfig(options);
     const logLevel = options?.logLevel ?? (options?.debug === true ? 'debug' : 'error');
     log.setLevel(logLevel);
 
-    return new Monstera({
-      ...base,
-      signer,      // write-capable identity
-      provider: null,
-      checkVersion: options?.checkVersion,
-      logLevel
-    });
-  }
-
-  /**
-   * Connect to Monstera on a given network
-   *
-   * Creates and configures an SDK client. Provider supports read operations only.
-   *
-   * @param {ReadConnectOptions} options - Readonly options
-   * @returns {Monstera} SDK instance
-   */
-  static readonly(options) {
-    const base = MonsteraConfig.resolveBaseConfig(options);
-    const logLevel = options?.logLevel ?? (options?.debug === true ? 'debug' : 'error');
-    log.setLevel(logLevel);
-
-    // Option A: allow passing provider explicitly
     const provider = options?.provider ?? null;
 
-    // If you want readonly to work with no provider passed, just rely on base.rpcUrl
-    // because your constructor already does getReadProvider(this.rpcUrl).
+    const signer = options?.signer;
+    if (signer) {
+      return new Monstera({
+        ...base,
+        signer,
+        provider,
+        checkVersion: options?.checkVersion,
+        logLevel
+      });
+    }
+
     return new Monstera({
       ...base,
-      provider,   // optional
+      provider,
       signer: null,
       checkVersion: options?.checkVersion,
       logLevel

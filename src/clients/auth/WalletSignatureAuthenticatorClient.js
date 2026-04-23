@@ -15,7 +15,6 @@
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
  * @typedef {import('../../types/index.js').WhitelistCheckOptions} WhitelistCheckOptions
- * @typedef {import('../../types/index.js').SdkLoggingAndVersionOptions} SdkLoggingAndVersionOptions
  * @typedef {import('../../types/index.js').WalletSignatureClientVerifyOptions} WalletSignatureClientVerifyOptions
  * @typedef {import('../../types/index.js').WalletSignatureClientAddToWhitelistOptions} WalletSignatureClientAddToWhitelistOptions
  * @typedef {import('../../types/index.js').WalletSignatureClientConfigureOptions} WalletSignatureClientConfigureOptions

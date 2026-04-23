@@ -23,7 +23,7 @@ The SDK is organized into modular components:
 - **Read operations**: Use plain provider (no Sapphire wrapper needed)
 - **Write operations**: Automatically use Sapphire-wrapped signer for encrypted transactions
 - **Network switching**: Single config parameter (`mainnet: true` for mainnet, `mainnet: false` for testnet)
-- **Logging**: Optional configurable log levels (`logLevel` or `debug`) at connect/readonly; `setLogLevel()` at runtime; logs never include secrets
+- **Logging**: Optional configurable log levels (`logLevel` or `debug`) when calling `Monstera.connect()`; `setLogLevel()` at runtime; logs never include secrets
 
 ## Project Structure
 

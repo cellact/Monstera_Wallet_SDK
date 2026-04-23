@@ -90,8 +90,7 @@ The IIFE build (`monstera.global.js`) automatically includes a queue stub, so yo
 
 The same options as Node.js apply in the browser:
 
-- **`Monstera.connect(options)`**: `mainnet`, `signer` (required), `rpcUrl`, `addresses` (optional overrides: `factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`), `logLevel`, `debug`, `checkVersion` (optional — must be **`true`** to opt into the npm version warning in Node.js; see [API Reference](api.md); typical browser usage does not hit the npm registry)
-- **`Monstera.readonly(options)`**: For read-only use (no signer): `mainnet`, `provider`, `rpcUrl`, `addresses` (same keys as `connect`), `logLevel`, `debug`, `checkVersion`
+- **`Monstera.connect(options)`**: `mainnet` (required); `signer` (optional — omit for read-only); optional `provider`; `rpcUrl`, `addresses` (optional overrides: `factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`), `logLevel`, `debug`, `checkVersion` (optional — must be **`true`** to opt into the npm version warning in Node.js; see [API Reference](api.md); typical browser usage does not hit the npm registry)
 - **`sdk.setLogLevel(level)`**: Change log level at runtime (`'error'` | `'warn'` | `'info'` | `'debug'`)
 
 Logs never include secrets (mnemonics, passwords, auth proofs). See [Node.js configuration](node.md#configuration) and [API Reference](api.md) for full option details.

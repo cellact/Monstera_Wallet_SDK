@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING — SDK initialization**: `Monstera.readonly()` is removed. Use **`Monstera.connect()`** for both flows: omit **`signer`** (and optionally pass **`provider`**) for read-only; pass **`signer`** for a write-capable instance. Replace `Monstera.readonly(options)` with `Monstera.connect(options)` and delete the `.readonly` call.
+- **BREAKING — `Monstera.connect()`**: **`signer` is optional.** Read-only connections no longer throw when `signer` is omitted (previously `connect()` required a signer). Omitting `signer` matches the former `readonly()` behavior.
+
+
 ## [1.0.0-alpha.7] - 2026-04-23
 
 ### Added

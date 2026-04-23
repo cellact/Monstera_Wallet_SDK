@@ -151,12 +151,8 @@
  */
 
 /**
- * @typedef {BaseConnectOptions & { signer: EthersSigner | string }} WriteConnectOptions
- * @property {EthersSigner | string} signer - Ethers Signer instance or private key string (0x-prefixed hex)
- */
-
-/**
- * @typedef {BaseConnectOptions & { provider?: EthersProvider }} ReadConnectOptions
+ * @typedef {BaseConnectOptions & { signer?: EthersSigner | string; provider?: EthersProvider }} ConnectOptions
+ * @property {EthersSigner | string} [signer] - Ethers Signer instance or private key string (0x-prefixed hex); optional for read-only connections
  * @property {EthersProvider} [provider] - Optional ethers Provider instance
  */
 

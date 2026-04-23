@@ -67,8 +67,9 @@ describe('SDK Integration', () => {
       expect(sdk.addresses.passwordMinuteSignatureAuth).toBeDefined();
     });
 
-    test('should throw error if signer is missing', () => {
-      expect(() => Monstera.connect({ mainnet: false })).toThrow('signer is required');
+    test('should create read-only SDK when signer is omitted', () => {
+      const sdk = Monstera.connect({ mainnet: false });
+      expect(sdk.hasWriteAccess()).toBe(false);
     });
 
     test('should accept checkVersion false (version check is opt-in via checkVersion true)', () => {
@@ -78,9 +79,9 @@ describe('SDK Integration', () => {
     });
   });
 
-  describe('Monstera.readonly', () => {
+  describe('Monstera.connect (read-only)', () => {
     test('should create read-only SDK instance for testnet', () => {
-      const sdk = Monstera.readonly({ mainnet: false });
+      const sdk = Monstera.connect({ mainnet: false });
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-testnet');
@@ -89,7 +90,7 @@ describe('SDK Integration', () => {
     });
 
     test('should create read-only SDK instance for mainnet', () => {
-      const sdk = Monstera.readonly({ mainnet: true });
+      const sdk = Monstera.connect({ mainnet: true });
       
       expect(sdk).toBeDefined();
       expect(sdk.network).toBe('sapphire-mainnet');
@@ -98,7 +99,7 @@ describe('SDK Integration', () => {
     });
 
     test('should initialize all clients (read-only)', () => {
-      const sdk = Monstera.readonly({ mainnet: false });
+      const sdk = Monstera.connect({ mainnet: false });
       
       expect(sdk.factory).toBeDefined();
       expect(sdk.logic).toBeDefined();
@@ -108,13 +109,13 @@ describe('SDK Integration', () => {
 
     test('should accept custom provider', () => {
       const provider = new ethers.JsonRpcProvider(DEFAULT_TESTNET_RPC_URL);
-      const sdk = Monstera.readonly({ mainnet: false, provider });
+      const sdk = Monstera.connect({ mainnet: false, provider });
       
       expect(sdk.provider).toBe(provider);
     });
 
     test('should use custom RPC URL', () => {
-      const sdk = Monstera.readonly({ mainnet: false, rpcUrl: CUSTOM_RPC_URL });
+      const sdk = Monstera.connect({ mainnet: false, rpcUrl: CUSTOM_RPC_URL });
       
       expect(sdk.rpcUrl).toBe(CUSTOM_RPC_URL);
     });
@@ -157,8 +158,8 @@ describe('SDK Integration', () => {
       expect(sdk.hasWriteAccess()).toBe(true);
     });
 
-    test('hasWriteAccess should return false for readonly()', () => {
-      const sdk = Monstera.readonly({ mainnet: false });
+    test('hasWriteAccess should return false for connect() without signer', () => {
+      const sdk = Monstera.connect({ mainnet: false });
       
       expect(sdk.hasWriteAccess()).toBe(false);
     });
@@ -172,8 +173,8 @@ describe('SDK Integration', () => {
       expectValidAddress(address);
     });
 
-    test('getSignerAddr should return null for readonly()', async () => {
-      const sdk = Monstera.readonly({ mainnet: false });
+    test('getSignerAddr should return null for connect() without signer', async () => {
+      const sdk = Monstera.connect({ mainnet: false });
       
       const address = await sdk.getSignerAddr();
       expect(address).toBeNull();

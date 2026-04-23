@@ -12,7 +12,7 @@
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 
-const monstera = Monstera.readonly({
+const monstera = Monstera.connect({
   mainnet: false
 });
 

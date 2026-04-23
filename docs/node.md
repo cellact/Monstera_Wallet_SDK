@@ -51,11 +51,11 @@ const mainnetSdk = Monstera.connect({
   signer: 'your_private_key' // Private key string or ethers Signer instance
 });
 
-// Read-only instance (no signer, read operations only)
-const readonlySdk = Monstera.readonly({
+// Read-only instance (omit signer; read operations only)
+const readonlySdk = Monstera.connect({
   mainnet: false,
   // provider (optional) - ethers Provider; uses default RPC if not provided
-  // logLevel or debug (optional) - same as connect()
+  // logLevel or debug (optional)
 });
 
 // Access network information
@@ -105,7 +105,7 @@ const sdk = Monstera.connect({
 
 ### npm version check (optional)
 
-Pass **`checkVersion: true`** to `Monstera.connect()` or `Monstera.readonly()` to run a one-time check against the npm registry for a newer SDK version (Node.js). If omitted or `false`, no outbound registry request is made.
+Pass **`checkVersion: true`** to `Monstera.connect()` to run a one-time check against the npm registry for a newer SDK version (Node.js). If omitted or `false`, no outbound registry request is made.
 
 ### Custom RPC URLs
 
@@ -137,7 +137,7 @@ const sdkWithOverrides = Monstera.connect({
 
 You can control SDK log verbosity when creating the instance or at runtime. Logs never include secrets (mnemonics, passwords, auth proofs, or private keys).
 
-**At connect/readonly:**
+**When calling `Monstera.connect()` (with or without `signer`):**
 
 ```javascript
 // Option 1: enable all debug logs

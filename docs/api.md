@@ -8,33 +8,19 @@ Main SDK class for wallet operations.
 
 ### `Monstera.connect(options)`
 
-Create an SDK instance with write capabilities (requires signer).
+Create an SDK instance. **Read-only** if you omit `signer`; **write-capable** if you pass a `signer` (private key string or ethers `Signer`).
 
 **Parameters:**
 - `mainnet` (required): `true` for mainnet, `false` for testnet
-- `signer` (required): Private key string (0x-prefixed hex) or ethers Signer instance
+- `signer` (optional): Private key string (0x-prefixed hex) or ethers `Signer` instance. If omitted, the instance is read-only (no on-chain writes that need a local signer).
+- `provider` (optional): You may pass an ethers `Provider` for reads; otherwise the SDK uses the default RPC for the selected network.
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
 - `addresses` (optional): Object with contract addresses to override defaults (`factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`)
 - `logLevel` (optional): `'error'` | `'warn'` | `'info'` | `'debug'` (default: `'error'`)
 - `debug` (optional): If `true`, sets log level to `'debug'`
 - `checkVersion` (optional): If **`true`**, runs the npm registry version check once on connect (Node.js). If omitted or `false`, the check is skipped.
 
-**Returns:** `Monstera` instance with write capabilities
-
-### `Monstera.readonly(options)`
-
-Create a read-only SDK instance (no signer required).
-
-**Parameters:**
-- `mainnet` (required): `true` for mainnet, `false` for testnet
-- `provider` (optional): ethers Provider instance (uses default RPC if not provided)
-- `rpcUrl` (optional): Custom RPC URL (overrides default)
-- `addresses` (optional): Object with contract addresses to override defaults
-- `logLevel` (optional): Same as `connect()`
-- `debug` (optional): Same as `connect()`
-- `checkVersion` (optional): Same as `connect()` — must be **`true`** to enable the version check.
-
-**Returns:** `Monstera` instance (read-only)
+**Returns:** `Monstera` instance (`sdk.hasWriteAccess()` is `true` when a `signer` was provided).
 
 ## Wallet Creation Methods
 

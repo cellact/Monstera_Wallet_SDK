@@ -23,7 +23,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 - Use the shared logger: `import log from '../internal/logger.js'` (or the correct relative path)
 - Use **object form** for structured data: `log.debug('shortMessage', { key: value })` instead of string concatenation
 - **Never log secrets**: no mnemonics, passwords, auth proofs, or private keys in logs
-- Log levels: `error`, `warn`, `info`, `debug` (configurable via `logLevel` or `debug` at connect/readonly)
+- Log levels: `error`, `warn`, `info`, `debug` (configurable via `logLevel` or `debug` when calling `Monstera.connect()` — read-only flows omit `signer`; write flows pass `signer`)
 
 ### Error Handling
 

@@ -13,7 +13,7 @@ export function createTestSDK(options = {}) {
   const signerPrivateKey = process.env.SIGNER_PRIVATE_KEY || '';
   
   if (readonly) {
-    return Monstera.readonly({ 
+    return Monstera.connect({ 
       mainnet: false,
       checkVersion: false 
     });
