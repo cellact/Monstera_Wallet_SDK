@@ -32,14 +32,14 @@ import { log } from '../logger.js';
  */
 
 /**
- * Resolve delegate address, optional chain/nonce via RPC, build impl call, {@code executeWithAuth}, assemble result.
+ * Validate options, resolve chainId / authority / nonce via RPC when omitted, build {@code implCall} bytes.
  *
  * @param {SignAuthorizationDeps} deps
  * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Object after {@link encodeAuthProofOptions}
  * @param {SignAuthorizationOptions} options
- * @returns {Promise<SignedAuthorizationResult>}
+ * @returns {Promise<{ keyVaultAddr: string; authProof: import('../../types/index.js').Bytes; implCall: import('../../types/index.js').Bytes; delegateAddr: string; nonce: bigint; chainId: bigint }>}
  */
-async function executeSignAuthorization(deps, encodedAuthProofObject, options = {}) {
+async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, options = {}) {
   const { keyVault, fallbackProvider } = deps;
   const { keyVaultAddr, delegateAddr, provider } = options;
 
@@ -85,20 +85,40 @@ async function executeSignAuthorization(deps, encodedAuthProofObject, options = 
     chainId
   });
 
-  log.debug('Build implementation call, about to execute with auth')
-
-  // execute with auth
-  const raw = await keyVault.executeWithAuth({
+  return {
     keyVaultAddr,
     authProof: encodedAuthProofObject.authProof,
-    implCall
-  });
-
-  // finalize signed authorization result - decode the result
-  return finalizeSignedAuthorizationResult({
+    implCall,
     delegateAddr: checksummedDelegateAddr,
     nonce,
-    chainId,
+    chainId
+  };
+}
+
+/**
+ * Resolve delegate address, optional chain/nonce via RPC, build impl call, {@code executeWithAuth}, assemble result.
+ *
+ * @param {SignAuthorizationDeps} deps
+ * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Object after {@link encodeAuthProofOptions}
+ * @param {SignAuthorizationOptions} options
+ * @returns {Promise<SignedAuthorizationResult>}
+ */
+async function executeSignAuthorization(deps, encodedAuthProofObject, options = {}) {
+  const { keyVault } = deps;
+  const resolved = await resolveSignAuthorizationInputs(deps, encodedAuthProofObject, options);
+
+  log.debug('Build implementation call, about to execute with auth');
+
+  const raw = await keyVault.executeWithAuth({
+    keyVaultAddr: resolved.keyVaultAddr,
+    authProof: resolved.authProof,
+    implCall: resolved.implCall
+  });
+
+  return finalizeSignedAuthorizationResult({
+    delegateAddr: resolved.delegateAddr,
+    nonce: resolved.nonce,
+    chainId: resolved.chainId,
     raw
   });
 }

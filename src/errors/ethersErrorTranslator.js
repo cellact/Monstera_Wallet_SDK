@@ -146,6 +146,45 @@ function assignRevertExtras(extra, source) {
 }
 
 /**
+ * Shared revert resolution for {@code CALL_EXCEPTION} / {@code UNPREDICTABLE_GAS_LIMIT} (mined vs static call paths).
+ *
+ * @param {Error} err
+ * @param {import('ethers').Interface|null} revertInterface
+ * @param {string|null|undefined} enrichRevertData
+ * @param {string|null|undefined} enrichRevertReason
+ * @param {unknown} enrichRevertArgs
+ * @param {string|null|undefined} enrichRevertSignature
+ */
+function buildCallExceptionRevertDetails(
+  err,
+  revertInterface,
+  enrichRevertData,
+  enrichRevertReason,
+  enrichRevertArgs,
+  enrichRevertSignature
+) {
+  const revertData =
+    (typeof enrichRevertData === 'string' && enrichRevertData) ||
+    extractRpcRevertBytes(err) ||
+    /** @type {any} */ (err).data ||
+    null;
+  const resolved = resolveRevertFields(
+    revertInterface,
+    revertData,
+    enrichRevertReason,
+    enrichRevertArgs,
+    /** @type {any} */ (err)
+  );
+  /** @type {Record<string, unknown>} */
+  const extra = {};
+  assignRevertExtras(extra, {
+    revertArgs: resolved.revertArgs,
+    revertSignature: resolved.revertSignature || enrichRevertSignature
+  });
+  return { revertData, resolved, extra };
+}
+
+/**
  * Convert an ethers or RPC error into a {@link WalletError} subclass and merge {@code sdkContext}.
  *
  * @param {Error} err
@@ -186,24 +225,14 @@ export function toWalletError(err, options = {}) {
       (receipt && typeof receipt.hash === 'string' ? receipt.hash : null);
 
     if (txHash && receipt) {
-      let revertData =
-        (typeof enrichRevertData === 'string' && enrichRevertData) ||
-        extractRpcRevertBytes(err) ||
-        /** @type {any} */ (err).data ||
-        null;
-      const resolved = resolveRevertFields(
+      const { revertData, resolved, extra } = buildCallExceptionRevertDetails(
+        err,
         revertInterface,
-        revertData,
+        enrichRevertData,
         enrichRevertReason,
         enrichRevertArgs,
-        /** @type {any} */ (err)
+        enrichRevertSignature
       );
-      /** @type {Record<string, unknown>} */
-      const extra = {};
-      assignRevertExtras(extra, {
-        revertArgs: resolved.revertArgs,
-        revertSignature: resolved.revertSignature || enrichRevertSignature
-      });
       const summary = resolved.revertReason
         ? `Transaction reverted: ${resolved.revertReason}`
         : `Transaction reverted: ${message}`;
@@ -219,26 +248,16 @@ export function toWalletError(err, options = {}) {
       );
     }
 
-    let revertData =
-      (typeof enrichRevertData === 'string' && enrichRevertData) ||
-      extractRpcRevertBytes(err) ||
-      /** @type {any} */ (err).data ||
-      null;
-    const resolved = resolveRevertFields(
+    const { revertData, resolved, extra } = buildCallExceptionRevertDetails(
+      err,
       revertInterface,
-      revertData,
+      enrichRevertData,
       enrichRevertReason,
       enrichRevertArgs,
-      /** @type {any} */ (err)
+      enrichRevertSignature
     );
     const hasRevert = !!(revertData || resolved.revertReason || /** @type {any} */ (err).revert);
     if (hasRevert) {
-      /** @type {Record<string, unknown>} */
-      const extra = {};
-      assignRevertExtras(extra, {
-        revertArgs: resolved.revertArgs,
-        revertSignature: resolved.revertSignature || enrichRevertSignature
-      });
       const label = resolved.revertReason || 'unknown';
       const summary = `Call reverted: ${label}`;
       return finish(

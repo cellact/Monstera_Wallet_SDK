@@ -4,7 +4,7 @@
  * @typedef {import('../../types/index.js').Address} Address
  */
 
-import { tryChecksumAddress } from '../evm/addresses.js';
+import { toChecksumAddress } from '../crypto/wallet.js';
 
 /**
  * @template T
@@ -16,10 +16,8 @@ export function createRegistryByChecksumAddress(entries) {
   const byChecksum = new Map();
 
   for (const { address, encoder } of entries) {
-    const key = tryChecksumAddress(address);
-    if (key) {
-      byChecksum.set(key, encoder);
-    }
+    const key = toChecksumAddress(address);
+    byChecksum.set(key, encoder);
   }
 
   return {
@@ -28,10 +26,7 @@ export function createRegistryByChecksumAddress(entries) {
      * @returns {T | undefined}
      */
     getByAuthenticatorAddr(authenticatorAddr) {
-      const key = tryChecksumAddress(authenticatorAddr);
-      if (!key) {
-        return undefined;
-      }
+      const key = toChecksumAddress(authenticatorAddr);
       return byChecksum.get(key);
     }
   };

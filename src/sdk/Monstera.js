@@ -335,9 +335,13 @@ class Monstera {
       chainId = this.config.chainId;
     }
 
-    const authProof = await createAuthProofWalletSignature({ signer, chainId, authenticatorAddr, deadline, keyVaultAddr });
-
-    return authProof;
+    return createAuthProofWalletSignature({
+      signer,
+      chainId,
+      authenticatorAddr,
+      deadline,
+      keyVaultAddr
+    });
   }
 
   /**
@@ -396,7 +400,7 @@ class Monstera {
       chainId = this.config.chainId;
     }
 
-    const authProof = await createAuthProofDualFactor({
+    return createAuthProofDualFactor({
       provider: this.readProvider,
       keyVaultAddr,
       passwordHash,
@@ -405,8 +409,6 @@ class Monstera {
       deadline,
       chainId
     });
-
-    return authProof;
   }
 
   // ============================================================================

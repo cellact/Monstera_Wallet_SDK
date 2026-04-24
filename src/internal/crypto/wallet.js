@@ -42,6 +42,7 @@ import {
 import { floorTimestampToMinuteBucket } from '../utils/time.js';
 import { NetworkError, ValidationError, WalletError } from '../../errors/index.js';
 import log from '../logger.js';
+import { rethrowMappedSignerError } from './signingErrorMapper.js';
 
 /**
  * Generate a new mnemonic phrase (12 words)
@@ -176,46 +177,11 @@ async function createAuthProofWalletSignature(options = {}) {
     // Encode the auth proof (deadline + signature)
     return ethers.AbiCoder.defaultAbiCoder().encode(["uint256", "bytes"], [deadline, signature]);
   } catch (error) {
-    // Re-throw WalletError as-is (validation errors, etc.)
-    if (error instanceof WalletError) {
-      throw error;
-    }
-    
-    // Extract error details
-    const errorCode = error.code || error.error?.code;
-    const errorMessage = error.message || String(error);
-    
-    // Network/RPC errors from signer provider
-    if (errorCode === 'NETWORK_ERROR' || errorCode === 'TIMEOUT' || 
-        errorCode === 'SERVER_ERROR' || errorCode === 'UNKNOWN_ERROR' ||
-        error.name === 'NetworkError' || errorMessage.includes('network') ||
-        errorMessage.includes('connection') || errorMessage.includes('timeout')) {
-      throw new NetworkError(
-        `Failed to create auth proof: Network error during signing - ${errorMessage}`,
-        null,
-        error
-      );
-    }
-
-    // Encoding errors (should be rare)
-    if (errorMessage.includes('encode') || errorMessage.includes('ABI')) {
-      throw new ValidationError(
-        `Failed to encode auth proof: ${errorMessage}`,
-        'authProof',
-        { deadline }
-      );
-    }
-    
-    // Generic error fallback - use standard UNKNOWN_ERROR code
-    throw new WalletError(
-      `Failed to create auth proof: ${errorMessage}`,
-      'UNKNOWN_ERROR',
-      {
-        function: 'createAuthProofWalletSignature',
-        originalError: errorMessage,
-        originalCode: errorCode
-      }
-    );
+    rethrowMappedSignerError(error, {
+      authProofType: 'wallet-signature auth proof',
+      functionName: 'createAuthProofWalletSignature',
+      validationExtra: { deadline }
+    });
   }
 }
 
@@ -332,47 +298,11 @@ async function createAuthProofDualFactor(options = {}) {
       [minutePasswordSignature, deadline, guardianSignature]
     );
   } catch (error) {
-    if (error instanceof WalletError) {
-      throw error;
-    }
-
-    const errorCode = error.code || error.error?.code;
-    const errorMessage = error.message || String(error);
-
-    if (
-      errorCode === 'NETWORK_ERROR' ||
-      errorCode === 'TIMEOUT' ||
-      errorCode === 'SERVER_ERROR' ||
-      errorCode === 'UNKNOWN_ERROR' ||
-      error.name === 'NetworkError' ||
-      errorMessage.includes('network') ||
-      errorMessage.includes('connection') ||
-      errorMessage.includes('timeout')
-    ) {
-      throw new NetworkError(
-        `Failed to create dual-factor auth proof: Network error during signing - ${errorMessage}`,
-        null,
-        error
-      );
-    }
-
-    if (errorMessage.includes('encode') || errorMessage.includes('ABI')) {
-      throw new ValidationError(
-        `Failed to encode dual-factor auth proof: ${errorMessage}`,
-        'authProof',
-        { deadline }
-      );
-    }
-
-    throw new WalletError(
-      `Failed to create dual-factor auth proof: ${errorMessage}`,
-      'UNKNOWN_ERROR',
-      {
-        function: 'createAuthProofDualFactor',
-        originalError: errorMessage,
-        originalCode: errorCode
-      }
-    );
+    rethrowMappedSignerError(error, {
+      authProofType: 'dual-factor auth proof',
+      functionName: 'createAuthProofDualFactor',
+      validationExtra: { deadline }
+    });
   }
 }
 
