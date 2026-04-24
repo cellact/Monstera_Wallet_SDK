@@ -33,15 +33,15 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    factory: '0xdf5D9880d80Ee8029ce0b675d66734Cd667eEEB3',
-    passwordAuth: '0xc3553935efaa9c02cF963bd551eF02b6d09CA1a5',
+    factory: '0x4971c68f9c783a74D6f3d55aA515231E05375652', 
+    passwordAuth: '0x461f38fdCD44a92cD0fBE7ba9498903EFd944740',
     walletSignatureAuth: '0xc06E821da811b0735DA5493F1732a25EB7005412',
     dualFactorAuth: '0xCAb1585C37118d066Bc3AD79919B4CAE5cd42BC2',
     passwordMinuteSignatureAuth: '0x151ed065b04583ABB0Ceb21d37C266e41AA3c7E8',
   },
   mainnet: {
-    factory: '0x6170CA80482C5B07FA6c829aF6E5Cd8a3FBEef53',
-    passwordAuth: '0x9f79F00888DEb2DE3e6C300a8FF6884214378132',
+    factory: '0x08Ae4eAf21dae5aAe8E03E4189578f09Fb95ED76',
+    passwordAuth: '0xFCF80E508787f3a1C6a33f471b8FF7832683fbc2',
     walletSignatureAuth: '0x4b294756bB7F9DF7f3b8ad3A546246DE68068Af5',
     dualFactorAuth: '0x5422f5b59F816A39587895e6d169d38C2fc1b2E5',
     passwordMinuteSignatureAuth: '0x61D5299c91ff789d5a636A5046576c3c08397644',
