@@ -242,6 +242,7 @@
  * @property {Record<string, unknown>} [extraData] - Additional data to include in result (spread into result)
  * @property {string} [methodName] - Method name for error context
  * @property {string} [rpcUrl] - RPC URL for error context
+ * @property {Record<string, unknown>} [sdkContext] - Pre-built safe context from buildErrorContext (merged into thrown WalletError)
  */
 
 /**
@@ -265,7 +266,10 @@
 
 /**
  * Complete options for BaseContractClient.executeRead(). Additional properties are included in error context.
- * @typedef {ExecuteInputOptionsBase} ExecuteReadInputOptions
+ *
+ * @typedef {ExecuteInputOptionsBase & {
+ *   revertInterface?: EthersInterface|null;
+ * }} ExecuteReadInputOptions
  */
 
 /**

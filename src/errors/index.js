@@ -15,3 +15,11 @@ export {
   WriteRequiresSignerError,
   EventParseError
 } from './WalletError.js';
+
+export {
+  applySdkContext,
+  decodeCustomError,
+  extractRpcRevertBytes,
+  rethrowExecuteError,
+  toWalletError
+} from './ethersErrorTranslator.js';

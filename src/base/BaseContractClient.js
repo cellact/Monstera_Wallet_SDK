@@ -20,7 +20,8 @@
 import SapphireWriteWrapper from './SapphireWriteWrapper.js';
 import { requireAddress } from '../internal/assert.js';
 import MonsteraConfig from '../config/monstera.js';
-import { WalletError, WriteRequiresSignerError } from '../errors/index.js';
+import { WriteRequiresSignerError } from '../errors/index.js';
+import { rethrowExecuteError } from '../errors/ethersErrorTranslator.js';
 import log from '../internal/logger.js';
 
 class BaseContractClient {
@@ -90,8 +91,9 @@ class BaseContractClient {
    * Reduces boilerplate by automatically wrapping errors with context.
    * Use this for all read operations to ensure consistent error handling.
    * 
-   * Any additional properties in options (besides operation, methodName) 
-   * are included in the error context.
+   * Any additional properties in options (besides operation, methodName, revertInterface)
+   * are included in the error context. Optional {@code revertInterface} improves decoding
+   * of custom errors on {@code CALL_EXCEPTION} when ethers does not fill {@code err.revert}.
    * 
    * @template TResult
    * @param {ExecuteReadInputOptions} options - Complete options for the read operation
@@ -105,13 +107,19 @@ class BaseContractClient {
    * });
    */
   async executeRead(options) {
-    const { operation, methodName, ...errorContext } = options;
+    const { operation, methodName, revertInterface, ...errorContext } = options;
+    const sdkContext = this.buildErrorContext({ ...errorContext, methodName });
 
+    log.info('Executing read', { methodName });
     try {
-      log.info('Executing read', { methodName });
       return await operation();
     } catch (error) {
-      throw this.wrapError(methodName, error, errorContext);
+      rethrowExecuteError(error, {
+        methodName,
+        rpcUrl: this.config?.rpcUrl,
+        revertInterface: revertInterface ?? undefined,
+        sdkContext
+      });
     }
   }
 
@@ -139,9 +147,11 @@ class BaseContractClient {
    */
   async executeWrite(options) {
     const { operation, methodName, parseEvents, requireEvents, extraData, revertInterface, ...errorContext } = options;
-    
+
+    log.info('Executing write', { methodName });
+    const sdkContext = this.buildErrorContext({ ...errorContext, methodName });
+
     try {
-      log.info('Executing write', { methodName });
       return await SapphireWriteWrapper.execute(operation, {
         writeSigner: this.writeSigner,
         readProvider: this.readProvider,
@@ -150,10 +160,16 @@ class BaseContractClient {
         requireEvents,
         extraData,
         methodName,
-        rpcUrl: this.config?.rpcUrl
+        rpcUrl: this.config?.rpcUrl,
+        sdkContext
       });
     } catch (error) {
-      throw this.wrapError(methodName, error, errorContext);
+      rethrowExecuteError(error, {
+        methodName,
+        rpcUrl: this.config?.rpcUrl,
+        revertInterface: revertInterface ?? undefined,
+        sdkContext
+      });
     }
   }
 
@@ -188,38 +204,6 @@ class BaseContractClient {
     context.client = this.constructor.name;
     
     return context;
-  }
-
-  /**
-   * Wrap an error with method name and context
-   * 
-   * Delegates to SapphireWriteWrapper for consistent error translation.
-   * Supports both new pattern (options object) and legacy pattern (context object).
-   * 
-   * @param {string} methodName - Name of the method that threw the error
-   * @param {Error} err - Original error
-   * @param {Record<string, unknown>} optionsOrContext - Method options object (for automatic context extraction) or context object (legacy)
-   * @returns {WalletError} Wrapped error with descriptive message
-   */
-  wrapError(methodName, err, optionsOrContext = {}) {
-    // Build standardized context from options/context
-    // Extract safe params and include any additional context provided
-    const context = this.buildErrorContext(optionsOrContext);
-    
-    // Add method name to context
-    context.methodName = methodName;
-    
-    // If already a WalletError, just add context
-    if (err instanceof WalletError) {
-      err.context = { ...(err.context || {}), ...context };
-      return err;
-    }
-    
-    // Use SapphireWriteWrapper's error translation for consistency
-    return SapphireWriteWrapper._translateError(methodName, err, {
-      ...context,
-      rpcUrl: this.config?.rpcUrl
-    });
   }
 
 }
