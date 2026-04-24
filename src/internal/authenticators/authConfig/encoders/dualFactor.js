@@ -7,7 +7,7 @@
  * @typedef {import('../../../../types/index.js').EncodedAuthConfigDualFactor} EncodedAuthConfigDualFactor
  */
 
-import { createDualFactorAuthConfig } from '../../../crypto/wallet.js';
+import { createDualFactorAuthConfig } from '../../../crypto/index.js';
 
 /** @type {{ id: string, encode: (authConfig: DualFactorAuthConfigInputOptions) => EncodedAuthConfigDualFactor }} */
 export const dualFactorAuthCreateWalletEncoder = {

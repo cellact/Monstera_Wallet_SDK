@@ -94,7 +94,7 @@ import {
   createAuthProofDualFactor,
   createWalletSigAuthConfig,
   createDualFactorAuthConfig
-} from '../internal/crypto/wallet.js';
+} from '../internal/crypto/index.js';
 import { executeSignAuthorization } from '../internal/crypto/signAuthorization.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { ValidationError } from '../errors/index.js';
@@ -858,9 +858,13 @@ class Monstera {
 
   /**
    * EIP-7702-style authorization signing via KeyVault (same digest as ethers {@link ethers.hashAuthorization}).
-   * Orchestration lives in {@code internal/crypto/signAuthorization.js}; hashing / verification / encoding helpers in {@code internal/crypto/wallet.js}.
+   * Orchestration lives in {@code internal/crypto/signAuthorization.js}; hashing / verification / encoding 
+   * helpers in {@code internal/crypto/authorization.js} (barrel: {@code internal/crypto/index.js}).
    *
-   * When {@code chainId} or {@code nonce} are omitted they are read from {@code options.provider}, else from {@link Monstera.prototype.readProvider} / {@link Monstera.prototype.writeSigner}. For an authorization on a chain different from the SDK RPC, pass {@code provider} connected to that chain so nonce and chain id stay consistent.
+   * When {@code chainId} or {@code nonce} are omitted they are read from {@code options.provider}, else 
+   * from {@link Monstera.prototype.readProvider} / {@link Monstera.prototype.writeSigner}. 
+   * For an authorization on a chain different from the SDK RPC, pass {@code provider} connected 
+   * to that chain so nonce and chain id stay consistent.
    *
    * @param {SignAuthorizationOptions} options
    * @returns {Promise<SignedAuthorizationResult>}

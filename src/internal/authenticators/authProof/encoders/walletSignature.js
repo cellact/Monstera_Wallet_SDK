@@ -7,7 +7,7 @@
  * @typedef {import('../../../../types/index.js').WalletSignatureAuthProofEncoderOptions} WalletSignatureAuthProofEncoderOptions
  */
 
-import { createAuthProofWalletSignature } from '../../../crypto/wallet.js';
+import { createAuthProofWalletSignature } from '../../../crypto/index.js';
 import { requireWalletOrHdNode } from '../../../../internal/assert.js';
 import { nowUnixTimestampSeconds } from '../../../../internal/utils/time.js';
 

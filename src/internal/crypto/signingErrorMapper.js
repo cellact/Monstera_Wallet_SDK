@@ -1,6 +1,6 @@
 /**
  * Map ethers/signer failures from EIP-712 or similar signing into SDK errors.
- * Shared by auth-proof builders in wallet.js.
+ * Shared by auth-proof builders in authProof.js.
  */
 
 import { NetworkError, ValidationError, WalletError } from '../../errors/index.js';

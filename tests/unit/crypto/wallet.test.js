@@ -17,13 +17,12 @@ import { getTestConfig } from '../../utils/setup.js';
 import {
   generateMnemonic,
   deriveSeed,
-  hashPassword,
   createAuthProofWalletSignature,
   createWalletSigAuthConfig,
   createDualFactorAuthConfig,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor
-} from '../../../src/internal/crypto/wallet.js';
+} from '../../../src/internal/crypto/index.js';
 import { floorTimestampToMinuteBucket, nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 import { NetworkError } from '../../../src/errors/index.js';
 
@@ -42,22 +41,6 @@ describe('Wallet Crypto Utilities', () => {
       expect(seed).toBeDefined();
       expect(seed instanceof Uint8Array).toBe(true);
       expect(seed.length).toBe(64);
-    });
-  });
-
-  describe('hashPassword', () => {
-    test('should hash a password and return a string', () => {
-      const password = 'password';
-      const hashedPassword = hashPassword(password);
-      expect(hashedPassword).toBeDefined();
-      expect(typeof hashedPassword).toBe('string');
-    });
-
-    test('should throw an error if the password is not a string or is empty', () => {
-      expect(() => hashPassword(null)).toThrow('password is required and must be a string');
-      expect(() => hashPassword(undefined)).toThrow('password is required and must be a string');
-      expect(() => hashPassword(123)).toThrow('password is required and must be a string');
-      expect(() => hashPassword({ password: 'password' })).toThrow('password is required and must be a string');
     });
   });
 

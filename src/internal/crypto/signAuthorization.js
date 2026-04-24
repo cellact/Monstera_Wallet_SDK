@@ -1,6 +1,6 @@
 /**
- * Orchestrates EIP-7702-style authorization signing via KeyVault + {@link wallet.js} primitives.
- * Keeps {@link Monstera} thin; validation and ethers usage live here and in wallet.
+ * Orchestrates EIP-7702-style authorization signing via KeyVault + {@link authorization.js} primitives.
+ * Keeps {@link Monstera} thin; validation and ethers usage live here and in {@link authorization.js}.
  *
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
@@ -18,7 +18,7 @@ import {
   fetchAuthorizationNonce,
   finalizeSignedAuthorizationResult,
   toChecksumAddress
-} from './wallet.js';
+} from './index.js';
 import { log } from '../logger.js';
 
 /**

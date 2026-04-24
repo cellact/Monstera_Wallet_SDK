@@ -4,7 +4,7 @@
  * @typedef {import('../../types/index.js').Address} Address
  */
 
-import { toChecksumAddress } from '../crypto/wallet.js';
+import { toChecksumAddress } from '../crypto/index.js';
 
 /**
  * @template T

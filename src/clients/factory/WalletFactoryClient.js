@@ -30,7 +30,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletFactoryContract } from '../../contracts/core/walletFactory.js';
 import { WalletFactoryEvents } from '../../events/index.js';
-import { generateMnemonic, deriveSeed } from '../../internal/crypto/wallet.js';
+import { generateMnemonic, deriveSeed } from '../../internal/crypto/index.js';
 import { requireAddress, requireBytes, requireMnemonic } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 

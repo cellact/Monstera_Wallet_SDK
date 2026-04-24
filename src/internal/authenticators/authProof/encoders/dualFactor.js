@@ -7,7 +7,7 @@
  * @typedef {import('../../../../types/index.js').DualFactorAuthProofEncoderOptions} DualFactorAuthProofEncoderOptions
  */
 
-import { createAuthProofDualFactor } from '../../../crypto/wallet.js';
+import { createAuthProofDualFactor } from '../../../crypto/index.js';
 import { requireWalletOrHdNode, requireBytes32 } from '../../../../internal/assert.js';
 import { nowUnixTimestampSeconds } from '../../../../internal/utils/time.js';
 

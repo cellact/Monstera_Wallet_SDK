@@ -327,13 +327,13 @@
 
 /**
  * ABI-encoded dual-factor authenticator config at wallet creation ({@code abi.encode(bytes32,address)}).
- * @see {@link module:internal/crypto/wallet.js} {@code createDualFactorAuthConfig}
+ * @see {@link module:internal/crypto/authConfig.js} {@code createDualFactorAuthConfig}
  * @typedef {Bytes} EncodedAuthConfigDualFactor
  */
 
 /**
  * ABI-encoded WalletSignatureAuthenticator whitelist ({@code abi.encode(address[])}).
- * @see {@link module:internal/crypto/wallet.js} {@code createWalletSigAuthConfig}
+ * @see {@link module:internal/crypto/authConfig.js} {@code createWalletSigAuthConfig}
  * @typedef {Bytes} EncodedAuthConfigWalletSignature
  */
 
@@ -602,7 +602,7 @@
  */
 
 /**
- * Result of minute-signature auth proof creation ({@code internal/crypto/wallet.js}, {@code createAuthProofMinuteSignature}).
+ * Result of minute-signature auth proof creation ({@code internal/crypto/authProof.js}, {@code createAuthProofMinuteSignature}).
  *
  * @typedef {Object} CreateAuthProofMinuteSignatureResult
  * @property {EncodedAuthProofPasswordMinute} authProof - ABI-encoded signature for {@code PasswordMinuteSignatureAuthenticator.verify}
