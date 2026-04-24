@@ -139,8 +139,9 @@ class ContractRevertError extends WalletError {
    * @param {string|null} [revertReason=null] - Decoded revert reason, if available
    * @param {TransactionHash|null} [transactionHash=null] - Transaction hash that reverted
    * @param {TransactionReceipt|null} [receipt=null] - Transaction receipt, if available
+   * @param {Record<string, unknown>} [extraContext={}] - Optional decoded fields (e.g. {@code revertArgs})
    */
-  constructor(message, revertData = null, revertReason = null, transactionHash = null, receipt = null) {
+  constructor(message, revertData = null, revertReason = null, transactionHash = null, receipt = null, extraContext = {}) {
     super(
       message,
       'TX_REVERTED',
@@ -149,7 +150,8 @@ class ContractRevertError extends WalletError {
         revertReason,
         transactionHash,
         receipt,
-        function: 'transaction'
+        function: 'transaction',
+        ...extraContext
       }
     );
     this.name = 'ContractRevertError';

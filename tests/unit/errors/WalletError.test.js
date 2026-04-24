@@ -215,6 +215,18 @@ describe('WalletError', () => {
       const error = new ContractRevertError('Test');
       expect(error.context.function).toBe('transaction');
     });
+
+    test('should merge optional extra context (e.g. revertArgs)', () => {
+      const error = new ContractRevertError(
+        'Transaction reverted: CustomError',
+        '0xabcd',
+        'CustomError',
+        TEST_TX_HASH,
+        null,
+        { revertArgs: [1n, '0x1234'] }
+      );
+      expect(error.context.revertArgs).toEqual([1n, '0x1234']);
+    });
   });
 
   describe('EventNotFoundError', () => {

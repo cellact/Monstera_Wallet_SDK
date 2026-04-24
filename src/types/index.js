@@ -60,6 +60,7 @@
  * @typedef {import('ethers').HDNodeWallet} EthersHDNodeWallet - Ethers.js HDNodeWallet type
  * @typedef {import('ethers').TransactionReceipt} TransactionReceipt - Ethers.js TransactionReceipt type
  * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider - Ethers.js AbstractProvider (e.g. {@code getBlock})
+ * @typedef {import('ethers').Interface} EthersInterface - Ethers.js ABI Interface (decode errors, encode calls)
  * @typedef {EthersSigner} WrappedEthersSigner - Sapphire-wrapped Ethers signer (from @oasisprotocol/sapphire-ethers-v6 wrapEthersSigner)
  */
 
@@ -234,6 +235,8 @@
 /**
  * @typedef {Object} ExecuteWriteOptions
  * @property {WrappedEthersSigner} writeSigner - The write signer (must be Sapphire-wrapped)
+ * @property {EthersProvider|null} [readProvider] - Provider for replaying failed txs via {@code eth_call} to recover revert data (ethers v6 omits it on {@code tx.wait()} failures)
+ * @property {EthersInterface|null} [revertInterface] - ABI interface used to decode custom Solidity errors from revert data
  * @property {Array<ParseEventOptions>} [parseEvents] - Array of event definitions to parse
  * @property {boolean} [requireEvents=true] - Whether to throw if events are not found
  * @property {Record<string, unknown>} [extraData] - Additional data to include in result (spread into result)
@@ -256,6 +259,7 @@
  *   parseEvents?: Array<ParseEventOptions>;
  *   requireEvents?: boolean;
  *   extraData?: Record<string, unknown>;
+ *   revertInterface?: EthersInterface|null;
  * }} ExecuteWriteInputOptions
  */
 

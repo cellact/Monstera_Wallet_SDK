@@ -138,12 +138,14 @@ class BaseContractClient {
    * });
    */
   async executeWrite(options) {
-    const { operation, methodName, parseEvents, requireEvents, extraData, ...errorContext } = options;
+    const { operation, methodName, parseEvents, requireEvents, extraData, revertInterface, ...errorContext } = options;
     
     try {
       log.info('Executing write', { methodName });
       return await SapphireWriteWrapper.execute(operation, {
         writeSigner: this.writeSigner,
+        readProvider: this.readProvider,
+        revertInterface: revertInterface ?? undefined,
         parseEvents,
         requireEvents,
         extraData,
