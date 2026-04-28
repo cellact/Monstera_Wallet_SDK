@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.8] - 2026-04-28
+
 ### Added
 
 - **Internal crypto modules**: Barrel export [`src/internal/crypto/index.js`](src/internal/crypto/index.js) composes **`mnemonic.js`** (BIP39 + PBKDF2 seed), **`authConfig.js`** (factory auth-config ABI bytes), **`authProof.js`** (built-in auth proofs), **`authorization.js`** (EIP-7702 tuple hashing, KeyVault `signAuthorizationImpl` calldata, checksum, decode/finalize), **`signAuthorization.js`** (KeyVault orchestration for **`Monstera.prototype.signAuthorization`**), and **`signingErrorMapper.js`** (typed-data / signer failures for auth proofs).
