@@ -171,8 +171,9 @@ async function main() {
       message: ethers.toUtf8Bytes("test")
     });
     console.log("   ❌ Should have failed!");
-  } catch {
-    console.log("   ✅ Correctly rejected: AuthenticationFailed");
+  } catch (error) {
+    console.log('error', error);
+    console.log(`   ✅ Correctly rejected: ${error.message}`);
   }
 
   // ============ STEP 7: Security architecture summary ============
