@@ -7,11 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Internal crypto modules**: Barrel export [`src/internal/crypto/index.js`](src/internal/crypto/index.js) composes **`mnemonic.js`** (BIP39 + PBKDF2 seed), **`authConfig.js`** (factory auth-config ABI bytes), **`authProof.js`** (built-in auth proofs), **`authorization.js`** (EIP-7702 tuple hashing, KeyVault `signAuthorizationImpl` calldata, checksum, decode/finalize), **`signAuthorization.js`** (KeyVault orchestration for **`Monstera.prototype.signAuthorization`**), and **`signingErrorMapper.js`** (typed-data / signer failures for auth proofs).
+
 ### Changed
 
 - **BREAKING — SDK initialization**: `Monstera.readonly()` is removed. Use **`Monstera.connect()`** for both flows: omit **`signer`** (and optionally pass **`provider`**) for read-only; pass **`signer`** for a write-capable instance. Replace `Monstera.readonly(options)` with `Monstera.connect(options)` and delete the `.readonly` call.
 - **BREAKING — `Monstera.connect()`**: **`signer` is optional.** Read-only connections no longer throw when `signer` is omitted (previously `connect()` required a signer). Omitting `signer` matches the former `readonly()` behavior.
+- **BREAKING — internal crypto imports**: Monolithic **`src/internal/crypto/wallet.js`** is removed. Import from **`src/internal/crypto/index.js`** or the specific module (`mnemonic.js`, `authorization.js`, etc.). **`hashPassword`** is no longer exported; hash passwords off-chain with **`ethers.keccak256(ethers.toUtf8Bytes(password))`** (same pattern as **[`examples/nodejs/passwordAuthMethods.js`](examples/nodejs/passwordAuthMethods.js)**).
+- **`errors/ethersErrorTranslator`**: Shared helper for **`CALL_EXCEPTION` / `UNPREDICTABLE_GAS_LIMIT`** revert resolution (decode paths unified); clearer **`ContractRevertError`** messages and merged **`sdkContext`** when mapping ethers/RPC failures.
+- **`SapphireWriteWrapper`**: After ethers v6 **`wait()`**, mined reverts that omit calldata/revert bytes are enriched by replaying the transaction with **`getTransaction`** + **`eth_call`** at the mined block when a read provider is available, then decoding with the contract ABI so **`ContractRevertError`** can include revert reason and args.
+- **`registryByChecksumAddress`**: Uses **`toChecksumAddress`** from the crypto barrel (`authorization.js`); invalid authenticator addresses throw **`ValidationError`** during lookup instead of silently missing the registry key.
+- **Network presets**: Default **`factory`** and **`passwordAuth`** addresses synced with current Sapphire deployments (**`config/networks.js`**).
 
+### Fixed
+
+- **Writes**: More reliable decoding of **on-chain revert data** after failed transactions when ethers surfaces **`CALL_EXCEPTION`** without embedded revert payload on the initial error object.
 
 ## [1.0.0-alpha.7] - 2026-04-23
 

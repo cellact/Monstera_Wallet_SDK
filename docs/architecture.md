@@ -13,7 +13,7 @@ The SDK is organized into modular components:
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Consistent error types with stable error codes
-- **`internal/`**: Logger, version check, validation (`assert`), built-in authenticator encoders (`authenticators/`), wallet crypto (`crypto/index.js` barrel: `mnemonic.js`, `authorization.js`, `authConfig.js`, `authProof.js`, `signAuthorization.js`) — **not** a public package export
+- **`internal/`**: Logger, version check, validation (`assert`), built-in authenticator encoders (`authenticators/`), wallet crypto (`crypto/index.js` barrel: `mnemonic.js`, `authorization.js`, `authConfig.js`, `authProof.js`, `signAuthorization.js`, `signingErrorMapper.js`) — **not** a public package export
 - **`sdk/`**: Main SDK class (Monstera) and MonsteraUtils
 - **`types/`**: Shared JSDoc type definitions
 - **`bin/`**: CLI tool (monstera command)
@@ -36,7 +36,7 @@ src/             # Source code
   clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor, passwordMinuteSignature)
   events/        # Event definitions and receipt parsing
   errors/        # Error types (single source of truth for error exports)
-  internal/      # logger, versionCheck, version, assert, authenticators/, crypto/ (index.js, mnemonic.js, authorization.js, authConfig.js, authProof.js, signAuthorization.js — internal only)
+  internal/      # logger, versionCheck, version, assert, authenticators/, crypto/ (index.js, mnemonic.js, authorization.js, authConfig.js, authProof.js, signAuthorization.js, signingErrorMapper.js — internal only)
   sdk/           # Monstera, MonsteraUtils
   types/         # Shared JSDoc types
 bin/             # CLI (monstera command)
