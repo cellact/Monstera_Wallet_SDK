@@ -30,9 +30,7 @@ function isAddress(value) {
  * @throws {Error} If value is not provided or is not a valid address string
  */
 function requireAddress(value, name = 'address') {
-  if (!value || typeof value !== 'string') {
-    throw new ValidationError(`${name} is required and must be a string`, name, value);
-  }
+  requireString(value, name);
   if (!isAddress(value)) {
     throw new ValidationError(`${name} must be a valid Ethereum address`, name, value);
   }
@@ -122,9 +120,7 @@ function requireString(value, name = 'string') {
  * @throws {Error} If value is not a valid BIP39 mnemonic
  */
 function requireMnemonic(value, name = 'mnemonic') {
-  if (!value || typeof value !== 'string') {
-    throw new ValidationError(`${name} is required and must be a string`, name, value);
-  }
+  requireString(value, name);
   
   // Normalize the mnemonic more aggressively to handle ethers v6 whitespace issues
   // Remove all types of whitespace (spaces, tabs, newlines) and replace with single space
@@ -297,6 +293,20 @@ function requireBoolean(value, name = 'boolean') {
   }
 }
 
+/**
+ * Require an object value
+ * 
+ * @param {object} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {Error} If value is not an object or is empty
+ */
+function requireObject(value, name = 'object') {
+  if (!value || typeof value !== 'object') {
+    throw new ValidationError(`${name} is required and must be an object`, name, value);
+  }
+}
+
+
 export {
   isAddress,
   requireAddress,
@@ -312,5 +322,6 @@ export {
   requireStringOrNumber,
   isInFuture,
   requireBoolean,
-  requireUtf8Bytes
+  requireUtf8Bytes,
+  requireObject
 };

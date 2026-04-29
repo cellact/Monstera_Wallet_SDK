@@ -16,7 +16,11 @@
  */
 
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
-import { fetchContractAddressesFromRegistry } from './registry.js';
+import {
+  fetchRegistryStorageRaw,
+  parseRegistryContractAddresses,
+  parseRegistryConnectionHints
+} from './registry.js';
 import { ConfigError, ValidationError } from '../errors/index.js';
 import { isAddress, requireArray, requireBoolean } from '../internal/assert.js';
 import log from '../internal/logger.js';
@@ -90,7 +94,7 @@ class MonsteraConfig {
 
   /**
    * Built-in defaults merged with registry payloads from ConfigStorage (when configured per preset).
-   * Calls {@link fetchContractAddressesFromRegistry} for both testnet and mainnet; failures keep built-in values for that preset.
+   * Calls {@link fetchRegistryStorageRaw} and {@link parseRegistryContractAddresses} per preset; failures keep built-in values for that preset.
    *
    * @static
    * @returns {Promise<DefaultContractAddresses>}
@@ -103,10 +107,14 @@ class MonsteraConfig {
     };
 
     for (const net of /** @type {Array<'testnet'|'mainnet'>} */ (['testnet', 'mainnet'])) {
-      const result = await fetchContractAddressesFromRegistry(net);
-      const partial = result?.parsed;
-      if (partial && typeof partial === 'object') {
+      try {
+        const raw = await fetchRegistryStorageRaw(net);
+        const partial = parseRegistryContractAddresses(net, raw);
         merged[net] = { ...merged[net], ...partial };
+      } catch (e) {
+        log.warn(`Remote registry unavailable for ${net}; using built-in defaults`, {
+          message: e instanceof Error ? e.message : String(e)
+        });
       }
     }
 
@@ -168,30 +176,21 @@ class MonsteraConfig {
 
     const network = mainnet ? 'mainnet' : 'testnet';
 
-    const fetchResult = await fetchContractAddressesFromRegistry(network);
-
-    let remotePartial = null;
+    /** @type {Record<string, string>} */
+    let remotePartial = {};
     let remoteRpcUrl;
     let remoteChainId;
 
-    if (fetchResult && typeof fetchResult === 'object' && 'parsed' in fetchResult) {
-      remotePartial = fetchResult.parsed;
-      const raw = fetchResult.raw;
-      if (typeof raw === 'string' && raw.length > 0) {
-        try {
-          const j = JSON.parse(raw);
-          if (j && typeof j === 'object') {
-            if (j.RPC != null && j.RPC !== '') {
-              remoteRpcUrl = typeof j.RPC === 'string' ? j.RPC.trim() : String(j.RPC);
-            }
-            if (j.chain_id != null && j.chain_id !== '') {
-              remoteChainId = j.chain_id;
-            }
-          }
-        } catch {
-          /* ignore malformed registry JSON for RPC/chain extras */
-        }
-      }
+    try {
+      const raw = await fetchRegistryStorageRaw(network);
+      remotePartial = parseRegistryContractAddresses(network, raw);
+      const hints = parseRegistryConnectionHints(raw);
+      remoteRpcUrl = hints.rpcUrl;
+      remoteChainId = hints.chainId;
+    } catch (e) {
+      log.warn('Remote registry unavailable; using built-in defaults', {
+        message: e instanceof Error ? e.message : String(e)
+      });
     }
 
     log.debug('resolveBaseConfigAsync', { remoteRpcUrl, remoteChainId });
@@ -201,12 +200,16 @@ class MonsteraConfig {
       rpcUrl: rpcUrl ?? remoteRpcUrl,
       chainId: chainId ?? remoteChainId,
       addresses: {
-        ...(remotePartial || {}),
+        ...remotePartial,
         ...(addresses || {})
       }
     });
 
-    log.debug('resolveBaseConfigAsync', { mainnet, network, remoteLoaded: !!remotePartial });
+    log.debug('resolveBaseConfigAsync', {
+      mainnet,
+      network,
+      remoteLoaded: Object.keys(remotePartial).length > 0
+    });
 
     MonsteraConfig._validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
 

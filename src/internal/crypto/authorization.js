@@ -10,7 +10,7 @@
  */
 
 import { ethers } from 'ethers';
-import { requireAddress, requireNonNegativeInteger, requireBytes } from '../assert.js';
+import { requireAddress, requireNonNegativeInteger, requireBytes, requireObject } from '../assert.js';
 import { ValidationError } from '../../errors/index.js';
 
 /** @see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7702.md — authorization digest uses the same preimage as ethers `hashAuthorization`. */
@@ -36,9 +36,7 @@ const UINT32_MAX = (1n << 32n) - 1n;
  * @returns {AuthorizationTupleInput}
  */
 function normalizeAuthorizationTuple(auth) {
-  if (!auth || typeof auth !== 'object') {
-    throw new ValidationError('auth is required', 'auth', auth);
-  }
+  requireObject(auth, 'auth');
   const rawAddr = auth.address ?? auth.delegateAddr;
   requireAddress(rawAddr, 'address');
   const address = ethers.getAddress(rawAddr);

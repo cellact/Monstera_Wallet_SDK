@@ -283,24 +283,24 @@ describe('MonsteraConfig', () => {
         });
 
         describe('Error Cases', () => {
-            test('should throw ConfigError if mainnet is missing', () => {
+            test('should throw ValidationError if mainnet is missing', () => {
                 expect(() => {
                     MonsteraConfig.resolveBaseConfig({});
-                }).toThrow(ConfigError);
+                }).toThrow(ValidationError);
             });
 
-            test('should throw ConfigError if mainnet is not a boolean', () => {
+            test('should throw ValidationError if mainnet is not a boolean', () => {
                 expect(() => {
                     MonsteraConfig.resolveBaseConfig({ mainnet: 'testnet' });
-                }).toThrow(ConfigError);
+                }).toThrow(ValidationError);
                 
                 expect(() => {
                     MonsteraConfig.resolveBaseConfig({ mainnet: 1 });
-                }).toThrow(ConfigError);
+                }).toThrow(ValidationError);
                 
                 expect(() => {
                     MonsteraConfig.resolveBaseConfig({ mainnet: null });
-                }).toThrow(ConfigError);
+                }).toThrow(ValidationError);
             });
 
             test('should throw ConfigError if required address is missing (testnet)', () => {

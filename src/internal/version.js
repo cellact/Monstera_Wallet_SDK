@@ -2,16 +2,16 @@
  * Version comparison and utility functions
  */
 
+import { requireString } from './assert.js';
+
 /**
  * Parse semantic version string into components
  * @param {string} version - Semantic version string
  * @returns {Record<string, number|string|null>} Parsed version object with {major, minor, patch, prerelease, build, raw}
  */
 export function parseVersion(version) {
-    if (typeof version !== 'string') {
-      throw new TypeError(`Version must be a string, got ${typeof version}`);
-    }
-  
+    requireString(version, 'version');
+
     // Match semantic version pattern: major.minor.patch[-prerelease][+build]
     const semverRegex = /^(\d+)\.(\d+)\.(\d+)(?:-([\w.-]+))?(?:\+([\w.-]+))?$/;
     const match = version.match(semverRegex);
