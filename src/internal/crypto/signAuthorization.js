@@ -8,6 +8,7 @@
  * @typedef {import('../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
  * @typedef {import('../../clients/keyVault/KeyVaultClient.js').default} KeyVaultClient
  * @typedef {import('../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
+ * @typedef {import('../../types/index.js').ResolvedSignAuthorizationInputs} ResolvedSignAuthorizationInputs
  */
 
 import { ValidationError } from '../../errors/index.js';
@@ -37,7 +38,7 @@ import { log } from '../logger.js';
  * @param {SignAuthorizationDeps} deps
  * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Object after {@link encodeAuthProofOptions}
  * @param {SignAuthorizationOptions} options
- * @returns {Promise<{ keyVaultAddr: string; authProof: import('../../types/index.js').Bytes; implCall: import('../../types/index.js').Bytes; delegateAddr: string; nonce: bigint; chainId: bigint }>}
+ * @returns {Promise<ResolvedSignAuthorizationInputs>}
  */
 async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, options = {}) {
   const { keyVault, fallbackProvider } = deps;

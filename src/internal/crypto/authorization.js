@@ -7,6 +7,7 @@
  * @typedef {import('../../types/index.js').CreateImplCallOptions} CreateImplCallOptions
  * @typedef {import('../../types/index.js').AuthorizationSplitSignature} AuthorizationSplitSignature
  * @typedef {import('../../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
+ * @typedef {import('../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
  */
 
 import { ethers } from 'ethers';
@@ -69,7 +70,7 @@ function verifyAuthorization(auth, signature) {
 /**
  * Read {@code chainId} from an ethers provider's current network (EIP-155).
  *
- * @param {import('../../types/index.js').EthersAbstractProvider} provider
+ * @param {EthersAbstractProvider} provider
  * @returns {Promise<bigint>}
  */
 async function fetchAuthorizationChainId(provider) {
@@ -83,7 +84,7 @@ async function fetchAuthorizationChainId(provider) {
 /**
  * EIP-7702 authorization {@code nonce} for an authority address: latest transaction count on the target chain.
  *
- * @param {import('../../types/index.js').EthersAbstractProvider} provider
+ * @param {EthersAbstractProvider} provider
  * @param {Address} authorityAddress
  * @returns {Promise<bigint>}
  */

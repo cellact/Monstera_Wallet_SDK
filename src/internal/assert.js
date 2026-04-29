@@ -6,6 +6,7 @@
  * 
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').Mnemonic} Mnemonic
+ * @typedef {import('../types/index.js').ChainId} ChainId
  */
 
 import { ValidationError } from '../errors/index.js';
@@ -272,7 +273,7 @@ function requireStringOrNumber(value, name = 'string or number') {
  *
  * @param {unknown} value
  * @param {string} [name='chainId']
- * @returns {import('../types/index.js').ChainId}
+ * @returns {ChainId} 
  * @throws {ValidationError} If missing or not parseable to a finite chain id
  */
 function requireChainId(value, name = 'chainId') {

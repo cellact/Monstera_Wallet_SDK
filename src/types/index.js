@@ -694,6 +694,20 @@
  */
 
 /**
+ * Resolved authorization signing inputs: validated options, optional RPC-resolved chain id and nonce,
+ * and encoded KeyVault {@code implCall} bytes (internal pipeline before {@code executeWithAuth}).
+ *
+ * @typedef {{
+ *   keyVaultAddr: Address,
+ *   authProof: Bytes|Uint8Array,
+ *   implCall: Bytes,
+ *   delegateAddr: Address,
+ *   nonce: bigint,
+ *   chainId: bigint
+ * }} ResolvedSignAuthorizationInputs
+ */
+
+/**
  * Split secp256k1 signature for an authorization (ethers-style `yParity`, `r`, `s`).
  * @typedef {{ r: string, s: string, yParity: 0|1 }} AuthorizationSplitSignature
  */
