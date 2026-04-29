@@ -9,14 +9,14 @@
  *
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../types/index.js').ChainId} ChainId
  */
 
 import { ethers } from 'ethers';
 import log from '../internal/logger.js';
-import { isAddress, requireString, requireObject } from '../internal/assert.js';
+import { isAddress, requireString, requireObject, requireChainId } from '../internal/assert.js';
 import { getConfigStorageContract } from '../contracts/configStorage.js';
 import { createRegistryReadProvider } from '../providers/polygon.js';
-import { NETWORKS } from './networks.js';
 import { ConfigError, NetworkError, RegistryError, ValidationError } from '../errors/index.js';
 
 /**
@@ -69,37 +69,12 @@ function cacheKey(network, profile) {
   return [network, profile.rpcUrl, profile.configStorageAddress, profile.storagePath].join('|');
 }
 
-/** @param {unknown} chainId */
-function toBigIntChainId(chainId) {
-  if (typeof chainId === 'bigint') return chainId;
-  if (typeof chainId === 'number') return BigInt(chainId);
-  if (typeof chainId === 'string') {
-    return chainId.startsWith('0x') ? BigInt(chainId) : BigInt(chainId);
-  }
-  return BigInt(String(chainId));
-}
-
-/**
- * @param {unknown} expected - Sapphire chainId from NETWORKS preset
- * @param {unknown} fromJson - chain_id from registry JSON
- */
-function sapphireChainIdMatches(expected, fromJson) {
-  if (fromJson === undefined || fromJson === null || fromJson === '') {
-    return true;
-  }
-  try {
-    return toBigIntChainId(expected) === toBigIntChainId(fromJson);
-  } catch {
-    return false;
-  }
-}
-
 /**
  * RPC and chain id from the registry JSON blob (same string as contract entries).
  *
  * @param {string} raw - Non-empty registry JSON string
- * @returns {{ rpcUrl?: string, chainId?: unknown }}
- * @throws {RegistryError} If JSON is invalid or the root value is not an object
+ * @returns {{ rpcUrl?: string, chainId?: ChainId }} 
+ * @throws {RegistryError} If JSON is invalid or the root value is not an object, or {@code chain_id} is present but invalid
  * @throws {ValidationError} If {@code raw} is missing or not a string ({@link requireString}) or the root value is not an object ({@link requireObject})
  */
 function parseRegistryConnectionHints(raw) {
@@ -122,18 +97,34 @@ function parseRegistryConnectionHints(raw) {
         ? j.RPC.trim()
         : String(j.RPC)
       : undefined;
-  const chainId =
-    j.chain_id != null && j.chain_id !== '' ? j.chain_id : undefined;
+
+  /** @type {ChainId | undefined} */
+  let chainId;
+  if (j.chain_id != null && j.chain_id !== '') {
+    try {
+      chainId = requireChainId(j.chain_id, 'chain_id');
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        throw new RegistryError(
+          `Registry connection hints: invalid chain_id (${e.message})`,
+          { phase: 'connectionHints', gotChainId: j.chain_id }
+        );
+      }
+      throw e;
+    }
+  }
+
   return { rpcUrl, chainId };
 }
 
 /**
- * Parse registry JSON into partial contract addresses (checksum). Validates optional chain_id vs Sapphire preset.
+ * Parse registry JSON into partial contract addresses (checksum). Chain id for RPC connection comes from
+ * {@link parseRegistryConnectionHints}; preset defaults live in {@link ./networks.js}.
  *
  * @param {'testnet'|'mainnet'} network
  * @param {string} rawJson
  * @returns {Partial<ContractAddresses>}
- * @throws {RegistryError} On invalid JSON, chain mismatch, invalid address, or no contract keys in JSON
+ * @throws {RegistryError} On invalid JSON, invalid address, or no contract keys in JSON
  * @throws {ValidationError} If {@code rawJson} is invalid ({@link requireString}) or the root value is not an object ({@link requireObject})
  */
 function parseRegistryContractAddresses(network, rawJson) {
@@ -149,19 +140,6 @@ function parseRegistryContractAddresses(network, rawJson) {
     );
   }
   requireObject(data, 'data');
-
-  const presetChainId = NETWORKS[network].chainId;
-  if (!sapphireChainIdMatches(presetChainId, data.chain_id)) {
-    throw new RegistryError(
-      `Registry chain_id does not match Sapphire preset for ${network}`,
-      {
-        phase: 'parseAddresses',
-        network,
-        expectedChainId: String(presetChainId),
-        gotChainId: data.chain_id
-      }
-    );
-  }
 
   /** @type {Partial<ContractAddresses>} */
   const out = {};
@@ -263,6 +241,3 @@ export {
   parseRegistryConnectionHints,
   clearRemoteAddressCache
 };
-
-/** @deprecated Use {@link parseRegistryContractAddresses} */
-export { parseRegistryContractAddresses as parseRegistryJson };

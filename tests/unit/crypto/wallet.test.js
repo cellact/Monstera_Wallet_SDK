@@ -123,7 +123,7 @@ describe('Wallet Crypto Utilities', () => {
       ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
     });
 
-    test('should throw an error if the chainId is not a string or number', async () => {
+    test('should throw an error if the chainId is missing or not a valid chain id', async () => {
       const { chainId, authenticatorAddr, deadline, keyVaultAddr } = defaultParams;
 
       await expect(
@@ -134,7 +134,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('chainId is required and must be a string or number');
+      ).rejects.toThrow('chainId is required and must be a chain id');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -143,7 +143,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('chainId is required and must be a string or number');
+      ).rejects.toThrow('chainId is required and must be a chain id');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -152,7 +152,9 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('chainId is required and must be a string or number');
+      ).rejects.toThrow(
+        'chainId must be a finite chain id (number, bigint, decimal string, or hex string)'
+      );
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -161,7 +163,9 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('chainId is required and must be a string or number');
+      ).rejects.toThrow(
+        'chainId must be a finite chain id (number, bigint, decimal string, or hex string)'
+      );
     });
 
     test('should throw an error if the authenticatorAddr is not a valid address', async () => {
@@ -485,7 +489,9 @@ describe('Wallet Crypto Utilities', () => {
           chainId: /** @type {any} */ ({}),
           passwordHash
         })
-      ).rejects.toThrow('chainId is required and must be a string or number');
+      ).rejects.toThrow(
+        'chainId must be a finite chain id (number, bigint, decimal string, or hex string)'
+      );
 
       await expect(
         createAuthProofMinuteSignature({

@@ -9,6 +9,8 @@
  * @typedef {import('../types/index.js').BuildNetworkConfigInput} BuildNetworkConfigInput
  */
 
+import { normalizeChainId } from '../internal/utils/normalize.js';
+
 /**
  * Network configuration presets
  */
@@ -49,32 +51,6 @@ const DEFAULT_ADDRESSES = {
 };
 
 /**
- * Coerce registry/user chain id values to {@link NetworkConfig} format (number when safe, else hex string).
- *
- * @param {import('../types/index.js').ChainId} value
- * @returns {import('../types/index.js').ChainId | undefined}
- */
-function coerceChainId(value) {
-  if (value === undefined || value === null) {
-    return undefined;
-  }
-  try {
-    const b =
-      typeof value === 'bigint'
-        ? value
-        : typeof value === 'number'
-          ? BigInt(value)
-          : BigInt(String(value).trim());
-    if (b <= BigInt(Number.MAX_SAFE_INTEGER)) {
-      return Number(b);
-    }
-    return /** @type {import('../types/index.js').ChainId} */ ('0x' + b.toString(16));
-  } catch {
-    return undefined;
-  }
-}
-
-/**
  * Build network configuration from preset key with optional RPC, chain id, and address overrides.
  *
  * @param {BuildNetworkConfigInput} config - Preset key and optional overrides
@@ -90,8 +66,7 @@ function buildNetworkConfig(config) {
     ...(addresses || {})
   };
 
-  const resolvedChainId =
-    chainId !== undefined && chainId !== null ? coerceChainId(chainId) : undefined;
+  const resolvedChainId = normalizeChainId(chainId);
 
   return {
     network: networkConfig.name,
@@ -102,4 +77,5 @@ function buildNetworkConfig(config) {
   };
 }
 
-export { NETWORKS, DEFAULT_ADDRESSES, buildNetworkConfig, coerceChainId };
+
+export { NETWORKS, DEFAULT_ADDRESSES, buildNetworkConfig };

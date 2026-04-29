@@ -15,7 +15,7 @@ import {
   requireAddress,
   requireBytes32,
   requireWalletOrHdNode,
-  requireStringOrNumber,
+  requireChainId,
   requirePositiveInteger,
   isInFuture
 } from '../assert.js';
@@ -29,26 +29,26 @@ import { rethrowMappedSignerError } from './signingErrorMapper.js';
  *
  * @param {CreateAuthProofWalletSignatureOptions} options
  * @returns {Promise<EncodedAuthProofWalletSignature>} encoded auth proof
- * @throws {ValidationError} If signer is not a Wallet or HDNodeWallet, chainId is not a string or number, authenticatorAddr is not a valid address, keyVaultAddr is not a valid address, deadline is not a number or is not an integer (Unix timestamp in seconds), or deadline is in the past
+ * @throws {ValidationError} If signer is not a Wallet or HDNodeWallet, chainId is not a valid chain id, authenticatorAddr is not a valid address, keyVaultAddr is not a valid address, deadline is not a number or is not an integer (Unix timestamp in seconds), or deadline is in the past
  */
 async function createAuthProofWalletSignature(options = {}) {
   const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr } = options;
 
   requireWalletOrHdNode(signer, 'signer');
-  requireStringOrNumber(chainId, 'chainId');
+  const normalizedChainId = requireChainId(chainId, 'chainId');
   requireAddress(authenticatorAddr, 'authenticatorAddr');
   requireAddress(keyVaultAddr, 'keyVaultAddr');
   requirePositiveInteger(deadline, 'deadline');
   isInFuture(deadline, 'deadline');
 
   log.info('Creating auth proof');
-  log.debug('createAuthProofWalletSignature', { keyVaultAddr, authenticatorAddr, chainId, deadline });
+  log.debug('createAuthProofWalletSignature', { keyVaultAddr, authenticatorAddr, chainId: normalizedChainId, deadline });
 
   // build EIP-712 domain
   const domain = {
     name: 'WalletSignatureAuthenticator',
     version: '1',
-    chainId,
+    chainId: normalizedChainId,
     verifyingContract: authenticatorAddr
   };
   const types = {
@@ -78,7 +78,7 @@ async function createAuthProofWalletSignature(options = {}) {
  *
  * @param {CreateAuthProofMinuteSignatureWithProviderOptions} options
  * @returns {Promise<CreateAuthProofMinuteSignatureResult>} encoded auth proof
- * @throws {ValidationError} If provider is not a valid provider, keyVaultAddr is not a valid address, authenticatorAddr is not a valid address, chainId is not a string or number, or passwordHash is not a valid 32-byte hex string
+ * @throws {ValidationError} If provider is not a valid provider, keyVaultAddr is not a valid address, authenticatorAddr is not a valid address, chainId is not a valid chain id, or passwordHash is not a valid 32-byte hex string
  */
 async function createAuthProofMinuteSignature(options = {}) {
   const { provider, keyVaultAddr, authenticatorAddr, chainId, passwordHash } = options;
@@ -88,7 +88,7 @@ async function createAuthProofMinuteSignature(options = {}) {
   }
   requireAddress(keyVaultAddr, 'keyVaultAddr');
   requireAddress(authenticatorAddr, 'authenticatorAddr');
-  requireStringOrNumber(chainId, 'chainId');
+  const normalizedChainId = requireChainId(chainId, 'chainId');
   requireBytes32(passwordHash, 'passwordHash');
 
   const block = await provider.getBlock('latest');
@@ -106,7 +106,7 @@ async function createAuthProofMinuteSignature(options = {}) {
   const payloadHash = ethers.keccak256(
     ethers.solidityPacked(
       ['address', 'address', 'uint256', 'uint256'],
-      [keyVaultAddr, authenticatorAddr, BigInt(chainId), BigInt(minuteBucket)]
+      [keyVaultAddr, authenticatorAddr, BigInt(normalizedChainId), BigInt(minuteBucket)]
     )
   );
 
@@ -131,7 +131,7 @@ async function createAuthProofMinuteSignature(options = {}) {
  *
  * @param {CreateAuthProofDualFactorWithProviderOptions} options
  * @returns {Promise<EncodedAuthProofDualFactor>} encoded auth proof
- * @throws {ValidationError} If provider is not a valid provider, keyVaultAddr is not a valid address, passwordHash is not a valid 32-byte hex string, signer is not a Wallet or HDNodeWallet, authenticatorAddr is not a valid address, chainId is not a string or number, deadline is not a number or is not an integer (Unix timestamp in seconds), or deadline is in the past
+ * @throws {ValidationError} If provider is not a valid provider, keyVaultAddr is not a valid address, passwordHash is not a valid 32-byte hex string, signer is not a Wallet or HDNodeWallet, authenticatorAddr is not a valid address, chainId is not a valid chain id, deadline is not a number or is not an integer (Unix timestamp in seconds), or deadline is in the past
  */
 async function createAuthProofDualFactor(options = {}) {
   const { provider, keyVaultAddr, passwordHash, signer, authenticatorAddr, deadline, chainId } = options;
@@ -140,15 +140,16 @@ async function createAuthProofDualFactor(options = {}) {
   requireWalletOrHdNode(signer, 'signer');
   requirePositiveInteger(deadline, 'deadline');
   isInFuture(deadline, 'deadline');
+  const normalizedChainId = requireChainId(chainId, 'chainId');
 
   log.info('Creating dual-factor auth proof');
-  log.debug('createAuthProofDualFactor', { keyVaultAddr, authenticatorAddr, chainId, deadline });
+  log.debug('createAuthProofDualFactor', { keyVaultAddr, authenticatorAddr, chainId: normalizedChainId, deadline });
 
   const minuteProof = await createAuthProofMinuteSignature({
     provider,
     keyVaultAddr,
     authenticatorAddr,
-    chainId,
+    chainId: normalizedChainId,
     passwordHash
   });
 
@@ -157,7 +158,7 @@ async function createAuthProofDualFactor(options = {}) {
   const domain = {
     name: 'DualFactorAuthenticator',
     version: '1',
-    chainId,
+    chainId: normalizedChainId,
     verifyingContract: authenticatorAddr
   };
   const types = {

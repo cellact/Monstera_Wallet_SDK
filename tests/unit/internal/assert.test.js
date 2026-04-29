@@ -18,8 +18,10 @@ import {
   requireBytes32,
   requireWalletOrHdNode,
   requireStringOrNumber,
+  requireChainId,
   isInFuture
 } from '../../../src/internal/assert.js';
+import { normalizeChainId } from '../../../src/internal/utils/normalize.js';
 import { ethers, Wallet } from 'ethers';
 
 describe('Assert Utilities', () => {
@@ -405,6 +407,48 @@ describe('Assert Utilities', () => {
         test('throws for numeric 0 due to falsy check', () => {
             expect(() => requireStringOrNumber(0, 'chainId')).toThrow(
                 'chainId is required and must be a string or number'
+            );
+        });
+    });
+
+    describe('normalizeChainId', () => {
+        test('returns undefined for nullish', () => {
+            expect(normalizeChainId(undefined)).toBeUndefined();
+            expect(normalizeChainId(null)).toBeUndefined();
+        });
+
+        test('normalizes decimal string, hex string, number, bigint', () => {
+            expect(normalizeChainId('23295')).toBe(23295);
+            expect(normalizeChainId('0x5aff')).toBe(23295);
+            expect(normalizeChainId(23295)).toBe(23295);
+            expect(normalizeChainId(0)).toBe(0);
+            expect(normalizeChainId(BigInt(23295))).toBe(23295);
+        });
+
+        test('returns undefined for unparseable values', () => {
+            expect(normalizeChainId({})).toBeUndefined();
+            expect(normalizeChainId(NaN)).toBeUndefined();
+            expect(normalizeChainId([])).toBeUndefined();
+            expect(normalizeChainId('')).toBeUndefined();
+        });
+    });
+
+    describe('requireChainId', () => {
+        test('returns normalized chain id', () => {
+            expect(requireChainId('0x5aff', 'chainId')).toBe(23295);
+            expect(requireChainId(0, 'chainId')).toBe(0);
+            expect(requireChainId('23295', 'chainId')).toBe(23295);
+        });
+
+        test('throws when missing or invalid', () => {
+            expect(() => requireChainId(undefined, 'chainId')).toThrow(
+                'chainId is required and must be a chain id'
+            );
+            expect(() => requireChainId(null, 'chainId')).toThrow(
+                'chainId is required and must be a chain id'
+            );
+            expect(() => requireChainId({}, 'chainId')).toThrow(
+                'chainId must be a finite chain id (number, bigint, decimal string, or hex string)'
             );
         });
     });

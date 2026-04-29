@@ -10,6 +10,7 @@
 
 import { ValidationError } from '../errors/index.js';
 import { Mnemonic, ethers, HDNodeWallet, Wallet } from 'ethers';
+import { normalizeChainId } from './utils/normalize.js';
 import { nowUnixTimestampSeconds } from './utils/time.js';
 
 /**
@@ -267,6 +268,29 @@ function requireStringOrNumber(value, name = 'string or number') {
 }
 
 /**
+ * Require a parsable EVM chain id (number, bigint, decimal string, or {@code 0x} hex string).
+ *
+ * @param {unknown} value
+ * @param {string} [name='chainId']
+ * @returns {import('../types/index.js').ChainId}
+ * @throws {ValidationError} If missing or not parseable to a finite chain id
+ */
+function requireChainId(value, name = 'chainId') {
+  if (value === undefined || value === null) {
+    throw new ValidationError(`${name} is required and must be a chain id`, name, value);
+  }
+  const normalized = normalizeChainId(value);
+  if (normalized === undefined) {
+    throw new ValidationError(
+      `${name} must be a finite chain id (number, bigint, decimal string, or hex string)`,
+      name,
+      value
+    );
+  }
+  return normalized;
+}
+
+/**
  * Check if a value is in the future
  * 
  * @param {number} value - Value to validate
@@ -320,6 +344,7 @@ export {
   requireBytes32,
   requireWalletOrHdNode, 
   requireStringOrNumber,
+  requireChainId,
   isInFuture,
   requireBoolean,
   requireUtf8Bytes,
