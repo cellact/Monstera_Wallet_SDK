@@ -178,6 +178,42 @@ class Monstera {
   }
 
   /**
+   * Connect with remote contract addresses from ConfigStorage.
+   * Resolves registry defaults per Sapphire preset (e.g. Polygon Amoy for testnet); falls back to
+   * built-in addresses if the registry is unavailable or disabled.
+   *
+   * @param {ConnectOptions} options - Connect options
+   * @returns {Promise<Monstera>} SDK instance
+   */
+  static async connectAsync(options) {
+    const logLevel = options?.logLevel ?? (options?.debug === true ? 'debug' : 'error');
+    log.setLevel(logLevel);
+
+    const base = await MonsteraConfig.resolveBaseConfigAsync(options);
+
+    const provider = options?.provider ?? null;
+
+    const signer = options?.signer;
+    if (signer) {
+      return new Monstera({
+        ...base,
+        signer,
+        provider,
+        checkVersion: options?.checkVersion,
+        logLevel
+      });
+    }
+
+    return new Monstera({
+      ...base,
+      provider,
+      signer: null,
+      checkVersion: options?.checkVersion,
+      logLevel
+    });
+  }
+
+  /**
    * Set the SDK log level. Affects the shared logger used by all Monstera code.
    *
    * @param {'error' | 'warn' | 'info' | 'debug'} level - Minimum level to emit (error < warn < info < debug)
@@ -211,13 +247,25 @@ class Monstera {
   }
 
   /**
-   * Default contract addresses for testnet and mainnet
+   * Built-in contract address defaults shipped with the SDK (no network I/O).
+   * For defaults merged with ConfigStorage registry, use {@link Monstera.getDefaultAddressesAsync}.
+   *
    * @static
    * @readonly
-   * @returns {DefaultContractAddresses} Default contract addresses by network
+   * @returns {DefaultContractAddresses} Static defaults by network
    */
   static get defaultAddresses() {
     return MonsteraConfig.defaultAddresses;
+  }
+
+  /**
+   * Built-in defaults merged with registry data from ConfigStorage when available.
+   *
+   * @static
+   * @returns {Promise<DefaultContractAddresses>}
+   */
+  static getDefaultAddressesAsync() {
+    return MonsteraConfig.getDefaultAddressesAsync();
   }
 
   /**

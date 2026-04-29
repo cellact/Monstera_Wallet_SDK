@@ -1,9 +1,9 @@
 /**
  * Network Configuration
- * 
+ *
  * Defines network presets for Oasis Sapphire testnet and mainnet
  * with default RPC URLs and contract addresses.
- * 
+ *
  * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../types/index.js').BuildNetworkConfigInput} BuildNetworkConfigInput
@@ -33,7 +33,7 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    factory: '0x4971c68f9c783a74D6f3d55aA515231E05375652', 
+    factory: '0x4971c68f9c783a74D6f3d55aA515231E05375652',
     passwordAuth: '0x461f38fdCD44a92cD0fBE7ba9498903EFd944740',
     walletSignatureAuth: '0xc06E821da811b0735DA5493F1732a25EB7005412',
     dualFactorAuth: '0xCAb1585C37118d066Bc3AD79919B4CAE5cd42BC2',
@@ -49,33 +49,57 @@ const DEFAULT_ADDRESSES = {
 };
 
 /**
- * Build network configuration from network name
+ * Coerce registry/user chain id values to {@link NetworkConfig} format (number when safe, else hex string).
+ *
+ * @param {import('../types/index.js').ChainId} value
+ * @returns {import('../types/index.js').ChainId | undefined}
+ */
+function coerceChainId(value) {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  try {
+    const b =
+      typeof value === 'bigint'
+        ? value
+        : typeof value === 'number'
+          ? BigInt(value)
+          : BigInt(String(value).trim());
+    if (b <= BigInt(Number.MAX_SAFE_INTEGER)) {
+      return Number(b);
+    }
+    return /** @type {import('../types/index.js').ChainId} */ ('0x' + b.toString(16));
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Build network configuration from preset key with optional RPC, chain id, and address overrides.
  *
  * @param {BuildNetworkConfigInput} config - Preset key and optional overrides
  * @returns {NetworkConfig}
  */
 function buildNetworkConfig(config) {
-  const { network, rpcUrl, addresses } = config;
+  const { network, rpcUrl, addresses, chainId } = config;
 
   const networkConfig = NETWORKS[network];
 
-  // Merge addresses with defaults
   const mergedAddresses = {
     ...DEFAULT_ADDRESSES[network],
     ...(addresses || {})
   };
 
+  const resolvedChainId =
+    chainId !== undefined && chainId !== null ? coerceChainId(chainId) : undefined;
+
   return {
     network: networkConfig.name,
-    chainId: networkConfig.chainId,
+    chainId: resolvedChainId !== undefined ? resolvedChainId : networkConfig.chainId,
     rpcUrl: rpcUrl || networkConfig.rpcUrl,
     explorerUrl: networkConfig.explorerUrl,
     addresses: mergedAddresses
   };
 }
 
-export {
-  NETWORKS,
-  DEFAULT_ADDRESSES,
-  buildNetworkConfig
-};
+export { NETWORKS, DEFAULT_ADDRESSES, buildNetworkConfig, coerceChainId };

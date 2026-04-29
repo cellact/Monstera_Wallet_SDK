@@ -134,15 +134,17 @@
  * @typedef {Object} BaseConnectNetworkOptions
  * @property {boolean} mainnet - true for mainnet, false for testnet
  * @property {string} [rpcUrl] - Optional custom RPC URL (defaults to network preset)
+ * @property {ChainId} [chainId] - Optional Sapphire chain id (defaults to network preset)
  * @property {Partial<ContractAddresses>} [addresses] - Optional contract address overrides
  */
 
 /**
- * Input for internal `buildNetworkConfig` (`src/config/networks.js`): preset key plus optional RPC and address overrides.
+ * Input for internal `buildNetworkConfig` (`src/config/networks.js`): preset key plus optional RPC, chain id, and address overrides.
  * Distinct from {@link BaseConnectNetworkOptions}, which uses `mainnet: boolean` rather than `network`.
  * @typedef {Object} BuildNetworkConfigInput
  * @property {'testnet'|'mainnet'} network - Preset key (`testnet` or `mainnet`)
  * @property {string} [rpcUrl] - Optional RPC URL (defaults to preset)
+ * @property {ChainId} [chainId] - Optional chain id (defaults to preset)
  * @property {Partial<ContractAddresses>} [addresses] - Optional contract address overrides merged with defaults
  */
 

@@ -16,6 +16,7 @@
  */
 
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
+import { fetchContractAddressesFromRegistry } from './registry.js';
 import { ConfigError, ValidationError } from '../errors/index.js';
 import { isAddress, requireArray, requireBoolean } from '../internal/assert.js';
 import log from '../internal/logger.js';
@@ -76,13 +77,40 @@ class MonsteraConfig {
   }
 
   /**
-   * Default contract addresses for testnet and mainnet
+   * Built-in contract address defaults shipped with the SDK (no network I/O).
+   * For addresses merged with ConfigStorage registry data, use {@link MonsteraConfig.getDefaultAddressesAsync}.
+   *
    * @static
    * @readonly
-   * @returns {DefaultContractAddresses} Default contract addresses by network
+   * @returns {DefaultContractAddresses} Static defaults by network
    */
   static get defaultAddresses() {
     return DEFAULT_ADDRESSES;
+  }
+
+  /**
+   * Built-in defaults merged with registry payloads from ConfigStorage (when configured per preset).
+   * Calls {@link fetchContractAddressesFromRegistry} for both testnet and mainnet; failures keep built-in values for that preset.
+   *
+   * @static
+   * @returns {Promise<DefaultContractAddresses>}
+   */
+  static async getDefaultAddressesAsync() {
+    /** @type {DefaultContractAddresses} */
+    const merged = {
+      testnet: { ...DEFAULT_ADDRESSES.testnet },
+      mainnet: { ...DEFAULT_ADDRESSES.mainnet }
+    };
+
+    for (const net of /** @type {Array<'testnet'|'mainnet'>} */ (['testnet', 'mainnet'])) {
+      const result = await fetchContractAddressesFromRegistry(net);
+      const partial = result?.parsed;
+      if (partial && typeof partial === 'object') {
+        merged[net] = { ...merged[net], ...partial };
+      }
+    }
+
+    return merged;
   }
 
   /**
@@ -107,16 +135,78 @@ class MonsteraConfig {
    * @static
    */
   static resolveBaseConfig(options) {
-    const { mainnet, rpcUrl, addresses } = options || {};
+    const { mainnet, rpcUrl, addresses, chainId } = options || {};
 
     requireBoolean(mainnet, 'mainnet');
 
     // Convert boolean to network string
     const network = mainnet ? 'mainnet' : 'testnet';
 
-    const networkConfig = buildNetworkConfig({ network, rpcUrl, addresses });
+    const networkConfig = buildNetworkConfig({ network, rpcUrl, chainId, addresses });
 
     log.debug('resolveBaseConfig', { mainnet, network });
+
+    MonsteraConfig._validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
+
+    return networkConfig;
+  }
+
+
+  /**
+   * Like {@link MonsteraConfig.resolveBaseConfig} but merges contract addresses from
+   * remote ConfigStorage.
+   *
+   * @param {BaseConnectNetworkOptions} options - Base connect network options
+   * @returns {Promise<NetworkConfig>}
+   * @throws {ConfigError} If network or required addresses are invalid/missing
+   * @static
+   */
+  static async resolveBaseConfigAsync(options) {
+    const { mainnet, rpcUrl, addresses, chainId } = options || {};
+
+    requireBoolean(mainnet, 'mainnet');
+
+    const network = mainnet ? 'mainnet' : 'testnet';
+
+    const fetchResult = await fetchContractAddressesFromRegistry(network);
+
+    let remotePartial = null;
+    let remoteRpcUrl;
+    let remoteChainId;
+
+    if (fetchResult && typeof fetchResult === 'object' && 'parsed' in fetchResult) {
+      remotePartial = fetchResult.parsed;
+      const raw = fetchResult.raw;
+      if (typeof raw === 'string' && raw.length > 0) {
+        try {
+          const j = JSON.parse(raw);
+          if (j && typeof j === 'object') {
+            if (j.RPC != null && j.RPC !== '') {
+              remoteRpcUrl = typeof j.RPC === 'string' ? j.RPC.trim() : String(j.RPC);
+            }
+            if (j.chain_id != null && j.chain_id !== '') {
+              remoteChainId = j.chain_id;
+            }
+          }
+        } catch {
+          /* ignore malformed registry JSON for RPC/chain extras */
+        }
+      }
+    }
+
+    log.debug('resolveBaseConfigAsync', { remoteRpcUrl, remoteChainId });
+
+    const networkConfig = buildNetworkConfig({
+      network,
+      rpcUrl: rpcUrl ?? remoteRpcUrl,
+      chainId: chainId ?? remoteChainId,
+      addresses: {
+        ...(remotePartial || {}),
+        ...(addresses || {})
+      }
+    });
+
+    log.debug('resolveBaseConfigAsync', { mainnet, network, remoteLoaded: !!remotePartial });
 
     MonsteraConfig._validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
 

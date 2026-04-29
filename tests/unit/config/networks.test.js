@@ -96,6 +96,14 @@ describe('Network Configuration - testnet', () => {
             expect(baseConfig.addresses).toStrictEqual(DEFAULT_ADDRESSES.testnet);
         });
 
+        test('should build testnet config with chainId override (hex string)', () => {
+            const baseConfig = buildNetworkConfig({
+                network: 'testnet',
+                chainId: '0x5aff'
+            });
+            expect(baseConfig.chainId).toBe(23295);
+        });
+
         test('should build testnet config with partial address override', () => {
             const baseConfig = buildNetworkConfig({ network: 'testnet', addresses: { factory: VALID_TEST_ADDRESS } });
             expect(baseConfig).toBeDefined();
