@@ -11,7 +11,7 @@
 
 import { ValidationError } from '../errors/index.js';
 import { Mnemonic, ethers, HDNodeWallet, Wallet } from 'ethers';
-import { normalizeChainId } from './utils/normalize.js';
+import { normalizeBigInt, normalizeChainId } from './utils/normalize.js';
 import { nowUnixTimestampSeconds } from './utils/time.js';
 
 /**
@@ -292,8 +292,41 @@ function requireChainId(value, name = 'chainId') {
 }
 
 /**
+ * Require a finite {@link BigInt} value, accepting {@code bigint}, safe integer {@code number},
+ * or a non-empty decimal / {@code 0x} hex string. Uses {@link normalizeBigInt}.
+ *
+ * @param {unknown} value
+ * @param {string} [name='value']
+ * @param {{ allowNegative?: boolean }} [options]
+ * @returns {bigint}
+ * @throws {ValidationError} If missing, not coercible, or when {@code allowNegative} is false and value is negative
+ */
+function requireBigInt(value, name = 'value', options = {}) {
+  const { allowNegative = true } = options;
+
+  if (value === undefined || value === null) {
+    throw new ValidationError(`${name} is required and must be a bigint`, name, value);
+  }
+
+  const b = normalizeBigInt(value);
+  if (b === undefined) {
+    throw new ValidationError(
+      `${name} must be a bigint, finite integer number, or decimal/hex string`,
+      name,
+      value
+    );
+  }
+
+  if (!allowNegative && b < 0n) {
+    throw new ValidationError(`${name} must be non-negative`, name, value);
+  }
+
+  return b;
+}
+
+/**
  * Check if a value is in the future
- * 
+ *
  * @param {number} value - Value to validate
  * @param {string} name - Parameter name for error message
  * @throws {Error} If value is not in the future
@@ -346,6 +379,7 @@ export {
   requireWalletOrHdNode, 
   requireStringOrNumber,
   requireChainId,
+  requireBigInt,
   isInFuture,
   requireBoolean,
   requireUtf8Bytes,

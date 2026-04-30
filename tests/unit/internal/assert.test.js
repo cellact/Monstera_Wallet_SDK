@@ -19,9 +19,10 @@ import {
   requireWalletOrHdNode,
   requireStringOrNumber,
   requireChainId,
+  requireBigInt,
   isInFuture
 } from '../../../src/internal/assert.js';
-import { normalizeChainId } from '../../../src/internal/utils/normalize.js';
+import { normalizeBigInt, normalizeChainId } from '../../../src/internal/utils/normalize.js';
 import { ethers, Wallet } from 'ethers';
 
 describe('Assert Utilities', () => {
@@ -433,6 +434,28 @@ describe('Assert Utilities', () => {
         });
     });
 
+    describe('normalizeBigInt', () => {
+        test('returns undefined for nullish', () => {
+            expect(normalizeBigInt(undefined)).toBeUndefined();
+            expect(normalizeBigInt(null)).toBeUndefined();
+        });
+
+        test('normalizes bigint, integer number, and decimal / hex strings', () => {
+            expect(normalizeBigInt(5n)).toBe(5n);
+            expect(normalizeBigInt(42)).toBe(42n);
+            expect(normalizeBigInt('99')).toBe(99n);
+            expect(normalizeBigInt('0x10')).toBe(16n);
+        });
+
+        test('returns undefined for unparseable values', () => {
+            expect(normalizeBigInt({})).toBeUndefined();
+            expect(normalizeBigInt(1.5)).toBeUndefined();
+            expect(normalizeBigInt(NaN)).toBeUndefined();
+            expect(normalizeBigInt('')).toBeUndefined();
+            expect(normalizeBigInt('   ')).toBeUndefined();
+        });
+    });
+
     describe('requireChainId', () => {
         test('returns normalized chain id', () => {
             expect(requireChainId('0x5aff', 'chainId')).toBe(23295);
@@ -450,6 +473,34 @@ describe('Assert Utilities', () => {
             expect(() => requireChainId({}, 'chainId')).toThrow(
                 'chainId must be a finite chain id (number, bigint, decimal string, or hex string)'
             );
+        });
+    });
+
+    describe('requireBigInt', () => {
+        test('returns bigint for bigint, integer number, and strings', () => {
+            expect(requireBigInt(5n, 'n')).toBe(5n);
+            expect(requireBigInt(42, 'n')).toBe(42n);
+            expect(requireBigInt('99', 'n')).toBe(99n);
+            expect(requireBigInt('0x10', 'n')).toBe(16n);
+        });
+
+        test('throws when missing or not coercible', () => {
+            expect(() => requireBigInt(undefined, 'nonce')).toThrow(
+                'nonce is required and must be a bigint'
+            );
+            expect(() => requireBigInt(1.5, 'nonce')).toThrow(
+                'nonce must be a bigint, finite integer number, or decimal/hex string'
+            );
+            expect(() => requireBigInt({}, 'nonce')).toThrow(
+                'nonce must be a bigint, finite integer number, or decimal/hex string'
+            );
+        });
+
+        test('rejects negative when allowNegative is false', () => {
+            expect(() => requireBigInt(-1n, 'nonce', { allowNegative: false })).toThrow(
+                'nonce must be non-negative'
+            );
+            expect(requireBigInt(0n, 'nonce', { allowNegative: false })).toBe(0n);
         });
     });
 

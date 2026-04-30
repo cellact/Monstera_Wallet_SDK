@@ -12,7 +12,7 @@
  */
 
 import { ValidationError } from '../../errors/index.js';
-import { requireAddress, requireNonNegativeInteger } from '../assert.js';
+import { requireAddress, requireBigInt, requireChainId, requireNonNegativeInteger } from '../assert.js';
 import {
   createImplCall,
   fetchAuthorizationChainId,
@@ -68,7 +68,7 @@ async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, opti
   // set chainId default if not provided
   const chainId = needsChainId
     ? await fetchAuthorizationChainId(targetProvider)
-    : BigInt(options.chainId);
+    : BigInt(requireChainId(options.chainId, 'chainId'));
 
   // get authority address at index
   const authorityAddr = await keyVault.getAccountAddr({ keyVaultAddr, index });
@@ -76,7 +76,7 @@ async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, opti
   // set nonce default if not provided
   const nonce = needsNonce
     ? await fetchAuthorizationNonce(targetProvider, authorityAddr)
-    : BigInt(options.nonce);
+    : requireBigInt(options.nonce, 'nonce', { allowNegative: false });
 
   // build implementation call - encode the implementation call
   const implCall = createImplCall({

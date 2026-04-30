@@ -40,4 +40,41 @@ function normalizeChainId(value) {
   }
 }
 
-export { normalizeChainId };
+/**
+ * Coerce a value to {@link BigInt} (bigint, finite integer number, or trimmed decimal / {@code 0x} hex string).
+ *
+ * @param {unknown} value
+ * @returns {bigint | undefined}
+ */
+function normalizeBigInt(value) {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value === 'bigint') {
+    return value;
+  }
+  if (typeof value === 'number') {
+    if (!Number.isFinite(value) || !Number.isInteger(value)) {
+      return undefined;
+    }
+    try {
+      return BigInt(value);
+    } catch {
+      return undefined;
+    }
+  }
+  if (typeof value === 'string') {
+    const s = value.trim();
+    if (s === '') {
+      return undefined;
+    }
+    try {
+      return BigInt(s);
+    } catch {
+      return undefined;
+    }
+  }
+  return undefined;
+}
+
+export { normalizeChainId, normalizeBigInt };
