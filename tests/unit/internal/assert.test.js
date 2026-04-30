@@ -20,7 +20,8 @@ import {
   requireStringOrNumber,
   requireChainId,
   requireBigInt,
-  isInFuture
+  isInFuture,
+  requireObject
 } from '../../../src/internal/assert.js';
 import { normalizeBigInt, normalizeChainId } from '../../../src/internal/utils/normalize.js';
 import { ethers, Wallet } from 'ethers';
@@ -50,6 +51,27 @@ describe('Assert Utilities', () => {
             const address = null;
             expect(isAddress(address)).toBe(false);
         });
+
+        test('returns true for all-lowercase hex (ethers accepts)', () => {
+            expect(isAddress(VALID_TEST_ADDRESS)).toBe(true);
+        });
+
+        test('returns false for mixed-case address with invalid EIP-55 checksum', () => {
+            const canonical = Wallet.createRandom().address;
+            expect(isAddress(canonical)).toBe(true);
+            const chars = [...canonical];
+            let flipIdx = canonical.search(/[a-fA-F]/);
+            if (flipIdx < 0) {
+                flipIdx = canonical.length - 1;
+            }
+            chars[flipIdx] =
+                chars[flipIdx] === chars[flipIdx].toUpperCase()
+                    ? chars[flipIdx].toLowerCase()
+                    : chars[flipIdx].toUpperCase();
+            const corrupted = chars.join('');
+            expect(corrupted).not.toBe(canonical);
+            expect(isAddress(corrupted)).toBe(false);
+        });
     });
 
     describe('requireAddress', () => {
@@ -59,16 +81,16 @@ describe('Assert Utilities', () => {
         });
 
         test('throws error for undefined address', () => {
-            expect(() => requireAddress(undefined)).toThrow('address is required and must be a string');
+            expect(() => requireAddress(undefined)).toThrow('address is required and must be a non-empty string');
         });
 
         test('throws error for null address', () => {
-            expect(() => requireAddress(null)).toThrow('address is required and must be a string');
+            expect(() => requireAddress(null)).toThrow('address is required and must be a non-empty string');
         });
 
         test('throws error for non string address', () => {
             const address = { address: VALID_TEST_ADDRESS };
-            expect(() => requireAddress(address)).toThrow('address is required and must be a string');
+            expect(() => requireAddress(address)).toThrow('address is required and must be a non-empty string');
         });
 
         test('throws error for invalid address string', () => {
@@ -122,7 +144,15 @@ describe('Assert Utilities', () => {
 
         test('throws error for non string', () => {
             const string = { string: 'Hello, world!' };
-            expect(() => requireString(string)).toThrow('string is required and must be a string');
+            expect(() => requireString(string)).toThrow('string is required and must be a non-empty string');
+        });
+
+        test('throws error for empty string', () => {
+            expect(() => requireString('')).toThrow('string is required and must be a non-empty string');
+        });
+
+        test('throws error for whitespace-only string', () => {
+            expect(() => requireString('   \t')).toThrow('string is required and must be a non-empty string');
         });
     });
 
@@ -142,16 +172,16 @@ describe('Assert Utilities', () => {
         });
 
         test('throws error for undefined mnemonic', () => {
-            expect(() => requireMnemonic(undefined)).toThrow('mnemonic is required and must be a string');
+            expect(() => requireMnemonic(undefined)).toThrow('mnemonic is required and must be a non-empty string');
         });
 
         test('throws error for null mnemonic', () => {
-            expect(() => requireMnemonic(null)).toThrow('mnemonic is required and must be a string');
+            expect(() => requireMnemonic(null)).toThrow('mnemonic is required and must be a non-empty string');
         });
 
         test('throws error for non string mnemonic', () => {
             const mnemonic = { mnemonic: 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about' };
-            expect(() => requireMnemonic(mnemonic)).toThrow('mnemonic is required and must be a string');
+            expect(() => requireMnemonic(mnemonic)).toThrow('mnemonic is required and must be a non-empty string');
         });
         
         test('throws error for invalid mnemonic string length', () => {
@@ -340,13 +370,13 @@ describe('Assert Utilities', () => {
 
         test('throws when value is missing or empty string', () => {
             expect(() => requireBytes32(undefined)).toThrow(
-                'bytes32 is required and must be a string'
+                'bytes32 is required and must be a non-empty string'
             );
             expect(() => requireBytes32(null)).toThrow(
-                'bytes32 is required and must be a string'
+                'bytes32 is required and must be a non-empty string'
             );
             expect(() => requireBytes32('')).toThrow(
-                'bytes32 is required and must be a string'
+                'bytes32 is required and must be a non-empty string'
             );
         });
 
@@ -501,6 +531,20 @@ describe('Assert Utilities', () => {
                 'nonce must be non-negative'
             );
             expect(requireBigInt(0n, 'nonce', { allowNegative: false })).toBe(0n);
+        });
+    });
+
+    describe('requireObject (non-empty)', () => {
+        test('does not throw for object with keys', () => {
+            expect(() => requireObject({ a: 1 }, 'opts')).not.toThrow();
+        });
+
+        test('throws for empty object', () => {
+            expect(() => requireObject({}, 'data')).toThrow('data must be a non-empty object');
+        });
+
+        test('throws for null', () => {
+            expect(() => requireObject(null, 'data')).toThrow('data is required and must be an object');
         });
     });
 

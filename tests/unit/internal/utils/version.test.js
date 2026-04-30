@@ -45,12 +45,12 @@ describe('Version Utilities', () => {
     test('throws error for invalid version', () => {
       expect(() => parseVersion('invalid')).toThrow('Invalid semantic version');
       expect(() => parseVersion('1.0')).toThrow('Invalid semantic version');
-      expect(() => parseVersion('')).toThrow('version is required and must be a string');
+      expect(() => parseVersion('')).toThrow('version is required and must be a non-empty string');
     });
 
     test('throws error for non-string input', () => {
-      expect(() => parseVersion(123)).toThrow('version is required and must be a string');
-      expect(() => parseVersion(null)).toThrow('version is required and must be a string');
+      expect(() => parseVersion(123)).toThrow('version is required and must be a non-empty string');
+      expect(() => parseVersion(null)).toThrow('version is required and must be a non-empty string');
     });
   });
 

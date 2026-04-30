@@ -14,10 +14,10 @@
 
 import { ethers } from 'ethers';
 import log from '../internal/logger.js';
-import { isAddress, requireString, requireObject, requireChainId } from '../internal/assert.js';
+import { requireString, requireObject, requireChainId, requireAddress } from '../internal/assert.js';
 import { getConfigStorageContract } from '../contracts/configStorage.js';
 import { createRegistryReadProvider } from '../providers/polygon.js';
-import { ConfigError, NetworkError, RegistryError, ValidationError } from '../errors/index.js';
+import { ConfigError, NetworkError, RegistryError, WalletError } from '../errors/index.js';
 
 /**
  * @typedef {Object} RegistryProfile
@@ -70,48 +70,57 @@ function cacheKey(network, profile) {
 }
 
 /**
- * RPC and chain id from the registry JSON blob (same string as contract entries).
+ * Parse a registry JSON string and return the root object.
  *
- * @param {string} raw - Non-empty registry JSON string
- * @returns {{ rpcUrl?: string, chainId?: ChainId }} 
- * @throws {RegistryError} If JSON is invalid or the root value is not an object, or {@code chain_id} is present but invalid
- * @throws {ValidationError} If {@code raw} is missing or not a string ({@link requireString}) or the root value is not an object ({@link requireObject})
+ * @param {string} rawJson
+ * @returns {Record<string, unknown>}
+ * @throws {RegistryError} If JSON is invalid
+ * @throws {ValidationError} If {@code rawJson} is missing or not a non-empty string ({@link requireString}) or the data is not an object ({@link requireObject})
  */
-function parseRegistryConnectionHints(raw) {
-  requireString(raw, 'raw');
-
-  let j;
+function parseRegistryJson(rawJson) {
+  requireString(rawJson, 'rawJson');
+  let data;
   try {
-    j = JSON.parse(raw);
+    data = JSON.parse(rawJson);
   } catch (e) {
-    throw new RegistryError(
-      `Registry connection hints: invalid JSON (${e instanceof Error ? e.message : String(e)})`,
-      { phase: 'connectionHints' }
-    );
+    const msg = e instanceof Error ? e.message : String(e);
+    throw new RegistryError(`Invalid registry JSON (${msg})`);
   }
-  requireObject(j, 'j');
+  requireObject(data, 'data');
+  return data;
+}
 
-  const rpcUrl =
-    j.RPC != null && j.RPC !== ''
-      ? typeof j.RPC === 'string'
-        ? j.RPC.trim()
-        : String(j.RPC)
-      : undefined;
+/** @param {unknown} v - Registry {@code RPC} field */
+function normalizeRegistryRpcField(v) {
+  if (v == null || v === '') {
+    return undefined;
+  }
+  const s = typeof v === 'string' ? v.trim() : String(v);
+  return s === '' ? undefined : s;
+}
+
+/**
+ * RPC and chain id from the registry JSON blob (same string as contract entries).
+ * On success at least one of {@code rpcUrl} or {@code chainId} is set; the other may be omitted for partial overrides.
+ *
+ * @param {string} rawJson - Non-empty registry JSON string
+ * @returns {{ rpcUrl?: string, chainId?: ChainId }}
+ * @throws {RegistryError} If JSON is invalid, data is empty, or neither {@code RPC} nor {@code chain_id} is usable
+ * @throws {ValidationError} If {@code chain_id} is present but not a valid chain id ({@link requireChainId})
+ */
+function parseRegistryConnectionHints(rawJson) {
+  const data = parseRegistryJson(rawJson);
+
+  const rpcUrl = normalizeRegistryRpcField(data.RPC);
 
   /** @type {ChainId | undefined} */
   let chainId;
-  if (j.chain_id != null && j.chain_id !== '') {
-    try {
-      chainId = requireChainId(j.chain_id, 'chain_id');
-    } catch (e) {
-      if (e instanceof ValidationError) {
-        throw new RegistryError(
-          `Registry connection hints: invalid chain_id (${e.message})`,
-          { phase: 'connectionHints', gotChainId: j.chain_id }
-        );
-      }
-      throw e;
-    }
+  if (data.chain_id != null && data.chain_id !== '') {
+    chainId = requireChainId(data.chain_id, 'chain_id');
+  }
+
+  if (!rpcUrl && !chainId) {
+    throw new RegistryError('No connection hints in registry');
   }
 
   return { rpcUrl, chainId };
@@ -125,46 +134,30 @@ function parseRegistryConnectionHints(raw) {
  * @param {string} rawJson
  * @returns {Partial<ContractAddresses>}
  * @throws {RegistryError} On invalid JSON, invalid address, or no contract keys in JSON
- * @throws {ValidationError} If {@code rawJson} is invalid ({@link requireString}) or the root value is not an object ({@link requireObject})
+ * @throws {ValidationError} If {@code rawJson} is invalid ({@link requireString}) or the root is not an object ({@link requireObject})
  */
 function parseRegistryContractAddresses(network, rawJson) {
-  requireString(rawJson, 'rawJson');
-
-  let data;
-  try {
-    data = JSON.parse(rawJson);
-  } catch (e) {
-    throw new RegistryError(
-      `Registry contract addresses: invalid JSON (${e instanceof Error ? e.message : String(e)})`,
-      { phase: 'parseAddresses', network }
-    );
-  }
-  requireObject(data, 'data');
+  const data = parseRegistryJson(rawJson);
 
   /** @type {Partial<ContractAddresses>} */
   const out = {};
   for (const [jsonKey, sdkKey] of Object.entries(REGISTRY_JSON_TO_SDK)) {
-    const v = data[jsonKey];
-    if (v === undefined || v === null || v === '') {
+    const value = data[jsonKey];
+    if (value === undefined || value === null || value === '') {
       continue;
     }
-    const addrRaw = typeof v === 'string' ? v.trim() : String(v);
-    if (!isAddress(addrRaw)) {
-      throw new RegistryError(`Invalid Ethereum address in registry for key "${jsonKey}"`, {
-        phase: 'parseAddresses',
-        network,
-        jsonKey,
-        value: v
-      });
-    }
-    out[sdkKey] = ethers.getAddress(addrRaw);
+
+    const addr = String(value).trim();
+
+    requireAddress(addr, `${jsonKey} address`);
+
+    out[sdkKey] = ethers.getAddress(addr);
   }
+
   if (!Object.keys(out).length) {
-    throw new RegistryError('Registry JSON contains no contract address entries', {
-      phase: 'parseAddresses',
-      network
-    });
+    throw new RegistryError('No contract addresses found', { phase: 'parseAddresses', network });
   }
+
   return out;
 }
 
@@ -174,7 +167,7 @@ function parseRegistryContractAddresses(network, rawJson) {
  * @param {'testnet'|'mainnet'} network
  * @returns {Promise<string>}
  * @throws {ConfigError} When no registry profile exists for this Sapphire preset
- * @throws {RegistryError} When the storage path is missing or the value is empty / not a string
+ * @throws {ValidationError} When the fetched value is empty or not a non-empty string ({@link requireString})
  * @throws {NetworkError} When the RPC read fails
  */
 async function fetchRegistryStorageRaw(network) {
@@ -196,36 +189,19 @@ async function fetchRegistryStorageRaw(network) {
   try {
     provider = createRegistryReadProvider(profile.rpcUrl);
     const storage = getConfigStorageContract(provider, profile.configStorageAddress);
-    const exists = await storage.hasPath(profile.storagePath);
-    if (!exists) {
-      log.warn('Remote registry: path not found', { path: profile.storagePath });
-      throw new RegistryError(
-        `ConfigStorage registry path does not exist: ${profile.storagePath}`,
-        { phase: 'fetch', network, path: profile.storagePath }
-      );
-    }
     const raw = await storage.getValue(profile.storagePath);
-    if (typeof raw === 'string' && raw.length > 0) {
-      const digest = ethers.keccak256(ethers.toUtf8Bytes(raw));
-      log.debug('Remote registry: loaded payload metadata', {
-        network,
-        byteLength: raw.length,
-        contentDigest: digest
-      });
-    } else {
-      log.debug('Remote registry: empty or non-string payload', { network });
-    }
     requireString(raw, 'raw');
+    log.debug('Remote registry: fetched payload', { network, byteLength: raw.length });
     remoteRawCache.set(key, raw);
     log.debug('Remote registry: loaded and cached (raw)', { network });
     return raw;
   } catch (e) {
-    if (e instanceof RegistryError || e instanceof ConfigError || e instanceof NetworkError) {
+    if (e instanceof WalletError) {
       throw e;
     }
     const cause = e instanceof Error ? e : null;
     throw new NetworkError(
-      `Remote registry fetch failed: ${cause?.message ?? String(e)}`,
+      `Registry fetch failed: ${cause?.message ?? String(e)}`,
       profile.rpcUrl,
       cause
     );

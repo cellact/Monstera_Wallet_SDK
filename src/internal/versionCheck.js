@@ -36,21 +36,22 @@ export async function checkVersion(currentVersion, latestVersion) {
 export async function fetchLatestVersion() {
   log.debug('fetchLatestVersion', {});
   // Only check in Node.js (browser has CORS issues with npm registry)
-  if (typeof window === 'undefined') {
-    try {
-      const response = await fetch('https://registry.npmjs.org/@monstera_protocol/sdk/latest');
-      if (!response.ok) {
-        return null;
-      }
-      const data = await response.json();
-      return data.version;
-    } catch (error) {
-      log.warn('Failed to fetch latest version', { error: error.message });
-      // Silently fail - don't spam console in case of network issues
+  if (typeof window !== 'undefined') {
+    log.debug('fetchLatestVersion skipped: browser environment (npm registry not reachable via CORS)');
+    return null;
+  }
+  try {
+    const response = await fetch('https://registry.npmjs.org/@monstera_protocol/sdk/latest');
+    if (!response.ok) {
       return null;
     }
+    const data = await response.json();
+    return data.version;
+  } catch (error) {
+    log.warn('Failed to fetch latest version', { error: error.message });
+    // Silently fail - don't spam console in case of network issues
+    return null;
   }
-  return null; // Browser - skip (CORS issues)
 }
 
 /**

@@ -15,13 +15,13 @@ import { normalizeBigInt, normalizeChainId } from './utils/normalize.js';
 import { nowUnixTimestampSeconds } from './utils/time.js';
 
 /**
- * Check if a value is a valid Ethereum address
- * 
+ * Check if a value is a valid Ethereum address (uses ethers; EIP-55 checksum when mixed-case).
+ *
  * @param {string} value - Value to check
  * @returns {boolean} True if valid address
  */
 function isAddress(value) {
-  return typeof value === 'string' && /^0x[a-fA-F0-9]{40}$/.test(value);
+  return typeof value === 'string' && ethers.isAddress(value);
 }
 
 /**
@@ -29,7 +29,7 @@ function isAddress(value) {
  * 
  * @param {string} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not provided or is not a valid address string
+ * @throws {ValidationError} If value is not provided or is not a non-empty string ({@link requireString}) or is not a valid address string
  */
 function requireAddress(value, name = 'address') {
   requireString(value, name);
@@ -43,7 +43,7 @@ function requireAddress(value, name = 'address') {
  * 
  * @param {string|Uint8Array} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not provided or is not a valid bytes string or Uint8Array
+ * @throws {ValidationError} If value is missing, not a valid bytes string or Uint8Array ({@link requireUtf8Bytes})
  */
 function requireBytes(value, name = 'bytes') {
   if (value === undefined || value === null) {
@@ -76,7 +76,7 @@ function requireBytes(value, name = 'bytes') {
  * 
  * @param {string} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not provided or is not a valid 32-byte hex string
+ * @throws {ValidationError} If value is missing, not a non-empty string ({@link requireString}) or is not a valid 32-byte hex string
  */
 function requireBytes32(value, name = 'bytes32') {
   requireString(value, name);
@@ -90,7 +90,7 @@ function requireBytes32(value, name = 'bytes32') {
  * 
  * @param {Uint8Array} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not provided or is not a non-empty Uint8Array
+ * @throws {ValidationError} If value is missing or is not a non-empty Uint8Array ({@link requireUtf8Bytes})
  */
 function requireUtf8Bytes(value, name = 'utf8Bytes') {
   if (!(value instanceof Uint8Array)) {
@@ -106,11 +106,11 @@ function requireUtf8Bytes(value, name = 'utf8Bytes') {
  * 
  * @param {string} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not provided or is not a valid string
+ * @throws {ValidationError} If value is missing, not a string, empty, or whitespace-only
  */
 function requireString(value, name = 'string') {
-  if (!value || typeof value !== 'string') {
-    throw new ValidationError(`${name} is required and must be a string`, name, value);
+  if (!value || typeof value !== 'string' || value.trim() === '') {
+    throw new ValidationError(`${name} is required and must be a non-empty string`, name, value);
   }
 }
 
@@ -119,7 +119,7 @@ function requireString(value, name = 'string') {
  * 
  * @param {Mnemonic} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not a valid BIP39 mnemonic
+ * @throws {ValidationError} If value is missing, not a non-empty string ({@link requireString}) or is not a valid BIP39 mnemonic
  */
 function requireMnemonic(value, name = 'mnemonic') {
   requireString(value, name);
@@ -163,7 +163,7 @@ function requireMnemonic(value, name = 'mnemonic') {
  * @param {boolean} [options.allowZero=true] - Allow zero
  * @param {boolean} [options.allowNegative=false] - Allow negative numbers
  * @param {boolean} [options.requireInteger=false] - Require integer
- * @throws {Error} If value is not a valid number or BigInt or is not provided
+ * @throws {ValidationError} If value is missing, not a number or BigInt ({@link requireNumber})
  */
 function requireNumber(value, name = 'number', options = {}) {
   const { allowZero = true, allowNegative = false, requireInteger = false } = options;
@@ -209,7 +209,7 @@ function requireNumber(value, name = 'number', options = {}) {
  * 
  * @param {number|BigInt} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not a non-negative integer
+ * @throws {ValidationError} If value is not a non-negative integer ({@link requireNumber})
  */
 function requireNonNegativeInteger(value, name = 'number') {
   requireNumber(value, name, { allowZero: true, allowNegative: false, requireInteger: true });
@@ -220,7 +220,7 @@ function requireNonNegativeInteger(value, name = 'number') {
  * 
  * @param {number|BigInt} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not a positive integer
+ * @throws {ValidationError} If value is not a positive integer ({@link requireNumber})
  */
 function requirePositiveInteger(value, name = 'number') {
   requireNumber(value, name, { allowZero: false, allowNegative: false, requireInteger: true });
@@ -231,7 +231,7 @@ function requirePositiveInteger(value, name = 'number') {
  * 
  * @param {Array} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not an array or is empty
+ * @throws {ValidationError} If value is missing or is not an array ({@link requireArray})
  */
 function requireArray(value, name = 'array') {
   if (!Array.isArray(value)) {
@@ -247,7 +247,7 @@ function requireArray(value, name = 'array') {
  * 
  * @param {Wallet | HDNodeWallet} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not a Wallet or HDNodeWallet
+ * @throws {ValidationError} If value is missing or is not a Wallet or HDNodeWallet ({@link requireWalletOrHdNode})
  */
 function requireWalletOrHdNode(value, name = 'signer') {
   if (!value || !(value instanceof Wallet || value instanceof HDNodeWallet)) {
@@ -260,7 +260,7 @@ function requireWalletOrHdNode(value, name = 'signer') {
  * 
  * @param {string|number} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not a string or number
+ * @throws {ValidationError} If value is missing or is not a string or number ({@link requireStringOrNumber})
  */
 function requireStringOrNumber(value, name = 'string or number') {
   if (!value || typeof value !== 'string' && typeof value !== 'number') {
@@ -329,7 +329,7 @@ function requireBigInt(value, name = 'value', options = {}) {
  *
  * @param {number} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not in the future
+ * @throws {ValidationError} If value is not in the future ({@link isInFuture})
  */
 function isInFuture(value, name = 'date') {
   const nowInSeconds = nowUnixTimestampSeconds();
@@ -343,7 +343,7 @@ function isInFuture(value, name = 'date') {
  * 
  * @param {boolean} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not a boolean
+ * @throws {ValidationError} If value is missing or is not a boolean ({@link requireBoolean})
  */
 function requireBoolean(value, name = 'boolean') {
   if (typeof value !== 'boolean') {
@@ -352,18 +352,21 @@ function requireBoolean(value, name = 'boolean') {
 }
 
 /**
- * Require an object value
- * 
+ * Require a non-null object with at least one own enumerable key.
+ * Plain objects and arrays count as objects; empty `{}` and empty `[]` throw.
+ *
  * @param {object} value - Value to validate
  * @param {string} name - Parameter name for error message
- * @throws {Error} If value is not an object or is empty
+ * @throws {ValidationError} If value is missing or is not an object ({@link requireObject}) or has no enumerable keys
  */
 function requireObject(value, name = 'object') {
   if (!value || typeof value !== 'object') {
     throw new ValidationError(`${name} is required and must be an object`, name, value);
   }
+  if (Object.keys(value).length === 0) {
+    throw new ValidationError(`${name} must be a non-empty object`, name, value);
+  }
 }
-
 
 export {
   isAddress,

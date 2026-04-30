@@ -25,6 +25,14 @@ The SDK is organized into modular components:
 - **Network switching**: Single config parameter (`mainnet: true` for mainnet, `mainnet: false` for testnet)
 - **Logging**: Optional configurable log levels (`logLevel` or `debug`) when calling `Monstera.connect()`; `setLogLevel()` at runtime; logs never include secrets
 
+### Validation boundaries
+
+- **Public API** — External inputs are validated at SDK boundaries: `Monstera.connect` / `connectAsync`, the `Monstera` constructor (resolved `NetworkConfig`), and public instance methods that accept user-supplied options.
+- **Shared primitives** — [`src/internal/assert.js`](../src/internal/assert.js) provides reusable checks (`requireAddress`, `requireBytes`, …). Ethereum addresses are validated with **`ethers.isAddress`** so rules match the ethers ecosystem (including EIP-55 when the string is mixed-case).
+- **Clients** — Contract clients (`src/clients/`) typically re-validate method options per call as defense-in-depth, even when the facade has already validated.
+- **Parsers** — JSON or registry modules validate at parse boundaries (e.g. non-empty object roots for registry contract-address JSON via `requireObject`).
+- **Internals** — Crypto helpers and internal modules either rely on types established by callers or assert only where they receive raw external objects.
+
 ## Project Structure
 
 ```
@@ -69,9 +77,8 @@ This generates:
 ## Requirements
 
 - Node.js >= 14.0.0 (ESM support required)
-- ethers ^6.0.0 or ^5.0.0 (peer dependency; recommended)
+- ethers ^6.0.0 or ^5.0.0 (peer dependency; required for typical usage)
 - @oasisprotocol/sapphire-ethers-v6 ^6.0.1 (for encrypted writes)
-- web3 optional peer dependency for projects that use it
 
 **Note:** This SDK uses ES Modules (ESM). Ensure your project is configured for ESM or use a bundler that supports ESM.
 

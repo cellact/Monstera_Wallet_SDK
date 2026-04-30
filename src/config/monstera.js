@@ -178,12 +178,24 @@ class MonsteraConfig {
 
     try {
       const raw = await fetchRegistryStorageRaw(network);
-      remotePartial = parseRegistryContractAddresses(network, raw);
-      const hints = parseRegistryConnectionHints(raw);
-      remoteRpcUrl = hints.rpcUrl;
-      remoteChainId = hints.chainId;
+      try {
+        remotePartial = parseRegistryContractAddresses(network, raw);
+      } catch (e) {
+        log.warn('Remote registry contract addresses unavailable; using built-in address defaults', {
+          message: e instanceof Error ? e.message : String(e)
+        });
+      }
+      try {
+        const hints = parseRegistryConnectionHints(raw);
+        remoteRpcUrl = hints.rpcUrl;
+        remoteChainId = hints.chainId;
+      } catch (e) {
+        log.warn('Remote registry connection hints unavailable; using preset rpcUrl and chainId', {
+          message: e instanceof Error ? e.message : String(e)
+        });
+      }
     } catch (e) {
-      log.warn('Remote registry unavailable; using built-in defaults', {
+      log.warn('Remote registry fetch failed; using built-in defaults', {
         message: e instanceof Error ? e.message : String(e)
       });
     }

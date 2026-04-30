@@ -179,7 +179,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('authenticatorAddr is required and must be a string');
+      ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -188,7 +188,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('authenticatorAddr is required and must be a string');
+      ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -197,7 +197,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('authenticatorAddr is required and must be a string');
+      ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -206,7 +206,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr
         })
-      ).rejects.toThrow('authenticatorAddr is required and must be a string');
+      ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
     });
 
     test('should throw an error if the keyVaultAddr is not a valid address', async () => {
@@ -220,7 +220,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr: null
         })
-      ).rejects.toThrow('keyVaultAddr is required and must be a string');
+      ).rejects.toThrow('keyVaultAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -229,7 +229,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr: undefined
         })
-      ).rejects.toThrow('keyVaultAddr is required and must be a string');
+      ).rejects.toThrow('keyVaultAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -238,7 +238,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr: /** @type {any} */ (123)
         })
-      ).rejects.toThrow('keyVaultAddr is required and must be a string');
+      ).rejects.toThrow('keyVaultAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
@@ -247,7 +247,7 @@ describe('Wallet Crypto Utilities', () => {
           deadline,
           keyVaultAddr: /** @type {any} */ ({ address: keyVaultAddr })
         })
-      ).rejects.toThrow('keyVaultAddr is required and must be a string');
+      ).rejects.toThrow('keyVaultAddr is required and must be a non-empty string');
     });
 
     test('should throw an error if the deadline is not a number or is not an integer', async () => {
@@ -479,7 +479,7 @@ describe('Wallet Crypto Utilities', () => {
           chainId: '23295',
           passwordHash
         })
-      ).rejects.toThrow('authenticatorAddr is required and must be a string');
+      ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
 
       await expect(
         createAuthProofMinuteSignature({

@@ -49,6 +49,15 @@ The SDK ships with a dependency on **ethers** v5/v6 for contracts and signing. Y
 
 **Note:** This SDK uses ES Modules (ESM). Requires Node.js 14+ or a bundler. **web3.js is not used** by this package; use ethers for all Ethereum interactions.
 
+### Optional npm version check (`checkVersion`)
+
+When you pass `checkVersion: true` to `Monstera.connect` / `connectAsync`, the SDK may perform a **best-effort** check for a newer package on the public npm registry. Details:
+
+- **Opt-in only** — no outbound call unless you set `checkVersion: true`.
+- **Node.js** — issues a **GET** to `https://registry.npmjs.org/@monstera_protocol/sdk/latest` to read the published version. If the request fails (offline, firewall, corporate proxy), the SDK continues normally; the check does not block usage.
+- **Browser** — the registry request is **not** run (npm does not support CORS for this from browsers). You will see a one-line **debug** log that the check was skipped when debug logging is enabled.
+- **Strict networks** — environments that block outbound HTTPS may never receive update hints; this is expected.
+
 After installation, run the CLI to get started:
 
 ```bash
