@@ -20,6 +20,9 @@
  *
  * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../types/index.js').ExecuteWriteOptions} ExecuteWriteOptions
+ * @typedef {import('../types/index.js').EthersInterface} EthersInterface
+ * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
+ * @typedef {import('../types/index.js').EthersProvider} EthersProvider
  */
 
 import { parseEventFromReceipt } from '../events/index.js';
@@ -40,7 +43,7 @@ import log from '../internal/logger.js';
 class SapphireWriteWrapper {
   /**
    * @param {ExecuteWriteOptions} options
-   * @returns {import('ethers').Interface | null}
+   * @returns {EthersInterface | null}
    */
   static _getRevertInterface(options) {
     if (options.revertInterface) {
@@ -52,7 +55,7 @@ class SapphireWriteWrapper {
 
   /**
    * @param {ExecuteWriteOptions} options
-   * @returns {import('ethers').Provider | null}
+   * @returns {EthersProvider | null}
    */
   static _getReadProvider(options) {
     return options.readProvider ?? options.writeSigner?.provider ?? null;
@@ -62,10 +65,10 @@ class SapphireWriteWrapper {
    * Replay the mined transaction as {@code eth_call} at its block to obtain revert data.
    *
    * @private
-   * @param {import('ethers').Provider} readProvider
-   * @param {import('ethers').TransactionReceipt} receipt
+   * @param {EthersProvider} readProvider
+   * @param {TransactionReceipt} receipt
    * @param {string} txHash
-   * @param {import('ethers').Interface | null} iface
+   * @param {EthersInterface | null} iface
    * @returns {Promise<{ revertData: string | null, revertReason: string | null, revertArgs: unknown, revertSignature: string | null }>}
    */
   static async _enrichMinedTransactionRevert(readProvider, receipt, txHash, iface) {
@@ -233,7 +236,7 @@ class SapphireWriteWrapper {
 
       /** @type {Record<string, unknown>} */
       let enrich = {};
-      const err = /** @type {Error & { code?: string; receipt?: import('ethers').TransactionReceipt }} */ (error);
+      const err = /** @type {Error & { code?: string; receipt?: TransactionReceipt }} */ (error);
       const code = err.code || /** @type {any} */ (err).error?.code;
       const receipt = err.receipt;
       const txHash = receipt?.hash ?? /** @type {any} */ (err).transactionHash;

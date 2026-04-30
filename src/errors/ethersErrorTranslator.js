@@ -3,6 +3,9 @@
  *
  * Maps ethers v6 errors (CALL_EXCEPTION, network codes, etc.) to WalletError subclasses
  * with consistent messages and merged {@code sdkContext} (method params, client name, …).
+ * 
+ * @typedef {import('../types/index.js').EthersInterface} EthersInterface
+ * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
  */
 
 import {
@@ -15,10 +18,11 @@ import {
   sanitizeErrorContextShallow
 } from '../internal/sensitiveParams.js';
 
+
 /**
  * Merge SDK debugging context onto an existing WalletError (mutates {@code err.context}).
  *
- * @param {import('./WalletError.js').WalletError} err
+ * @param {WalletError} err
  * @param {Record<string, unknown>} [sdkContext={}]
  */
 export function applySdkContext(err, sdkContext = {}) {
@@ -52,7 +56,7 @@ export function extractRpcRevertBytes(err) {
 /**
  * Decode custom Solidity error bytes using the contract ABI (ethers v6 {@code Interface.parseError}).
  *
- * @param {import('ethers').Interface | null} iface
+ * @param {EthersInterface | null} iface
  * @param {string} data
  * @returns {{ revertReason: string | null, revertArgs: unknown, revertSignature: string | null }}
  */
@@ -89,7 +93,7 @@ function nestedRpcMessage(err) {
  * Decodes ABI whenever {@code revertData} and {@code iface} are present so args are not
  * dropped when ethers already populated {@code err.revert.name}.
  *
- * @param {import('ethers').Interface | null | undefined} iface
+ * @param {EthersInterface | null | undefined} iface
  * @param {string | null} revertData
  * @param {string | null} revertReason
  * @param {unknown} revertArgsExisting
@@ -126,9 +130,9 @@ function resolveRevertFields(iface, revertData, revertReason, revertArgsExisting
  * @typedef {Object} ToWalletErrorInput
  * @property {string} methodName
  * @property {string|null} [rpcUrl]
- * @property {import('ethers').Interface|null} [revertInterface]
+ * @property {EthersInterface|null} [revertInterface]
  * @property {Record<string, unknown>} [sdkContext] - Safe fields from {@link BaseContractClient.buildErrorContext}
- * @property {import('ethers').TransactionReceipt|null|undefined} [receipt]
+ * @property {TransactionReceipt|null|undefined} [receipt]
  * @property {string|null} [transactionHash]
  * @property {string|null} [revertData]
  * @property {string|null} [revertReason]
@@ -153,7 +157,7 @@ function assignRevertExtras(extra, source) {
  * Shared revert resolution for {@code CALL_EXCEPTION} / {@code UNPREDICTABLE_GAS_LIMIT} (mined vs static call paths).
  *
  * @param {Error} err
- * @param {import('ethers').Interface|null} revertInterface
+ * @param {EthersInterface|null} revertInterface
  * @param {string|null|undefined} enrichRevertData
  * @param {string|null|undefined} enrichRevertReason
  * @param {unknown} enrichRevertArgs
@@ -193,7 +197,7 @@ function buildCallExceptionRevertDetails(
  *
  * @param {Error} err
  * @param {ToWalletErrorInput} options
- * @returns {import('./WalletError.js').WalletError}
+ * @returns {WalletError}
  */
 export function toWalletError(err, options = {}) {
   const {
@@ -215,13 +219,13 @@ export function toWalletError(err, options = {}) {
   const action = typeof /** @type {any} */ (err).action === 'string' ? /** @type {any} */ (err).action : undefined;
   const nestedRpc = nestedRpcMessage(err);
 
-  const finish = (/** @type {import('./WalletError.js').WalletError} */ walletErr) => {
+  const finish = (/** @type {WalletError} */ walletErr) => {
     applySdkContext(walletErr, sdkContext);
     return walletErr;
   };
 
   if (errorCode === 'CALL_EXCEPTION' || errorCode === 'UNPREDICTABLE_GAS_LIMIT') {
-    const receipt = /** @type {import('ethers').TransactionReceipt | null | undefined} */ (
+    const receipt = /** @type {TransactionReceipt | null | undefined} */ (
       receiptOpt ?? /** @type {any} */ (err).receipt
     );
     const txHash =
@@ -333,7 +337,7 @@ export function toWalletError(err, options = {}) {
  * an existing WalletError, otherwise delegates to {@code toWalletError}.
  *
  * @param {unknown} err
- * @param {{ methodName: string; rpcUrl: string|null; revertInterface?: import('ethers').Interface|null|undefined; sdkContext: Record<string, unknown> }} opts
+ * @param {{ methodName: string; rpcUrl: string|null; revertInterface?: EthersInterface|null|undefined; sdkContext: Record<string, unknown> }} opts
  * @returns {never}
  */
 export function rethrowExecuteError(err, opts) {
