@@ -113,10 +113,7 @@ async function createAuthProofMinuteSignature(options = {}) {
   const signature = await derivedSigner.signMessage(ethers.getBytes(payloadHash));
   const authProof = ethers.AbiCoder.defaultAbiCoder().encode(['bytes'], [signature]);
 
-  log.debug('createAuthProofMinuteSignature', {
-    minuteBucket,
-    derivedAddress: derivedSigner.address
-  });
+  log.debug('createAuthProofMinuteSignature', { minuteBucket });
 
   return {
     authProof,

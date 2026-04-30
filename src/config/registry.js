@@ -205,7 +205,16 @@ async function fetchRegistryStorageRaw(network) {
       );
     }
     const raw = await storage.getValue(profile.storagePath);
-    log.debug('raw Registry JSON', raw);
+    if (typeof raw === 'string' && raw.length > 0) {
+      const digest = ethers.keccak256(ethers.toUtf8Bytes(raw));
+      log.debug('Remote registry: loaded payload metadata', {
+        network,
+        byteLength: raw.length,
+        contentDigest: digest
+      });
+    } else {
+      log.debug('Remote registry: empty or non-string payload', { network });
+    }
     requireString(raw, 'raw');
     remoteRawCache.set(key, raw);
     log.debug('Remote registry: loaded and cached (raw)', { network });
