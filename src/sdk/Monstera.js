@@ -83,7 +83,6 @@
 import MonsteraConfig from '../config/monstera.js';
 import MonsteraUtils from './MonsteraUtils.js';
 import log from '../internal/logger.js';
-import { nowUnixTimestampSeconds } from '../internal/utils/time.js';
 import WalletFactoryClient from '../clients/factory/index.js';
 import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
@@ -97,9 +96,14 @@ import {
 } from '../internal/crypto/index.js';
 import { executeSignAuthorization } from '../internal/crypto/signAuthorization.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
-import { ValidationError } from '../errors/index.js';
 import { encodeAuthConfigOptions } from '../internal/authenticators/authConfig/encodeAuthConfigOptions.js';
 import { encodeAuthProofOptions } from '../internal/authenticators/authProof/encodeAuthProofOptions.js';
+import { assertValidResolvedConfig } from '../internal/validators/networkConfig.js'; 
+import {
+  withWalletSignatureProofDefaults,
+  withMinuteSignatureProofDefaults,
+  withDualFactorProofDefaults
+} from './monstera/applyAuthProofDefaults.js';
 
 /**
  * Monstera Wallet SDK
@@ -116,6 +120,7 @@ class Monstera {
    * @param {MonsteraConfigOptions} config - SDK configuration
    */
   constructor(config) {
+    assertValidResolvedConfig(config);
     this.config = config;
     this.version = MonsteraConfig.version;
 
@@ -151,9 +156,10 @@ class Monstera {
    * @returns {Monstera} SDK instance
    */
   static connect(options) {
-    const base = MonsteraConfig.resolveBaseConfig(options);
     const logLevel = options?.logLevel ?? (options?.debug === true ? 'debug' : 'error');
     log.setLevel(logLevel);
+
+    const base = MonsteraConfig.resolveBaseConfig(options);
 
     const provider = options?.provider ?? null;
 
@@ -365,31 +371,8 @@ class Monstera {
    * @returns {Promise<EncodedAuthProofWalletSignature>} encoded auth proof 
    */
   async createAuthProofWalletSignature(options = {}) {
-    const { signer, keyVaultAddr } = options;
-    let { authenticatorAddr, deadline, chainId } = options;
-
-    // Set default authenticator if not provided
-    if (!authenticatorAddr) {
-      authenticatorAddr = this.config.addresses.walletSignatureAuth;
-    }
-
-    // Set deadline default if not provided
-    if (!deadline) {
-      deadline = nowUnixTimestampSeconds() + 3600; // 1 hour from now
-    }
-
-    // Set chainId default if not provided
-    if (!chainId) {
-      chainId = this.config.chainId;
-    }
-
-    return createAuthProofWalletSignature({
-      signer,
-      chainId,
-      authenticatorAddr,
-      deadline,
-      keyVaultAddr
-    });
+    const resolved = withWalletSignatureProofDefaults(this.config, options);
+    return createAuthProofWalletSignature(resolved);
   }
 
   /**
@@ -400,25 +383,10 @@ class Monstera {
    * @throws {ValidationError} If addresses or passwordHash are invalid
    */
   async createAuthProofMinuteSignature(options = {}) {
-    const { keyVaultAddr, passwordHash } = options;
-    let { authenticatorAddr, chainId } = options;
-
-    // Set default authenticator if not provided
-    if (!authenticatorAddr) {
-      authenticatorAddr = this.config.addresses.passwordMinuteSignatureAuth;
-    }
-
-    // Set chainId default if not provided
-    if (!chainId) {
-      chainId = this.config.chainId;
-    }
-
+    const resolved = withMinuteSignatureProofDefaults(this.config, options);
     return createAuthProofMinuteSignature({
       provider: this.readProvider,
-      keyVaultAddr,
-      authenticatorAddr,
-      chainId,
-      passwordHash
+      ...resolved
     });
   }
 
@@ -430,32 +398,10 @@ class Monstera {
    * @throws {ValidationError} If addresses or passwordHash are invalid
    */
   async createAuthProofDualFactor(options = {}) {
-    const { keyVaultAddr, passwordHash, signer } = options;
-    let { authenticatorAddr, deadline, chainId } = options;
-
-    // Set default authenticator if not provided
-    if (!authenticatorAddr) {
-      authenticatorAddr = this.config.addresses.dualFactorAuth;
-    }
-
-    // Set deadline default if not provided
-    if (!deadline) {
-      deadline = nowUnixTimestampSeconds() + 3600; // 1 hour from now
-    }
-
-    // Set chainId default if not provided
-    if (!chainId) {
-      chainId = this.config.chainId;
-    }
-
+    const resolved = withDualFactorProofDefaults(this.config, options);
     return createAuthProofDualFactor({
       provider: this.readProvider,
-      keyVaultAddr,
-      passwordHash,
-      signer,
-      authenticatorAddr,
-      deadline,
-      chainId
+      ...resolved
     });
   }
 

@@ -2,7 +2,7 @@
  * @typedef {import('../types/index.js').VersionCheckResult} VersionCheckResult
  */
 
-import { compareVersions, getVersionType } from './version.js';
+import { compareVersions, getVersionType } from './utils/version.js';
 import log from './logger.js';
 
 /**

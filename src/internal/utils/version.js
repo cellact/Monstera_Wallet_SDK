@@ -2,7 +2,7 @@
  * Version comparison and utility functions
  */
 
-import { requireString } from './assert.js';
+import { requireString } from '../assert.js';
 
 /**
  * Parse semantic version string into components

@@ -21,20 +21,16 @@ import {
   parseRegistryContractAddresses,
   parseRegistryConnectionHints
 } from './registry.js';
-import { ConfigError, ValidationError } from '../errors/index.js';
-import { isAddress, requireArray, requireBoolean } from '../internal/assert.js';
+import { requireBoolean } from '../internal/assert.js';
 import log from '../internal/logger.js';
+import { SENSITIVE_PARAM_NAMES } from '../internal/sensitiveParams.js';
+import {
+  REQUIRED_CONTRACT_ADDRESS_KEYS,
+  validateContractAddresses,
+} from '../internal/validators/networkConfig.js';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
-
-/**
- * Required contract addresses for SDK initialization
- * All of these must be present and valid for the SDK to function.
- *
- * @type {RequiredContractAddressKeys}
- */
-const REQUIRED_ADDRESSES = ['factory', 'passwordAuth', 'walletSignatureAuth', 'dualFactorAuth', 'passwordMinuteSignatureAuth'];
 
 /**
  * Monstera SDK Configuration
@@ -128,7 +124,7 @@ class MonsteraConfig {
    * @returns {RequiredContractAddressKeys} Ordered list of required {@link ContractAddresses} keys
    */
   static get requiredAddresses() {
-    return REQUIRED_ADDRESSES;
+    return [...REQUIRED_CONTRACT_ADDRESS_KEYS];
   }
 
   /**
@@ -154,11 +150,10 @@ class MonsteraConfig {
 
     log.debug('resolveBaseConfig', { mainnet, network });
 
-    MonsteraConfig._validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
+    validateContractAddresses(networkConfig.addresses, REQUIRED_CONTRACT_ADDRESS_KEYS);
 
     return networkConfig;
   }
-
 
   /**
    * Like {@link MonsteraConfig.resolveBaseConfig} but merges contract addresses from
@@ -211,40 +206,9 @@ class MonsteraConfig {
       remoteLoaded: Object.keys(remotePartial).length > 0
     });
 
-    MonsteraConfig._validateAddresses(networkConfig.addresses, REQUIRED_ADDRESSES);
+    validateContractAddresses(networkConfig.addresses, REQUIRED_CONTRACT_ADDRESS_KEYS);
 
     return networkConfig;
-  }
-
-  /**
-   * Validate required contract addresses
-   * 
-   * @private
-   * @static
-   * @param {Partial<ContractAddresses>} addresses - Contract addresses to validate
-   * @param {RequiredContractAddressKeys} required - List of required address keys (non-empty)
-   * @throws {ConfigError} If required addresses are missing
-   * @throws {ValidationError} If address format is invalid or required is not an array
-   */
-  static _validateAddresses(addresses, required) {
-    requireArray(required, 'required');
-
-    const missing = required.filter(key => !addresses[key]);
-    
-    if (missing.length > 0) {
-      throw new ConfigError(
-        `Missing required contract addresses: ${missing.join(', ')}. ` +
-        `Please provide addresses in config or set defaults.`,
-        missing.join(', ')
-      );
-    }
-
-    // Validate address format (basic check)
-    for (const [key, address] of Object.entries(addresses)) {
-      if (address && !isAddress(address)) {
-        throw new ValidationError(`Invalid address format for ${key}: ${address}`, key, address);
-      }
-    }
   }
 
   /**
@@ -259,11 +223,7 @@ class MonsteraConfig {
    * @returns {string[]} Array of sensitive parameter names
    */
   static get SENSITIVE_PARAMS() {
-    return [
-      'authConfig', 'authProof', 'currentPassword', 'newPasswordHash',
-      'seed', 'mnemonic', 'hookData', 'logicData', 'txData', 'data',
-      'message', 'hash', 'privateKey', 'password'
-    ];
+    return [...SENSITIVE_PARAM_NAMES];
   }
 }
 
