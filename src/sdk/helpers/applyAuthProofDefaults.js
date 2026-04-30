@@ -2,6 +2,9 @@
  * Default authenticator addresses and timing for built-in auth-proof helpers on {@link Monstera}.
  * Keeps {@link Monstera} methods as thin delegations to internal crypto.
  *
+ * Lives under `sdk/helpers/` (not {@link MonsteraUtils}) because these are pure auth-domain
+ * builders; MonsteraUtils is reserved for cross-cutting non-domain utilities (e.g. version check).
+ *
  * @typedef {import('../../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
  * @typedef {import('../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
  * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureOptions} CreateAuthProofMinuteSignatureOptions

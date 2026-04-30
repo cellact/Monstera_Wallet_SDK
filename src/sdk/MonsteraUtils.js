@@ -1,17 +1,13 @@
 /**
- * Monstera SDK Utilities
- * 
- * Utility functions for SDK instance management and helpers.
- * These are pure functions or instance-independent helpers.
+ * Cross-cutting SDK utilities that are not part of the public instance API and are not
+ * re-exported from the package entry. Today this is only the optional npm version check
+ * (deduplicated per process).
+ *
+ * @see {@link checkAndWarnVersion} in `internal/versionCheck.js`
  */
 
 import { checkAndWarnVersion } from '../internal/versionCheck.js';
 
-/**
- * Monstera SDK Utilities
- * 
- * Provides utility functions for SDK operations.
- */
 class MonsteraUtils {
   // Static cache for version check (to avoid multiple checks)
   static _versionCheckPromise = null;

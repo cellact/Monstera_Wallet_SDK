@@ -103,7 +103,7 @@ import {
   withWalletSignatureProofDefaults,
   withMinuteSignatureProofDefaults,
   withDualFactorProofDefaults
-} from './monstera/applyAuthProofDefaults.js';
+} from './helpers/applyAuthProofDefaults.js';
 
 /**
  * Monstera Wallet SDK
