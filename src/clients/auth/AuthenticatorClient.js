@@ -16,6 +16,7 @@ import DualFactorAuthenticatorClient from './DualFactorAuthenticatorClient.js';
 import PasswordMinuteSignatureAuthenticatorClient from './PasswordMinuteSignatureAuthenticatorClient.js';
 import { ValidationError } from '../../errors/index.js';
 import log from '../../internal/logger.js';
+import { requireString } from '../../internal/assert.js';
 
 class AuthenticatorClient {
   // ============================================================================
@@ -52,13 +53,15 @@ class AuthenticatorClient {
    * 
    * @param {string} type - Authenticator type ('walletSignature', 'password', etc.)
    * @returns {AuthenticatorClientInstance} Authenticator client instance
-   * @throws {ValidationError} If authenticator type is not found
+   * @throws {ValidationError} If {@code type} is missing or not a string, or the authenticator type is not registered
    */
   getClient(type) {
+    requireString(type, 'type');
     log.debug('AuthenticatorClient: getClient', { type });
-    if (!this[type]) {
+    const available = this.getAvailableTypes();
+    if (!available.includes(type)) {
       throw new ValidationError(
-        `Authenticator client type '${type}' not found. Available types: ${Object.keys(this).join(', ')}`,
+        `Authenticator client type '${type}' not found. Available types: ${available.join(', ')}`,
         'type',
         type
       );
