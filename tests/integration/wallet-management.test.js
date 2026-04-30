@@ -513,7 +513,7 @@ describe('Wallet Management Integration Tests', () => {
 
   describe('initialize', () => {
     // Helper to create access token for initialize tests
-    const createAccessToken = () => ethers.randomBytes(32);
+    const createAccessToken = () => ethers.hexlify(ethers.randomBytes(32));
 
     test('should fail with missing keyVaultAddr', async () => {
       const accessToken = createAccessToken();

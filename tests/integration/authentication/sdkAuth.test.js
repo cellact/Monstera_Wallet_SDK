@@ -44,4 +44,10 @@ describe('Authentication — SDK registry', () => {
   test('getAuthClient throws for unknown authenticator key', () => {
     expect(() => sdk.getAuthClient('doesNotExist')).toThrow(ValidationError);
   });
+
+  test('getAuthClient rejects internal instance keys', () => {
+    expect(() => sdk.getAuthClient('readProvider')).toThrow(ValidationError);
+    expect(() => sdk.getAuthClient('writeSigner')).toThrow(ValidationError);
+    expect(() => sdk.getAuthClient('config')).toThrow(ValidationError);
+  });
 });

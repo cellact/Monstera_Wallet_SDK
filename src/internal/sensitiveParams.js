@@ -5,14 +5,20 @@
 
 /** @type {readonly string[]} */
 const SENSITIVE_PARAM_NAMES = Object.freeze([
+  'accessToken',
   'authConfig',
   'authProof',
+  'baseChainCode',
+  'basePrivateKey',
   'currentPassword',
+  'digest',
   'newPasswordHash',
   'passwordHash',
   'seed',
   'mnemonic',
+  'newAuthConfig',
   'hookData',
+  'implCall',
   'logicData',
   'txData',
   'data',
@@ -119,10 +125,101 @@ function sanitizeEncoderErrorValue(argumentLabel, value) {
   return value;
 }
 
+/** Placeholder for sensitive keys in log output (string for readable `log.debug` JSON). */
+const LOG_REDACTED = '[redacted]';
+
+/**
+ * Return a deep-cloned, JSON-serializable summary of `value` safe for debug logs.
+ * Keys in {@link SENSITIVE_PARAM_NAMES} are replaced with {@link LOG_REDACTED}; nested
+ * objects are walked. `Uint8Array` values (non-sensitive keys) are summarized as
+ * `Uint8Array(n)` to avoid large hex dumps.
+ *
+ * @param {unknown} value - Typically a method `options` bag
+ * @param {{ maxDepth?: number }} [options]
+ * @returns {unknown}
+ */
+function sanitizeForLog(value, options = {}) {
+  const maxDepth = options.maxDepth ?? 6;
+  return sanitizeForLogInner(value, 0, maxDepth, new WeakSet());
+}
+
+/**
+ * @param {unknown} value
+ * @param {number} depth
+ * @param {number} maxDepth
+ * @param {WeakSet<object>} visiting - Cycle detection (enter add / leave delete)
+ * @returns {unknown}
+ */
+function sanitizeForLogInner(value, depth, maxDepth, visiting) {
+  if (value === null || value === undefined) {
+    return value;
+  }
+  if (depth > maxDepth) {
+    return '[max depth]';
+  }
+
+  const t = typeof value;
+  if (t === 'string' || t === 'number' || t === 'boolean') {
+    return value;
+  }
+  if (t === 'bigint') {
+    return value.toString();
+  }
+  if (t === 'symbol') {
+    return String(value);
+  }
+  if (t === 'function') {
+    return '[Function]';
+  }
+
+  if (value instanceof Uint8Array) {
+    return `Uint8Array(${value.length})`;
+  }
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  if (Array.isArray(value)) {
+    if (visiting.has(value)) {
+      return '[Circular]';
+    }
+    visiting.add(value);
+    try {
+      return value.map((item) => sanitizeForLogInner(item, depth + 1, maxDepth, visiting));
+    } finally {
+      visiting.delete(value);
+    }
+  }
+
+  if (t === 'object') {
+    if (visiting.has(value)) {
+      return '[Circular]';
+    }
+    visiting.add(value);
+    try {
+      /** @type {Record<string, unknown>} */
+      const out = {};
+      for (const [key, val] of Object.entries(value)) {
+        if (isSensitiveParamName(key)) {
+          out[key] = LOG_REDACTED;
+        } else {
+          out[key] = sanitizeForLogInner(val, depth + 1, maxDepth, visiting);
+        }
+      }
+      return out;
+    } finally {
+      visiting.delete(value);
+    }
+  }
+
+  return value;
+}
+
 export {
   SENSITIVE_PARAM_NAMES,
   isSensitiveParamName,
   sanitizeValidationValue,
   sanitizeErrorContextShallow,
-  sanitizeEncoderErrorValue
+  sanitizeEncoderErrorValue,
+  sanitizeForLog
 };

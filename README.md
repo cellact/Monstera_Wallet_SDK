@@ -45,7 +45,9 @@ Responsibilities are split so that no single contract can compromise a wallet on
 npm install @monstera_protocol/sdk
 ```
 
-**Note:** This SDK uses ES Modules (ESM). Requires Node.js 14+ or a bundler.
+The SDK ships with a dependency on **ethers** v5/v6 for contracts and signing. You should also declare `ethers` in your app (`npm install ethers`) so your bundler resolves a single copy; the package lists ethers as a **peer dependency** for that reason.
+
+**Note:** This SDK uses ES Modules (ESM). Requires Node.js 14+ or a bundler. **web3.js is not used** by this package; use ethers for all Ethereum interactions.
 
 After installation, run the CLI to get started:
 

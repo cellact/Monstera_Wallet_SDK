@@ -1,3 +1,5 @@
+import { sanitizeValidationValue } from '../internal/sensitiveParams.js';
+
 /**
  * Base error class for Wallet SDK
  *
@@ -76,7 +78,7 @@ class ValidationError extends WalletError {
       'INVALID_ARGUMENT',
       {
         parameter,
-        value,
+        value: sanitizeValidationValue(parameter, value),
         function: 'validation'
       }
     );

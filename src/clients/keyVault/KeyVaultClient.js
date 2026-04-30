@@ -46,6 +46,7 @@ import {
   requireString
 } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
+import { sanitizeForLog } from '../../internal/sensitiveParams.js';
 
 class KeyVaultClient extends BaseContractClient {
   // ============================================================================
@@ -75,7 +76,7 @@ class KeyVaultClient extends BaseContractClient {
   async getStorageAddr(options = {}) {
     const { keyVaultAddr } = options;
     log.info('KeyVault: getStorageAddr');
-    log.debug('Getting storage address for keyVault', { keyVaultAddr });
+    log.debug('Getting storage address for keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -98,7 +99,7 @@ class KeyVaultClient extends BaseContractClient {
   async getAuthenticatorAddr(options = {}) {
     const { keyVaultAddr } = options;
     log.info('KeyVault: getAuthenticatorAddr');
-    log.debug('Getting authenticator address for keyVault', { keyVaultAddr });
+    log.debug('Getting authenticator address for keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -121,7 +122,7 @@ class KeyVaultClient extends BaseContractClient {
   async getKeyVaultImplAddr(options = {}) {
     const { keyVaultAddr } = options;
     log.info('KeyVault: getKeyVaultImplAddr');
-    log.debug('Getting keyVault implementation address for keyVault', { keyVaultAddr });
+    log.debug('Getting keyVault implementation address for keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -144,7 +145,7 @@ class KeyVaultClient extends BaseContractClient {
   async isInitialized(options = {}) {
     const { keyVaultAddr } = options;
     log.info('KeyVault: isInitialized');
-    log.debug('Checking if keyVault is initialized', { keyVaultAddr }); 
+    log.debug('Checking if keyVault is initialized', sanitizeForLog(options)); 
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -168,7 +169,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, index } = options;
     requireNonNegativeInteger(index, 'index');
     log.info('KeyVault: getAccountAddr');
-    log.debug('Getting account address for keyVault at index', { keyVaultAddr, index });
+    log.debug('Getting account address for keyVault at index', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -193,7 +194,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
     log.info('KeyVault: getAccountAddresses');
-    log.debug('Getting account addresses for keyVault for index range', { keyVaultAddr, fromIndex, count });
+    log.debug('Getting account addresses for keyVault for index range', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
     
@@ -225,7 +226,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(txData, 'txData');
     requireNonNegativeInteger(chainId, 'chainId');
     log.info('KeyVault: signTransaction');
-    log.debug('Signing transaction for keyVault at index to address', { keyVaultAddr, index, to }); // TODO: log the options leaving out sensitive data 
+    log.debug('Signing transaction for keyVault at index to address', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -251,7 +252,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
     log.info('KeyVault: signMessage');
-    log.debug('Signing Ethereum EIP-191 message for keyVault at index', { keyVaultAddr, index }); // TODO: log the options leaving out sensitive data 
+    log.debug('Signing Ethereum EIP-191 message for keyVault at index', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -277,7 +278,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes32(hash, 'hash');
     log.info('KeyVault: sign');
-    log.debug('Signing Ethereum hash for keyVault at index', { keyVaultAddr, index }); // TODO: log the options leaving out sensitive data 
+    log.debug('Signing Ethereum hash for keyVault at index', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -302,7 +303,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireBytes(implCall, 'implCall');
     log.info('KeyVault: executeWithAuth');
-    log.debug('Executing function with auth for keyVault', { keyVaultAddr }); // TODO: log the options leaving out sensitive data 
+    log.debug('Executing function with auth for keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -326,7 +327,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('KeyVault: getImportedKeyIds');
-    log.debug('Getting imported key IDs for keyVault', { keyVaultAddr });
+    log.debug('Getting imported key IDs for keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -353,7 +354,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(keyId, 'keyId');
     log.info('KeyVault: getKeyMetadata');
-    log.debug('Getting metadata for imported key in keyVault', { keyVaultAddr, keyId });
+    log.debug('Getting metadata for imported key in keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -378,7 +379,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(keyId, 'keyId');
     log.info('KeyVault: keyExists');
-    log.debug('Checking if key exists in keyVault', { keyVaultAddr, keyId });
+    log.debug('Checking if key exists in keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -405,7 +406,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes32(keyId, 'keyId');
     requireBytes32(digest, 'digest');
     log.info('KeyVault: signWithImportedKey');
-    log.debug('Signing with imported key in keyVault', { keyVaultAddr, keyId }); // TODO: log the options leaving out sensitive data 
+    log.debug('Signing with imported key in keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -430,7 +431,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(keyId, 'keyId');
     log.info('KeyVault: getImportedKeyAddr');
-    log.debug('Getting address for imported key in keyVault', { keyVaultAddr, keyId });
+    log.debug('Getting address for imported key in keyVault', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -455,7 +456,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonNegativeInteger(index, 'index');
     log.info('KeyVault: getSolanaAddr');
-    log.debug('Getting Solana address for keyVault at index', { keyVaultAddr, index });
+    log.debug('Getting Solana address for keyVault at index', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -482,7 +483,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
     log.info('KeyVault: signSolana');
-    log.debug('Signing Solana message for keyVault at index', { keyVaultAddr, index }); // TODO: log the options leaving out sensitive data 
+    log.debug('Signing Solana message for keyVault at index', sanitizeForLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -515,7 +516,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(authenticatorAddr, 'authenticatorAddr');
     requireBytes32(accessToken, 'accessToken');
     log.info('KeyVault: initialize');
-    log.debug('Initializing keyVault with storage and authenticator addresses', { keyVaultAddr, storageAddr, authenticatorAddr }); // TODO: log the options leaving out sensitive data 
+    log.debug('Initializing keyVault with storage and authenticator addresses', sanitizeForLog(options));
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
@@ -541,7 +542,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
     log.info('KeyVault: updateKeyVaultImplAddr');
-    log.debug('Updating keyVault implementation address', { keyVaultAddr, newImplAddr }); // TODO: log the options leaving out sensitive data 
+    log.debug('Updating keyVault implementation address', sanitizeForLog(options));
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
@@ -574,7 +575,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');
     log.info('KeyVault: updateAuthenticatorAddr');
-    log.debug('Updating authenticator address for keyVault', { keyVaultAddr, newAuthenticatorAddr }); // TODO: log the options leaving out sensitive data 
+    log.debug('Updating authenticator address for keyVault', sanitizeForLog(options));
     
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
@@ -612,7 +613,7 @@ class KeyVaultClient extends BaseContractClient {
     requireNonNegativeInteger(chain, 'chain');
     requireString(label, 'label');
     log.info('KeyVault: importKey');
-    log.debug('Importing key into keyVault', { keyVaultAddr, keyId }); // TODO: log the options leaving out sensitive data 
+    log.debug('Importing key into keyVault', sanitizeForLog(options));
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
@@ -645,7 +646,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireBytes32(keyId, 'keyId');
     log.info('KeyVault: deactivateKey');
-    log.debug('Deactivating key in keyVault', { keyVaultAddr, keyId }); // TODO: log the options leaving out sensitive data 
+    log.debug('Deactivating key in keyVault', sanitizeForLog(options));
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
@@ -678,7 +679,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(authProof, 'authProof');
     requireBytes32(keyId, 'keyId');
     log.info('KeyVault: activateKey');
-    log.debug('Activating key in keyVault', { keyVaultAddr, keyId }); // TODO: log the options leaving out sensitive data 
+    log.debug('Activating key in keyVault', sanitizeForLog(options));
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
@@ -712,7 +713,7 @@ class KeyVaultClient extends BaseContractClient {
     requireBytes(basePrivateKey, 'basePrivateKey');
     requireBytes(baseChainCode, 'baseChainCode');
     log.info('KeyVault: setChainBaseKeys');
-    log.debug('Setting chain base keys for keyVault', { keyVaultAddr, chain }); // TODO: log the options leaving out sensitive data 
+    log.debug('Setting chain base keys for keyVault', sanitizeForLog(options));
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 

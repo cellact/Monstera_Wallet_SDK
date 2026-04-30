@@ -12,6 +12,7 @@ import {
 } from '../../utils/fixtures.js';
 import MonsteraConfig from '../../../src/config/monstera.js';
 import { ConfigError, ValidationError } from '../../../src/errors/index.js';
+import { assertValidResolvedConfig } from '../../../src/internal/validators/networkConfig.js';
 
 describe('MonsteraConfig', () => {
     describe('Static Getters', () => {
@@ -132,6 +133,9 @@ describe('MonsteraConfig', () => {
                 expect(sensitive).toContain('mnemonic');
                 expect(sensitive).toContain('seed');
                 expect(sensitive).toContain('hookData');
+                expect(sensitive).toContain('implCall');
+                expect(sensitive).toContain('newAuthConfig');
+                expect(sensitive).toContain('accessToken');
                 expect(sensitive).toContain('logicData');
                 expect(sensitive).toContain('txData');
                 expect(sensitive).toContain('data');
@@ -394,6 +398,24 @@ describe('MonsteraConfig', () => {
                     ...customAddresses
                 });
             });
+        });
+    });
+
+    describe('assertValidResolvedConfig', () => {
+        test('throws ConfigError for empty object', () => {
+            expect(() => assertValidResolvedConfig({})).toThrow(ConfigError); 
+        });
+
+        test('accepts output of resolveBaseConfig', () => {
+            const config = MonsteraConfig.resolveBaseConfig({ mainnet: false });
+            expect(() => assertValidResolvedConfig(config)).not.toThrow();
+        });
+
+        test('throws ConfigError when rpcUrl is blank', () => {
+            const config = MonsteraConfig.resolveBaseConfig({ mainnet: false });
+            expect(() =>
+                assertValidResolvedConfig({ ...config, rpcUrl: '   ' })
+            ).toThrow(ConfigError);
         });
     });
 });

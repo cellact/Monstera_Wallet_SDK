@@ -108,6 +108,30 @@ describe('ethersErrorTranslator', () => {
     expect(w.context.client).toBe('ExampleClient');
   });
 
+  test('UNKNOWN_ERROR sanitizes sensitive sdkContext keys', () => {
+    const err = new Error('something broke');
+    err.code = 'SOME_UNKNOWN_CODE';
+
+    const w = toWalletError(err, {
+      methodName: 'op',
+      rpcUrl: 'https://example.com',
+      sdkContext: {
+        client: 'KeyVaultClient',
+        authProof: '0xdeadbeef',
+        keyVaultAddr: '0x42f0c7932dA41a4f9063230145EEbD35f827179a'
+      }
+    });
+
+    expect(w).toBeInstanceOf(WalletError);
+    expect(w.context.client).toBe('KeyVaultClient');
+    expect(w.context.keyVaultAddr).toBe('0x42f0c7932dA41a4f9063230145EEbD35f827179a');
+    expect(w.context.authProof).toEqual({
+      redacted: true,
+      valueKind: 'string',
+      valueLength: 10
+    });
+  });
+
   test('decodeCustomError uses Interface.parseError', () => {
     const iface = new ethers.Interface(['error AlreadyConfigured()', 'error AuthenticationFailed()']);
     const out = decodeCustomError(iface, '0x11b61b6a');

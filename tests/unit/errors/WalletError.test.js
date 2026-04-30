@@ -110,6 +110,17 @@ describe('WalletError', () => {
       expect(error.context.value).toBe('0x123');
     });
 
+    test('should redact sensitive parameter values in context', () => {
+      const secret = 'word '.repeat(12).trim();
+      const error = new ValidationError('bad mnemonic', 'mnemonic', secret);
+      expect(error.context.parameter).toBe('mnemonic');
+      expect(error.context.value).toEqual({
+        redacted: true,
+        valueKind: 'string',
+        valueLength: secret.length
+      });
+    });
+
     test('should be instance of WalletError', () => {
       const error = new ValidationError('Test', 'param');
       expect(error instanceof WalletError).toBe(true);

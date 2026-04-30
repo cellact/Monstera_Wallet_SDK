@@ -10,6 +10,10 @@ import {
   NetworkError,
   ContractRevertError
 } from './WalletError.js';
+import {
+  sanitizeEncoderErrorValue,
+  sanitizeErrorContextShallow
+} from '../internal/sensitiveParams.js';
 
 /**
  * Merge SDK debugging context onto an existing WalletError (mutates {@code err.context}).
@@ -296,6 +300,7 @@ export function toWalletError(err, options = {}) {
 
   if (errorCode === 'MISSING_ARGUMENT' || errorCode === 'INVALID_ARGUMENT') {
     const e = /** @type {Error & { count?: number; expectedCount?: number; argument?: string; value?: unknown }} */ (err);
+    const argLabel = e.argument != null ? String(e.argument) : '';
     return finish(
       new WalletError(
         `ABI encoding failed during ${methodName}: ${message}`,
@@ -307,13 +312,13 @@ export function toWalletError(err, options = {}) {
           ...(e.count != null ? { argumentCount: e.count } : {}),
           ...(e.expectedCount != null ? { expectedArgumentCount: e.expectedCount } : {}),
           ...(e.argument != null ? { argument: e.argument } : {}),
-          ...(e.value !== undefined ? { value: e.value } : {})
+          ...(e.value !== undefined ? { value: sanitizeEncoderErrorValue(argLabel, e.value) } : {})
         }
       )
     );
   }
 
-  const safeSdk = { ...sdkContext };
+  const safeSdk = sanitizeErrorContextShallow({ ...sdkContext });
   delete /** @type {any} */ (safeSdk).revertInterface;
 
   return new WalletError(
