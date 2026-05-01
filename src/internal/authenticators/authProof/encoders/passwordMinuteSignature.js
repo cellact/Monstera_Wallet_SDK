@@ -8,7 +8,6 @@
  */
 
 import { createAuthProofMinuteSignature } from '../../../crypto/index.js';
-import { requireBytes32 } from '../../../../internal/assert.js';
 
 /** @type {PasswordMinuteAuthProofEncoderOptions} */
 export const passwordMinuteSignatureKeyVaultAuthProofEncoder = {
@@ -18,11 +17,10 @@ export const passwordMinuteSignatureKeyVaultAuthProofEncoder = {
    * @param {AuthProofEncodeContext} ctx
    * @param {PasswordMinuteSignatureAuthProofInputOptions} input
    * @returns {Promise<Bytes>}
-   * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string
+   * @throws {ValidationError} If inputs are invalid ({@link createAuthProofMinuteSignature})
    */
   async encode(ctx, input) {
     const { passwordHash } = input;
-    requireBytes32(passwordHash, 'passwordHash');
     const result = await createAuthProofMinuteSignature({
       provider: ctx.readProvider,
       keyVaultAddr: ctx.keyVaultAddr,

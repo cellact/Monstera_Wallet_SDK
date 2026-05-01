@@ -8,7 +8,6 @@
  */
 
 import { createAuthProofDualFactor } from '../../../crypto/index.js';
-import { requireWalletOrHdNode, requireBytes32 } from '../../../../internal/assert.js';
 import { nowUnixTimestampSeconds } from '../../../../internal/utils/time.js';
 
 /** @type {DualFactorAuthProofEncoderOptions} */
@@ -19,12 +18,10 @@ export const dualFactorKeyVaultAuthProofEncoder = {
    * @param {AuthProofEncodeContext} ctx
    * @param {DualFactorAuthProofInputOptions} input
    * @returns {Promise<Bytes>}
+   * @throws {ValidationError} If inputs are invalid ({@link createAuthProofDualFactor})
    */
   async encode(ctx, input) {
     const { passwordHash, signer } = input;
-
-    requireWalletOrHdNode(signer, 'signer');
-    requireBytes32(passwordHash, 'passwordHash');
 
     let deadline = input.deadline;
     if (deadline == null) {

@@ -31,7 +31,8 @@ The SDK is organized into modular components:
 - **Shared primitives** — [`src/internal/assert.js`](../src/internal/assert.js) provides reusable checks (`requireAddress`, `requireBytes`, …). Ethereum addresses are validated with **`ethers.isAddress`** so rules match the ethers ecosystem (including EIP-55 when the string is mixed-case).
 - **Clients** — Contract clients (`src/clients/`) typically re-validate method options per call as defense-in-depth, even when the facade has already validated.
 - **Parsers** — JSON or registry modules validate at parse boundaries (e.g. non-empty object roots for registry contract-address JSON via `requireObject`).
-- **Internals** — Crypto helpers and internal modules either rely on types established by callers or assert only where they receive raw external objects.
+- **Composed options** — [`src/internal/validators/authProofOptions.js`](../src/internal/validators/authProofOptions.js) centralizes auth-proof parameter checks used by [`authProof.js`](../src/internal/crypto/authProof.js) so wallet-signature / minute / dual-factor rules do not drift across call paths (dual-factor reuses minute encoding without re-validating twice).
+- **Internals** — Crypto helpers either validate via shared composed validators (above), rely on types established by callers, or assert only where they receive raw external objects.
 
 ## Project Structure
 

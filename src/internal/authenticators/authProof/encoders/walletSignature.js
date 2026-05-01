@@ -8,7 +8,6 @@
  */
 
 import { createAuthProofWalletSignature } from '../../../crypto/index.js';
-import { requireWalletOrHdNode } from '../../../../internal/assert.js';
 import { nowUnixTimestampSeconds } from '../../../../internal/utils/time.js';
 
 /** @type {WalletSignatureAuthProofEncoderOptions} */
@@ -19,12 +18,10 @@ export const walletSignatureKeyVaultAuthProofEncoder = {
    * @param {AuthProofEncodeContext} ctx
    * @param {WalletSignatureAuthProofInputOptions} input
    * @returns {Promise<Bytes>}
-   * @throws {ValidationError} If signer is not a Wallet or HDNodeWallet
+   * @throws {ValidationError} If inputs are invalid ({@link createAuthProofWalletSignature})
    */
   async encode(ctx, input) {
     const signer = input.signer;
-
-    requireWalletOrHdNode(signer, 'signer');
 
     let deadline = input.deadline;
     if (deadline == null) {
