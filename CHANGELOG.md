@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`src/adapters/ethers/`**: Ethers **adapter** surface (`encoding.js`, `signing.js`, `hashing.js`, `addresses.js`, `provider.js`) plus re-exports of common ethers APIs (`Wallet`, `Mnemonic`, `HDNodeWallet`, `Contract`, `ContractFactory`, `Transaction`, formatting helpers, etc.) so SDK internals use one import boundary instead of scattering direct **`ethers`** imports.
+
+### Changed
+
+- **Error translation pipeline**: Unified **`ErrorPipeline`** / **`sdkErrorPipeline`** in **`src/errors/pipeline.js`** composes **`revert`**, **`network`**, **`signing`**, **`ethersEncoder`**, and **`fallback`** translators (`src/errors/translators/`) so RPC failures, ABI decode/revert data, typed-data signing errors, and fallbacks map consistently to **`WalletError`** subclasses; pipeline **`translate`** / **`rethrow`**, **`applySdkContext`**, and **`rethrowExecuteError`** merge **sanitized** **`sdkContext`** onto errors for stable diagnostics.
+- **Error context sanitization**: **`src/internal/sanitization/`** (**`Sanitizer`**, **`SENSITIVE_PARAM_NAMES`**) strips sensitive keys when enriching errors for logs and structured **`context`**.
+- **Internal auth encoding layout**: Built-in KeyVault / factory auth encoding lives under **`src/internal/auth/`** (`config/`, `proof/`, `defaults/`), with **`AuthProofBuilder`** / **`AuthConfigBuilder`** (wired with **`AuthProofContext`** / **`AuthConfigContext`**) replacing the former `encodeAuthProofOptions` / `encodeAuthConfigOptions` helpers; auth-proof defaults moved to **`internal/auth/defaults/authProofDefaults.js`**. Older changelog entries that mention `src/internal/authenticators/**` describe historical paths only.
+
 ## [1.0.0-alpha.8] - 2026-04-28
 
 ### Added

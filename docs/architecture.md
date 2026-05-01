@@ -13,8 +13,8 @@ The SDK is organized into modular components:
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Error types, unified **`pipeline.js`** translator chain (`translators/`), and stable codes
-- **`internal/`**: Logger, version check, validation (`assert`), built-in authenticator encoders (`authenticators/`), wallet crypto (`crypto/index.js` barrel: `mnemonic.js`, `authorization.js`, `authConfig.js`, `authProof.js`, `signAuthorization.js`) — **not** a public package export
-- **`sdk/`**: Main SDK class (`Monstera`), `MonsteraUtils` (version-check only), and `helpers/` (e.g. auth-proof defaulting for the facade)
+- **`internal/`**: Logger, version check, validation (`assert`), built-in auth encoding (`auth/`: `config/` and `proof/` encoders + registries, `AuthConfigBuilder` / `AuthProofBuilder`, `defaults/authProofDefaults.js`), checksum registry helper (`auth/registryByChecksumAddress.js`), validators (`validators/`), wallet crypto (`crypto/index.js` barrel: `mnemonic.js`, `authorization.js`, `authConfig.js`, `authProof.js`, `signAuthorization.js`) — **not** a public package export
+- **`sdk/`**: Main SDK class (`Monstera`) and `MonsteraUtils` (version-check only)
 - **`types/`**: Shared JSDoc type definitions
 - **`bin/`**: CLI tool (monstera command)
 
@@ -45,8 +45,8 @@ src/             # Source code
   clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor, passwordMinuteSignature)
   events/        # Event definitions and receipt parsing
   errors/        # Error types (single source of truth for error exports)
-  internal/      # logger, versionCheck, version, assert, authenticators/, crypto/ (index.js, mnemonic.js, authorization.js, authConfig.js, authProof.js, signAuthorization.js — internal only)
-  sdk/           # Monstera, MonsteraUtils, helpers/ (applyAuthProofDefaults, etc.)
+  internal/      # logger, versionCheck, version, assert, auth/ (built-in encoders + builders + defaults), validators/, crypto/ (index.js, mnemonic.js, authorization.js, authConfig.js, authProof.js, signAuthorization.js — internal only)
+  sdk/           # Monstera, MonsteraUtils
   types/         # Shared JSDoc types
 bin/             # CLI (monstera command)
 build/           # Build entry points (e.g. browser-global.js for Rollup)

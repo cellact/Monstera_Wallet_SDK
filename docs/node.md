@@ -10,14 +10,10 @@ npm install @monstera_protocol/sdk
 
 ## Peer Dependencies
 
-Monstera requires either `ethers` or `web3` as a peer dependency:
+Monstera expects **`ethers`** (v5 or v6) at runtime (`peerDependencies` in `package.json`).
 
 ```bash
-# Using ethers (recommended)
 npm install ethers
-
-# Or using web3
-npm install web3
 ```
 
 ## Basic Usage
