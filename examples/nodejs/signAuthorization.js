@@ -28,7 +28,7 @@ const PASSWORD = process.env.PASSWORD;
 const ACCOUNT_INDEX = 0;
 const DELEGATE_CONTRACT = process.env.DELEGATE_CONTRACT || "0x32Dc962615b0f27cf616CB83Ee33D0D6Cb2B7E5b";
 
-const sdk = await Monstera.connectAsync({
+const sdk = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY,
   logLevel: 'debug'

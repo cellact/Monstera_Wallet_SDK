@@ -1,5 +1,6 @@
 /**
- * Integration tests for SDK authenticator registry helpers.
+ * Integration tests for authenticator client lookup (`getAuthClient`, `getAvailableAuthTypes`).
+ * This is unrelated to the removed remote ConfigStorage address registry.
  */
 
 import 'dotenv/config';
@@ -8,7 +9,7 @@ import { ValidationError } from '../../../src/errors/index.js';
 import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
 
-describe('Authentication — SDK registry', () => {
+describe('Authentication — getAuthClient / auth types', () => {
   let sdk;
 
   beforeAll(async () => {

@@ -16,11 +16,6 @@
  */
 
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
-import {
-  fetchRegistryStorageRaw,
-  parseRegistryContractAddresses,
-  parseRegistryConnectionHints
-} from './registry.js';
 import { requireBoolean } from '../internal/assert.js';
 import log from '../internal/logger.js';
 import { SENSITIVE_PARAM_NAMES } from '../internal/sensitiveParams.js';
@@ -78,7 +73,6 @@ class MonsteraConfig {
 
   /**
    * Built-in contract address defaults shipped with the SDK (no network I/O).
-   * For addresses merged with ConfigStorage registry data, use {@link MonsteraConfig.getDefaultAddressesAsync}.
    *
    * @static
    * @readonly
@@ -86,35 +80,6 @@ class MonsteraConfig {
    */
   static get defaultAddresses() {
     return DEFAULT_ADDRESSES;
-  }
-
-  /**
-   * Built-in defaults merged with registry payloads from ConfigStorage (when configured per preset).
-   * Calls {@link fetchRegistryStorageRaw} and {@link parseRegistryContractAddresses} per preset; failures keep built-in values for that preset.
-   *
-   * @static
-   * @returns {Promise<DefaultContractAddresses>}
-   */
-  static async getDefaultAddressesAsync() {
-    /** @type {DefaultContractAddresses} */
-    const merged = {
-      testnet: { ...DEFAULT_ADDRESSES.testnet },
-      mainnet: { ...DEFAULT_ADDRESSES.mainnet }
-    };
-
-    for (const net of /** @type {Array<'testnet'|'mainnet'>} */ (['testnet', 'mainnet'])) {
-      try {
-        const raw = await fetchRegistryStorageRaw(net);
-        const partial = parseRegistryContractAddresses(net, raw);
-        merged[net] = { ...merged[net], ...partial };
-      } catch (e) {
-        log.warn(`Remote registry unavailable for ${net}; using built-in defaults`, {
-          message: e instanceof Error ? e.message : String(e)
-        });
-      }
-    }
-
-    return merged;
   }
 
   /**
@@ -149,74 +114,6 @@ class MonsteraConfig {
     const networkConfig = buildNetworkConfig({ network, rpcUrl, chainId, addresses });
 
     log.debug('resolveBaseConfig', { mainnet, network });
-
-    validateContractAddresses(networkConfig.addresses, REQUIRED_CONTRACT_ADDRESS_KEYS);
-
-    return networkConfig;
-  }
-
-  /**
-   * Like {@link MonsteraConfig.resolveBaseConfig} but merges contract addresses from
-   * remote ConfigStorage.
-   *
-   * @param {BaseConnectNetworkOptions} options - Base connect network options
-   * @returns {Promise<NetworkConfig>}
-   * @throws {ConfigError} If network or required addresses are invalid/missing
-   * @static
-   */
-  static async resolveBaseConfigAsync(options) {
-    const { mainnet, rpcUrl, addresses, chainId } = options || {};
-
-    requireBoolean(mainnet, 'mainnet');
-
-    const network = mainnet ? 'mainnet' : 'testnet';
-
-    /** @type {Record<string, string>} */
-    let remotePartial = {};
-    let remoteRpcUrl;
-    let remoteChainId;
-
-    try {
-      const raw = await fetchRegistryStorageRaw(network);
-      try {
-        remotePartial = parseRegistryContractAddresses(network, raw);
-      } catch (e) {
-        log.warn('Remote registry contract addresses unavailable; using built-in address defaults', {
-          message: e instanceof Error ? e.message : String(e)
-        });
-      }
-      try {
-        const hints = parseRegistryConnectionHints(raw);
-        remoteRpcUrl = hints.rpcUrl;
-        remoteChainId = hints.chainId;
-      } catch (e) {
-        log.warn('Remote registry connection hints unavailable; using preset rpcUrl and chainId', {
-          message: e instanceof Error ? e.message : String(e)
-        });
-      }
-    } catch (e) {
-      log.warn('Remote registry fetch failed; using built-in defaults', {
-        message: e instanceof Error ? e.message : String(e)
-      });
-    }
-
-    log.debug('resolveBaseConfigAsync', { remoteRpcUrl, remoteChainId });
-
-    const networkConfig = buildNetworkConfig({
-      network,
-      rpcUrl: rpcUrl ?? remoteRpcUrl,
-      chainId: chainId ?? remoteChainId,
-      addresses: {
-        ...remotePartial,
-        ...(addresses || {})
-      }
-    });
-
-    log.debug('resolveBaseConfigAsync', {
-      mainnet,
-      network,
-      remoteLoaded: Object.keys(remotePartial).length > 0
-    });
 
     validateContractAddresses(networkConfig.addresses, REQUIRED_CONTRACT_ADDRESS_KEYS);
 

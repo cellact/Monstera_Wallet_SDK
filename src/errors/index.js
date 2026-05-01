@@ -7,7 +7,6 @@
 export {
   WalletError,
   ValidationError,
-  RegistryError,
   ConfigError,
   NetworkError,
   ContractRevertError,

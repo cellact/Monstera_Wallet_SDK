@@ -87,23 +87,6 @@ class ValidationError extends WalletError {
 }
 
 /**
- * ConfigStorage registry errors — remote JSON fetch/parse for Sapphire deployment addresses
- */
-class RegistryError extends WalletError {
-  /**
-   * @param {string} message - Error message
-   * @param {Record<string, unknown>} [context={}] - e.g. {@code network}, {@code path}, {@code phase}
-   */
-  constructor(message, context = {}) {
-    super(message, 'REGISTRY_ERROR', {
-      function: 'registry',
-      ...context
-    });
-    this.name = 'RegistryError';
-  }
-}
-
-/**
  * Configuration errors - Missing or invalid configuration
  */
 class ConfigError extends WalletError {
@@ -266,7 +249,6 @@ class EventParseError extends WalletError {
 export {
   WalletError,
   ValidationError,
-  RegistryError,
   ConfigError,
   NetworkError,
   ContractRevertError,

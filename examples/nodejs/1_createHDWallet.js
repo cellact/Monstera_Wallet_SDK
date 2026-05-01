@@ -20,16 +20,10 @@ import { ethers } from 'ethers';
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.PASSWORD;
 
-// const sdk = Monstera.connect({
-//   mainnet: false,
-//   signer: SIGNER_PRIVATE_KEY,
-//   logLevel: 'debug'
-// });
-
-const sdk = await Monstera.connectAsync({
+const sdk = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY,
-  logLevel: 'debug',
+  logLevel: 'debug'
 });
 
 async function main() {
@@ -48,9 +42,6 @@ async function main() {
   // Access contract addresses (static method, returns the addresses for all networks)
   const contractAddresses = Monstera.defaultAddresses;
   console.log(`   Contract addresses: ${JSON.stringify(contractAddresses, null, 2)}`);
-
-  const contractAddressesAsync = await Monstera.getDefaultAddressesAsync();
-  console.log(`   Contract addresses async: ${JSON.stringify(contractAddressesAsync, null, 2)}`);
 
   // Access contract addresses for the SDK instance (returns only the addresses for the current network)
   const contractAddresses1 = sdk.addresses;

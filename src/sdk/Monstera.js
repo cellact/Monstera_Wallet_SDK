@@ -150,7 +150,7 @@ class Monstera {
    * Connect to Monstera on a given network (read by default, write when a signer is provided)
    *
    * Without a truthy `signer`, creates a read-only client (optional `provider`, else RPC from config).
-   * With a `signer`, creates a write-capable client (same behavior as the previous write-only connect).
+   * With a `signer`, creates a write-capable client.
    *
    * @param {ConnectOptions} options - Connect options
    * @returns {Monstera} SDK instance
@@ -160,42 +160,6 @@ class Monstera {
     log.setLevel(logLevel);
 
     const base = MonsteraConfig.resolveBaseConfig(options);
-
-    const provider = options?.provider ?? null;
-
-    const signer = options?.signer;
-    if (signer) {
-      return new Monstera({
-        ...base,
-        signer,
-        provider,
-        checkVersion: options?.checkVersion,
-        logLevel
-      });
-    }
-
-    return new Monstera({
-      ...base,
-      provider,
-      signer: null,
-      checkVersion: options?.checkVersion,
-      logLevel
-    });
-  }
-
-  /**
-   * Connect with remote contract addresses from ConfigStorage.
-   * Resolves registry defaults per Sapphire preset (e.g. Polygon Amoy for testnet); falls back to
-   * built-in addresses if the registry is unavailable or disabled.
-   *
-   * @param {ConnectOptions} options - Connect options
-   * @returns {Promise<Monstera>} SDK instance
-   */
-  static async connectAsync(options) {
-    const logLevel = options?.logLevel ?? (options?.debug === true ? 'debug' : 'error');
-    log.setLevel(logLevel);
-
-    const base = await MonsteraConfig.resolveBaseConfigAsync(options);
 
     const provider = options?.provider ?? null;
 
@@ -254,7 +218,6 @@ class Monstera {
 
   /**
    * Built-in contract address defaults shipped with the SDK (no network I/O).
-   * For defaults merged with ConfigStorage registry, use {@link Monstera.getDefaultAddressesAsync}.
    *
    * @static
    * @readonly
@@ -262,16 +225,6 @@ class Monstera {
    */
   static get defaultAddresses() {
     return MonsteraConfig.defaultAddresses;
-  }
-
-  /**
-   * Built-in defaults merged with registry data from ConfigStorage when available.
-   *
-   * @static
-   * @returns {Promise<DefaultContractAddresses>}
-   */
-  static getDefaultAddressesAsync() {
-    return MonsteraConfig.getDefaultAddressesAsync();
   }
 
   /**

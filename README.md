@@ -51,7 +51,7 @@ The SDK ships with a dependency on **ethers** v5/v6 for contracts and signing. Y
 
 ### Optional npm version check (`checkVersion`)
 
-When you pass `checkVersion: true` to `Monstera.connect` / `connectAsync`, the SDK may perform a **best-effort** check for a newer package on the public npm registry. Details:
+When you pass `checkVersion: true` to `Monstera.connect`, the SDK may perform a **best-effort** check for a newer package on the public npm registry. Details:
 
 - **Opt-in only** — no outbound call unless you set `checkVersion: true`.
 - **Node.js** — issues a **GET** to `https://registry.npmjs.org/@monstera_protocol/sdk/latest` to read the published version. If the request fails (offline, firewall, corporate proxy), the SDK continues normally; the check does not block usage.
