@@ -173,7 +173,6 @@ function decodeSignAuthorizationResult(returnData) {
  */
 function finalizeSignedAuthorizationResult(params) {
   const { delegateAddr, nonce, chainId, raw } = params;
-  requireAddress(delegateAddr, 'delegateAddr');
   return {
     address: delegateAddr,
     nonce,
