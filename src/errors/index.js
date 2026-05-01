@@ -1,6 +1,6 @@
 /**
  * Error exports
- * 
+ *
  * Central export point for all SDK error types
  */
 
@@ -16,10 +16,12 @@ export {
   EventParseError
 } from './WalletError.js';
 
+export { decodeCustomError, extractRpcRevertBytes } from './translators/revert.js';
+
 export {
   applySdkContext,
-  decodeCustomError,
-  extractRpcRevertBytes,
   rethrowExecuteError,
-  toWalletError
-} from './ethersErrorTranslator.js';
+  toWalletError,
+  sdkErrorPipeline,
+  ErrorPipeline
+} from './pipeline.js';

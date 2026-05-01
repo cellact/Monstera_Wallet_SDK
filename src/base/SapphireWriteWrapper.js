@@ -4,7 +4,7 @@
  * Centralizes all write transaction execution logic.
  * Ensures ALL writes go through the same path with:
  * - Sapphire encryption (via pre-wrapped signer)
- * - Consistent error translation (see {@code ethersErrorTranslator.js})
+ * - Consistent error translation (see {@code errors/pipeline.js})
  * - Event parsing
  * - Normalized result format
  *
@@ -36,8 +36,8 @@ import {
   applySdkContext,
   decodeCustomError,
   extractRpcRevertBytes,
-  toWalletError
-} from '../errors/ethersErrorTranslator.js';
+  sdkErrorPipeline
+} from '../errors/pipeline.js';
 import log from '../internal/logger.js';
 
 class SapphireWriteWrapper {
@@ -259,7 +259,7 @@ class SapphireWriteWrapper {
         }
       }
 
-      throw toWalletError(err, {
+      sdkErrorPipeline.rethrow(err, {
         methodName,
         rpcUrl,
         revertInterface,

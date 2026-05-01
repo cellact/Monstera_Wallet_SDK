@@ -1,5 +1,5 @@
 /**
- * Unit tests for ethers → SDK error translation
+ * Unit tests for unified SDK error pipeline (ethers/RPC → WalletError).
  */
 
 import { describe, test, expect } from '@jest/globals';
@@ -14,7 +14,7 @@ import {
   WalletError
 } from '../../../src/errors/index.js';
 
-describe('ethersErrorTranslator', () => {
+describe('sdk error pipeline', () => {
   test('CALL_EXCEPTION without receipt becomes ContractRevertError when revert is present', () => {
     const err = new Error('execution reverted');
     err.code = 'CALL_EXCEPTION';

@@ -24,7 +24,7 @@ import {
 import { floorTimestampToMinuteBucket } from '../utils/time.js';
 import { NetworkError } from '../../errors/index.js';
 import log from '../logger.js';
-import { rethrowMappedSignerError } from './signingErrorMapper.js';
+import { sdkErrorPipeline } from '../../errors/pipeline.js';
 
 /**
  * Password-minute proof encoding after {@link assertMinuteSignatureAuthProofOptions}.
@@ -100,7 +100,7 @@ async function createAuthProofWalletSignature(options = {}) {
     const signature = await signer.signTypedData(domain, types, value);
     return defaultAbiCoder.encode(['uint256', 'bytes'], [deadline, signature]);
   } catch (error) {
-    rethrowMappedSignerError(error, {
+    sdkErrorPipeline.rethrow(error, {
       authProofType: 'wallet-signature auth proof',
       functionName: 'createAuthProofWalletSignature',
       validationExtra: { deadline }
@@ -163,7 +163,7 @@ async function createAuthProofDualFactor(options = {}) {
       [minutePasswordSignature, deadline, guardianSignature]
     );
   } catch (error) {
-    rethrowMappedSignerError(error, {
+    sdkErrorPipeline.rethrow(error, {
       authProofType: 'dual-factor auth proof',
       functionName: 'createAuthProofDualFactor',
       validationExtra: { deadline }

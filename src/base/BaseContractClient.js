@@ -21,7 +21,7 @@ import SapphireWriteWrapper from './SapphireWriteWrapper.js';
 import { requireAddress } from '../internal/assert.js';
 import MonsteraConfig from '../config/monstera.js';
 import { WriteRequiresSignerError } from '../errors/index.js';
-import { rethrowExecuteError } from '../errors/ethersErrorTranslator.js';
+import { rethrowExecuteError } from '../errors/pipeline.js';
 import log from '../internal/logger.js';
 
 class BaseContractClient {
