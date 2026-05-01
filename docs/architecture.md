@@ -6,7 +6,7 @@ The SDK is organized into modular components:
 
 ### Modules
 
-- **`base/`**: Base classes (BaseContractClient, SapphireWriteWrapper)
+- **`base/`**: Base classes (`BaseContractClient`), contract wiring (`ContractRegistry`), execution pipeline (`ExecutionPipeline`: reads/writes + error context)
 - **`config/`**: Network presets (networks.js), address defaults, and SDK configuration (monstera.js)
 - **`providers/`**: Ethers provider creation and Sapphire wrapper integration
 - **`contracts/`**: Contract ABIs and typed contract getters (core + authenticators)
@@ -38,7 +38,7 @@ The SDK is organized into modular components:
 
 ```
 src/             # Source code
-  base/          # BaseContractClient, SapphireWriteWrapper
+  base/          # BaseContractClient, ContractRegistry, ExecutionPipeline
   config/        # Network presets (networks.js), SDK config (monstera.js)
   providers/     # Provider and Sapphire wrapper
   contracts/     # ABIs and getters (core: factory, logic, keyVault; auth: password, walletSig, dualFactor, passwordMinuteSignature)

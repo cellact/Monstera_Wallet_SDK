@@ -1,28 +1,15 @@
 /**
- * SapphireWriteWrapper
- *
- * Centralizes all write transaction execution logic.
- * Ensures ALL writes go through the same path with:
- * - Sapphire encryption (via pre-wrapped signer)
- * - Consistent error translation (see {@code errors/pipeline.js})
- * - Event parsing
- * - Normalized result format
- *
- * Note: The signer is already wrapped with Sapphire at creation time
- * (via createWriteSigner in providers/sapphire.js). This wrapper focuses
- * on execution, receipt handling, and result normalization.
- *
- * Ethers v6 note: {@code TransactionResponse.wait()} throws CALL_EXCEPTION for
- * mined reverts with {@code data: null} and empty {@code transaction.data} by design
- * (see ethers {@code checkReceipt}). We recover revert bytes via {@code getTransaction}
- * + {@code eth_call} replay when a read provider is available, then decode with the
- * contract ABI ({@code Interface.parseError}).
+ * Stateless execution pipeline for contract reads and writes: error context,
+ * Sapphire write path (tx → receipt → events), and error translation.
  *
  * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../types/index.js').ExecuteWriteOptions} ExecuteWriteOptions
  * @typedef {import('../types/index.js').EthersInterface} EthersInterface
  * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
  * @typedef {import('../types/index.js').EthersProvider} EthersProvider
+ * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
+ * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
+ * @typedef {import('../internal/sanitization/Sanitizer.js').Sanitizer} Sanitizer
  */
 
 import { parseEventFromReceipt } from '../events/index.js';
@@ -39,13 +26,102 @@ import {
   sdkErrorPipeline
 } from '../errors/pipeline.js';
 import log from '../internal/logger.js';
+import { sanitizer as defaultSanitizer } from '../internal/sanitization/index.js';
 
-class SapphireWriteWrapper {
+export default class ExecutionPipeline {
+  /**
+   * @param {object} deps
+   * @param {EthersProvider} deps.readProvider
+   * @param {WrappedEthersSigner | null} deps.writeSigner
+   * @param {import('../errors/pipeline.js').ErrorPipeline} [deps.errorPipeline]
+   * @param {Sanitizer} [deps.sanitizer]
+   * @param {NetworkConfig} deps.config
+   */
+  constructor({ readProvider, writeSigner, errorPipeline, sanitizer, config }) {
+    this._readProvider = readProvider;
+    this._writeSigner = writeSigner;
+    this._errorPipeline = errorPipeline ?? sdkErrorPipeline;
+    this._sanitizer = sanitizer ?? defaultSanitizer;
+    this._config = config;
+  }
+
+  /**
+   * Build standardized error context from method parameters (sanitizer applied).
+   *
+   * @param {Record<string, unknown>} options
+   * @returns {Record<string, unknown>}
+   */
+  buildErrorContext(options = {}) {
+    return this._sanitizer.forErrorContext({ ...options });
+  }
+
+  /**
+   * @template TResult
+   * @param {() => Promise<TResult>} operation
+   * @param {Record<string, unknown>} context
+   * @returns {Promise<TResult>}
+   */
+  async executeRead(operation, context = {}) {
+    const { methodName, revertInterface, ...rest } = context;
+    const sdkContext = this.buildErrorContext({ ...rest, methodName });
+
+    log.info('Executing read', { methodName });
+    try {
+      return await operation();
+    } catch (err) {
+      this._errorPipeline.rethrow(err, {
+        methodName,
+        rpcUrl: this._config?.rpcUrl ?? null,
+        revertInterface: revertInterface ?? undefined,
+        sdkContext
+      });
+    }
+  }
+
+  /**
+   * @template TResult extends BaseTransactionResult
+   * @param {() => Promise<any>} operation
+   * @param {Record<string, unknown>} options
+   * @returns {Promise<TResult>}
+   */
+  async executeWrite(operation, options = {}) {
+    const {
+      parseEvents,
+      requireEvents,
+      extraData,
+      methodName,
+      revertInterface,
+      ...errorContext
+    } = options;
+    const sdkContext = this.buildErrorContext({ ...errorContext, methodName });
+    
+    log.info('Executing write', { methodName });
+    try {
+      return await this._executeWriteTransaction(operation, {
+        parseEvents,
+        requireEvents,
+        extraData,
+        methodName,
+        revertInterface,
+        sdkContext,
+        writeSigner: this._writeSigner,
+        readProvider: this._readProvider
+      });
+    } catch (error) {
+      this._errorPipeline.rethrow(error, {
+        methodName,
+        rpcUrl: this._config?.rpcUrl ?? null,
+        revertInterface: revertInterface ?? undefined,
+        sdkContext
+      });
+    }
+  }
+
   /**
    * @param {ExecuteWriteOptions} options
    * @returns {EthersInterface | null}
    */
-  static _getRevertInterface(options) {
+  _getRevertInterface(options) {
     if (options.revertInterface) {
       return options.revertInterface;
     }
@@ -57,21 +133,18 @@ class SapphireWriteWrapper {
    * @param {ExecuteWriteOptions} options
    * @returns {EthersProvider | null}
    */
-  static _getReadProvider(options) {
+  _getReadProvider(options) {
     return options.readProvider ?? options.writeSigner?.provider ?? null;
   }
 
   /**
-   * Replay the mined transaction as {@code eth_call} at its block to obtain revert data.
-   *
-   * @private
    * @param {EthersProvider} readProvider
    * @param {TransactionReceipt} receipt
    * @param {string} txHash
    * @param {EthersInterface | null} iface
    * @returns {Promise<{ revertData: string | null, revertReason: string | null, revertArgs: unknown, revertSignature: string | null }>}
    */
-  static async _enrichMinedTransactionRevert(readProvider, receipt, txHash, iface) {
+  async _enrichMinedTransactionRevert(readProvider, receipt, txHash, iface) {
     const result = {
       revertData: /** @type {string | null} */ (null),
       revertReason: null,
@@ -141,27 +214,26 @@ class SapphireWriteWrapper {
   }
 
   /**
-   * Execute a write transaction through Sapphire-wrapped signer
-   *
    * @template TResult extends BaseTransactionResult
-   * @param {() => Promise<any>} txFn - Function that returns a transaction promise (e.g., () => contract.method(...))
-   * @param {ExecuteWriteOptions} options - Options for the write transaction
+   * @param {() => Promise<any>} txFn
+   * @param {ExecuteWriteOptions} options
    * @returns {Promise<TResult>}
    */
-  static async execute(txFn, options = {}) {
+  async _executeWriteTransaction(txFn, options = {}) {
     const {
-      writeSigner,
+      writeSigner = this._writeSigner,
       parseEvents = [],
       requireEvents = true,
       extraData = {},
       methodName = 'execute transaction',
-      rpcUrl = null,
+      rpcUrl = this._config?.rpcUrl ?? null,
       readProvider: readProviderOpt = null,
       sdkContext = {}
     } = options;
 
-    const readProvider = readProviderOpt ?? SapphireWriteWrapper._getReadProvider(options);
-    const revertInterface = SapphireWriteWrapper._getRevertInterface(options);
+    const readProvider =
+      readProviderOpt ?? this._getReadProvider({ writeSigner });
+    const revertInterface = this._getRevertInterface(options);
 
     if (!writeSigner) {
       const err = new WriteRequiresSignerError('write transaction');
@@ -248,7 +320,7 @@ class SapphireWriteWrapper {
 
       if ((code === 'CALL_EXCEPTION' || code === 'UNPREDICTABLE_GAS_LIMIT') && failedOnChain && readProvider) {
         try {
-          enrich = await SapphireWriteWrapper._enrichMinedTransactionRevert(
+          enrich = await this._enrichMinedTransactionRevert(
             readProvider,
             receipt,
             txHash,
@@ -259,7 +331,7 @@ class SapphireWriteWrapper {
         }
       }
 
-      sdkErrorPipeline.rethrow(err, {
+      this._errorPipeline.rethrow(err, {
         methodName,
         rpcUrl,
         revertInterface,
@@ -271,5 +343,3 @@ class SapphireWriteWrapper {
     }
   }
 }
-
-export default SapphireWriteWrapper;
