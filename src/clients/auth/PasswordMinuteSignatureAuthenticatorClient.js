@@ -24,7 +24,7 @@ import { getPasswordMinuteSignatureAuthenticatorContract } from '../../contracts
 import { PasswordMinuteSignatureAuthenticatorEvents } from '../../events/index.js';
 import { requireAddress, requireBytes, requireBytes32, requireUtf8Bytes } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
-import { sanitizeForLog } from '../../internal/sensitiveParams.js';
+import { sanitizer } from '../../internal/sanitization/index.js';
 
 class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   // ============================================================================
@@ -55,7 +55,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('PasswordMinuteSignatureAuthenticator: isConfigured');
-    log.debug('Checking if keyVault is configured', sanitizeForLog(options));
+    log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const passwordAuth = this.getReadContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
 
@@ -87,7 +87,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     log.info('PasswordMinuteSignatureAuthenticator: verify');
-    log.debug('Verifying minute signature for keyVault', sanitizeForLog(options));
+    log.debug('Verifying minute signature for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getReadContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
 
@@ -120,7 +120,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
     requireUtf8Bytes(currentPassword, 'currentPassword');
     requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('PasswordMinuteSignatureAuthenticator: updatePassword');
-    log.debug('Updating password for keyVault', sanitizeForLog(options));
+    log.debug('Updating password for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getWriteContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
 
@@ -164,7 +164,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(authConfig, 'authConfig');
     log.info('PasswordMinuteSignatureAuthenticator: configure');
-    log.debug('Configuring password for keyVault', sanitizeForLog(options));
+    log.debug('Configuring password for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getWriteContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
     

@@ -1,10 +1,10 @@
 import { describe, test, expect } from '@jest/globals';
-import { sanitizeForLog } from '../../../src/internal/sensitiveParams.js';
+import { sanitizer } from '../../../src/internal/sanitization/index.js';
 
-describe('sensitiveParams', () => {
-  describe('sanitizeForLog', () => {
+describe('sanitizer', () => {
+  describe('forLog', () => {
     test('redacts sensitive key names to [redacted]', () => {
-      const out = sanitizeForLog({
+      const out = sanitizer.forLog({
         keyVaultAddr: '0x42f0c7932dA41a4f9063230145EEbD35f827179a',
         authProof: new Uint8Array([1, 2, 3]),
         implCall: new Uint8Array(4)
@@ -18,7 +18,7 @@ describe('sensitiveParams', () => {
 
     test('summarizes Uint8Array for non-sensitive keys', () => {
       const buf = new Uint8Array(32);
-      const out = sanitizeForLog({ keyVaultAddr: '0xabc', extra: buf });
+      const out = sanitizer.forLog({ keyVaultAddr: '0xabc', extra: buf });
       expect(out).toEqual({
         keyVaultAddr: '0xabc',
         extra: 'Uint8Array(32)'
@@ -26,7 +26,7 @@ describe('sensitiveParams', () => {
     });
 
     test('redacts sensitive keys in nested objects', () => {
-      const out = sanitizeForLog({
+      const out = sanitizer.forLog({
         meta: { password: 'x' }
       });
       expect(out).toEqual({
@@ -36,7 +36,7 @@ describe('sensitiveParams', () => {
 
     test('respects maxDepth', () => {
       const deep = { a: { b: { c: 1 } } };
-      const out = sanitizeForLog(deep, { maxDepth: 1 });
+      const out = sanitizer.forLog(deep, 1);
       expect(out).toEqual({ a: { b: '[max depth]' } });
     });
   });

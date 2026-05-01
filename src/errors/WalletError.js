@@ -1,4 +1,4 @@
-import { sanitizeValidationValue } from '../internal/sensitiveParams.js';
+import { sanitizer } from '../internal/sanitization/index.js';
 
 /**
  * Base error class for Wallet SDK
@@ -78,7 +78,7 @@ class ValidationError extends WalletError {
       'INVALID_ARGUMENT',
       {
         parameter,
-        value: sanitizeValidationValue(parameter, value),
+        value: sanitizer.forValidationValue(parameter, value),
         function: 'validation'
       }
     );

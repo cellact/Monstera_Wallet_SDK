@@ -33,7 +33,7 @@ import { WalletFactoryEvents } from '../../events/index.js';
 import { generateMnemonic, deriveSeed } from '../../internal/crypto/index.js';
 import { requireAddress, requireBytes, requireMnemonic } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
-import { sanitizeForLog } from '../../internal/sensitiveParams.js';
+import { sanitizer } from '../../internal/sanitization/index.js';
 
 class WalletFactoryClient extends BaseContractClient {
   // ============================================================================
@@ -98,7 +98,7 @@ class WalletFactoryClient extends BaseContractClient {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
     log.info('WalletFactory: isWallet');
-    log.debug('Checking if address is a wallet created by this factory', sanitizeForLog(options));
+    log.debug('Checking if address is a wallet created by this factory', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -162,7 +162,7 @@ class WalletFactoryClient extends BaseContractClient {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
     log.info('WalletFactory: getKeyVaultAddr');
-    log.debug('Getting keyVault address for wallet', sanitizeForLog(options));
+    log.debug('Getting keyVault address for wallet', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -186,7 +186,7 @@ class WalletFactoryClient extends BaseContractClient {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
     log.info('WalletFactory: getStorageAddr');
-    log.debug('Getting storage address for wallet', sanitizeForLog(options));
+    log.debug('Getting storage address for wallet', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -232,7 +232,7 @@ class WalletFactoryClient extends BaseContractClient {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
     log.info('WalletFactory: getSecretVaultAddr');
-    log.debug('Getting secretVault address for wallet', sanitizeForLog(options));
+    log.debug('Getting secretVault address for wallet', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -269,7 +269,7 @@ class WalletFactoryClient extends BaseContractClient {
     const { authConfig } = options;
     requireBytes(authConfig, 'authConfig');
     log.info('WalletFactory: createWallet');
-    log.debug('Creating wallet', sanitizeForLog(options));
+    log.debug('Creating wallet', sanitizer.forLog(options));
 
     const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
     const { mnemonic, seed } = this._prepareWalletCreation();
@@ -312,7 +312,7 @@ class WalletFactoryClient extends BaseContractClient {
     requireBytes(authConfig, 'authConfig');
     requireMnemonic(mnemonic, 'mnemonic');
     log.info('WalletFactory: createWalletFromMnemonic');
-    log.debug('Creating wallet from mnemonic', sanitizeForLog(options));
+    log.debug('Creating wallet from mnemonic', sanitizer.forLog(options));
 
     const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
     const seed = deriveSeed(mnemonic);
@@ -358,7 +358,7 @@ class WalletFactoryClient extends BaseContractClient {
     requireAddress(hookAddr, 'hookAddr');
     requireBytes(hookData, 'hookData');
     log.info('WalletFactory: createWalletWithHook');
-    log.debug('Creating wallet with post-creation hook', sanitizeForLog(options));
+    log.debug('Creating wallet with post-creation hook', sanitizer.forLog(options));
 
     const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
     const { mnemonic, seed } = this._prepareWalletCreation();
@@ -401,7 +401,7 @@ class WalletFactoryClient extends BaseContractClient {
     const { authConfig } = options;
     requireBytes(authConfig, 'authConfig');
     log.info('WalletFactory: createWalletCore');
-    log.debug('Creating wallet core (storage + keyVault only)', sanitizeForLog(options));
+    log.debug('Creating wallet core (storage + keyVault only)', sanitizer.forLog(options));
 
     const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
     const { mnemonic, seed } = this._prepareWalletCreation();
@@ -448,7 +448,7 @@ class WalletFactoryClient extends BaseContractClient {
     requireAddress(customLogicImplAddr, 'customLogicImplAddr');
     requireBytes(logicData, 'logicData');
     log.info('WalletFactory: createWalletWithCustomLogic');
-    log.debug('Creating wallet with custom logic implementation', sanitizeForLog(options));
+    log.debug('Creating wallet with custom logic implementation', sanitizer.forLog(options));
 
     const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
     const { mnemonic, seed } = this._prepareWalletCreation();
@@ -486,7 +486,7 @@ class WalletFactoryClient extends BaseContractClient {
     const { newLogicAddr } = options;
     requireAddress(newLogicAddr, 'newLogicAddr');
     log.info('WalletFactory: updateWalletLogicImplAddr');
-    log.debug('Updating wallet logic implementation address', sanitizeForLog(options));
+    log.debug('Updating wallet logic implementation address', sanitizer.forLog(options));
     
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -516,7 +516,7 @@ class WalletFactoryClient extends BaseContractClient {
     const { newAdminAddr } = options;
     requireAddress(newAdminAddr, 'newAdminAddr');
     log.info('WalletFactory: transferAdmin');
-    log.debug('Transferring admin to new address', sanitizeForLog(options));
+    log.debug('Transferring admin to new address', sanitizer.forLog(options));
 
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 

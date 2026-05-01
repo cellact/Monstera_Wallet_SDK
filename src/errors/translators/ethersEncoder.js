@@ -3,7 +3,7 @@
  */
 
 import { WalletError } from '../WalletError.js';
-import { sanitizeEncoderErrorValue } from '../../internal/sensitiveParams.js';
+import { sanitizer } from '../../internal/sanitization/index.js';
 
 /**
  * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
@@ -35,6 +35,6 @@ export function ethersEncoderTranslator(err, context) {
     ...(e.count != null ? { argumentCount: e.count } : {}),
     ...(e.expectedCount != null ? { expectedArgumentCount: e.expectedCount } : {}),
     ...(e.argument != null ? { argument: e.argument } : {}),
-    ...(e.value !== undefined ? { value: sanitizeEncoderErrorValue(argLabel, e.value) } : {})
+    ...(e.value !== undefined ? { value: sanitizer.forEncoderValue(argLabel, e.value) } : {})
   });
 }

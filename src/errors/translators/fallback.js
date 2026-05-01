@@ -3,7 +3,7 @@
  */
 
 import { WalletError } from '../WalletError.js';
-import { sanitizeErrorContextShallow } from '../../internal/sensitiveParams.js';
+import { sanitizer } from '../../internal/sanitization/index.js';
 
 /**
  * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
@@ -20,7 +20,7 @@ export function fallbackTranslator(err, context) {
   const errorCode = /** @type {Error & { code?: string }} */ (error).code || /** @type {any} */ (error).error?.code;
   const { methodName = 'operation', sdkContext = {} } = context;
 
-  const safeSdk = sanitizeErrorContextShallow({ ...sdkContext });
+  const safeSdk = sanitizer.forErrorContext({ ...sdkContext });
   delete /** @type {any} */ (safeSdk).revertInterface;
 
   return new WalletError(`Failed during ${methodName}: ${message}`, 'UNKNOWN_ERROR', {

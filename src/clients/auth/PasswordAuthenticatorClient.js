@@ -23,7 +23,7 @@ import { getPasswordAuthenticatorContract } from '../../contracts/authenticators
 import { PasswordAuthenticatorEvents } from '../../events/index.js';
 import { requireAddress, requireBytes, requireBytes32, requireUtf8Bytes } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
-import { sanitizeForLog } from '../../internal/sensitiveParams.js';
+import { sanitizer } from '../../internal/sanitization/index.js';
 
 class PasswordAuthenticatorClient extends BaseContractClient {
   // ============================================================================
@@ -54,7 +54,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('PasswordAuthenticator: isConfigured');
-    log.debug('Checking if keyVault is configured', sanitizeForLog(options));
+    log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
@@ -79,7 +79,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireUtf8Bytes(authProof, 'authProof');
     log.info('PasswordAuthenticator: verify');
-    log.debug('Verifying password for keyVault', sanitizeForLog(options));
+    log.debug('Verifying password for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
@@ -112,7 +112,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     requireUtf8Bytes(currentPassword, 'currentPassword');
     requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('PasswordAuthenticator: updatePassword');
-    log.debug('Updating password for keyVault', sanitizeForLog(options));
+    log.debug('Updating password for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
 
@@ -156,7 +156,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(authConfig, 'authConfig');
     log.info('PasswordAuthenticator: configure');
-    log.debug('Configuring password for keyVault', sanitizeForLog(options));
+    log.debug('Configuring password for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
     

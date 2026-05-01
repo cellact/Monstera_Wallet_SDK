@@ -6,7 +6,7 @@
  */
 
 import { WalletError } from './WalletError.js';
-import { sanitizeErrorContextShallow } from '../internal/sensitiveParams.js';
+import { sanitizer } from '../internal/sanitization/index.js';
 
 export { decodeCustomError, extractRpcRevertBytes } from './translators/revert.js';
 
@@ -53,7 +53,7 @@ export function applySdkContext(err, sdkContext = {}) {
  * @param {Record<string, unknown>} [sdkContext={}]
  */
 function mergeSanitizedSdkContext(err, sdkContext = {}) {
-  applySdkContext(err, sanitizeErrorContextShallow(sdkContext));
+  applySdkContext(err, sanitizer.forErrorContext(sdkContext));
 }
 
 /**
