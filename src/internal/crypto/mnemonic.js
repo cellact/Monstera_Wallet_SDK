@@ -5,7 +5,7 @@
  */
 
 import crypto from 'crypto';
-import { ethers } from 'ethers';
+import { Wallet } from '../../adapters/ethers/index.js';
 import { requireMnemonic } from '../assert.js';
 import { ValidationError } from '../../errors/index.js';
 import log from '../logger.js';
@@ -16,7 +16,7 @@ import log from '../logger.js';
  * @returns {Mnemonic} BIP39 mnemonic phrase
  */
 function generateMnemonic() {
-  const wallet = ethers.Wallet.createRandom();
+  const wallet = Wallet.createRandom();
   log.debug('generateMnemonic', { phraseLength: wallet.mnemonic.phrase.length });
   return wallet.mnemonic.phrase;
 }

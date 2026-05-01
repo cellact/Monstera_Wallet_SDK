@@ -24,7 +24,8 @@ import {
   requireObject
 } from '../../../src/internal/assert.js';
 import { normalizeBigInt, normalizeChainId } from '../../../src/internal/utils/normalize.js';
-import { ethers, Wallet } from 'ethers';
+import { HDNodeWallet, Mnemonic, Wallet } from '../../../src/adapters/ethers/index.js';
+import { keccak256, randomBytes, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 
 describe('Assert Utilities', () => {
     describe('isAddress', () => {
@@ -159,15 +160,15 @@ describe('Assert Utilities', () => {
     describe('requireMnemonic', () => {
         test('does not throw error for valid mnemonic string 12 words', () => {
             // Generate a valid 12-word mnemonic using 128 bits of entropy
-            const entropy = ethers.randomBytes(16); // 16 bytes = 128 bits
-            const mnemonic = ethers.Mnemonic.fromEntropy(entropy).phrase;
+            const entropy = randomBytes(16); // 16 bytes = 128 bits
+            const mnemonic = Mnemonic.fromEntropy(entropy).phrase;
             expect(() => requireMnemonic(mnemonic)).not.toThrow();
         });
 
         test('does not throw error for valid mnemonic string 24 words', () => {
             // Generate a valid 24-word mnemonic using 256 bits of entropy
-            const entropy = ethers.randomBytes(32); // 32 bytes = 256 bits
-            const mnemonic = ethers.Mnemonic.fromEntropy(entropy).phrase;
+            const entropy = randomBytes(32); // 32 bytes = 256 bits
+            const mnemonic = Mnemonic.fromEntropy(entropy).phrase;
             expect(() => requireMnemonic(mnemonic)).not.toThrow();
         });
 
@@ -362,7 +363,7 @@ describe('Assert Utilities', () => {
     });
 
     describe('requireBytes32', () => {
-        const bytes32 = ethers.keccak256(ethers.toUtf8Bytes('bytes32-test'));
+        const bytes32 = keccak256(toUtf8Bytes('bytes32-test'));
 
         test('does not throw for valid 32-byte hex string', () => {
             expect(() => requireBytes32(bytes32, 'hash')).not.toThrow();
@@ -397,8 +398,8 @@ describe('Assert Utilities', () => {
         });
 
         test('does not throw for HDNodeWallet', () => {
-            const mnemonic = ethers.Mnemonic.fromEntropy(ethers.randomBytes(16)).phrase;
-            const hd = ethers.HDNodeWallet.fromPhrase(mnemonic);
+            const mnemonic = Mnemonic.fromEntropy(randomBytes(16)).phrase;
+            const hd = HDNodeWallet.fromPhrase(mnemonic);
             expect(() => requireWalletOrHdNode(hd, 'signer')).not.toThrow();
         });
 

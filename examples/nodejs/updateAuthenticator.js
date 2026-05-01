@@ -18,7 +18,7 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 
 // ============ CONFIGURATION ============
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
@@ -70,11 +70,11 @@ async function main() {
   }
 
   // Prepare auth proof
-  const authProof = ethers.toUtf8Bytes(PASSWORD);
+  const authProof = toUtf8Bytes(PASSWORD);
 
   // Prepare new auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");
-  const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
+  const passwordHash = keccak256(toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
 
   // ============ STEP 2: Update Authenticator ============

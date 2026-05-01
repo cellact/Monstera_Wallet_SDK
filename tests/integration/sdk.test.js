@@ -7,7 +7,7 @@
 
 import { describe, test, expect } from '@jest/globals';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { JsonRpcProvider } from '../../src/adapters/ethers/provider.js';
 import { expectValidAddress } from '../utils/assertions.js';
 import { 
   TEST_SIGNER, 
@@ -108,7 +108,7 @@ describe('SDK Integration', () => {
     });
 
     test('should accept custom provider', () => {
-      const provider = new ethers.JsonRpcProvider(DEFAULT_TESTNET_RPC_URL);
+      const provider = new JsonRpcProvider(DEFAULT_TESTNET_RPC_URL);
       const sdk = Monstera.connect({ mainnet: false, provider });
       
       expect(sdk.provider).toBe(provider);

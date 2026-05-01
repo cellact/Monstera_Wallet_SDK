@@ -4,7 +4,7 @@
 
 import 'dotenv/config';
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
-import { ethers } from 'ethers';
+import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
 import { createPasswordAuthProof } from '../../utils/fixtures.js';
@@ -97,7 +97,7 @@ describe('Authentication — password minute signature', () => {
         authConfig: { passwordHash }
       });
 
-      const wrongHash = ethers.keccak256(ethers.toUtf8Bytes('not-the-password'));
+      const wrongHash = keccak256(toUtf8Bytes('not-the-password'));
 
       const ok = await sdk.isPasswordMinuteSignatureValid({
         keyVaultAddr: newWallet.keyVault,
@@ -115,7 +115,7 @@ describe('Authentication — password minute signature', () => {
       });
 
       const nextPassword = 'minute-rotated-42';
-      const nextHash = ethers.keccak256(ethers.toUtf8Bytes(nextPassword));
+      const nextHash = keccak256(toUtf8Bytes(nextPassword));
 
       const updateResult = await sdk.updatePasswordMinuteSignature({
         keyVaultAddr: newWallet.keyVault,

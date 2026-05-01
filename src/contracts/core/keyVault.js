@@ -10,7 +10,7 @@
  */
 
 import { ConfigError } from '../../errors/index.js';
-import { ethers } from 'ethers';
+import { Contract } from '../../adapters/ethers/index.js';
 import { KEYVAULT_ABI } from '../abi/core/keyVault.js';
 
 /**
@@ -25,7 +25,7 @@ function getKeyVaultContract(signerOrProvider, keyVaultAddr) {
     throw new ConfigError('KeyVault address is required', 'keyVaultAddr');
   }
   
-  return new ethers.Contract(keyVaultAddr, KEYVAULT_ABI, signerOrProvider);
+  return new Contract(keyVaultAddr, KEYVAULT_ABI, signerOrProvider);
 }
 
 export {

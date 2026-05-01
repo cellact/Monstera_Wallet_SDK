@@ -10,7 +10,8 @@ import 'dotenv/config';
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
 import { closeSdkConnections, registerSdkTeardown } from '../utils/teardown.js';
 import { Monstera } from '../../src/index.js';
-import { ethers, Mnemonic } from 'ethers';
+import { Mnemonic, Wallet } from '../../src/adapters/ethers/index.js';
+import { toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 import { ValidationError, WalletError } from '../../src/errors/index.js';
 import { 
   createTestSDK, 
@@ -43,7 +44,7 @@ describe('Wallet Creation Integration Tests', () => {
     passwordHash = config.passwordHash;
 
     // Generate a test mnemonic for testing createWalletFromMnemonic
-    const wallet = ethers.Wallet.createRandom();
+    const wallet = Wallet.createRandom();
     testMnemonic = wallet.mnemonic.phrase;
 
     sdk = createTestSDK();
@@ -224,7 +225,7 @@ describe('Wallet Creation Integration Tests', () => {
         sdk.createWalletWithHook.bind(sdk),
         {
           authConfig: { passwordHash },
-          hookData: ethers.toUtf8Bytes('test')
+          hookData: toUtf8Bytes('test')
         },
         'hookAddr'
       );
@@ -247,7 +248,7 @@ describe('Wallet Creation Integration Tests', () => {
         {
           authConfig: { passwordHash },
           hookAddr: ZERO_ADDRESS,
-          hookData: ethers.toUtf8Bytes('test')
+          hookData: toUtf8Bytes('test')
         },
         'hookAddr'
       );
@@ -258,7 +259,7 @@ describe('Wallet Creation Integration Tests', () => {
         sdk.createWalletWithHook.bind(sdk),
         {
           hookAddr: ZERO_ADDRESS,
-          hookData: ethers.toUtf8Bytes('test')
+          hookData: toUtf8Bytes('test')
         },
         'authConfig'
       );
@@ -271,7 +272,7 @@ describe('Wallet Creation Integration Tests', () => {
         sdk.createWalletWithCustomLogic.bind(sdk),
         {
           authConfig: { passwordHash },
-          logicData: ethers.toUtf8Bytes('test')
+          logicData: toUtf8Bytes('test')
         },
         'customLogicImplAddr'
       );
@@ -294,7 +295,7 @@ describe('Wallet Creation Integration Tests', () => {
         {
           authConfig: { passwordHash },
           customLogicImplAddr: ZERO_ADDRESS,
-          logicData: ethers.toUtf8Bytes('test')
+          logicData: toUtf8Bytes('test')
         },
         'customLogicImplAddr'
       );
@@ -305,7 +306,7 @@ describe('Wallet Creation Integration Tests', () => {
         sdk.createWalletWithCustomLogic.bind(sdk),
         {
           customLogicImplAddr: ZERO_ADDRESS,
-          logicData: ethers.toUtf8Bytes('test')
+          logicData: toUtf8Bytes('test')
         },
         'authConfig'
       );

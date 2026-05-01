@@ -19,7 +19,7 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 
 // ============ CONFIGURATION ============
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
@@ -73,7 +73,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // Prepare auth proof
-  const authProof = ethers.toUtf8Bytes(PASSWORD);
+  const authProof = toUtf8Bytes(PASSWORD);
 
   try {
     // Update KeyVaultImplementation

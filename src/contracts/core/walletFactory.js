@@ -10,7 +10,7 @@
  */
 
 import { ConfigError } from '../../errors/index.js';
-import { ethers } from 'ethers';
+import { Contract } from '../../adapters/ethers/index.js';
 import { WALLET_FACTORY_ABI } from '../abi/core/walletFactory.js';
 
 /**
@@ -25,7 +25,7 @@ function getWalletFactoryContract(signerOrProvider, walletFactoryAddress) {
     throw new ConfigError('Wallet factory address is required', 'walletFactoryAddress');
   }
   
-  return new ethers.Contract(walletFactoryAddress, WALLET_FACTORY_ABI, signerOrProvider);
+  return new Contract(walletFactoryAddress, WALLET_FACTORY_ABI, signerOrProvider);
 }
 
 export {

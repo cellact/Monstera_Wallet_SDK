@@ -3,7 +3,7 @@
  */
 
 import { describe, test, expect } from '@jest/globals';
-import { ethers } from 'ethers';
+import { Interface } from '../../../src/adapters/ethers/encoding.js';
 import {
   toWalletError,
   applySdkContext,
@@ -133,7 +133,7 @@ describe('ethersErrorTranslator', () => {
   });
 
   test('decodeCustomError uses Interface.parseError', () => {
-    const iface = new ethers.Interface(['error AlreadyConfigured()', 'error AuthenticationFailed()']);
+    const iface = new Interface(['error AlreadyConfigured()', 'error AuthenticationFailed()']);
     const out = decodeCustomError(iface, '0x11b61b6a');
     expect(out.revertReason).toBe('AlreadyConfigured');
     expect(out.revertArgs).toBeNull();

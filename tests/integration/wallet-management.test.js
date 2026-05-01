@@ -9,7 +9,9 @@
 import 'dotenv/config';
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
 import { registerSdkTeardown } from '../utils/teardown.js';
-import { ethers } from 'ethers';
+import { ZeroHash } from '../../src/adapters/ethers/addresses.js';
+import { Interface } from '../../src/adapters/ethers/encoding.js';
+import { hexlify, randomBytes } from '../../src/adapters/ethers/hashing.js';
 import { 
   createTestSDK, 
   getTestConfig, 
@@ -396,14 +398,14 @@ describe('Wallet Management Integration Tests', () => {
       // executeWithAuth calls functions on the KeyVault implementation contract
       // Use getAccountAddressImpl which requires baseKey, baseChain, and index
       // baseKey and baseChain are placeholders (ZeroHash) that KeyVault replaces
-      const keyVaultImplInterface = new ethers.Interface([
+      const keyVaultImplInterface = new Interface([
         'function getAccountAddressImpl(bytes32 baseKey, bytes32 baseChain, uint32 index) view returns (address)'
       ]);
       
       // Use ZeroHash as placeholders - KeyVault will replace these with actual values
       const implCall = keyVaultImplInterface.encodeFunctionData('getAccountAddressImpl', [
-        ethers.ZeroHash,  // placeholder baseKey - KeyVault replaces this
-        ethers.ZeroHash,  // placeholder baseChain - KeyVault replaces this
+        ZeroHash,  // placeholder baseKey - KeyVault replaces this
+        ZeroHash,  // placeholder baseChain - KeyVault replaces this
         0                  // index
       ]);
       const authProof = { password: createPasswordAuthProof(password) };
@@ -432,12 +434,12 @@ describe('Wallet Management Integration Tests', () => {
 
     // Helper to create implCall for executeWithAuth tests
     const createImplCall = () => {
-      const keyVaultImplInterface = new ethers.Interface([
+      const keyVaultImplInterface = new Interface([
         'function getAccountAddressImpl(bytes32 baseKey, bytes32 baseChain, uint32 index) view returns (address)'
       ]);
       return keyVaultImplInterface.encodeFunctionData('getAccountAddressImpl', [
-        ethers.ZeroHash,
-        ethers.ZeroHash,
+        ZeroHash,
+        ZeroHash,
         0
       ]);
     };
@@ -513,7 +515,7 @@ describe('Wallet Management Integration Tests', () => {
 
   describe('initialize', () => {
     // Helper to create access token for initialize tests
-    const createAccessToken = () => ethers.hexlify(ethers.randomBytes(32));
+    const createAccessToken = () => hexlify(randomBytes(32));
 
     test('should fail with missing keyVaultAddr', async () => {
       const accessToken = createAccessToken();

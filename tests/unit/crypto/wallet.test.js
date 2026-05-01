@@ -3,7 +3,10 @@
  */
 
 import { describe, test, expect, beforeEach } from '@jest/globals';
-import { ethers, Wallet } from 'ethers';
+import { Wallet } from '../../../src/adapters/ethers/index.js';
+import { defaultAbiCoder } from '../../../src/adapters/ethers/encoding.js';
+import { getBytes, keccak256, solidityPacked, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
+import { JsonRpcProvider } from '../../../src/adapters/ethers/provider.js';
 import { expectValidMnemonic } from '../../utils/assertions.js';
 import {
   TEST_SIGNER,
@@ -58,7 +61,7 @@ describe('Wallet Crypto Utilities', () => {
 
       const config = getTestConfig();
 
-      const provider = new ethers.JsonRpcProvider(DEFAULT_TESTNET_RPC_URL);
+      const provider = new JsonRpcProvider(DEFAULT_TESTNET_RPC_URL);
       const signer = new Wallet(config.signerPrivateKey, provider);
 
       const authProof = await createAuthProofWalletSignature({
@@ -311,7 +314,7 @@ describe('Wallet Crypto Utilities', () => {
     test('should ABI-encode address whitelist', () => {
       const whitelist = [VALID_TEST_ADDRESS, randomAddress()];
       const encoded = createWalletSigAuthConfig(whitelist);
-      const expected = ethers.AbiCoder.defaultAbiCoder().encode(['address[]'], [whitelist]);
+      const expected = defaultAbiCoder.encode(['address[]'], [whitelist]);
       expect(encoded).toBe(expected);
     });
 
@@ -339,11 +342,11 @@ describe('Wallet Crypto Utilities', () => {
 
   describe('createDualFactorAuthConfig', () => {
     test('should ABI-encode bytes32 and guardian address', () => {
-      const passwordHash = ethers.keccak256(ethers.toUtf8Bytes('pw'));
+      const passwordHash = keccak256(toUtf8Bytes('pw'));
       const guardianAddr = VALID_TEST_ADDRESS;
       const encoded = createDualFactorAuthConfig(passwordHash, guardianAddr);
 
-      const [decodedHash, decodedGuardian] = ethers.AbiCoder.defaultAbiCoder().decode(
+      const [decodedHash, decodedGuardian] = defaultAbiCoder.decode(
         ['bytes32', 'address'],
         encoded
       );
@@ -359,7 +362,7 @@ describe('Wallet Crypto Utilities', () => {
     });
 
     test('should throw if guardianAddr is not a valid address', () => {
-      const hash = ethers.keccak256(ethers.toUtf8Bytes('x'));
+      const hash = keccak256(toUtf8Bytes('x'));
       expect(() =>
         createDualFactorAuthConfig(hash, INVALID_ADDRESS)
       ).toThrow('guardianAddr must be a valid Ethereum address');
@@ -367,7 +370,7 @@ describe('Wallet Crypto Utilities', () => {
   });
 
   describe('createAuthProofMinuteSignature', () => {
-    const passwordHash = ethers.keccak256(ethers.toUtf8Bytes('minute-test'));
+    const passwordHash = keccak256(toUtf8Bytes('minute-test'));
 
     function mockProvider(timestampSeconds) {
       return {
@@ -392,17 +395,17 @@ describe('Wallet Crypto Utilities', () => {
 
       expect(result.minuteBucket).toBe(minuteBucket);
 
-      const minuteSeed = ethers.keccak256(
-        ethers.solidityPacked(['bytes32', 'uint256'], [passwordHash, BigInt(minuteBucket)])
+      const minuteSeed = keccak256(
+        solidityPacked(['bytes32', 'uint256'], [passwordHash, BigInt(minuteBucket)])
       );
       expect(result.derivedAddress).toBe(new Wallet(minuteSeed).address);
 
-      const [signature] = ethers.AbiCoder.defaultAbiCoder().decode(['bytes'], result.authProof);
+      const [signature] = defaultAbiCoder.decode(['bytes'], result.authProof);
       expect(typeof signature).toBe('string');
       expect(signature.startsWith('0x')).toBe(true);
 
-      const payloadHash = ethers.keccak256(
-        ethers.solidityPacked(
+      const payloadHash = keccak256(
+        solidityPacked(
           ['address', 'address', 'uint256', 'uint256'],
           [
             VALID_TEST_ADDRESS,
@@ -414,7 +417,7 @@ describe('Wallet Crypto Utilities', () => {
       );
 
       const derivedSigner = new Wallet(minuteSeed);
-      const expectedSig = await derivedSigner.signMessage(ethers.getBytes(payloadHash));
+      const expectedSig = await derivedSigner.signMessage(getBytes(payloadHash));
       expect(signature).toBe(expectedSig);
     });
 
@@ -506,7 +509,7 @@ describe('Wallet Crypto Utilities', () => {
   });
 
   describe('createAuthProofDualFactor', () => {
-    const passwordHash = ethers.keccak256(ethers.toUtf8Bytes('dual-factor-test'));
+    const passwordHash = keccak256(toUtf8Bytes('dual-factor-test'));
 
     function mockProvider(timestampSeconds) {
       return {
@@ -534,7 +537,7 @@ describe('Wallet Crypto Utilities', () => {
       expect(encoded.startsWith('0x')).toBe(true);
 
       const [minutePasswordSignature, decodedDeadline, guardianSignature] =
-        ethers.AbiCoder.defaultAbiCoder().decode(['bytes', 'uint256', 'bytes'], encoded);
+        defaultAbiCoder.decode(['bytes', 'uint256', 'bytes'], encoded);
 
       expect(minutePasswordSignature.startsWith('0x')).toBe(true);
       expect(Number(decodedDeadline)).toBe(deadline);

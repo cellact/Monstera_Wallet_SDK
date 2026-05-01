@@ -10,7 +10,7 @@
  */
 
 import { ConfigError } from '../../errors/index.js';
-import { ethers } from 'ethers';
+import { Contract } from '../../adapters/ethers/index.js';
 import { DUAL_FACTOR_AUTHENTICATOR_ABI } from '../abi/authenticators/dualFactorAuthenticator.js';
 
 /**
@@ -25,7 +25,7 @@ function getDualFactorAuthenticatorContract(signerOrProvider, dualFactorAuthenti
     throw new ConfigError('Dual factor authenticator address is required', 'dualFactorAuthenticatorAddress');
   }
 
-  return new ethers.Contract(dualFactorAuthenticatorAddress, DUAL_FACTOR_AUTHENTICATOR_ABI, signerOrProvider);
+  return new Contract(dualFactorAuthenticatorAddress, DUAL_FACTOR_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
 export {

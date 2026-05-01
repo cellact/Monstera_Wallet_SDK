@@ -18,7 +18,9 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers, Wallet } from 'ethers';
+import { Wallet } from '../../src/adapters/ethers/index.js';
+import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { verifyMessage } from '../../src/adapters/ethers/signing.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -79,7 +81,7 @@ async function main() {
       keyVaultAddr: result.keyVault,
       authProof: { signer: allowed1Signer },
       index: 0,
-      message: ethers.toUtf8Bytes(message)
+      message: toUtf8Bytes(message)
     });
     console.log(`   ✅ signMessage succeeded!`);
     
@@ -88,7 +90,7 @@ async function main() {
       keyVaultAddr: result.keyVault,
       index: 0
     });
-    const recovered = ethers.verifyMessage(message, sig);
+    const recovered = verifyMessage(message, sig);
     const match = recovered.toLowerCase() === accountAddr.toLowerCase();
     console.log(`   ✅ Signature valid: ${match}`);
   } catch (error) {
@@ -101,7 +103,7 @@ async function main() {
   console.log("=".repeat(60));
 
   try {
-    const hash = ethers.keccak256(ethers.toUtf8Bytes("test data"));
+    const hash = keccak256(toUtf8Bytes("test data"));
     const sig = await sdk.sign({
       keyVaultAddr: result.keyVault,
       authProof: { signer: allowed2Signer },
@@ -149,7 +151,7 @@ async function main() {
       keyVaultAddr: result.keyVault,
       authProof: { signer: allowed2Signer },
       index: 0,
-      message: ethers.toUtf8Bytes("I'm now not allowed!")
+      message: toUtf8Bytes("I'm now not allowed!")
     });
     console.log(`   ❌ signMessage succeeded - UNEXPECTED!`);
   } catch (error) {

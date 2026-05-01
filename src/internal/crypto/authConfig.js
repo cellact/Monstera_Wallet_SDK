@@ -8,7 +8,7 @@
  * @typedef {import('../../types/index.js').ValidationError} ValidationError
  */
 
-import { ethers } from 'ethers';
+import { defaultAbiCoder } from '../../adapters/ethers/encoding.js';
 import { requireAddress, requireArray, requireBytes32 } from '../assert.js';
 
 /**
@@ -22,7 +22,7 @@ function createWalletSigAuthConfig(whitelist) {
   for (const address of whitelist) {
     requireAddress(address, 'address');
   }
-  return ethers.AbiCoder.defaultAbiCoder().encode(['address[]'], [whitelist]);
+  return defaultAbiCoder.encode(['address[]'], [whitelist]);
 }
 
 /**
@@ -36,7 +36,7 @@ function createDualFactorAuthConfig(passwordHash, guardianAddr) {
   requireBytes32(passwordHash, 'passwordHash');
   requireAddress(guardianAddr, 'guardianAddr');
 
-  return ethers.AbiCoder.defaultAbiCoder().encode(['bytes32', 'address'], [passwordHash, guardianAddr]);
+  return defaultAbiCoder.encode(['bytes32', 'address'], [passwordHash, guardianAddr]);
 }
 
 export { createWalletSigAuthConfig, createDualFactorAuthConfig };

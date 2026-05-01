@@ -13,7 +13,8 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { verifyMessage } from '../../src/adapters/ethers/signing.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -58,7 +59,7 @@ async function main() {
   }
 
   // Prepare auth proof
-  const authProof = ethers.toUtf8Bytes(PASSWORD);
+  const authProof = toUtf8Bytes(PASSWORD);
 
   // ============ STEP 2: Update password ============
   console.log("\n" + "=".repeat(60));
@@ -66,7 +67,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // Prepare new password hash
-  const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes(NEW_PASSWORD));
+  const newPasswordHash = keccak256(toUtf8Bytes(NEW_PASSWORD));
 
   const result = await sdk.updatePassword({
     keyVaultAddr: keyVault,
@@ -85,7 +86,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // Prepare auth proof
-  const newAuthProof = ethers.toUtf8Bytes(NEW_PASSWORD);
+  const newAuthProof = toUtf8Bytes(NEW_PASSWORD);
 
   // Sign a message
   console.log("Signing a message...");
@@ -95,7 +96,7 @@ async function main() {
       keyVaultAddr: keyVault,
       authProof: { password: newAuthProof },
       index: 0,
-      message: ethers.toUtf8Bytes(message)
+      message: toUtf8Bytes(message)
     });
     console.log(`   Message: "${message}"`);
     console.log(`   Signature: ${signature}`);
@@ -105,7 +106,7 @@ async function main() {
       keyVaultAddr: keyVault,
       index: 0
     });
-    const recovered = ethers.verifyMessage(message, signature);
+    const recovered = verifyMessage(message, signature);
     const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
     console.log(`   Recovered: ${recovered}`);
     console.log(`   ${match ? "✅ Signature valid!" : "❌ Signature invalid!"}`);

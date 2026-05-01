@@ -31,7 +31,10 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { Contract, ContractFactory, formatEther, formatUnits, parseUnits, ZeroAddress } from '../../src/adapters/ethers/index.js';
+import { Interface } from '../../src/adapters/ethers/encoding.js';
+import { toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { JsonRpcProvider } from '../../src/adapters/ethers/provider.js';
 
 // ============ CONFIGURATION ============
 const SAPPHIRE_WALLET_ADDRESS = process.env.WALLET_ADDRESS;
@@ -61,7 +64,7 @@ async function main() {
   }
 
   // create amoy provider
-  const amoyProvider = new ethers.JsonRpcProvider(AMOY_RPC_URL);
+  const amoyProvider = new JsonRpcProvider(AMOY_RPC_URL);
   console.log("\nSapphire Wallet:", SAPPHIRE_WALLET_ADDRESS);
 
   // ============ STEP 1: Connect to Sapphire Wallet ============
@@ -88,7 +91,7 @@ async function main() {
   console.log("=".repeat(60));
 
   const balance = await amoyProvider.getBalance(accountAddress);
-  console.log(`   Balance: ${ethers.formatEther(balance)} MATIC`);
+  console.log(`   Balance: ${formatEther(balance)} MATIC`);
 
   if (balance === 0n) {
     console.error("\n   ❌ No MATIC balance!");
@@ -98,7 +101,7 @@ async function main() {
   }
 
   // Prepare auth proof
-  const authProof = ethers.toUtf8Bytes(PASSWORD);
+  const authProof = toUtf8Bytes(PASSWORD);
 
   // ============ STEP 3: Deploy Counter on Amoy (via Sapphire signing) ============
   console.log("\n" + "=".repeat(60));
@@ -169,16 +172,16 @@ async function main() {
   }
 
   // Create contract factory manually
-  const CounterFactory = new ethers.ContractFactory(COUNTER_ABI, COUNTER_BYTECODE, amoyProvider);
+  const CounterFactory = new ContractFactory(COUNTER_ABI, COUNTER_BYTECODE, amoyProvider);
   const deployData = CounterFactory.bytecode;
 
   const deployNonce = await amoyProvider.getTransactionCount(accountAddress);
   const feeData = await amoyProvider.getFeeData();
-  const gasPrice = feeData.gasPrice || ethers.parseUnits("30", "gwei");
+  const gasPrice = feeData.gasPrice || parseUnits("30", "gwei");
   const deployGasLimit = 500000n;
 
   console.log(`   Nonce: ${deployNonce}`);
-  console.log(`   Gas Price: ${ethers.formatUnits(gasPrice, "gwei")} gwei`);
+  console.log(`   Gas Price: ${formatUnits(gasPrice, "gwei")} gwei`);
 
   // Sign deployment via Sapphire (key stays in enclave!)
   console.log("   Requesting signature from Sapphire...");
@@ -189,7 +192,7 @@ async function main() {
     nonce: deployNonce,
     gasPrice: gasPrice,
     gasLimit: deployGasLimit,
-    to: ethers.ZeroAddress,
+    to: ZeroAddress,
     value: 0,
     txData: deployData,
     chainId: AMOY_CHAIN_ID
@@ -206,7 +209,7 @@ async function main() {
   }
   console.log(`   ✅ Counter deployed: ${counterAddress}`);
 
-  const counter = new ethers.Contract(counterAddress, COUNTER_ABI, amoyProvider);
+  const counter = new Contract(counterAddress, COUNTER_ABI, amoyProvider);
   console.log(`   Initial count: ${await counter.count()}`);
 
   // ============ STEP 4: Call increment() (via Sapphire signing) ============
@@ -214,7 +217,7 @@ async function main() {
   console.log("STEP 4: Call increment() (via Sapphire signing)");
   console.log("=".repeat(60));
 
-  const counterInterface = new ethers.Interface(COUNTER_ABI);
+  const counterInterface = new Interface(COUNTER_ABI);
   const txData = counterInterface.encodeFunctionData("increment", []);
   const nonce = await amoyProvider.getTransactionCount(accountAddress);
   const gasLimit = 100000n;

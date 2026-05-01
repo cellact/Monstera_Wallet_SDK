@@ -19,7 +19,7 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -40,7 +40,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // Prepare auth proof (raw password bytes)
-  const authProof = ethers.toUtf8Bytes(PASSWORD);
+  const authProof = toUtf8Bytes(PASSWORD);
 
   // Get keyVault address for a wallet
   const keyVaultAddr = await sdk.getKeyVaultAddr({

@@ -8,7 +8,7 @@
  * @typedef {import('../../../../types/index.js').PasswordAuthProofEncoderOptions} PasswordAuthProofEncoderOptions
  */
 
-import { ethers } from 'ethers';
+import { hexlify } from '../../../../adapters/ethers/hashing.js';
 import { requireUtf8Bytes } from '../../../../internal/assert.js';
 
 /** @type {PasswordAuthProofEncoderOptions} */
@@ -24,6 +24,6 @@ export const passwordKeyVaultAuthProofEncoder = {
   async encode(_ctx, input) {
     const bytes = input.password;
     requireUtf8Bytes(bytes, 'password');
-    return ethers.hexlify(bytes);
+    return hexlify(bytes);
   }
 };

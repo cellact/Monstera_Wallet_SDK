@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers, Wallet } from 'ethers';
+import { Wallet } from '../../src/adapters/ethers/index.js';
+import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 
 /**
  * Creates a configured SDK instance for testing
@@ -32,7 +33,7 @@ export function createTestSDK(options = {}) {
  */
 export function getTestConfig() {
   const password = process.env.PASSWORD || '';
-  const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(password));
+  const passwordHash = keccak256(toUtf8Bytes(password));
   const walletAddr = process.env.WALLET_ADDRESS || '';
   
   return {

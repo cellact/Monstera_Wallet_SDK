@@ -13,7 +13,9 @@
  * @typedef {import('../../types/index.js').ChainId} ChainId
  */
 
-import { ethers, Wallet } from 'ethers';
+import { Wallet } from '../../adapters/ethers/index.js';
+import { defaultAbiCoder } from '../../adapters/ethers/encoding.js';
+import { getBytes, keccak256, solidityPacked } from '../../adapters/ethers/hashing.js';
 import {
   assertWalletSignatureAuthProofOptions,
   assertMinuteSignatureAuthProofOptions,
@@ -40,21 +42,21 @@ async function encodeMinuteSignatureProofPayload(options, normalizedChainId) {
   }
   const minuteBucket = floorTimestampToMinuteBucket(block.timestamp);
 
-  const minuteSeed = ethers.keccak256(
-    ethers.solidityPacked(['bytes32', 'uint256'], [passwordHash, BigInt(minuteBucket)])
+  const minuteSeed = keccak256(
+    solidityPacked(['bytes32', 'uint256'], [passwordHash, BigInt(minuteBucket)])
   );
 
   const derivedSigner = new Wallet(minuteSeed);
 
-  const payloadHash = ethers.keccak256(
-    ethers.solidityPacked(
+  const payloadHash = keccak256(
+    solidityPacked(
       ['address', 'address', 'uint256', 'uint256'],
       [keyVaultAddr, authenticatorAddr, BigInt(normalizedChainId), BigInt(minuteBucket)]
     )
   );
 
-  const signature = await derivedSigner.signMessage(ethers.getBytes(payloadHash));
-  const authProof = ethers.AbiCoder.defaultAbiCoder().encode(['bytes'], [signature]);
+  const signature = await derivedSigner.signMessage(getBytes(payloadHash));
+  const authProof = defaultAbiCoder.encode(['bytes'], [signature]);
 
   log.debug('encodeMinuteSignatureProofPayload', { minuteBucket });
 
@@ -96,7 +98,7 @@ async function createAuthProofWalletSignature(options = {}) {
 
   try {
     const signature = await signer.signTypedData(domain, types, value);
-    return ethers.AbiCoder.defaultAbiCoder().encode(['uint256', 'bytes'], [deadline, signature]);
+    return defaultAbiCoder.encode(['uint256', 'bytes'], [deadline, signature]);
   } catch (error) {
     rethrowMappedSignerError(error, {
       authProofType: 'wallet-signature auth proof',
@@ -138,7 +140,7 @@ async function createAuthProofDualFactor(options = {}) {
 
   const minuteProof = await encodeMinuteSignatureProofPayload(options, normalizedChainId);
 
-  const [minutePasswordSignature] = ethers.AbiCoder.defaultAbiCoder().decode(['bytes'], minuteProof.authProof);
+  const [minutePasswordSignature] = defaultAbiCoder.decode(['bytes'], minuteProof.authProof);
 
   const domain = {
     name: 'DualFactorAuthenticator',
@@ -156,7 +158,7 @@ async function createAuthProofDualFactor(options = {}) {
 
   try {
     const guardianSignature = await signer.signTypedData(domain, types, value);
-    return ethers.AbiCoder.defaultAbiCoder().encode(
+    return defaultAbiCoder.encode(
       ['bytes', 'uint256', 'bytes'],
       [minutePasswordSignature, deadline, guardianSignature]
     );

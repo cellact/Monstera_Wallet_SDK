@@ -10,7 +10,12 @@
  * @typedef {import('../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
  */
 
-import { ethers } from 'ethers';
+import { ZeroHash, getAddress } from '../../adapters/ethers/addresses.js';
+import { defaultAbiCoder, Interface } from '../../adapters/ethers/encoding.js';
+import {
+  hashAuthorization as etherHashAuthorizationTuple,
+  verifyAuthorization as etherVerifyAuthorizationTuple
+} from '../../adapters/ethers/signing.js';
 import { requireAddress, requireNonNegativeInteger, requireBytes, requireObject } from '../assert.js';
 import { ValidationError } from '../../errors/index.js';
 
@@ -19,7 +24,7 @@ const SIGN_AUTHORIZATION_IMPL_ABI = [
   'function signAuthorizationImpl(bytes32 baseKey, bytes32 baseChain, uint32 index, address delegate, uint64 authNonce, uint256 chainId) view returns (bytes32 r, bytes32 s, uint8 yParity)'
 ];
 
-const signAuthorizationImplInterface = new ethers.Interface(SIGN_AUTHORIZATION_IMPL_ABI);
+const signAuthorizationImplInterface = new Interface(SIGN_AUTHORIZATION_IMPL_ABI);
 
 const UINT64_MAX = (1n << 64n) - 1n;
 const UINT32_MAX = (1n << 32n) - 1n;
@@ -40,7 +45,7 @@ function normalizeAuthorizationTuple(auth) {
   requireObject(auth, 'auth');
   const rawAddr = auth.address ?? auth.delegateAddr;
   requireAddress(rawAddr, 'address');
-  const address = ethers.getAddress(rawAddr);
+  const address = getAddress(rawAddr);
   const chainId = BigInt(auth.chainId);
   const nonce = BigInt(auth.nonce);
   return { chainId, address, nonce };
@@ -53,7 +58,7 @@ function normalizeAuthorizationTuple(auth) {
  * @returns {Bytes32}
  */
 function hashAuthorization(auth) {
-  return ethers.hashAuthorization(normalizeAuthorizationTuple(auth));
+  return etherHashAuthorizationTuple(normalizeAuthorizationTuple(auth));
 }
 
 /**
@@ -64,7 +69,7 @@ function hashAuthorization(auth) {
  * @returns {Address}
  */
 function verifyAuthorization(auth, signature) {
-  return ethers.verifyAuthorization(normalizeAuthorizationTuple(auth), signature);
+  return etherVerifyAuthorizationTuple(normalizeAuthorizationTuple(auth), signature);
 }
 
 /**
@@ -125,8 +130,8 @@ function createImplCall(options = {}) {
   }
 
   return signAuthorizationImplInterface.encodeFunctionData('signAuthorizationImpl', [
-    ethers.ZeroHash,
-    ethers.ZeroHash,
+    ZeroHash,
+    ZeroHash,
     Number(idx),
     delegateAddr,
     nonceBn,
@@ -142,7 +147,7 @@ function createImplCall(options = {}) {
  */
 function toChecksumAddress(address) {
   requireAddress(address, 'address');
-  return ethers.getAddress(address);
+  return getAddress(address);
 }
 
 /**
@@ -153,7 +158,7 @@ function toChecksumAddress(address) {
  */
 function decodeSignAuthorizationResult(returnData) {
   requireBytes(returnData, 'returnData');
-  const decoded = ethers.AbiCoder.defaultAbiCoder().decode(['bytes32', 'bytes32', 'uint8'], returnData);
+  const decoded = defaultAbiCoder.decode(['bytes32', 'bytes32', 'uint8'], returnData);
   const yParityNum = Number(decoded[2]);
   if (yParityNum !== 0 && yParityNum !== 1) {
     throw new ValidationError('invalid yParity from KeyVault', 'signature.yParity', decoded[2]);

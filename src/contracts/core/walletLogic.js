@@ -10,7 +10,7 @@
  */
 
 import { ConfigError } from '../../errors/index.js';
-import { ethers } from 'ethers';
+import { Contract } from '../../adapters/ethers/index.js';
 import { WALLET_LOGIC_ABI } from '../abi/core/walletLogic.js';
 
 /**
@@ -25,7 +25,7 @@ function getWalletLogicContract(signerOrProvider, walletLogicAddress) {
     throw new ConfigError('Wallet logic address is required', 'walletLogicAddress');
   }
   
-  return new ethers.Contract(walletLogicAddress, WALLET_LOGIC_ABI, signerOrProvider);
+  return new Contract(walletLogicAddress, WALLET_LOGIC_ABI, signerOrProvider);
 }
 
 export {

@@ -10,7 +10,7 @@
  */
 
 import { ConfigError } from '../../errors/index.js';
-import { ethers } from 'ethers';
+import { Contract } from '../../adapters/ethers/index.js';
 import { WALLET_SIGNATURE_AUTHENTICATOR_ABI } from '../abi/authenticators/walletSignatureAuthenticator.js';
 
 /**
@@ -25,7 +25,7 @@ function getWalletSignatureAuthenticatorContract(signerOrProvider, walletSignatu
     throw new ConfigError('Wallet signature authenticator address is required', 'walletSignatureAuthenticatorAddress');
   }
 
-  return new ethers.Contract(walletSignatureAuthenticatorAddress, WALLET_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
+  return new Contract(walletSignatureAuthenticatorAddress, WALLET_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
 export {

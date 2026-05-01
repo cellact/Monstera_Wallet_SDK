@@ -1,4 +1,7 @@
-import { ethers, Wallet } from 'ethers';
+import { Wallet } from '../../src/adapters/ethers/index.js';
+import { ZeroAddress } from '../../src/adapters/ethers/addresses.js';
+import { defaultAbiCoder } from '../../src/adapters/ethers/encoding.js';
+import { toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 import { nowUnixTimestampSeconds } from '../../src/internal/utils/time.js';
 
 /**
@@ -7,7 +10,7 @@ import { nowUnixTimestampSeconds } from '../../src/internal/utils/time.js';
  * @returns {Uint8Array}
  */
 export function createPasswordAuthProof(password) {
-  return ethers.toUtf8Bytes(password);
+  return toUtf8Bytes(password);
 }
 
 /**
@@ -16,7 +19,7 @@ export function createPasswordAuthProof(password) {
  * @returns {string} Encoded auth config
  */
 export function createWalletSigAuthConfig(whitelist) {
-  return ethers.AbiCoder.defaultAbiCoder().encode(["address[]"], [whitelist]);
+  return defaultAbiCoder.encode(["address[]"], [whitelist]);
 }
 
 /**
@@ -67,7 +70,7 @@ export const INVALID_ADDRESS = '0x123'; // Too short
 /**
  * Zero address for testing
  */
-export const ZERO_ADDRESS = ethers.ZeroAddress;
+export const ZERO_ADDRESS = ZeroAddress;
 
 /**
  * Test signer private key for testing (well-known test key)

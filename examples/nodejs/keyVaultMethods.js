@@ -27,7 +27,10 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { Contract, ContractFactory, formatUnits, parseUnits, ZeroAddress, ZeroHash } from '../../src/adapters/ethers/index.js';
+import { defaultAbiCoder } from '../../src/adapters/ethers/encoding.js';
+import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { JsonRpcProvider } from '../../src/adapters/ethers/provider.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -51,7 +54,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // Prepare auth proof (raw password bytes)
-  const authProof = ethers.toUtf8Bytes(PASSWORD);
+  const authProof = toUtf8Bytes(PASSWORD);
 
   // Get keyVault address for a wallet
   const keyVaultAddr = await sdk.getKeyVaultAddr({
@@ -162,7 +165,7 @@ async function main() {
 
   console.log(`   Deploying Counter contract...`);
 
-  const amoyProvider = new ethers.JsonRpcProvider(AMOY_RPC_URL);
+  const amoyProvider = new JsonRpcProvider(AMOY_RPC_URL);
 
   // Counter contract ABI
   const COUNTER_ABI = [
@@ -228,16 +231,16 @@ async function main() {
   }
 
   // Create contract factory manually
-  const CounterFactory = new ethers.ContractFactory(COUNTER_ABI, COUNTER_BYTECODE, amoyProvider);
+  const CounterFactory = new ContractFactory(COUNTER_ABI, COUNTER_BYTECODE, amoyProvider);
   const deployData = CounterFactory.bytecode;
 
   const deployNonce = await amoyProvider.getTransactionCount(accountAddress);
   const feeData = await amoyProvider.getFeeData();
-  const gasPrice = feeData.gasPrice || ethers.parseUnits("30", "gwei");
+  const gasPrice = feeData.gasPrice || parseUnits("30", "gwei");
   const deployGasLimit = 500000n;
 
   console.log(`   Nonce: ${deployNonce}`);
-  console.log(`   Gas Price: ${ethers.formatUnits(gasPrice, "gwei")} gwei`);
+  console.log(`   Gas Price: ${formatUnits(gasPrice, "gwei")} gwei`);
 
   console.log("   Requesting signature from Sapphire...");
   const signedTransaction = await sdk.signTransaction({
@@ -247,7 +250,7 @@ async function main() {
     nonce: deployNonce,
     gasPrice: gasPrice,
     gasLimit: deployGasLimit,
-    to: ethers.ZeroAddress,
+    to: ZeroAddress,
     value: 0,
     txData: deployData,
     chainId: AMOY_CHAIN_ID
@@ -280,7 +283,7 @@ async function main() {
   }
   console.log(`   ✅ Counter deployed: ${counterAddress}`);
 
-  const counter = new ethers.Contract(counterAddress, COUNTER_ABI, amoyProvider);
+  const counter = new Contract(counterAddress, COUNTER_ABI, amoyProvider);
   console.log(`   Initial count: ${await counter.count()}`);
 
   // ============ STEP 8: Sign a 32-byte hash with the keyVault contract ============
@@ -288,7 +291,7 @@ async function main() {
   console.log("STEP 8: Sign a 32-byte hash");
   console.log("=".repeat(60));
 
-  const hash = ethers.keccak256(ethers.toUtf8Bytes("Hello from TheWallet!"));
+  const hash = keccak256(toUtf8Bytes("Hello from TheWallet!"));
 
   const signedHash = await sdk.sign({
     keyVaultAddr: keyVaultAddr,
@@ -313,7 +316,7 @@ async function main() {
     keyVaultAddr: keyVaultAddr,
     authProof: { password: authProof },
     index: 0,
-    message: ethers.toUtf8Bytes(message)
+    message: toUtf8Bytes(message)
   });
   console.log(`   Signature (signed message): ${signature}`);
   if (!signature) {
@@ -645,15 +648,15 @@ async function main() {
 
   // Build the implementation call with placeholder keys
   // signAuthorizationImpl(bytes32 baseKey, bytes32 baseChain, uint32 index, address delegate, uint64 authNonce, uint256 chainId)
-  const KeyVaultImpl = new ethers.Contract(keyVaultImplAddr, KEYVAULT_IMPLEMENTATION_ABI, sdk.writeSigner);
+  const KeyVaultImpl = new Contract(keyVaultImplAddr, KEYVAULT_IMPLEMENTATION_ABI, sdk.writeSigner);
   const implInterface = KeyVaultImpl.interface;
 
   // Prepare implementation call
   const implCall = implInterface.encodeFunctionData(
     "signAuthorizationImpl",
     [
-      ethers.ZeroHash,  // placeholder baseKey - KeyVault replaces this
-      ethers.ZeroHash,  // placeholder baseChain - KeyVault replaces this
+      ZeroHash,  // placeholder baseKey - KeyVault replaces this
+      ZeroHash,  // placeholder baseChain - KeyVault replaces this
       accountIndex,
       delegateContract,
       authNonce,
@@ -673,7 +676,7 @@ async function main() {
   });
 
   // Decode result: (bytes32 r, bytes32 s, uint8 yParity)
-  const decoded = ethers.AbiCoder.defaultAbiCoder().decode(
+  const decoded = defaultAbiCoder.decode(
     ["bytes32", "bytes32", "uint8"],
     result
   );

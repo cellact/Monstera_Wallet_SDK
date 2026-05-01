@@ -10,40 +10,10 @@
  */
 
 import { ConfigError, SapphireRequiredError, ValidationError } from '../errors/index.js';
-import { ethers } from 'ethers';
+import { Wallet } from '../adapters/ethers/index.js';
+import { createProvider } from '../adapters/ethers/provider.js';
 import { wrapEthersSigner } from '@oasisprotocol/sapphire-ethers-v6';
 import log from '../internal/logger.js';
-
-/**
- * Redact RPC URL for logging (hide query params and sensitive parts)
- * @param {string} url - RPC URL
- * @returns {string} Safe string for logs
- */
-function redactRpcUrl(url) {
-  if (!url || typeof url !== 'string') return '[none]';
-  try {
-    const u = new URL(url);
-    return `${u.protocol}//${u.host}`;
-  } catch {
-    return '[invalid]';
-  }
-}
-
-/**
- * Create a provider for the given RPC URL
- *
- * @param {string} rpcUrl - RPC URL
- * @returns {EthersProvider} Ethers provider instance
- */
-function createProvider(rpcUrl, role) {
-  if (!rpcUrl) {
-    throw new ConfigError('RPC URL is required', 'rpcUrl');
-  }
-
-  log.debug('createProvider', { rpcUrl: redactRpcUrl(rpcUrl), role });
-
-  return new ethers.JsonRpcProvider(rpcUrl);
-}
 
 /**
  * Wrap signer for Sapphire encrypted transactions
@@ -79,7 +49,7 @@ function createWriteSigner(providedSigner, rpcUrl, role) {
       throw new ConfigError('RPC URL is required when providing private key as string', 'rpcUrl');
     }
     const provider = createProvider(rpcUrl, role);
-    signer = new ethers.Wallet(providedSigner, provider);
+    signer = new Wallet(providedSigner, provider);
   } 
   // If it's already a Signer
   else if (providedSigner && typeof providedSigner.signMessage === 'function') {

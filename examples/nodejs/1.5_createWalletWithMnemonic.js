@@ -14,7 +14,7 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -49,7 +49,7 @@ async function main() {
   console.log("\n" + "=".repeat(60));
   console.log("STEP 2: Prepare auth config");
   console.log("=".repeat(60));
-  const passwordHash = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
+  const passwordHash = keccak256(toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
 
   // ============ STEP 3: Create wallet stack ============

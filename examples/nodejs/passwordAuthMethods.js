@@ -10,7 +10,7 @@
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers } from 'ethers';
+import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -60,7 +60,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // prepare password hash (keccak256 of password)
-  const authConfig = ethers.keccak256(ethers.toUtf8Bytes(PASSWORD));
+  const authConfig = keccak256(toUtf8Bytes(PASSWORD));
 
   const result = await sdk.configurePassword({
     keyVaultAddr: keyVault,
@@ -78,7 +78,7 @@ async function main() {
   console.log("=".repeat(60));
 
   // prepare raw password bytes (utf8 encoded string)
-  const authProof = ethers.toUtf8Bytes(PASSWORD);
+  const authProof = toUtf8Bytes(PASSWORD);
 
   const isValid = await sdk.isPasswordValid({
     keyVaultAddr: keyVault,

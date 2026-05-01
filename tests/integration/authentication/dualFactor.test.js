@@ -4,7 +4,8 @@
 
 import 'dotenv/config';
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
-import { ethers, Wallet } from 'ethers';
+import { Wallet } from '../../../src/adapters/ethers/index.js';
+import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
 import { expectTransactionResult, expectValidTxHash, expectValidHex } from '../../utils/assertions.js';
@@ -123,7 +124,7 @@ describe('Authentication — dual factor', () => {
       });
 
       const nextPassword = 'dualfactor-rotated-99';
-      const nextHash = ethers.keccak256(ethers.toUtf8Bytes(nextPassword));
+      const nextHash = keccak256(toUtf8Bytes(nextPassword));
 
       const updateResult = await sdk.updatePasswordDualFactor({
         keyVaultAddr: newWallet.keyVault,

@@ -5,7 +5,8 @@
 
 import 'dotenv/config';
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
-import { Wallet, ethers } from 'ethers';
+import { Wallet } from '../../../src/adapters/ethers/index.js';
+import { defaultAbiCoder } from '../../../src/adapters/ethers/encoding.js';
 import { ValidationError } from '../../../src/errors/index.js';
 import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
@@ -483,7 +484,7 @@ describe('Authentication — wallet signature', () => {
         signer: testWallet.connect(sdk.provider)
       });
 
-      const decoded = ethers.AbiCoder.defaultAbiCoder().decode(
+      const decoded = defaultAbiCoder.decode(
         ['uint256', 'bytes'],
         authProof
       );

@@ -23,7 +23,9 @@
 
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { ethers, HDNodeWallet, Mnemonic } from 'ethers';
+import { HDNodeWallet, Mnemonic } from '../../src/adapters/ethers/index.js';
+import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { recoverAddress, verifyMessage } from '../../src/adapters/ethers/signing.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -63,7 +65,7 @@ async function main() {
   console.log(`      └── Auth:   ${AuthenticatorAddr}`);
 
   // Prepare auth proof (raw password bytes)
-  const authProof = ethers.toUtf8Bytes(PASSWORD);
+  const authProof = toUtf8Bytes(PASSWORD);
 
   // ============ STEP 2: Get account addresses ============
   console.log("\n" + "=".repeat(60));
@@ -112,7 +114,7 @@ async function main() {
       keyVaultAddr: keyVaultAddr,
       authProof: { password: authProof },
       index: 0,
-      message: ethers.toUtf8Bytes(message)
+      message: toUtf8Bytes(message)
     });
     console.log(`   Message: "${message}"`);
     console.log(`   Signature: ${result}`);
@@ -122,7 +124,7 @@ async function main() {
       keyVaultAddr: keyVaultAddr,
       index: 0
     });
-    const recovered = ethers.verifyMessage(message, result);
+    const recovered = verifyMessage(message, result);
     const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
     console.log(`   Recovered: ${recovered}`);
     console.log(`   ${match ? "✅ Signature valid!" : "❌ Signature invalid!"}`);
@@ -135,7 +137,7 @@ async function main() {
   console.log("STEP 5: Sign hash");
   console.log("=".repeat(60));
   console.log("\n   Signing a raw hash...");
-  const hash = ethers.keccak256(ethers.toUtf8Bytes("Some data"));
+  const hash = keccak256(toUtf8Bytes("Some data"));
   try {
     const result = await sdk.sign({
       keyVaultAddr: keyVaultAddr,
@@ -150,7 +152,7 @@ async function main() {
       keyVaultAddr: keyVaultAddr,
       index: 0
     });
-    const recovered = ethers.recoverAddress(hash, result);
+    const recovered = recoverAddress(hash, result);
     const match = recovered.toLowerCase() === expectedAddr.toLowerCase();
     console.log(`   ${match ? "✅ Signature valid!" : "❌ Signature invalid!"}`);
   } catch (error) {
@@ -162,13 +164,13 @@ async function main() {
   console.log("STEP 6: Wrong password test");
   console.log("=".repeat(60));
   console.log("\n   Trying with wrong password...");
-  const wrongAuthProof = ethers.toUtf8Bytes("wrongpassword");
+  const wrongAuthProof = toUtf8Bytes("wrongpassword");
   try {
     await sdk.signMessage({
       keyVaultAddr: keyVaultAddr,
       authProof: { password: wrongAuthProof },
       index: 0,
-      message: ethers.toUtf8Bytes("test")
+      message: toUtf8Bytes("test")
     });
     console.log("   ❌ Should have failed!");
   } catch (error) {

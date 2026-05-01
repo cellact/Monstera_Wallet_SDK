@@ -10,7 +10,8 @@
  */
 
 import { ValidationError } from '../errors/index.js';
-import { Mnemonic, ethers, HDNodeWallet, Wallet } from 'ethers';
+import { HDNodeWallet, Mnemonic, Wallet } from '../adapters/ethers/index.js';
+import { isAddress as ethersIsAddress, isHexString as ethersIsHexString } from '../adapters/ethers/addresses.js';
 import { normalizeBigInt, normalizeChainId } from './utils/normalize.js';
 import { nowUnixTimestampSeconds } from './utils/time.js';
 
@@ -21,7 +22,7 @@ import { nowUnixTimestampSeconds } from './utils/time.js';
  * @returns {boolean} True if valid address
  */
 function isAddress(value) {
-  return typeof value === 'string' && ethers.isAddress(value);
+  return typeof value === 'string' && ethersIsAddress(value);
 }
 
 /**
@@ -80,7 +81,7 @@ function requireBytes(value, name = 'bytes') {
  */
 function requireBytes32(value, name = 'bytes32') {
   requireString(value, name);
-  if (!ethers.isHexString(value, 32)) {
+  if (!ethersIsHexString(value, 32)) {
     throw new ValidationError(`${name} must be a 32-byte hex string value`, name, value);
   }
 }

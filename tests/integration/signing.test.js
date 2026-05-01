@@ -11,7 +11,10 @@
 import 'dotenv/config';
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
 import { registerSdkTeardown } from '../utils/teardown.js';
-import { ethers, Wallet } from 'ethers';
+import { Transaction, parseEther, parseUnits, Wallet } from '../../src/adapters/ethers/index.js';
+import { getAddress } from '../../src/adapters/ethers/addresses.js';
+import { getBytes, hexlify, keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { recoverAddress, verifyMessage } from '../../src/adapters/ethers/signing.js';
 import { 
   createTestSDK, 
   getTestConfig, 
@@ -65,7 +68,7 @@ describe('Signing Integration Tests', () => {
   describe('signMessage', () => {
     test('should successfully sign a message', async () => {
       const message = 'Hello, Monstera!';
-      const messageBytes = ethers.toUtf8Bytes(message);
+      const messageBytes = toUtf8Bytes(message);
 
       const signature = await sdk.signMessage({
         keyVaultAddr,
@@ -83,12 +86,12 @@ describe('Signing Integration Tests', () => {
         keyVaultAddr,
         index: accountIndex
       });
-      const recovered = ethers.verifyMessage(message, signature);
+      const recovered = verifyMessage(message, signature);
       expect(recovered.toLowerCase()).toBe(accountAddr.toLowerCase());
     });
 
     test('should sign empty message', async () => {
-      const messageBytes = ethers.toUtf8Bytes('');
+      const messageBytes = toUtf8Bytes('');
 
       const signature = await sdk.signMessage({
         keyVaultAddr,
@@ -105,13 +108,13 @@ describe('Signing Integration Tests', () => {
         keyVaultAddr,
         index: accountIndex
       });
-      const recovered = ethers.verifyMessage('', signature);
+      const recovered = verifyMessage('', signature);
       expect(recovered.toLowerCase()).toBe(accountAddr.toLowerCase());
     });
 
     test('should fail with wrong password', async () => {
       const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
-      const messageBytes = ethers.toUtf8Bytes('test message');
+      const messageBytes = toUtf8Bytes('test message');
 
       await expect(
         sdk.signMessage({
@@ -124,7 +127,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with missing keyVaultAddr', async () => {
-      const messageBytes = ethers.toUtf8Bytes('test');
+      const messageBytes = toUtf8Bytes('test');
 
       await testMissingParam(
         sdk.signMessage.bind(sdk),
@@ -138,7 +141,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with missing authProof', async () => {
-      const messageBytes = ethers.toUtf8Bytes('test');
+      const messageBytes = toUtf8Bytes('test');
 
       await testMissingParam(
         sdk.signMessage.bind(sdk),
@@ -152,7 +155,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with missing index', async () => {
-      const messageBytes = ethers.toUtf8Bytes('test');
+      const messageBytes = toUtf8Bytes('test');
 
       await testMissingParam(
         sdk.signMessage.bind(sdk),
@@ -178,7 +181,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with invalid keyVaultAddr', async () => {
-      const messageBytes = ethers.toUtf8Bytes('test');
+      const messageBytes = toUtf8Bytes('test');
 
       await testInvalidAddress(
         sdk.signMessage.bind(sdk),
@@ -193,7 +196,7 @@ describe('Signing Integration Tests', () => {
     });
 
     test('should fail with negative index', async () => {
-      const messageBytes = ethers.toUtf8Bytes('test');
+      const messageBytes = toUtf8Bytes('test');
 
       await expect(
         sdk.signMessage({
@@ -209,7 +212,7 @@ describe('Signing Integration Tests', () => {
   describe('sign (hash signing)', () => {
     test('should successfully sign a hash', async () => {
       const data = 'Some data to hash';
-      const hash = ethers.keccak256(ethers.toUtf8Bytes(data));
+      const hash = keccak256(toUtf8Bytes(data));
 
       const signature = await sdk.sign({
         keyVaultAddr,
@@ -227,13 +230,13 @@ describe('Signing Integration Tests', () => {
         keyVaultAddr,
         index: accountIndex
       });
-      const recovered = ethers.recoverAddress(hash, signature);
+      const recovered = recoverAddress(hash, signature);
       expect(recovered.toLowerCase()).toBe(accountAddr.toLowerCase());
     });
 
     test('should sign different hashes with different signatures', async () => {
-      const hash1 = ethers.keccak256(ethers.toUtf8Bytes('data1'));
-      const hash2 = ethers.keccak256(ethers.toUtf8Bytes('data2'));
+      const hash1 = keccak256(toUtf8Bytes('data1'));
+      const hash2 = keccak256(toUtf8Bytes('data2'));
 
       const sig1 = await sdk.sign({
         keyVaultAddr,
@@ -254,7 +257,7 @@ describe('Signing Integration Tests', () => {
 
     test('should fail with wrong password', async () => {
       const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
-      const hash = ethers.keccak256(ethers.toUtf8Bytes('test'));
+      const hash = keccak256(toUtf8Bytes('test'));
 
       await expect(
         sdk.sign({
@@ -296,9 +299,9 @@ describe('Signing Integration Tests', () => {
     // TODO: fix this test
     // test('should successfully sign a transaction', async () => {
     //   const to = '0x0000000000000000000000000000000000000000';
-    //   const value = ethers.parseEther('0.001');
+    //   const value = parseEther('0.001');
     //   const nonce = 0;
-    //   const gasPrice = ethers.parseUnits('30', 'gwei');
+    //   const gasPrice = parseUnits('30', 'gwei');
     //   const gasLimit = 21000n;
     //   const txData = '0x';
     //   const chainId = sdk.chainId;
@@ -321,7 +324,7 @@ describe('Signing Integration Tests', () => {
     //   expect(signedTx).toMatch(/^0x[a-fA-F0-9]+$/);
 
     //   // Parse and verify the transaction
-    //   const tx = ethers.Transaction.from(signedTx);
+    //   const tx = Transaction.from(signedTx);
     //   expect(tx.to?.toLowerCase()).toBe(to.toLowerCase());
     //   expect(tx.value).toBe(value);
     //   expect(tx.nonce).toBe(nonce);
@@ -331,9 +334,9 @@ describe('Signing Integration Tests', () => {
       const to = ZERO_ADDRESS;
       const value = 0n;
       const nonce = 0;
-      const gasPrice = ethers.parseUnits('30', 'gwei');
+      const gasPrice = parseUnits('30', 'gwei');
       const gasLimit = 100000n;
-      const txData = ethers.toUtf8Bytes('test data');
+      const txData = toUtf8Bytes('test data');
       const chainId = sdk.chainId;
 
       const signedTx = await sdk.signTransaction({
@@ -351,16 +354,16 @@ describe('Signing Integration Tests', () => {
 
       expect(signedTx).toBeDefined();
       expectValidHex(signedTx);
-      const tx = ethers.Transaction.from(signedTx);
+      const tx = Transaction.from(signedTx);
       expect(tx.data).toBeDefined();
     });
 
     test('should fail with wrong password', async () => {
       const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
       const to = ZERO_ADDRESS;
-      const value = ethers.parseEther('0.001');
+      const value = parseEther('0.001');
       const nonce = 0;
-      const gasPrice = ethers.parseUnits('30', 'gwei');
+      const gasPrice = parseUnits('30', 'gwei');
       const gasLimit = 21000n;
       const txData = '0x';
       const chainId = sdk.chainId;
@@ -385,7 +388,7 @@ describe('Signing Integration Tests', () => {
     const createBaseTxParams = () => ({
       index: accountIndex,
       nonce: 0,
-      gasPrice: ethers.parseUnits('30', 'gwei'),
+      gasPrice: parseUnits('30', 'gwei'),
       gasLimit: 21000n,
       to: ZERO_ADDRESS,
       value: 0n,
@@ -460,7 +463,7 @@ describe('Signing Integration Tests', () => {
           authProof,
           index: accountIndex,
           nonce: -1,
-          gasPrice: ethers.parseUnits('30', 'gwei'),
+          gasPrice: parseUnits('30', 'gwei'),
           gasLimit: 21000n,
           to: ZERO_ADDRESS,
           value: 0n,
@@ -473,7 +476,7 @@ describe('Signing Integration Tests', () => {
 
   describe('Cross-account signing', () => {
     test('should sign with different account indices', async () => {
-      const messageBytes = ethers.toUtf8Bytes('test message');
+      const messageBytes = toUtf8Bytes('test message');
 
       // Sign with account 0
       const sig0 = await sdk.signMessage({
@@ -502,8 +505,8 @@ describe('Signing Integration Tests', () => {
       expectValidAddress(addr1);
       expect(addr0).not.toBe(addr1);
 
-      const recovered0 = ethers.verifyMessage('test message', sig0);
-      const recovered1 = ethers.verifyMessage('test message', sig1);
+      const recovered0 = verifyMessage('test message', sig0);
+      const recovered1 = verifyMessage('test message', sig1);
       expect(recovered0.toLowerCase()).toBe(addr0.toLowerCase());
       expect(recovered1.toLowerCase()).toBe(addr1.toLowerCase());
     });
@@ -511,7 +514,7 @@ describe('Signing Integration Tests', () => {
 
   describe('signSolana', () => {
     test('should return a 64-byte ed25519 signature for the message', async () => {
-      const messageBytes = ethers.toUtf8Bytes('Hello, Monstera!');
+      const messageBytes = toUtf8Bytes('Hello, Monstera!');
 
       const signature = await sdk.signSolana({
         keyVaultAddr,
@@ -521,7 +524,7 @@ describe('Signing Integration Tests', () => {
       });
 
       expectValidHex(signature);
-      expect(ethers.getBytes(signature).length).toBe(64);
+      expect(getBytes(signature).length).toBe(64);
     }, 30000);
 
     test('should produce different signatures for different messages', async () => {
@@ -529,13 +532,13 @@ describe('Signing Integration Tests', () => {
         keyVaultAddr,
         authProof,
         index: accountIndex,
-        message: ethers.toUtf8Bytes('msg-a')
+        message: toUtf8Bytes('msg-a')
       });
       const sigB = await sdk.signSolana({
         keyVaultAddr,
         authProof,
         index: accountIndex,
-        message: ethers.toUtf8Bytes('msg-b')
+        message: toUtf8Bytes('msg-b')
       });
 
       expect(sigA).not.toBe(sigB);
@@ -549,7 +552,7 @@ describe('Signing Integration Tests', () => {
           keyVaultAddr,
           authProof: wrongAuthProof,
           index: accountIndex,
-          message: ethers.toUtf8Bytes('x')
+          message: toUtf8Bytes('x')
         })
       ).rejects.toThrow();
     });
@@ -572,7 +575,7 @@ describe('Signing Integration Tests', () => {
         {
           keyVaultAddr,
           authProof,
-          message: ethers.toUtf8Bytes('x')
+          message: toUtf8Bytes('x')
         },
         'index'
       );
@@ -585,15 +588,15 @@ describe('Signing Integration Tests', () => {
 
     beforeAll(async () => {
       importedSigningWallet = Wallet.createRandom();
-      importedKeyId = ethers.keccak256(
-        ethers.toUtf8Bytes(`wallet-sdk-signing-import-${Date.now()}-${Math.random()}`)
+      importedKeyId = keccak256(
+        toUtf8Bytes(`wallet-sdk-signing-import-${Date.now()}-${Math.random()}`)
       );
 
       const importResult = await sdk.importKey({
         keyVaultAddr,
         authProof,
         keyId: importedKeyId,
-        privateKey: ethers.getBytes(importedSigningWallet.privateKey),
+        privateKey: getBytes(importedSigningWallet.privateKey),
         curve: CURVE_SECP256K1,
         chain: CHAIN_ETHEREUM,
         label: 'integration-signing-imported-ecdsa'
@@ -604,7 +607,7 @@ describe('Signing Integration Tests', () => {
     }, 120000);
 
     test('should sign a digest and recover the imported Ethereum address', async () => {
-      const digest = ethers.keccak256(ethers.toUtf8Bytes('signWithImportedKey integration'));
+      const digest = keccak256(toUtf8Bytes('signWithImportedKey integration'));
 
       const signature = await sdk.signWithImportedKey({
         keyVaultAddr,
@@ -615,7 +618,7 @@ describe('Signing Integration Tests', () => {
 
       expectValidHex(signature);
 
-      const recovered = ethers.recoverAddress(digest, signature);
+      const recovered = recoverAddress(digest, signature);
       expect(recovered.toLowerCase()).toBe(importedSigningWallet.address.toLowerCase());
 
       const importedAddrBytes = await sdk.getImportedKeyAddr({
@@ -624,7 +627,7 @@ describe('Signing Integration Tests', () => {
       });
 
       expectValidHex(importedAddrBytes);
-      const importedAddr = ethers.getAddress(ethers.hexlify(importedAddrBytes));
+      const importedAddr = getAddress(hexlify(importedAddrBytes));
       expect(importedAddr.toLowerCase()).toBe(importedSigningWallet.address.toLowerCase());
     }, 30000);
 
@@ -646,7 +649,7 @@ describe('Signing Integration Tests', () => {
         {
           keyVaultAddr,
           authProof,
-          digest: ethers.keccak256(ethers.toUtf8Bytes('x'))
+          digest: keccak256(toUtf8Bytes('x'))
         },
         'keyId'
       );
@@ -660,7 +663,7 @@ describe('Signing Integration Tests', () => {
           keyVaultAddr,
           authProof: wrongAuthProof,
           keyId: importedKeyId,
-          digest: ethers.keccak256(ethers.toUtf8Bytes('x'))
+          digest: keccak256(toUtf8Bytes('x'))
         })
       ).rejects.toThrow();
     });

@@ -10,7 +10,7 @@
  */
 
 import { ConfigError } from '../../errors/index.js';
-import { ethers } from 'ethers';
+import { Contract } from '../../adapters/ethers/index.js';
 import { PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI } from '../abi/authenticators/passwordMinuteSignatureAuthenticator.js';
 
 /**
@@ -25,7 +25,7 @@ function getPasswordMinuteSignatureAuthenticatorContract(signerOrProvider, passw
     throw new ConfigError('Password minute signature authenticator address is required', 'passwordMinuteSignatureAuthenticatorAddress');
   }
 
-  return new ethers.Contract(passwordMinuteSignatureAuthenticatorAddress, PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
+  return new Contract(passwordMinuteSignatureAuthenticatorAddress, PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
 }
 
 export {

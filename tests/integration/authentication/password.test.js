@@ -4,7 +4,7 @@
 
 import 'dotenv/config';
 import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
-import { ethers } from 'ethers';
+import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
 import { createPasswordAuthProof } from '../../utils/fixtures.js';
@@ -98,7 +98,7 @@ describe('Authentication — password', () => {
   describe('updatePassword', () => {
     test('should successfully update password', async () => {
       const newPassword = 'newpassword123';
-      const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes(newPassword));
+      const newPasswordHash = keccak256(toUtf8Bytes(newPassword));
       const currentPasswordBytes = createPasswordAuthProof(password);
 
       const result = await sdk.updatePassword({
@@ -130,7 +130,7 @@ describe('Authentication — password', () => {
 
     test('should fail with wrong current password', async () => {
       const wrongPassword = createPasswordAuthProof('wrongpassword');
-      const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes('newpassword'));
+      const newPasswordHash = keccak256(toUtf8Bytes('newpassword'));
 
       await expect(
         sdk.updatePassword({
@@ -143,7 +143,7 @@ describe('Authentication — password', () => {
 
     test('should fail with missing keyVaultAddr', async () => {
       const currentPasswordBytes = createPasswordAuthProof(password);
-      const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes('newpassword'));
+      const newPasswordHash = keccak256(toUtf8Bytes('newpassword'));
 
       await testMissingParam(
         sdk.updatePassword.bind(sdk),
@@ -156,7 +156,7 @@ describe('Authentication — password', () => {
     });
 
     test('should fail with missing currentPassword', async () => {
-      const newPasswordHash = ethers.keccak256(ethers.toUtf8Bytes('newpassword'));
+      const newPasswordHash = keccak256(toUtf8Bytes('newpassword'));
 
       await testMissingParam(
         sdk.updatePassword.bind(sdk),
