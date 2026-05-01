@@ -325,7 +325,7 @@
 // Auth Config — Encoded Types, Encoder & Context
 // ============================================================================
 //
-// On-chain {@code authConfig} byte shapes, the create-wallet encoder entry type, and context for {@link encodeAuthConfigOptions}.
+// On-chain {@code authConfig} byte shapes, the create-wallet encoder entry type, and context for {@link AuthConfigBuilder}.
 
 /**
  * ABI-encoded dual-factor authenticator config at wallet creation ({@code abi.encode(bytes32,address)}).
@@ -341,13 +341,13 @@
 
 /**
  * Password-hash-only authenticator config for PasswordAuthenticator at creation (contract expects bytes32).
- * @see {@link module:internal/authenticators/authConfig/encoders/password.js} {@code passwordAuthCreateWalletEncoder}
+ * @see {@link module:internal/auth/config/encoders/password.js} {@code passwordAuthCreateWalletEncoder}
  * @typedef {Bytes32} EncodedAuthConfigPassword
  */
 
 /**
  * Alias of {@link EncodedAuthConfigPassword} for PasswordMinuteSignatureAuthenticator create-wallet encoding (same bytes32 on-chain).
- * @see {@link module:internal/authenticators/authConfig/encoders/passwordMinuteSignature.js} {@code passwordMinuteSignatureAuthCreateWalletEncoder}
+ * @see {@link module:internal/auth/config/encoders/passwordMinuteSignature.js} {@code passwordMinuteSignatureAuthCreateWalletEncoder}
  * @typedef {EncodedAuthConfigPassword} EncodedAuthConfigPasswordMinuteSignature
  */
 
@@ -373,7 +373,7 @@
  */
 
 /**
- * Context passed into {@link encodeAuthConfigOptions} for built-in authenticator resolution (registry keyed by contract addresses).
+ * Context held by {@link AuthConfigBuilder} for built-in authenticator resolution (registry keyed by contract addresses).
  *
  * @typedef {Object} AuthConfigContext
  * @property {ContractAddresses} addresses
@@ -425,7 +425,7 @@
 // ============================================================================
 
 /**
- * Valid inputs to {@link encodeAuthConfigOptions} (structured or pre-encoded {@code authConfig}).
+ * Valid inputs to {@link AuthConfigBuilder.prototype.encode} (structured or pre-encoded {@code authConfig}).
  * @typedef {(
  *   | CreateWalletBaseOptions
  *   | CreateWalletFromMnemonicOptions
@@ -444,7 +444,7 @@
  */
 
 /**
- * Return type of {@link encodeAuthConfigOptions}: unchanged caller options when {@code authConfig} was already hex, otherwise encoded payload.
+ * Return type of {@link AuthConfigBuilder.prototype.encode}: unchanged caller options when {@code authConfig} was already hex, otherwise encoded payload.
  * @typedef {EncodeAuthConfigInputOptions | EncodedAuthConfigCallOptions} EncodeAuthConfigOptionsResult
  */
 
@@ -506,7 +506,7 @@
 // ============================================================================
 
 /**
- * Context passed into {@code encodeAuthProofOptions} before the on-chain authenticator address is resolved.
+ * Context fields held by {@link AuthProofBuilder} before the on-chain authenticator address is resolved.
  *
  * @typedef {Object} AuthProofContext
  * @property {ContractAddresses} addresses
@@ -614,7 +614,7 @@
 
 /**
  * Union of all **created / on-wire** {@code authProof} payloads for direct contract clients (e.g. {@link KeyVaultClient}).
- * Does not include structured {@link AuthProofInputOptions}; use that in {@link Monstera} (with {@link encodeAuthProofOptions}) before calling the client.
+ * Does not include structured {@link AuthProofInputOptions}; use that in {@link Monstera} (with {@link AuthProofBuilder.prototype.encode}) before calling the client.
  * @typedef {(
  *   | PasswordAuthenticatorVerifyAuthProof
  *   | EncodedAuthProofWalletSignature
@@ -780,7 +780,7 @@
 // ============================================================================
 
 /**
- * KeyVault-style call options before/after {@link encodeAuthProofOptions}. When {@code authProof} is a plain object, {@code keyVaultAddr} is required.
+ * KeyVault-style call options before/after {@link AuthProofBuilder.prototype.encode}. When {@code authProof} is a plain object, {@code keyVaultAddr} is required.
  * @typedef {Record<string, unknown> & {
  *   authProof?: AuthProofInputOptions;
  *   keyVaultAddr?: Address;
@@ -788,7 +788,7 @@
  */
 
 /**
- * Result of {@link encodeAuthProofOptions}: same fields as input with {@code authProof} as hex {@link Bytes} or {@link Uint8Array}.
+ * Result of {@link AuthProofBuilder.prototype.encode}: same fields as input with {@code authProof} as hex {@link Bytes} or {@link Uint8Array}.
  * @typedef {Record<string, unknown> & { authProof: Bytes|Uint8Array }} EncodeAuthProofOptionsResult
  */
 

@@ -5,7 +5,7 @@
  * Handles wallet creation and factory administration.
  *
  * Creation methods expect {@link EncodedAuthConfigOptions}: hex-encoded {@code authConfig}
- * for the factory contract (output of built-in encoders, {@code encodeAuthConfigOptions}, manual encoding, or custom authenticators).
+ * for the factory contract (output of built-in encoders, {@code AuthConfigBuilder.prototype.encode}, manual encoding, or custom authenticators).
  * Monstera create-wallet APIs accept structured configs and encode before calling these methods.
  * 
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider

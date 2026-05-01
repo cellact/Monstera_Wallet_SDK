@@ -43,8 +43,6 @@
  * @typedef {import('../types/index.js').SignSolanaOptions} SignSolanaOptions
  * @typedef {import('../types/index.js').ImportKeyOptions} ImportKeyOptions
  * @typedef {import('../types/index.js').SetChainBaseKeysOptions} SetChainBaseKeysOptions
- * @typedef {import('../types/index.js').AuthProofContext} AuthProofContext
- * @typedef {import('../types/index.js').AuthConfigContext} AuthConfigContext
  * @typedef {import('../types/index.js').CreateAuthProofDualFactorOptions} CreateAuthProofDualFactorOptions
  * @typedef {import('../types/index.js').ChainId} ChainId
  * @typedef {import('../types/index.js').ExecuteWithAuthOptions} ExecuteWithAuthOptions
@@ -96,14 +94,14 @@ import {
 } from '../internal/crypto/index.js';
 import { executeSignAuthorization } from '../internal/crypto/signAuthorization.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
-import { encodeAuthConfigOptions } from '../internal/authenticators/authConfig/encodeAuthConfigOptions.js';
-import { encodeAuthProofOptions } from '../internal/authenticators/authProof/encodeAuthProofOptions.js';
-import { assertValidResolvedConfig } from '../internal/validators/networkConfig.js'; 
+import { assertValidResolvedConfig } from '../internal/validators/networkConfig.js';
+import { AuthConfigBuilder } from '../internal/auth/config/AuthConfigBuilder.js';
+import { AuthProofBuilder } from '../internal/auth/proof/AuthProofBuilder.js';
 import {
   withWalletSignatureProofDefaults,
   withMinuteSignatureProofDefaults,
   withDualFactorProofDefaults
-} from './helpers/applyAuthProofDefaults.js';
+} from '../internal/auth/defaults/authProofDefaults.js';
 
 /**
  * Monstera Wallet SDK
@@ -135,6 +133,14 @@ class Monstera {
     this.logic = new WalletLogicClient(this.readProvider, this.writeSigner, config);
     this.keyVault = new KeyVaultClient(this.readProvider, this.writeSigner, config);
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, config);
+
+    this._authProofBuilder = new AuthProofBuilder(
+      config.addresses,
+      config.chainId,
+      this.readProvider,
+      (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
+    );
+    this._authConfigBuilder = new AuthConfigBuilder(config.addresses);
 
     // Check version in background only when explicitly enabled.
     if (config?.checkVersion === true && !MonsteraUtils.versionCheckDone) {
@@ -359,35 +365,6 @@ class Monstera {
   }
 
   // ============================================================================
-  // Internal - auth prepare contexts 
-  // ============================================================================
-
-  /**
-   * Shared context for {@link encodeAuthProofOptions} (built-in authenticator resolution + encoding).
-   *
-   * @returns {AuthProofContext}
-   */
-  _authProofPrepareContext() {
-    return {
-      addresses: this.config.addresses,
-      chainId: this.config.chainId,
-      readProvider: this.readProvider,
-      getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
-    };
-  }
-
-  /**
-   * Shared context for {@link encodeAuthConfigOptions} (authConfig resolution + encoding).
-   *
-   * @returns {AuthConfigContext}
-   */
-  _authConfigPrepareContext() {
-    return {
-      addresses: this.config.addresses
-    };
-  }
-
-  // ============================================================================
   // Initialize Methods (Write)
   // ============================================================================
 
@@ -514,7 +491,7 @@ class Monstera {
    */
   async createWallet(options = {}) {
     return this.factory.createWallet(
-      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
+      this._authConfigBuilder.encode(options)
     );
   }
 
@@ -535,7 +512,7 @@ class Monstera {
    */
   async createWalletFromMnemonic(options = {}) {
     return this.factory.createWalletFromMnemonic(
-      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
+      this._authConfigBuilder.encode(options)
     );
   }
 
@@ -559,7 +536,7 @@ class Monstera {
    */
   async createWalletWithHook(options = {}) {
     return this.factory.createWalletWithHook(
-      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
+      this._authConfigBuilder.encode(options)
     );
   }
 
@@ -582,7 +559,7 @@ class Monstera {
    */
   async createWalletCore(options = {}) {
     return this.factory.createWalletCore(
-      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
+      this._authConfigBuilder.encode(options)
     );
   }
 
@@ -607,7 +584,7 @@ class Monstera {
    */
   async createWalletWithCustomLogic(options = {}) {
     return this.factory.createWalletWithCustomLogic(
-      encodeAuthConfigOptions(this._authConfigPrepareContext(), options)
+      this._authConfigBuilder.encode(options)
     );
   }
 
@@ -772,7 +749,7 @@ class Monstera {
    */
   async signTransaction(options = {}) {
     return this.keyVault.signTransaction(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -785,7 +762,7 @@ class Monstera {
    */
   async signMessage(options = {}) {
     return this.keyVault.signMessage(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -798,7 +775,7 @@ class Monstera {
    */
   async sign(options = {}) {
     return this.keyVault.sign(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -822,7 +799,7 @@ class Monstera {
         keyVault: this.keyVault,
         fallbackProvider: this.readProvider ?? this.writeSigner?.provider ?? null
       },
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options),
+      await this._authProofBuilder.encode(options),
       options
     );
   }
@@ -836,7 +813,7 @@ class Monstera {
    */
   async executeWithAuth(options = {}) {
     return this.keyVault.executeWithAuth(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -882,7 +859,7 @@ class Monstera {
    */
   async signWithImportedKey(options = {}) {
     return this.keyVault.signWithImportedKey(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -917,7 +894,7 @@ class Monstera {
    */
   async signSolana(options = {}) {
     return this.keyVault.signSolana(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -1129,7 +1106,7 @@ class Monstera {
    */
   async updateKeyVaultImplAddr(options = {}) {
     return this.keyVault.updateKeyVaultImplAddr(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -1145,7 +1122,7 @@ class Monstera {
    */
   async updateAuthenticatorAddr(options = {}) {
     return this.keyVault.updateAuthenticatorAddr(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -1161,7 +1138,7 @@ class Monstera {
    */
   async importKey(options = {}) {
     return this.keyVault.importKey(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -1177,7 +1154,7 @@ class Monstera {
    */
   async deactivateKey(options = {}) {
     return this.keyVault.deactivateKey(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -1193,7 +1170,7 @@ class Monstera {
    */
   async activateKey(options = {}) {
     return this.keyVault.activateKey(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 
@@ -1208,7 +1185,7 @@ class Monstera {
    */
   async setChainBaseKeys(options = {}) {
     return this.keyVault.setChainBaseKeys(
-      await encodeAuthProofOptions(this._authProofPrepareContext(), options)
+      await this._authProofBuilder.encode(options)
     );
   }
 

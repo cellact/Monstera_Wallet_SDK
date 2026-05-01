@@ -36,7 +36,7 @@ import { log } from '../logger.js';
  * Validate options, resolve chainId / authority / nonce via RPC when omitted, build {@code implCall} bytes.
  *
  * @param {SignAuthorizationDeps} deps
- * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Object after {@link encodeAuthProofOptions}
+ * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Object after {@code AuthProofBuilder.prototype.encode}
  * @param {SignAuthorizationOptions} options
  * @returns {Promise<ResolvedSignAuthorizationInputs>}
  */
@@ -100,7 +100,7 @@ async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, opti
  * Resolve delegate address, optional chain/nonce via RPC, build impl call, {@code executeWithAuth}, assemble result.
  *
  * @param {SignAuthorizationDeps} deps
- * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Object after {@link encodeAuthProofOptions}
+ * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Object after {@code AuthProofBuilder.prototype.encode}
  * @param {SignAuthorizationOptions} options
  * @returns {Promise<SignedAuthorizationResult>}
  */
