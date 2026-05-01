@@ -750,10 +750,10 @@
  * @typedef {CreateAuthProofBaseOptions & WalletSignatureAuthProofInputOptions } CreateAuthProofWalletSignatureOptions
  */
 
-/**
- * Inputs to build a password-based proof for flows that encode the password path (not the same bytes as {@link PasswordAuthenticatorVerifyAuthProof}).
- * @typedef {CreateAuthProofBaseOptions & PasswordAuthProofInputOptions } CreateAuthProofPasswordOptions
- */
+// /**
+//  * Inputs to build a password-based proof for flows that encode the password path (not the same bytes as {@link PasswordAuthenticatorVerifyAuthProof}).
+//  * @typedef {CreateAuthProofBaseOptions & PasswordAuthProofInputOptions } CreateAuthProofPasswordOptions
+//  */
 
 /**
  * Inputs to build {@link EncodedAuthProofPasswordMinute} (minute-bucket ECDSA path).

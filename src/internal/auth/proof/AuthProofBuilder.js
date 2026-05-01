@@ -1,13 +1,10 @@
 /**
  * Builder: resolves KeyVault {@code authProof} encoding context once and encodes structured inputs via the proof registry.
  *
- * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
- * @typedef {import('../../../types/index.js').ChainId} ChainId
- * @typedef {import('../../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../../types/index.js').EncodeAuthProofInputOptions} EncodeAuthProofInputOptions
  * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
  * @typedef {import('../../../types/index.js').AuthProofInputOptions} AuthProofInputOptions
- * @typedef {import('../../../types/index.js').Address} Address
+ * @typedef {import('../../../types/index.js').AuthProofContext} AuthProofContext
  */
 
 import { requireAddress } from '../../assert.js';
@@ -17,14 +14,11 @@ import { createAuthProofEncoderRegistry } from './registry.js';
 
 export class AuthProofBuilder {
   /**
-   * @param {ContractAddresses} addresses
-   * @param {ChainId} chainId
-   * @param {EthersProvider | null | undefined} readProvider
-   * @param {(keyVaultAddr: Address) => Promise<Address>} getAuthenticatorAddr
+   * @param {AuthProofContext} ctx
    */
-  constructor(addresses, chainId, readProvider, getAuthenticatorAddr) {
-    this._ctx = { addresses, chainId, readProvider, getAuthenticatorAddr };
-    this._registry = createAuthProofEncoderRegistry(addresses);
+  constructor(ctx) {
+    this._ctx = ctx;
+    this._registry = createAuthProofEncoderRegistry(ctx.addresses);
   }
 
   /**

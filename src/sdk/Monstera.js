@@ -134,13 +134,13 @@ class Monstera {
     this.keyVault = new KeyVaultClient(this.readProvider, this.writeSigner, config);
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, config);
 
-    this._authProofBuilder = new AuthProofBuilder(
-      config.addresses,
-      config.chainId,
-      this.readProvider,
-      (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
-    );
-    this._authConfigBuilder = new AuthConfigBuilder(config.addresses);
+    this._authProofBuilder = new AuthProofBuilder({
+      addresses: config.addresses,
+      chainId: config.chainId,
+      readProvider: this.readProvider,
+      getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
+    });
+    this._authConfigBuilder = new AuthConfigBuilder({ addresses: config.addresses });
 
     // Check version in background only when explicitly enabled.
     if (config?.checkVersion === true && !MonsteraUtils.versionCheckDone) {
@@ -920,9 +920,7 @@ class Monstera {
    */
   async isPasswordValid(options = {}) {
     const { keyVaultAddr, currentPassword } = options;
-
     const authProof = currentPassword;
-
     return this.auth.password.verify({ keyVaultAddr, authProof });
   }
 
@@ -1046,13 +1044,11 @@ class Monstera {
    */
   async isPasswordMinuteSignatureValid(options = {}) {
     const { keyVaultAddr, passwordHash } = options;
-
     const proofData = await this.createAuthProofMinuteSignature({
       keyVaultAddr,
       passwordHash
     });
     const authProof = proofData.authProof;
-
     return this.auth.passwordMinuteSignature.verify({ keyVaultAddr, authProof });
   }
 

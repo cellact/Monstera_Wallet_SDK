@@ -1,9 +1,9 @@
 /**
  * Builder: holds create-wallet {@code authConfig} registry context and encodes structured inputs.
  *
- * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../../../types/index.js').EncodeAuthConfigInputOptions} EncodeAuthConfigInputOptions
  * @typedef {import('../../../types/index.js').EncodeAuthConfigOptionsResult} EncodeAuthConfigOptionsResult
+ * @typedef {import('../../../types/index.js').AuthConfigContext} AuthConfigContext
  */
 
 import log from '../../logger.js';
@@ -13,11 +13,11 @@ import { createCreateWalletAuthEncoderRegistry } from './registry.js';
 
 export class AuthConfigBuilder {
   /**
-   * @param {ContractAddresses} addresses
+   * @param {AuthConfigContext} ctx
    */
-  constructor(addresses) {
-    this._ctx = { addresses };
-    this._registry = createCreateWalletAuthEncoderRegistry(addresses);
+  constructor(ctx) {
+    this._ctx = ctx;
+    this._registry = createCreateWalletAuthEncoderRegistry(ctx.addresses);
   }
 
   /**

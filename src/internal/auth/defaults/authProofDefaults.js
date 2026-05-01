@@ -14,7 +14,6 @@ const DEFAULT_DEADLINE_OFFSET_SEC = 3600;
 /**
  * @param {MonsteraConfigOptions} config
  * @param {CreateAuthProofWalletSignatureOptions} options
- * @returns {Pick<CreateAuthProofWalletSignatureOptions, 'signer'|'keyVaultAddr'|'authenticatorAddr'|'deadline'|'chainId'>}
  */
 function withWalletSignatureProofDefaults(config, options = {}) {
   const { signer, keyVaultAddr } = options;
