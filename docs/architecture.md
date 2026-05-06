@@ -6,14 +6,15 @@ The SDK is organized into modular components:
 
 ### Modules
 
+- **`adapters/ethers/`**: Single import boundary for ethers (encoding, signing, hashing, addresses, provider helpers and common re-exports); internal modules prefer this over scattered **`ethers`** imports.
 - **`base/`**: Base classes (`BaseContractClient`), contract wiring (`ContractRegistry`), execution pipeline (`ExecutionPipeline`: reads/writes + error context)
-- **`config/`**: Network presets (networks.js), address defaults, and SDK configuration (monstera.js)
+- **`config/`**: Network presets (networks.js), address defaults, and SDK configuration (monstera.js). Contract addresses resolve from presets and explicit connect-time overrides
 - **`providers/`**: Ethers provider creation and Sapphire wrapper integration
 - **`contracts/`**: Contract ABIs and typed contract getters (core + authenticators)
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Error types, unified **`pipeline.js`** translator chain (`translators/`), and stable codes
-- **`internal/`**: Logger, version check, validation (`assert`), built-in auth encoding (`auth/`: `config/` and `proof/` encoders + registries, `AuthConfigBuilder` / `AuthProofBuilder`, `defaults/authProofDefaults.js`), checksum registry helper (`auth/registryByChecksumAddress.js`), validators (`validators/`), wallet crypto (`crypto/index.js` barrel: `mnemonic.js`, `authorization.js`, `authConfig.js`, `authProof.js`, `signAuthorization.js`) — **not** a public package export
+- **`internal/`**: Logger, version check, validation (`assert`), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth encoding (`auth/`: `config/` and `proof/` encoders + registries, `AuthConfigBuilder` / `AuthProofBuilder`, `defaults/authProofDefaults.js`), checksum registry helper (`auth/registryByChecksumAddress.js`), validators (`validators/`), wallet crypto (`crypto/index.js` barrel: `mnemonic.js`, `authorization.js`, `authConfig.js`, `authProof.js`; **`signAuthorization.js`** is used by `Monstera` but not re-exported from the barrel) — **not** a public package export
 - **`sdk/`**: Main SDK class (`Monstera`) and `MonsteraUtils` (version-check only)
 - **`types/`**: Shared JSDoc type definitions
 - **`bin/`**: CLI tool (monstera command)
@@ -38,6 +39,7 @@ The SDK is organized into modular components:
 
 ```
 src/             # Source code
+  adapters/      # ethers adapter (encoding, signing, …)
   base/          # BaseContractClient, ContractRegistry, ExecutionPipeline
   config/        # Network presets (networks.js), SDK config (monstera.js)
   providers/     # Provider and Sapphire wrapper
@@ -45,7 +47,7 @@ src/             # Source code
   clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor, passwordMinuteSignature)
   events/        # Event definitions and receipt parsing
   errors/        # Error types (single source of truth for error exports)
-  internal/      # logger, versionCheck, version, assert, auth/ (built-in encoders + builders + defaults), validators/, crypto/ (index.js, mnemonic.js, authorization.js, authConfig.js, authProof.js, signAuthorization.js — internal only)
+  internal/      # logger, sanitization/, versionCheck, assert, auth/, validators/, crypto/ (barrel + signAuthorization.js — internal only)
   sdk/           # Monstera, MonsteraUtils
   types/         # Shared JSDoc types
 bin/             # CLI (monstera command)

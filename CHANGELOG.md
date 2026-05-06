@@ -10,12 +10,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **`src/adapters/ethers/`**: Ethers **adapter** surface (`encoding.js`, `signing.js`, `hashing.js`, `addresses.js`, `provider.js`) plus re-exports of common ethers APIs (`Wallet`, `Mnemonic`, `HDNodeWallet`, `Contract`, `ContractFactory`, `Transaction`, formatting helpers, etc.) so SDK internals use one import boundary instead of scattering direct **`ethers`** imports.
+- **Assertions / normalization**: **`normalizeChainId`** and **`requireChainId`** (`src/internal/assert.js`); **`normalizeBigInt`** and **`requireBigInt`** (`src/internal/utils/normalize.js`) for consistent chain ID and bigint handling.
+- **Types (JSDoc)**: **`ResolvedSignAuthorizationInputs`** and related sign-authorization resolution typings (`src/types/index.js`).
 
 ### Changed
 
+- **`src/base/`**: Split **`BaseContractClient`** responsibilities into **`ContractRegistry`** (read/write contract getters) and **`ExecutionPipeline`** (**`executeRead`** / **`executeWrite`**, **`buildErrorContext`** via **`Sanitizer`**, injectable **`sdkErrorPipeline`**). Former **`SapphireWriteWrapper`** behavior lives inside **`ExecutionPipeline`** (the standalone module is removed).
+- **BREAKING — contract address resolution**: Removed on-chain **`ConfigStorage`** registry integration (`src/config/registry.js`, ConfigStorage ABI/contracts, related **`Monstera`** wiring and **`polygon`** helper usage tied to that flow). Contract addresses come from **`config/networks.js`** presets and explicit **`addresses`** / config overrides when connecting—no remote registry fetch.
+- **Auth encoding**: **`AuthProofBuilder`** / **`AuthConfigBuilder`** with **`AuthProofContext`** / **`AuthConfigContext`**; centralized auth-proof validation and defaults (**`applyAuthProofDefaults`** moved under helpers; sensitive parameter list and config validation centralized on **`Monstera`**).
+- **Authenticator registry**: **`getAuthClient`** validates the requested type and uses an allowlisted set of authenticator keys.
+- **Logging**: Redacts sensitive fields in client, registry, and minute-signature debug output; aligns logging with ethers usage.
+- **JSDoc**: Shared ethers and **`WalletError`** typedef usage in base/error surfaces.
+- **Config/registry validation**: Stricter validation and clearer errors when resolving built-in contract address maps (without remote registry).
 - **Error translation pipeline**: Unified **`ErrorPipeline`** / **`sdkErrorPipeline`** in **`src/errors/pipeline.js`** composes **`revert`**, **`network`**, **`signing`**, **`ethersEncoder`**, and **`fallback`** translators (`src/errors/translators/`) so RPC failures, ABI decode/revert data, typed-data signing errors, and fallbacks map consistently to **`WalletError`** subclasses; pipeline **`translate`** / **`rethrow`**, **`applySdkContext`**, and **`rethrowExecuteError`** merge **sanitized** **`sdkContext`** onto errors for stable diagnostics.
 - **Error context sanitization**: **`src/internal/sanitization/`** (**`Sanitizer`**, **`SENSITIVE_PARAM_NAMES`**) strips sensitive keys when enriching errors for logs and structured **`context`**.
-- **Internal auth encoding layout**: Built-in KeyVault / factory auth encoding lives under **`src/internal/auth/`** (`config/`, `proof/`, `defaults/`), with **`AuthProofBuilder`** / **`AuthConfigBuilder`** (wired with **`AuthProofContext`** / **`AuthConfigContext`**) replacing the former `encodeAuthProofOptions` / `encodeAuthConfigOptions` helpers; auth-proof defaults moved to **`internal/auth/defaults/authProofDefaults.js`**. Older changelog entries that mention `src/internal/authenticators/**` describe historical paths only.
+- **Internal auth encoding layout**: Built-in KeyVault / factory auth encoding lives under **`src/internal/auth/`** (`config/`, `proof/`, `defaults/`), with 
+**`AuthProofBuilder`** / **`AuthConfigBuilder`** (wired with **`AuthProofContext`** / **`AuthConfigContext`**) replacing the former `encodeAuthProofOptions` / 
+`encodeAuthConfigOptions` helpers; auth-proof defaults moved to **`internal/auth/defaults/authProofDefaults.js`**. Older changelog entries that mention `src/internal/
+authenticators/**` describe historical paths only.
+
+### Removed
+
+- **`SapphireWriteWrapper`** module (logic moved to **`ExecutionPipeline`**).
+- **ConfigStorage** on-chain registry (**`src/config/registry.js`**, ConfigStorage ABI/contracts, related **`Monstera`** wiring—see breaking note above).
+
+### Fixed
+
+- **Auth registry**: Safer **`Monstera#getAuthClient`** / registry **`getClient`** behavior via type validation and allowlisting.
+
 
 ## [1.0.0-alpha.8] - 2026-04-28
 

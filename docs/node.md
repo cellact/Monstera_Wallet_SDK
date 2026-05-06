@@ -81,6 +81,7 @@ The SDK includes presets for both networks:
 
 ### Address Overrides
 
+Default contract addresses come from **`config/networks.js`** for the selected network.
 You can override default contract addresses when creating the SDK:
 
 ```javascript
