@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0-alpha.9] - 2026-05-06
+
 ### Added
 
 - **`src/adapters/ethers/`**: Ethers **adapter** surface (`encoding.js`, `signing.js`, `hashing.js`, `addresses.js`, `provider.js`) plus re-exports of common ethers APIs (`Wallet`, `Mnemonic`, `HDNodeWallet`, `Contract`, `ContractFactory`, `Transaction`, formatting helpers, etc.) so SDK internals use one import boundary instead of scattering direct **`ethers`** imports.
