@@ -66,6 +66,11 @@ export class Sanitizer {
   /**
    * Redact values for sensitive keys in a shallow context object (error translator / ABI context).
    *
+   * Top-level sensitive keys are redacted. The {@code extraData} bag (e.g. spread into write results) may carry
+   * {@code mnemonic} and other secrets — if {@code extraData} appears on this object, it is sanitized recursively
+   * one level so nested sensitive keys are redacted (write pipelines exclude {@code extraData} from error context
+   * today; this closes the gap if that ever changes).
+   *
    * @param {Record<string, unknown>} ctx
    * @returns {Record<string, unknown>}
    */
@@ -80,6 +85,13 @@ export class Sanitizer {
         out[key] = this.forValidationValue(key, val);
       } else if (key === 'value' && typeof ctx.parameter === 'string' && this.isSensitive(ctx.parameter)) {
         out[key] = this.forValidationValue(ctx.parameter, val);
+      } else if (
+        key === 'extraData' &&
+        val !== null &&
+        typeof val === 'object' &&
+        !Array.isArray(val)
+      ) {
+        out[key] = this.forErrorContext(/** @type {Record<string, unknown>} */ (val));
       } else {
         out[key] = val;
       }

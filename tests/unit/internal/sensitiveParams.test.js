@@ -40,4 +40,33 @@ describe('sanitizer', () => {
       expect(out).toEqual({ a: { b: '[max depth]' } });
     });
   });
+
+  describe('forErrorContext', () => {
+    test('redacts nested mnemonic inside extraData', () => {
+      const out = sanitizer.forErrorContext({
+        client: 'WalletFactoryClient',
+        extraData: {
+          mnemonic: 'abandon abandon abandon'
+        }
+      });
+      expect(out.client).toBe('WalletFactoryClient');
+      expect(out.extraData.mnemonic).toMatchObject({
+        redacted: true,
+        valueKind: 'string',
+        valueLength: 'abandon abandon abandon'.length
+      });
+    });
+
+    test('still redacts top-level mnemonic', () => {
+      const out = sanitizer.forErrorContext({
+        mnemonic: 'word word word',
+        methodName: 'create wallet'
+      });
+      expect(out.mnemonic).toEqual({
+        redacted: true,
+        valueKind: 'string',
+        valueLength: 14
+      });
+    });
+  });
 });

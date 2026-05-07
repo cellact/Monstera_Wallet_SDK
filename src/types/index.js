@@ -252,7 +252,9 @@
  * @property {boolean} [requireEvents=true] - When {@code true} (default), throws if a parsed event from {@code parseEvents} is missing from the receipt.
  *   When {@code false}, absence of those events does not fail the write — use only when the transaction is not expected to emit them.
  *   Invalid {@code eventDef}, ABI decode failures, or mapping errors after a matching log still throw; {@code requireEvents} only controls missing-event handling.
- * @property {Record<string, unknown>} [extraData] - Additional data to include in result (spread into result)
+ * @property {Record<string, unknown>} [extraData] - Additional data to include in result (spread into result). Stripped before
+ *   error-context building so secrets here are not merged into {@code sdkContext} by default; nested sensitive keys inside
+ *   {@code extraData} are still redacted when {@code extraData} is passed through the sanitizer.
  * @property {string} [methodName] - Method name for error context
  * @property {string} [rpcUrl] - RPC URL for error context
  * @property {Record<string, unknown>} [sdkContext] - Pre-built safe context from buildErrorContext (merged into thrown WalletError)
