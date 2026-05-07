@@ -24,7 +24,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getDualFactorAuthenticatorContract } from '../../contracts/authenticators/DualFactorAuthenticator.js';
 import { DualFactorAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes, requireBytes32 } from '../../internal/assert.js';
+import { requireAddress, requireNonEmptyBytes, requireBytes32 } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -85,7 +85,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   async verify(options = {}) {
     const { keyVaultAddr, authProof } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     log.info('DualFactorAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
@@ -161,7 +161,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   async updatePassword(options = {}) {
     const { keyVaultAddr, authProof, newPasswordHash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('DualFactorAuthenticator: updatePassword');
     log.debug('Updating password for keyVault', sanitizer.forLog(options));
@@ -195,7 +195,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   async configure(options = {}) {
     const { keyVaultAddr, authConfig } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authConfig, 'authConfig');
+    requireNonEmptyBytes(authConfig, 'authConfig');
     log.info('DualFactorAuthenticator: configure');
     log.debug('Configuring password dual factor for keyVault', sanitizer.forLog(options));
 
@@ -228,7 +228,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   async updateGuardian(options = {}) {
     const { keyVaultAddr, authProof, newGuardian } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireAddress(newGuardian, 'newGuardian');
     log.info('DualFactorAuthenticator: updateGuardian');
     log.debug('Updating guardian for keyVault to new address', sanitizer.forLog(options));

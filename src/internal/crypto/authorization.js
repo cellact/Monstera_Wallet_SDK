@@ -16,7 +16,7 @@ import {
   hashAuthorization as etherHashAuthorizationTuple,
   verifyAuthorization as etherVerifyAuthorizationTuple
 } from '../../adapters/ethers/signing.js';
-import { requireAddress, requireNonNegativeInteger, requireBytes, requireObject } from '../assert.js';
+import { requireAddress, requireNonNegativeInteger, requireNonEmptyBytes, requireObject } from '../assert.js';
 import { ValidationError } from '../../errors/index.js';
 
 /** @see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-7702.md — authorization digest uses the same preimage as ethers `hashAuthorization`. */
@@ -157,7 +157,7 @@ function toChecksumAddress(address) {
  * @returns {AuthorizationSplitSignature}
  */
 function decodeSignAuthorizationResult(returnData) {
-  requireBytes(returnData, 'returnData');
+  requireNonEmptyBytes(returnData, 'returnData');
   const decoded = defaultAbiCoder.decode(['bytes32', 'bytes32', 'uint8'], returnData);
   const yParityNum = Number(decoded[2]);
   if (yParityNum !== 0 && yParityNum !== 1) {

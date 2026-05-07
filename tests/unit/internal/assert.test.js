@@ -9,6 +9,7 @@ import {
   isAddress,
   requireAddress,
   requireBytes,
+  requireNonEmptyBytes,
   requireString,
   requireMnemonic,
   requireNumber,
@@ -126,6 +127,30 @@ describe('Assert Utilities', () => {
         test('throws error for non string bytes', () => {
             const bytes = { bytes: VALID_TEST_ADDRESS };
             expect(() => requireBytes(bytes)).toThrow('must be a string (hex) or Uint8Array');
+        });
+
+        test('allows empty hex 0x for requireBytes', () => {
+            expect(() => requireBytes('0x')).not.toThrow();
+        });
+    });
+
+    describe('requireNonEmptyBytes', () => {
+        test('does not throw for non-empty hex', () => {
+            expect(() => requireNonEmptyBytes('0x00')).not.toThrow();
+        });
+
+        test('does not throw for non-empty Uint8Array', () => {
+            expect(() => requireNonEmptyBytes(new Uint8Array([0]))).not.toThrow();
+        });
+
+        test('throws for empty hex 0x', () => {
+            expect(() => requireNonEmptyBytes('0x')).toThrow('bytes must be non-empty bytes');
+        });
+
+        test('throws for length-0 Uint8Array', () => {
+            expect(() => requireNonEmptyBytes(new Uint8Array(), 'calldata')).toThrow(
+                'calldata must be non-empty bytes'
+            );
         });
     });
 

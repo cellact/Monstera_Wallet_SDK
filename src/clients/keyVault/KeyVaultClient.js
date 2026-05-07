@@ -41,6 +41,7 @@ import { KeyVaultEvents } from '../../events/index.js';
 import {
   requireAddress,
   requireBytes,
+  requireNonEmptyBytes,
   requireBytes32,
   requireNonNegativeInteger,
   requireString
@@ -223,7 +224,7 @@ class KeyVaultClient extends BaseContractClient {
   async signTransaction(options = {}) {
     const { keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireNonNegativeInteger(nonce, 'nonce');
     requireNonNegativeInteger(gasPrice, 'gasPrice');
@@ -256,7 +257,7 @@ class KeyVaultClient extends BaseContractClient {
   async signMessage(options = {}) {
     const { keyVaultAddr, authProof, index, message } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
     log.info('KeyVault: signMessage');
@@ -283,7 +284,7 @@ class KeyVaultClient extends BaseContractClient {
   async sign(options = {}) {
     const { keyVaultAddr, authProof, index, hash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes32(hash, 'hash');
     log.info('KeyVault: sign');
@@ -310,8 +311,8 @@ class KeyVaultClient extends BaseContractClient {
   async executeWithAuth(options = {}) {
     const { keyVaultAddr, authProof, implCall } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
-    requireBytes(implCall, 'implCall');
+    requireNonEmptyBytes(authProof, 'authProof');
+    requireNonEmptyBytes(implCall, 'implCall');
     log.info('KeyVault: executeWithAuth');
     log.debug('Executing function with auth for keyVault', sanitizer.forLog(options));
 
@@ -412,7 +413,7 @@ class KeyVaultClient extends BaseContractClient {
   async signWithImportedKey(options = {}) {
     const { keyVaultAddr, authProof, keyId, digest } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireBytes32(keyId, 'keyId');
     requireBytes32(digest, 'digest');
     log.info('KeyVault: signWithImportedKey');
@@ -489,7 +490,7 @@ class KeyVaultClient extends BaseContractClient {
   async signSolana(options = {}) {
     const { keyVaultAddr, authProof, index, message } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
     log.info('KeyVault: signSolana');
@@ -550,7 +551,7 @@ class KeyVaultClient extends BaseContractClient {
   async updateKeyVaultImplAddr(options = {}) {
     const { keyVaultAddr, authProof, newImplAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
     log.info('KeyVault: updateKeyVaultImplAddr');
     log.debug('Updating keyVault implementation address', sanitizer.forLog(options));
@@ -583,9 +584,9 @@ class KeyVaultClient extends BaseContractClient {
   async updateAuthenticatorAddr(options = {}) {
     const { keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
-    requireBytes(newAuthConfig, 'newAuthConfig');
+    requireNonEmptyBytes(newAuthConfig, 'newAuthConfig');
     log.info('KeyVault: updateAuthenticatorAddr');
     log.debug('Updating authenticator address for keyVault', sanitizer.forLog(options));
     
@@ -617,9 +618,9 @@ class KeyVaultClient extends BaseContractClient {
   async importKey(options = {}) {
     const { keyVaultAddr, authProof, keyId, privateKey, publicKey, curve, chain, label } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireBytes32(keyId, 'keyId');
-    requireBytes(privateKey, 'privateKey');
+    requireNonEmptyBytes(privateKey, 'privateKey');
     requireBytes(publicKey ?? '0x', 'publicKey');
     requireNonNegativeInteger(curve, 'curve');
     requireNonNegativeInteger(chain, 'chain');
@@ -655,7 +656,7 @@ class KeyVaultClient extends BaseContractClient {
   async deactivateKey(options = {}) {
     const { keyVaultAddr, authProof, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireBytes32(keyId, 'keyId');
     log.info('KeyVault: deactivateKey');
     log.debug('Deactivating key in keyVault', sanitizer.forLog(options));
@@ -688,7 +689,7 @@ class KeyVaultClient extends BaseContractClient {
   async activateKey(options = {}) {
     const { keyVaultAddr, authProof, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireBytes32(keyId, 'keyId');
     log.info('KeyVault: activateKey');
     log.debug('Activating key in keyVault', sanitizer.forLog(options));
@@ -720,10 +721,10 @@ class KeyVaultClient extends BaseContractClient {
   async setChainBaseKeys(options = {}) {
     const { keyVaultAddr, authProof, chain, basePrivateKey, baseChainCode } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireNonNegativeInteger(chain, 'chain');
-    requireBytes(basePrivateKey, 'basePrivateKey');
-    requireBytes(baseChainCode, 'baseChainCode');
+    requireNonEmptyBytes(basePrivateKey, 'basePrivateKey');
+    requireNonEmptyBytes(baseChainCode, 'baseChainCode');
     log.info('KeyVault: setChainBaseKeys');
     log.debug('Setting chain base keys for keyVault', sanitizer.forLog(options));
 

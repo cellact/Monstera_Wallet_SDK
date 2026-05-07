@@ -24,7 +24,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletSignatureAuthenticatorContract } from '../../contracts/authenticators/WalletSignatureAuthenticator.js';
 import { WalletSignatureAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes } from '../../internal/assert.js';
+import { requireAddress, requireNonEmptyBytes } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -149,7 +149,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async verify(options = {}) {
     const { keyVaultAddr, authProof } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     log.info('WalletSignatureAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
@@ -181,7 +181,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async addToWhitelist(options = {}) {
     const { keyVaultAddr, authProof, addressToAdd } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireAddress(addressToAdd, 'addressToAdd');
     log.info('WalletSignatureAuthenticator: addToWhitelist');
     log.debug('Adding address to whitelist for keyVault', sanitizer.forLog(options));
@@ -215,7 +215,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async configure(options = {}) {
     const { keyVaultAddr, authConfig } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authConfig, 'authConfig');
+    requireNonEmptyBytes(authConfig, 'authConfig');
     log.info('WalletSignatureAuthenticator: configure');
     log.debug('Configuring wallet signature authenticator for keyVault', sanitizer.forLog(options));
 
@@ -248,7 +248,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async removeFromWhitelist(options = {}) {
     const { keyVaultAddr, authProof, addressToRemove } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
     requireAddress(addressToRemove, 'addressToRemove');
     log.info('WalletSignatureAuthenticator: removeFromWhitelist');
     log.debug('Removing address from whitelist for keyVault', sanitizer.forLog(options));

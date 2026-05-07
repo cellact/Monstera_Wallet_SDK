@@ -47,6 +47,7 @@ function requireAddress(value, name = 'address') {
  * @throws {ValidationError} If value is missing, not a valid bytes string or Uint8Array ({@link requireUtf8Bytes})
  */
 function requireBytes(value, name = 'bytes') {
+  // Allows `0x` (empty hex); use {@link requireNonEmptyBytes} when empty bytes are invalid.
   if (value === undefined || value === null) {
     throw new ValidationError(`${name} is required`, name, value);
   }
@@ -70,6 +71,26 @@ function requireBytes(value, name = 'bytes') {
   }
   
   throw new ValidationError(`${name} must be a string (hex) or Uint8Array`, name, value);
+}
+
+/**
+ * Require non-empty bytes: valid hex or Uint8Array per {@link requireBytes}, but not `0x` or length-0 Uint8Array.
+ *
+ * @param {string|Uint8Array} value - Value to validate
+ * @param {string} name - Parameter name for error message
+ * @throws {ValidationError} If value fails {@link requireBytes} or is empty
+ */
+function requireNonEmptyBytes(value, name = 'bytes') {
+  requireBytes(value, name);
+  if (value instanceof Uint8Array) {
+    if (value.length === 0) {
+      throw new ValidationError(`${name} must be non-empty bytes`, name, value);
+    }
+    return;
+  }
+  if (typeof value === 'string' && value === '0x') {
+    throw new ValidationError(`${name} must be non-empty bytes`, name, value);
+  }
 }
 
 /**
@@ -373,6 +394,7 @@ export {
   isAddress,
   requireAddress,
   requireBytes,
+  requireNonEmptyBytes,
   requireString,
   requireMnemonic,
   requireNumber,
