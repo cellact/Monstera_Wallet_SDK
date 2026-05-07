@@ -30,9 +30,22 @@ describe('internal/utils/time', () => {
       expect(floorTimestampToMinuteBucket(1735689625)).toBe(1735689600);
     });
 
-    test('should coerce numeric-like values with Number()', () => {
-      expect(floorTimestampToMinuteBucket(Number('120'))).toBe(120);
-      expect(floorTimestampToMinuteBucket(/** @type {any} */ ('180'))).toBe(180);
+    test('should throw for non-number and invalid inputs', () => {
+      expect(() => floorTimestampToMinuteBucket(/** @type {any} */ ('180'))).toThrow(
+        'timestampSeconds must be a finite non-negative integer'
+      );
+      expect(() => floorTimestampToMinuteBucket(/** @type {any} */ (NaN))).toThrow(
+        'timestampSeconds must be a finite non-negative integer'
+      );
+      expect(() => floorTimestampToMinuteBucket(/** @type {any} */ (Infinity))).toThrow(
+        'timestampSeconds must be a finite non-negative integer'
+      );
+      expect(() => floorTimestampToMinuteBucket(12.5)).toThrow(
+        'timestampSeconds must be a finite non-negative integer'
+      );
+      expect(() => floorTimestampToMinuteBucket(-1)).toThrow(
+        'timestampSeconds must be a finite non-negative integer'
+      );
     });
   });
 });

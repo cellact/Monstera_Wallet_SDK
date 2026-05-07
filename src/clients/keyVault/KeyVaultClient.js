@@ -75,6 +75,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getStorageAddr(options = {}) {
     const { keyVaultAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('KeyVault: getStorageAddr');
     log.debug('Getting storage address for keyVault', sanitizer.forLog(options));
 
@@ -98,6 +99,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getAuthenticatorAddr(options = {}) {
     const { keyVaultAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('KeyVault: getAuthenticatorAddr');
     log.debug('Getting authenticator address for keyVault', sanitizer.forLog(options));
 
@@ -121,6 +123,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getKeyVaultImplAddr(options = {}) {
     const { keyVaultAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('KeyVault: getKeyVaultImplAddr');
     log.debug('Getting keyVault implementation address for keyVault', sanitizer.forLog(options));
 
@@ -144,6 +147,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async isInitialized(options = {}) {
     const { keyVaultAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('KeyVault: isInitialized');
     log.debug('Checking if keyVault is initialized', sanitizer.forLog(options)); 
 
@@ -167,6 +171,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getAccountAddr(options = {}) {
     const { keyVaultAddr, index } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonNegativeInteger(index, 'index');
     log.info('KeyVault: getAccountAddr');
     log.debug('Getting account address for keyVault at index', sanitizer.forLog(options));
@@ -191,6 +196,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async getAccountAddresses(options = {}) {
     const { keyVaultAddr, fromIndex, count } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
     log.info('KeyVault: getAccountAddresses');
@@ -216,6 +222,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async signTransaction(options = {}) {
     const { keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireNonNegativeInteger(nonce, 'nonce');
@@ -248,6 +255,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async signMessage(options = {}) {
     const { keyVaultAddr, authProof, index, message } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
@@ -274,6 +282,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async sign(options = {}) {
     const { keyVaultAddr, authProof, index, hash } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes32(hash, 'hash');
@@ -300,6 +309,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async executeWithAuth(options = {}) {
     const { keyVaultAddr, authProof, implCall } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     requireBytes(implCall, 'implCall');
     log.info('KeyVault: executeWithAuth');
@@ -539,6 +549,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async updateKeyVaultImplAddr(options = {}) {
     const { keyVaultAddr, authProof, newImplAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
     log.info('KeyVault: updateKeyVaultImplAddr');
@@ -571,6 +582,7 @@ class KeyVaultClient extends BaseContractClient {
    */
   async updateAuthenticatorAddr(options = {}) {
     const { keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');

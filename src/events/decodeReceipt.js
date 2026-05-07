@@ -27,30 +27,27 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
 
   const iface = contract.interface;
 
-  // Find the event log
-  const eventLog = receipt.logs.find((logEntry) => {
+  // Find and parse the first matching event log in one pass.
+  let parsedEvent = null;
+  for (const logEntry of receipt.logs) {
     try {
       const parsed = iface.parseLog(logEntry);
-      return parsed?.name === eventName;
+      if (parsed?.name === eventName) {
+        parsedEvent = parsed;
+        break;
+      }
     } catch {
-      return false;
+      // Ignore logs that do not belong to this interface or do not decode cleanly.
     }
-  });
+  }
 
-  if (!eventLog) {
+  if (!parsedEvent) {
     log.debug('parseEvent: event not found in receipt', { eventName, receiptHash: receipt?.hash });
     return null;
   }
 
-  // Parse the event
+  // Map contract args to return fields
   try {
-    const parsedEvent = iface.parseLog(eventLog);
-
-    if (!parsedEvent || parsedEvent.name !== eventName) {
-      return null;
-    }
-
-    // Map contract args to return fields
     const result = {};
     for (const [returnField, contractArg] of Object.entries(fieldMapping)) {
       result[returnField] = parsedEvent.args?.[contractArg];

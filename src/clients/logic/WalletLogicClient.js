@@ -57,6 +57,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getKeyVaultAddr(options = {}) {
     const { walletAddr } = options;
+    requireAddress(walletAddr, 'walletAddr');
     log.info('WalletLogic: getKeyVaultAddr');
     log.debug('Getting keyVault address for wallet', sanitizer.forLog(options));
 
@@ -80,6 +81,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async get_key_vault_addr(options = {}) {
     const { walletAddr } = options;
+    requireAddress(walletAddr, 'walletAddr');
     log.info('WalletLogic: get_key_vault_addr');
     log.debug('Getting keyVault address for wallet', sanitizer.forLog(options));
 
@@ -103,6 +105,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getAuthenticatorAddr(options = {}) {
     const { walletAddr } = options;
+    requireAddress(walletAddr, 'walletAddr');
     log.info('WalletLogic: getAuthenticatorAddr');
     log.debug('Getting authenticator address for wallet', sanitizer.forLog(options));
 
@@ -126,6 +129,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async isInitialized(options = {}) {
     const { walletAddr } = options;
+    requireAddress(walletAddr, 'walletAddr');
     log.info('WalletLogic: isInitialized');
     log.debug('Checking if wallet is initialized', sanitizer.forLog(options));
 
@@ -149,6 +153,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getAccountAddr(options = {}) {
     const { walletAddr, index } = options;
+    requireAddress(walletAddr, 'walletAddr');
     requireNonNegativeInteger(index, 'index');
     log.info('WalletLogic: getAccountAddr');
     log.debug('Getting account address for wallet at index', sanitizer.forLog(options));
@@ -173,6 +178,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async getAccountAddresses(options = {}) {
     const { walletAddr, fromIndex, count } = options;
+    requireAddress(walletAddr, 'walletAddr');
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
     log.info('WalletLogic: getAccountAddresses');
@@ -200,6 +206,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async signTransaction(options = {}) {
     const { walletAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId } = options;
+    requireAddress(walletAddr, 'walletAddr');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireNonNegativeInteger(nonce, 'nonce');
@@ -234,6 +241,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async signMessage(options = {}) {
     const { walletAddr, authProof, index, message } = options;
+    requireAddress(walletAddr, 'walletAddr');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes(message, 'message');
@@ -262,6 +270,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async sign(options = {}) {
     const { walletAddr, authProof, index, hash } = options;
+    requireAddress(walletAddr, 'walletAddr');
     requireBytes(authProof, 'authProof');
     requireNonNegativeInteger(index, 'index');
     requireBytes32(hash, 'hash');
@@ -294,6 +303,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async initialize(options = {}) {
     const { walletAddr, keyVaultAddr } = options;
+    requireAddress(walletAddr, 'walletAddr');
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     log.info('WalletLogic: initialize');
     log.debug('Initializing wallet logic with keyVault', sanitizer.forLog(options));
@@ -323,6 +333,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async updateAuthenticatorAddr(options = {}) {
     const { walletAddr, authProof, newAuthenticatorAddr, newAuthConfig } = options;
+    requireAddress(walletAddr, 'walletAddr');
     requireBytes(authProof, 'authProof');
     requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
     requireBytes(newAuthConfig, 'newAuthConfig');
@@ -358,6 +369,7 @@ class WalletLogicClient extends BaseContractClient {
    */
   async updateKeyVaultImplAddr(options = {}) {
     const { walletAddr, authProof, newImplAddr } = options;
+    requireAddress(walletAddr, 'walletAddr');
     requireBytes(authProof, 'authProof');
     requireAddress(newImplAddr, 'newImplAddr');
     log.info('WalletLogic: updateKeyVaultImplAddr');
