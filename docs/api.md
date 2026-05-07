@@ -47,6 +47,8 @@ Create a new wallet with auto-generated mnemonic.
 }
 ```
 
+The mnemonic is returned **intentionally** so you can back it up. It stays in memory until the promise resolves (and while your code holds the result). Treat it as a secret—avoid logging it and store it safely.
+
 ### `sdk.createWalletFromMnemonic(options)`
 
 Create a new wallet from a provided mnemonic.
@@ -135,10 +137,11 @@ await sdk.getSecretVaultAddr({ walletAddr });
 await sdk.updateWalletLogicImplAddr({ newLogicAddr });
 await sdk.transferAdmin({ newAdminAddr });
 
-// Logic client - wallet operations and account management
+// Logic client (`sdk.logic`) — WalletLogic proxy contract. Monstera wraps `initializeWalletLogic` here only;
+// prefer KeyVault methods on `sdk` below for signing and accounts (WalletLogic delegates to KeyVault anyway).
 await sdk.initializeWalletLogic({ walletAddr, keyVaultAddr });
 
-// KeyVault client - key vault operations and signing
+// KeyVault-shaped API on `sdk` — signing, accounts, upgrades (`keyVaultAddr`)
 // authProof may be hex bytes, Uint8Array, or a plain object when the vault uses a built-in authenticator
 // (shape matches that authenticator, e.g. { password: Uint8Array } for password auth — see types in src/types/index.js)
 await sdk.getKeyVaultStorageAddr({ keyVaultAddr });

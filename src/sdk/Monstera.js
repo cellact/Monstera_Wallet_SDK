@@ -493,6 +493,9 @@ class Monstera {
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
+   *
+   * @remarks
+   * Mnemonic backup and memory handling: {@link WalletFactoryClient#createWallet}.
    */
   async createWallet(options = {}) {
     return this.factory.createWallet(
@@ -514,6 +517,9 @@ class Monstera {
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
+   *
+   * @remarks
+   * Mnemonic on the result: {@link WalletFactoryClient#createWalletFromMnemonic}.
    */
   async createWalletFromMnemonic(options = {}) {
     return this.factory.createWalletFromMnemonic(
@@ -538,6 +544,9 @@ class Monstera {
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
+   *
+   * @remarks
+   * Mnemonic handling: {@link WalletFactoryClient#createWallet}.
    */
   async createWalletWithHook(options = {}) {
     return this.factory.createWalletWithHook(
@@ -557,6 +566,7 @@ class Monstera {
    *
    * @remarks
    * See {@link WalletFactoryClient#createWalletCore}: {@code wallet} and {@code keyVault} in the result are the same address for this flow.
+   * Mnemonic handling: {@link WalletFactoryClient#createWallet}.
    *
    * @param {CreateWalletBaseOptions} options - Wallet creation options
    * @returns {Promise<WalletCreationResult>}
@@ -582,7 +592,10 @@ class Monstera {
    * Unlike default BeaconProxy wallets:
    * - Custom logic wallets are NOT affected by admin beacon updates
    * - Each wallet gets its own independent clone
-   * 
+   *
+   * @remarks
+   * Mnemonic handling: {@link WalletFactoryClient#createWallet}.
+   *
    * @param {CreateWalletWithCustomLogicOptions} options - Wallet creation options
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If required parameters are missing or invalid

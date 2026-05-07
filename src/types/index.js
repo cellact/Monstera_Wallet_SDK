@@ -193,6 +193,9 @@
  *
  * For {@code createWalletCore} only, {@code wallet} and {@code keyVault} are the same address (KeyVault-only deployment).
  *
+ * {@code mnemonic} is included so callers can back up the phrase (generated or echoed from input). It stays in memory until the write
+ * completes and while the result is held; treat as a secret and avoid logging.
+ *
  * @typedef {BaseTransactionResult & { wallet: Address; keyVault: Address; storage: Address; authenticator: Address; mnemonic: Mnemonic }} WalletCreationResult
  */
 

@@ -31,7 +31,7 @@ import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletFactoryContract } from '../../contracts/core/walletFactory.js';
 import { WalletFactoryEvents } from '../../events/index.js';
 import { generateMnemonic, deriveSeed } from '../../internal/crypto/index.js';
-import { requireAddress, requireBytes, requireMnemonic } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireMnemonic, requireNonEmptyBytes } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -55,9 +55,13 @@ class WalletFactoryClient extends BaseContractClient {
 
   /**
    * Prepare wallet creation by generating mnemonic and deriving seed
-   * 
+   *
    * @private
    * @returns {{ mnemonic: Mnemonic; seed: Bytes }} Object containing generated mnemonic and derived seed
+   * @remarks
+   * The mnemonic string stays reachable while {@link BaseContractClient#executeWrite} runs (submit tx, wait for receipt, parse events).
+   * Callers attach it to the result via {@code extraData} so integrators can back up the phrase — intentional, not accidental exposure through the pipeline.
+   * JavaScript cannot reliably zero-fill string secrets; minimizing retention is limited to not holding the result longer than necessary.
    */
   _prepareWalletCreation() {
     // Off-chain: Generate mnemonic
@@ -67,20 +71,6 @@ class WalletFactoryClient extends BaseContractClient {
     const seed = deriveSeed(mnemonic);
     
     return { mnemonic, seed };
-  }
-
-  /**
-   * Resolve authenticator contract address with default fallback
-   * 
-   * Standardizes default parameter handling for authenticator contract addresses.
-   * If no authenticator contract address is provided, defaults to PasswordAuthenticator.
-   * 
-   * @private
-   * @param {Address} [authenticatorAddr] - Optional authenticator contract address
-   * @returns {Address} Authenticator address (provided or default)
-   */
-  _resolveAuthenticator(authenticatorAddr) {
-    return authenticatorAddr || this.config.addresses.passwordAuth;
   }
 
   // ============================================================================
@@ -263,15 +253,18 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
-   * 
+   *
+   * @remarks
+   * {@link WalletCreationResult.mnemonic} is the generated phrase, returned on purpose for backup (see {@link WalletCreationResult}).
+   * It exists in memory until this write settles and while the caller retains the result; handle and store it as a high-value secret.
    */
   async createWallet(options = {}) {
     const { authConfig } = options;
-    requireBytes(authConfig, 'authConfig');
+    requireNonEmptyBytes(authConfig, 'authConfig');
     log.info('WalletFactory: createWallet');
     log.debug('Creating wallet', sanitizer.forLog(options));
 
-    const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
     const { mnemonic, seed } = this._prepareWalletCreation();
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
@@ -305,16 +298,18 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
-   * 
+   *
+   * @remarks
+   * {@link WalletCreationResult.mnemonic} echoes the caller-supplied phrase for a uniform result shape (same security expectations as {@link WalletFactoryClient#createWallet}).
    */
   async createWalletFromMnemonic(options = {}) {
     const { authConfig, mnemonic } = options;
-    requireBytes(authConfig, 'authConfig');
+    requireNonEmptyBytes(authConfig, 'authConfig');
     requireMnemonic(mnemonic, 'mnemonic');
     log.info('WalletFactory: createWalletFromMnemonic');
     log.debug('Creating wallet from mnemonic', sanitizer.forLog(options));
 
-    const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
     const seed = deriveSeed(mnemonic);
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
@@ -351,16 +346,19 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
+   *
+   * @remarks
+   * Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
    */
   async createWalletWithHook(options = {}) {
     const { authConfig, hookAddr, hookData } = options;
-    requireBytes(authConfig, 'authConfig');
+    requireNonEmptyBytes(authConfig, 'authConfig');
     requireAddress(hookAddr, 'hookAddr');
     requireBytes(hookData, 'hookData');
     log.info('WalletFactory: createWalletWithHook');
     log.debug('Creating wallet with post-creation hook', sanitizer.forLog(options));
 
-    const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
     const { mnemonic, seed } = this._prepareWalletCreation();
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
@@ -389,9 +387,15 @@ class WalletFactoryClient extends BaseContractClient {
    * 
    * Use this when you want to interact with KeyVault directly,
    * or when deploying your own custom logic contract separately.
-   * 
+   *
+   * @remarks
+   * The returned {@link WalletCreationResult} is parsed from the same {@code WalletCreated} event as full wallet creation.
+   * For this core-only path the factory records the KeyVault address as both {@code wallet} and {@code keyVault};
+   * identical values are intentional (KeyVault is the wallet address here), not an event-parsing mistake.
+   * Mnemonic in the result: see {@link WalletFactoryClient#createWallet}.
+   *
    * @param {FactoryClientCreateWalletBaseOptions} options - Wallet creation options ({@code authConfig} must be encoded)
-   * @returns {Promise<WalletCreationResult>} 
+   * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
@@ -399,11 +403,11 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async createWalletCore(options = {}) {
     const { authConfig } = options;
-    requireBytes(authConfig, 'authConfig');
+    requireNonEmptyBytes(authConfig, 'authConfig');
     log.info('WalletFactory: createWalletCore');
     log.debug('Creating wallet core (storage + keyVault only)', sanitizer.forLog(options));
 
-    const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
     const { mnemonic, seed } = this._prepareWalletCreation();
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
     
@@ -441,16 +445,19 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {WriteRequiresSignerError} If writeSigner is not available
    * @throws {ContractRevertError} If transaction reverts
    * @throws {EventNotFoundError} If expected event is not found in receipt
+   *
+   * @remarks
+   * Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
    */
   async createWalletWithCustomLogic(options = {}) {
     const { authConfig, customLogicImplAddr, logicData } = options;
-    requireBytes(authConfig, 'authConfig');
+    requireNonEmptyBytes(authConfig, 'authConfig');
     requireAddress(customLogicImplAddr, 'customLogicImplAddr');
-    requireBytes(logicData, 'logicData');
+    requireNonEmptyBytes(logicData, 'logicData');
     log.info('WalletFactory: createWalletWithCustomLogic');
     log.debug('Creating wallet with custom logic implementation', sanitizer.forLog(options));
 
-    const authenticatorAddr = this._resolveAuthenticator(options.authenticatorAddr);
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
     const { mnemonic, seed } = this._prepareWalletCreation();
     const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
 
