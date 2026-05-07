@@ -75,7 +75,7 @@ async function main() {
     newPasswordHash: newPasswordHash
   });
   console.log("   Transaction:", result.transactionHash);
-  console.log("   Wallet Address (KeyVault address):", result.walletAddr);
+  console.log("   Wallet Address (KeyVault address):", result.wallet);
   console.log("   Gas Used:", result.gasUsed);
   console.log("   Block Number:", result.blockNumber);
   console.log("=".repeat(60));

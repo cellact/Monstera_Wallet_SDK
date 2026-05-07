@@ -10,6 +10,7 @@
 
 import { ValidationError, EventParseError } from '../errors/index.js';
 import log from '../internal/logger.js';
+import { sanitizer } from '../internal/sanitization/index.js';
 
 /**
  * Generic event parser
@@ -37,7 +38,7 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
         break;
       }
     } catch {
-      // Ignore logs that do not belong to this interface or do not decode cleanly.
+      log.debug('parseEvent: log does not belong to this interface or does not decode cleanly', { logEntry: sanitizer.forLog(logEntry) });
     }
   }
 

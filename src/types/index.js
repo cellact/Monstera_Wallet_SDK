@@ -200,7 +200,7 @@
 
 /** @typedef {BaseTransactionResult & { newAdmin?: Address; factoryAddress?: Address }} TransferAdminResult */
 
-/** @typedef {BaseTransactionResult & { walletAddr?: Address }} UpdatePasswordResult */
+/** @typedef {BaseTransactionResult & { wallet?: Address }} UpdatePasswordResult */
 
 /**
  * Shared shape for admin updates that swap a proxy implementation (WalletLogic or KeyVault).

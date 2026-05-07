@@ -124,7 +124,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
 
     const passwordAuth = this.getWriteContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
 
-    const result = await this.executeWrite(
+    return this.executeWrite(
       {
         operation: () => passwordAuth.changePassword(keyVaultAddr, currentPassword, newPasswordHash),
         methodName: 'change password',
@@ -136,14 +136,6 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
         ...options
       }
     );
-    
-    // Map wallet to walletAddr for consistency with original API
-    if (result.wallet) {
-      result.walletAddr = result.wallet;
-      delete result.wallet; // Remove wallet field to match original API
-    }
-
-    return result;
   }
 
   /**

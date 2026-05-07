@@ -168,7 +168,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
 
     const dualFactorAuth = this.getWriteContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
 
-    const result = await this.executeWrite(
+    return this.executeWrite(
       {
         operation: () => dualFactorAuth.changePassword(keyVaultAddr, authProof, newPasswordHash),
         methodName: 'change password dual factor',
@@ -180,14 +180,6 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
         ...options
       }
     );
-    
-    // Map wallet to walletAddr for consistency with original API
-    if (result.wallet) {
-      result.walletAddr = result.wallet;
-      delete result.wallet; // Remove wallet field to match original API
-    }
-
-    return result;
   }
 
   /**
