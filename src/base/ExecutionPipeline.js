@@ -218,6 +218,10 @@ export default class ExecutionPipeline {
    * @param {() => Promise<any>} txFn
    * @param {ExecuteWriteOptions} options
    * @returns {Promise<TResult>}
+   * 
+   * @remarks
+   * When {@code requireEvents} is {@code false}, an empty {@code eventData} from parsing skips {@link EventNotFoundError};
+   * thrown errors from invalid {@code eventDef} or {@link EventParseError} during decode/mapping still propagate.
    */
   async _executeWriteTransaction(txFn, options = {}) {
     const {

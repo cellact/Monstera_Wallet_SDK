@@ -1,9 +1,13 @@
 /**
  * WalletLogicClient
- * 
- * Client for interacting with WalletLogic contract methods.
- * Handles wallet operations, signing, and account management.
- * 
+ *
+ * Client for interacting with WalletLogic contract methods (wallet proxy / orchestration).
+ *
+ * @remarks
+ * Authenticated reads and writes here delegate to KeyVault under the hood. {@link Monstera} exposes the KeyVault-shaped
+ * API on the main class (`keyVaultAddr`); use this client when you need the WalletLogic contract surface with
+ * `walletAddr` (proxy address), e.g. {@link WalletLogicClient#initialize} after deployment.
+ *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig

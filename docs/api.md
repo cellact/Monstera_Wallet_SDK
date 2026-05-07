@@ -78,7 +78,7 @@ Create a wallet core (KeyVault + Storage only, no WalletLogic proxy).
 - `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
-**Returns:** Same as `createWallet()`
+**Returns:** Same `WalletCreationResult` shape as `createWallet()`. For this method, `wallet` and `keyVault` are intentionally the same address (the KeyVault contract is the wallet for this deployment); that is not an SDK parsing bug.
 
 ### `sdk.createWalletWithCustomLogic(options)`
 

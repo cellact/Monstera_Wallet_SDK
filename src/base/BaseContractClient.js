@@ -90,6 +90,10 @@ class BaseContractClient {
    * Any additional properties in options (besides operation, methodName, parseEvents, requireEvents, extraData)
    * are included in the error context.
    *
+   * @remarks
+   * {@link ExecuteWriteOptions} describes {@code requireEvents}: {@code false} suppresses missing-event failures only;
+   * invalid event definitions and decode/mapping errors after logs match still throw.
+   *
    * @template TResult extends BaseTransactionResult
    * @param {ExecuteWriteInputOptions} options - Complete options for the write operation
    * @returns {Promise<TResult>}

@@ -1,9 +1,13 @@
 /**
  * KeyVaultClient
- * 
+ *
  * Client for interacting with KeyVault contract methods.
  * Handles key vault operations, signing, and account management.
- * 
+ *
+ * @remarks
+ * This is the preferred contract surface from {@link Monstera}: signing and account helpers take `keyVaultAddr`.
+ * WalletLogic exposes parallel proxy methods that forward to KeyVault; using KeyVault directly avoids an extra hop.
+ *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig

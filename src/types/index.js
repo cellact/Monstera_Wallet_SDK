@@ -188,7 +188,13 @@
  * @property {string} gasUsed - Gas used (as string)
  */
 
-/** @typedef {BaseTransactionResult & { wallet: Address; keyVault: Address; storage: Address; authenticator: Address; mnemonic: Mnemonic }} WalletCreationResult */
+/**
+ * Result of factory {@code createWallet*} methods ({@link WalletCreationResult} fields come from {@code WalletCreated}).
+ *
+ * For {@code createWalletCore} only, {@code wallet} and {@code keyVault} are the same address (KeyVault-only deployment).
+ *
+ * @typedef {BaseTransactionResult & { wallet: Address; keyVault: Address; storage: Address; authenticator: Address; mnemonic: Mnemonic }} WalletCreationResult
+ */
 
 /** @typedef {BaseTransactionResult & { wallet: Address }} ConfigurePasswordResult */
 
@@ -240,7 +246,9 @@
  * @property {EthersProvider|null} [readProvider] - Provider for replaying failed txs via {@code eth_call} to recover revert data (ethers v6 omits it on {@code tx.wait()} failures)
  * @property {EthersInterface|null} [revertInterface] - ABI interface used to decode custom Solidity errors from revert data
  * @property {Array<ParseEventOptions>} [parseEvents] - Array of event definitions to parse
- * @property {boolean} [requireEvents=true] - Whether to throw if events are not found
+ * @property {boolean} [requireEvents=true] - When {@code true} (default), throws if a parsed event from {@code parseEvents} is missing from the receipt.
+ *   When {@code false}, absence of those events does not fail the write — use only when the transaction is not expected to emit them.
+ *   Invalid {@code eventDef}, ABI decode failures, or mapping errors after a matching log still throw; {@code requireEvents} only controls missing-event handling.
  * @property {Record<string, unknown>} [extraData] - Additional data to include in result (spread into result)
  * @property {string} [methodName] - Method name for error context
  * @property {string} [rpcUrl] - RPC URL for error context
@@ -264,6 +272,9 @@
  *   extraData?: Record<string, unknown>;
  *   revertInterface?: EthersInterface|null;
  * }} ExecuteWriteInputOptions
+ *
+ * @remarks {@link ExecuteWriteOptions} documents {@code requireEvents}: {@code false} means missing parsed events do not throw;
+ * parsing errors still propagate.
  */
 
 /**

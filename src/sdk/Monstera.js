@@ -105,9 +105,14 @@ import {
 
 /**
  * Monstera Wallet SDK
- * 
+ *
  * Main entry point for wallet operations on Oasis Sapphire.
- * 
+ *
+ * @remarks
+ * Top-level methods prefer {@link KeyVaultClient} (`keyVaultAddr`): signing, account queries, upgrades, and imports
+ * mirror what WalletLogic ultimately forwards to KeyVault, so calling KeyVault directly is simpler and matches most docs.
+ * {@link WalletLogicClient} remains available as {@link Monstera#logic} for wallet-proxy-shaped calls (`walletAddr`), e.g.
+ * {@link Monstera#initializeWalletLogic} or advanced use when you must hit the WalletLogic contract explicitly.
  */
 class Monstera {
   // ============================================================================
@@ -549,7 +554,10 @@ class Monstera {
    * 
    * Use this when you want to interact with KeyVault directly,
    * or when deploying your own custom logic contract separately.
-   * 
+   *
+   * @remarks
+   * See {@link WalletFactoryClient#createWalletCore}: {@code wallet} and {@code keyVault} in the result are the same address for this flow.
+   *
    * @param {CreateWalletBaseOptions} options - Wallet creation options
    * @returns {Promise<WalletCreationResult>}
    * @throws {ValidationError} If authConfig is missing or invalid
