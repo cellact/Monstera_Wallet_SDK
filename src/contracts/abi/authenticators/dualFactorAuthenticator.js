@@ -1,5 +1,18 @@
 /**
- * DualFactorAuthenticator Contract ABI
+ * Solidity ABI for the {@code DualFactorAuthenticator} contract.
+ *
+ * Used by {@link DualFactorAuthenticatorClient}; covers configure / verify, password change,
+ * guardian update, EIP-712 domain reads, and every relevant event / custom error.
+ *
+ * @module contracts/abi/authenticators/dualFactorAuthenticator
+ */
+
+/**
+ * Frozen ABI fragment array for {@code DualFactorAuthenticator}.
+ *
+ * @public
+ * @readonly
+ * @type {ReadonlyArray<object>}
  */
 export const DUAL_FACTOR_AUTHENTICATOR_ABI = [
 	{

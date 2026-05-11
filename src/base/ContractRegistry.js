@@ -1,19 +1,31 @@
 /**
- * Contract instance factory for read and write operations.
+ * Stateless factory that hands out read-only and write-capable ethers contract instances
+ * to {@link BaseContractClient} subclasses.
+ *
+ * Validates the supplied address via {@link requireAddress} and enforces the presence of a
+ * write signer for write contracts (raising {@link WriteRequiresSignerError} otherwise).
  *
  * @typedef {import('../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../types/index.js').Address} Address
+ *
+ * @module base/ContractRegistry
  */
 
 import { requireAddress } from '../internal/assert.js';
 import { WriteRequiresSignerError } from '../errors/index.js';
 import log from '../internal/logger.js';
 
+/**
+ * @public
+ */
 export default class ContractRegistry {
   /**
-   * @param {EthersProvider} readProvider
-   * @param {WrappedEthersSigner | null} writeSigner
+   * Hold references to the read provider and (optional) write signer for later contract construction.
+   *
+   * @public
+   * @param {EthersProvider} readProvider - Provider used by every {@link ContractRegistry#getReadContract} call
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer used by {@link ContractRegistry#getWriteContract} ({@code null} for read-only clients)
    */
   constructor(readProvider, writeSigner) {
     this.readProvider = readProvider;
@@ -21,10 +33,14 @@ export default class ContractRegistry {
   }
 
   /**
+   * Build a read-only contract instance via the supplied {@code contractGetter}.
+   *
+   * @public
    * @template TContract
-   * @param {(provider: EthersProvider, address: string) => TContract} contractGetter
-   * @param {Address} contractAddress
-   * @returns {TContract}
+   * @param {(provider: EthersProvider, address: string) => TContract} contractGetter - Factory function from {@code src/contracts/*}
+   * @param {Address} contractAddress - Address of the deployed contract
+   * @returns {TContract} Read-bound contract instance
+   * @throws {ValidationError} If {@code contractAddress} is missing or not a valid 20-byte address
    */
   getReadContract(contractGetter, contractAddress) {
     requireAddress(contractAddress, 'address');
@@ -33,11 +49,15 @@ export default class ContractRegistry {
   }
 
   /**
+   * Build a write-capable contract instance via the supplied {@code contractGetter}.
+   *
+   * @public
    * @template TContract
-   * @param {(signer: WrappedEthersSigner, address: string) => TContract} contractGetter
-   * @param {Address} contractAddress
-   * @returns {TContract}
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
+   * @param {(signer: WrappedEthersSigner, address: string) => TContract} contractGetter - Factory function from {@code src/contracts/*}
+   * @param {Address} contractAddress - Address of the deployed contract
+   * @returns {TContract} Write-bound contract instance
+   * @throws {ValidationError} If {@code contractAddress} is missing or not a valid 20-byte address
+   * @throws {WriteRequiresSignerError} If the registry was constructed without a {@code writeSigner}
    */
   getWriteContract(contractGetter, contractAddress) {
     requireAddress(contractAddress, 'address');

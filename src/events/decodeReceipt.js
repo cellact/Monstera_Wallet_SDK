@@ -1,11 +1,18 @@
 /**
- * Receipt Decoding Utilities
- * 
- * Generic event parsing logic for transaction receipts
- * 
+ * Generic transaction-receipt event decoding utilities.
+ *
+ * Used by {@code BaseContractClient.executeWrite} (via the {@code expectEvent} option) to extract
+ * a single named event out of a {@link TransactionReceipt}. This module holds two layers:
+ * - {@link parseEvent} — low-level helper that walks {@code receipt.logs}, decodes each log
+ *   against a contract's {@code Interface}, and returns a field-mapped result object
+ * - {@link parseEventFromReceipt} — public wrapper that takes a per-event definition record
+ *   (produced by the per-contract event modules in this folder) and validates it
+ *
  * @typedef {import('../types/index.js').TransactionHash} TransactionHash
  * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
  * @typedef {import('../types/index.js').EthersContract} EthersContract
+ *
+ * @module events/decodeReceipt
  */
 
 import { ValidationError, EventParseError } from '../errors/index.js';
@@ -13,13 +20,23 @@ import log from '../internal/logger.js';
 import { sanitizer } from '../internal/sanitization/index.js';
 
 /**
- * Generic event parser
- * 
+ * Walk a receipt's logs and return the first matching event mapped onto a result object.
+ *
+ * @description Uses {@code contract.interface.parseLog} on each log; logs that don't belong to the
+ * contract's interface are silently skipped (debug-logged with sanitised data). When a matching
+ * log is found, the event {@code args} are projected into a fresh object using
+ * {@code fieldMapping}.
+ *
+ * @public
  * @param {TransactionReceipt} receipt - Transaction receipt
- * @param {EthersContract} contract - Contract instance with interface
- * @param {string} eventName - Name of the event to parse
- * @param {Record<string, string>} fieldMapping - Map of contract args to return fields
- * @returns {Record<string, unknown>|null} Parsed event data or null if not found
+ * @param {EthersContract} contract - Contract instance providing the {@code Interface}
+ * @param {string} eventName - Name of the event to look for
+ * @param {Record<string, string>} fieldMapping - Map of return-field name → on-chain arg key /
+ *   index (e.g. {@code { walletAddr: "wallet" }})
+ * @returns {Record<string, unknown> | null} Mapped event data or {@code null} if no matching log
+ *   is present in {@code receipt.logs}
+ * @throws {EventParseError} If a matching log is found but field mapping fails (typically because
+ *   {@code fieldMapping} references an arg the ABI does not expose)
  */
 function parseEvent(receipt, contract, eventName, fieldMapping) {
   if (!receipt || !receipt.logs) {
@@ -28,7 +45,6 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
 
   const iface = contract.interface;
 
-  // Find and parse the first matching event log in one pass.
   let parsedEvent = null;
   for (const logEntry of receipt.logs) {
     try {
@@ -47,7 +63,6 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
     return null;
   }
 
-  // Map contract args to return fields
   try {
     const result = {};
     for (const [returnField, contractArg] of Object.entries(fieldMapping)) {
@@ -66,12 +81,21 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
 }
 
 /**
- * Parse an event from a transaction receipt using an event definition
- * 
- * @param {Record<string, unknown>} eventDef - Event definition object (e.g., WalletFactoryEvents.WalletCreated)
+ * Decode a single named event from a receipt using a per-event definition record.
+ *
+ * @description Validates that {@code eventDef} carries the expected {@code eventName} and
+ * {@code fieldMapping} keys (the schema used by every {@code …Events.*} record exported from this
+ * folder), then defers to {@link parseEvent}.
+ *
+ * @public
+ * @param {Record<string, unknown>} eventDef - Event definition record (e.g.
+ *   {@code WalletFactoryEvents.WalletCreated})
  * @param {TransactionReceipt} receipt - Transaction receipt
- * @param {EthersContract} contract - Contract instance
- * @returns {Record<string, unknown>|null} Parsed event data or null if not found
+ * @param {EthersContract} contract - Contract instance providing the {@code Interface}
+ * @returns {Record<string, unknown> | null} Mapped event data, or {@code null} if not present
+ * @throws {ValidationError} If {@code eventDef} is missing {@code eventName} or {@code fieldMapping}
+ * @throws {EventParseError} If the matching log is found but field mapping fails
+ *   (forwarded from {@link parseEvent})
  */
 function parseEventFromReceipt(eventDef, receipt, contract) {
   if (!eventDef || !eventDef.eventName || !eventDef.fieldMapping) {

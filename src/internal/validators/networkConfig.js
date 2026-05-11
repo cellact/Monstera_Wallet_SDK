@@ -1,17 +1,26 @@
 /**
- * Validation for resolved {@link NetworkConfig} and contract address maps.
+ * Validation helpers for the resolved {@link NetworkConfig} and its contract address map.
+ *
+ * Used by {@code MonsteraConfig.resolveBaseConfig} (during connect) and exported for tests.
  *
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../../types/index.js').RequiredContractAddressKeys} RequiredContractAddressKeys
+ *
+ * @module internal/validators/networkConfig
  */
 
 import { ConfigError, ValidationError } from '../../errors/index.js';
 import { isAddress, requireArray } from '../assert.js';
 
 /**
- * Required contract addresses for SDK initialization (ordered keys used by validation and {@link MonsteraConfig.requiredAddresses}).
+ * Ordered list of contract address keys that must resolve before the SDK can be used.
  *
+ * @description Single source of truth re-exported by {@link MonsteraConfig.requiredAddresses};
+ * also consumed by {@link validateContractAddresses}.
+ *
+ * @public
+ * @readonly
  * @type {RequiredContractAddressKeys}
  */
 const REQUIRED_CONTRACT_ADDRESS_KEYS = Object.freeze([
@@ -23,11 +32,16 @@ const REQUIRED_CONTRACT_ADDRESS_KEYS = Object.freeze([
 ]);
 
 /**
- * @param {Partial<ContractAddresses>} addresses
- * @param {RequiredContractAddressKeys} required
+ * Assert that a contract address map has every required key and that every value is a valid
+ * EVM address.
+ *
+ * @public
+ * @param {Partial<ContractAddresses>} addresses - Address map to validate
+ * @param {RequiredContractAddressKeys} required - Ordered list of keys that must be present
  * @returns {void}
- * @throws {ConfigError} If required addresses are missing
- * @throws {ValidationError} If address format is invalid or {@code required} is not a non-empty array
+ * @throws {ValidationError} If {@code required} is not a non-empty array (raised by
+ *   {@link requireArray}) or any present address fails {@link isAddress}
+ * @throws {ConfigError} If any key from {@code required} is missing from {@code addresses}
  */
 function validateContractAddresses(addresses, required) {
   requireArray(required, 'required');
@@ -42,7 +56,6 @@ function validateContractAddresses(addresses, required) {
     );
   }
 
-  // Validate address format (basic check)
   for (const [key, address] of Object.entries(addresses)) {
     if (address && !isAddress(address)) {
       throw new ValidationError(`Invalid address format for ${key}: ${address}`, key, address);
@@ -51,12 +64,18 @@ function validateContractAddresses(addresses, required) {
 }
 
 /**
- * Validates shape of a fully resolved config plus all required contract addresses.
+ * Assert that a fully resolved {@link NetworkConfig} object is internally consistent.
  *
- * @param {NetworkConfig | Record<string, unknown>} config
+ * @description Checks the top-level shape ({@code rpcUrl}, {@code chainId}, {@code network},
+ * {@code addresses}) and then defers to {@link validateContractAddresses} for the contract
+ * address map.
+ *
+ * @public
+ * @param {NetworkConfig | Record<string, unknown>} config - Candidate config object
  * @returns {void}
- * @throws {ConfigError} If required fields or addresses are missing
- * @throws {ValidationError} If an address format is invalid
+ * @throws {ConfigError} If {@code config} is missing or any required field
+ *   ({@code rpcUrl}, {@code chainId}, {@code network}, {@code addresses}) is absent / wrong type
+ * @throws {ValidationError} Forwarded from {@link validateContractAddresses} on bad address format
  */
 function assertValidResolvedConfig(config) {
   if (!config || typeof config !== 'object') {

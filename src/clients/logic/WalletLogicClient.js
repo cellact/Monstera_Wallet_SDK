@@ -1,12 +1,14 @@
 /**
- * WalletLogicClient
+ * Low-level client for the {@code WalletLogic} contract (wallet-proxy orchestration).
  *
- * Client for interacting with WalletLogic contract methods (wallet proxy / orchestration).
+ * The WalletLogic contract is the user-facing proxy for full-stack wallets created by the factory.
+ * Most signing methods here forward to the wallet's KeyVault under the hood, so the same
+ * behaviour is reachable from {@link KeyVaultClient} with one less hop.
  *
  * @remarks
  * Authenticated reads and writes here delegate to KeyVault under the hood. {@link Monstera} exposes the KeyVault-shaped
- * API on the main class (`keyVaultAddr`); use this client when you need the WalletLogic contract surface with
- * `walletAddr` (proxy address), e.g. {@link WalletLogicClient#initialize} after deployment.
+ * API on the main class ({@code keyVaultAddr}); use this client when you need the WalletLogic contract surface with
+ * {@code walletAddr} (proxy address), e.g. {@link WalletLogicClient#initialize} after deployment.
  *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
@@ -25,6 +27,8 @@
  * @typedef {import('../../types/index.js').WalletProxyAccountSliceOptions} WalletProxyAccountSliceOptions
  * @typedef {import('../../types/index.js').InitializeWalletLogicOptions} InitializeWalletLogicOptions
  * @typedef {import('../../types/index.js').WalletLogicUpdateKeyVaultImplOptions} WalletLogicUpdateKeyVaultImplOptions
+ *
+ * @module clients/logic/WalletLogicClient
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -34,15 +38,17 @@ import { requireAddress, requireBytes, requireBytes32, requireNonNegativeInteger
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
+/**
+ * @public
+ */
 class WalletLogicClient extends BaseContractClient {
-  // ============================================================================
-  // Constructor
-  // ============================================================================
-  
   /**
-   * @param {EthersProvider} readProvider - Ethers provider for read operations
-   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
-   * @param {NetworkConfig} config - Configuration object
+   * Forward provider/signer/config to {@link BaseContractClient}.
+   *
+   * @public
+   * @param {EthersProvider} readProvider - Read provider for view calls
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped write signer ({@code null} for read-only)
+   * @param {NetworkConfig} config - Resolved network configuration
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -53,11 +59,16 @@ class WalletLogicClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Get the keyVault contract address for a wallet 
-   * 
-   * @param {WalletProxyOptions} options - KeyVault options
+   * Resolve the KeyVault contract for a wallet proxy via {@code WalletLogic.getKeyVault()}.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
    * @returns {Promise<Address>} KeyVault contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultAddr(options = {}) {
     const { walletAddr } = options;
@@ -77,11 +88,18 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Get the keyVault contract address for a wallet
-   * 
-   * @param {WalletProxyOptions} options - KeyVault options
+   * Resolve the KeyVault contract for a wallet proxy via the storage slot directly ({@code WalletLogic.keyVault()}).
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
    * @returns {Promise<Address>} KeyVault contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Mirrors {@link WalletLogicClient#getKeyVaultAddr} but reads the public state variable instead of the getter.
    */
   async get_key_vault_addr(options = {}) {
     const { walletAddr } = options;
@@ -101,11 +119,16 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Get the current authenticator contract address for a wallet
-   * 
-   * @param {WalletProxyOptions} options - Get authenticator options
-   * @returns {Promise<Address>} Authenticator address 
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * Get the authenticator contract currently bound to a wallet (via WalletLogic).
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
+   * @returns {Promise<Address>} Authenticator address
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAuthenticatorAddr(options = {}) {
     const { walletAddr } = options;
@@ -125,11 +148,16 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Check if a wallet is initialized
-   * 
-   * @param {WalletProxyOptions} options - Is initialized options
-   * @returns {Promise<boolean>} True if wallet is initialized, false otherwise
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * Check whether a wallet's WalletLogic proxy has been initialized.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
+   * @returns {Promise<boolean>} {@code true} if initialized
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isInitialized(options = {}) {
     const { walletAddr } = options;
@@ -149,11 +177,16 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Get account address at an index from wallet
-   * 
-   * @param {WalletProxyIndexOptions} options - Account address options
+   * Get an HD account address from a wallet proxy at {@code index}.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyIndexOptions} options - {@code walletAddr} and {@code index}
    * @returns {Promise<Address>} Account address
-   * @throws {ValidationError} If walletAddr is missing or invalid, or if index is invalid
+   * @throws {ValidationError} If {@code walletAddr} is invalid or {@code index} is not a non-negative integer
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddr(options = {}) {
     const { walletAddr, index } = options;
@@ -174,11 +207,16 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Get account addresses from wallet
-   * 
-   * @param {WalletProxyAccountSliceOptions} options - Account addresses options
-   * @returns {Promise<Address[]>} Array of account addresses
-   * @throws {ValidationError} If walletAddr is missing or invalid, or if fromIndex/count are invalid
+   * Get a contiguous slice of HD account addresses from a wallet proxy.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyAccountSliceOptions} options - {@code walletAddr}, {@code fromIndex}, {@code count}
+   * @returns {Promise<Address[]>} Array of account addresses (length {@code count})
+   * @throws {ValidationError} If {@code walletAddr} is invalid or {@code fromIndex}/{@code count} is not a non-negative integer
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddresses(options = {}) {
     const { walletAddr, fromIndex, count } = options;
@@ -200,13 +238,16 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Sign a raw transaction (authenticated function)
-   * 
-   * @dev Delegates to KeyVault which enforces authentication.
-   * 
-   * @param {SignTransactionWalletOptions} options - Sign transaction options
-   * @returns {Promise<Bytes>} Signed transaction
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * Sign a raw EVM transaction via WalletLogic (forwards to KeyVault, authenticated view).
+   *
+   * @public
+   * @async
+   * @param {SignTransactionWalletOptions} options - {@code walletAddr}, {@code authProof}, {@code index}, plus tx fields
+   * @returns {Promise<Bytes>} RLP-encoded signed transaction
+   * @throws {ValidationError} If addresses, {@code authProof}, or numeric tx fields are missing/invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async signTransaction(options = {}) {
     const { walletAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, data, chainId } = options;
@@ -235,13 +276,16 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Sign an EIP-191 message (authenticated function)
-   * 
-   * @dev Delegates to KeyVault which enforces authentication.
-   * 
-   * @param {SignMessageWalletOptions} options - Sign message options
-   * @returns {Promise<Bytes>} Signed message
+   * Sign an EIP-191 personal message via WalletLogic (forwards to KeyVault, authenticated view).
+   *
+   * @public
+   * @async
+   * @param {SignMessageWalletOptions} options - {@code walletAddr}, {@code authProof}, {@code index}, {@code message}
+   * @returns {Promise<Bytes>} Signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async signMessage(options = {}) {
     const { walletAddr, authProof, index, message } = options;
@@ -264,13 +308,16 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Sign a 32-byte hash (authenticated function)
-   * 
-   * @dev Delegates to KeyVault which enforces authentication.
-   * 
-   * @param {SignHashWalletOptions} options - Sign hash options
-   * @returns {Promise<Bytes>} Signed hash
+   * Sign a 32-byte hash via WalletLogic (forwards to KeyVault, authenticated view).
+   *
+   * @public
+   * @async
+   * @param {SignHashWalletOptions} options - {@code walletAddr}, {@code authProof}, {@code index}, 32-byte {@code hash}
+   * @returns {Promise<Bytes>} Signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async sign(options = {}) {
     const { walletAddr, authProof, index, hash } = options;
@@ -297,13 +344,17 @@ class WalletLogicClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Initialize a wallet logic with a new keyVault 
-   * 
-   * @param {InitializeWalletLogicOptions} options - Initialize wallet logic options
-   * @returns {Promise<BaseTransactionResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
+   * Initialize a freshly deployed WalletLogic proxy by binding it to a {@code keyVaultAddr}.
+   *
+   * @public
+   * @async
+   * @param {InitializeWalletLogicOptions} options - {@code walletAddr} (proxy) and {@code keyVaultAddr}
+   * @returns {Promise<BaseTransactionResult>} Standard write result
+   * @throws {ValidationError} If {@code walletAddr} or {@code keyVaultAddr} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. already initialized)
+   * @throws {WalletError} For other unrecognised failures
    */
   async initialize(options = {}) {
     const { walletAddr, keyVaultAddr } = options;
@@ -324,16 +375,19 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Update the authenticator (authenticated function)
-   * 
-   * @dev Delegates to KeyVault which enforces authentication.
-   * 
-   * @param {UpdateAuthenticatorWalletOptions} options - Update authenticator options
-   * @returns {Promise<UpdateResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Swap the authenticator via WalletLogic (forwards to KeyVault, authenticated write).
+   *
+   * @public
+   * @async
+   * @param {UpdateAuthenticatorWalletOptions} options - {@code walletAddr}, {@code authProof}, {@code newAuthenticatorAddr}, {@code newAuthConfig}
+   * @returns {Promise<UpdateResult>} Standard write result with parsed authenticator change fields
+   * @throws {ValidationError} If addresses, {@code authProof}, or {@code newAuthConfig} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code AuthenticatorChanged} event (KeyVault) is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddr(options = {}) {
     const { walletAddr, authProof, newAuthenticatorAddr, newAuthConfig } = options;
@@ -351,7 +405,7 @@ class WalletLogicClient extends BaseContractClient {
         operation: () => walletLogic.changeAuthenticator(authProof, newAuthenticatorAddr, newAuthConfig),
         methodName: 'change authenticator',
         parseEvents: [{
-          eventDef: KeyVaultEvents.AuthenticatorChanged, // Is actually a KeyVault contract event
+          eventDef: KeyVaultEvents.AuthenticatorChanged, // Event is emitted by the underlying KeyVault contract
           contract: walletLogic
         }],
         ...options
@@ -360,16 +414,19 @@ class WalletLogicClient extends BaseContractClient {
   }
 
   /**
-   * Update the keyVaultImplementation (authenticated function)
-   * 
-   * @dev Delegates to KeyVault which enforces authentication.
-   * 
-   * @param {WalletLogicUpdateKeyVaultImplOptions} options - Update keyVault implementation options
-   * @returns {Promise<UpdateKeyVaultImplAddrResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Upgrade the wallet's KeyVault implementation via WalletLogic (forwards to KeyVault, authenticated write).
+   *
+   * @public
+   * @async
+   * @param {WalletLogicUpdateKeyVaultImplOptions} options - {@code walletAddr}, {@code authProof}, {@code newImplAddr}
+   * @returns {Promise<UpdateKeyVaultImplAddrResult>} Standard write result with parsed {@code oldImpl}/{@code newImpl}
+   * @throws {ValidationError} If addresses or {@code authProof} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code ImplementationUpgraded} event (KeyVault) is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddr(options = {}) {
     const { walletAddr, authProof, newImplAddr } = options;
@@ -386,7 +443,7 @@ class WalletLogicClient extends BaseContractClient {
         operation: () => walletLogic.upgradeKeyVault(authProof, newImplAddr),
         methodName: 'upgrade key vault implementation',
         parseEvents: [{
-          eventDef: KeyVaultEvents.ImplementationUpgraded, // Is actually a KeyVault contract event
+          eventDef: KeyVaultEvents.ImplementationUpgraded, // Event is emitted by the underlying KeyVault contract
           contract: walletLogic
         }],
         ...options

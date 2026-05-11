@@ -1,21 +1,34 @@
 /**
- * ABI-encoded auth config bytes for wallet factory / configuration flows.
+ * ABI-encoded {@code authConfig} byte builders for the {@code WalletFactory.createWallet*}
+ * entry points.
  *
+ * Used by the per-authenticator create-wallet encoders in {@code internal/auth/config/encoders}.
+ *
+ * @typedef {import('../../types/index.js').Address} Address
+ * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').WalletSignatureAuthConfigInputOptions} WalletSignatureAuthConfigInputOptions
  * @typedef {import('../../types/index.js').EncodedAuthConfigWalletSignature} EncodedAuthConfigWalletSignature
  * @typedef {import('../../types/index.js').EncodedAuthConfigDualFactor} EncodedAuthConfigDualFactor
  * @typedef {import('../../types/index.js').DualFactorAuthConfigInputOptions} DualFactorAuthConfigInputOptions
- * @typedef {import('../../types/index.js').ValidationError} ValidationError
+ *
+ * @module internal/crypto/authConfig
  */
 
 import { defaultAbiCoder } from '../../adapters/ethers/encoding.js';
 import { requireAddress, requireArray, requireBytes32 } from '../assert.js';
 
 /**
- * Creates a wallet signature auth config from whitelist
- * @param {WalletSignatureAuthConfigInputOptions} whitelist
+ * Build the {@code WalletSignatureAuthenticator} create-wallet config bytes.
+ *
+ * @description Validates that {@code whitelist} is an array of EVM addresses and ABI-encodes it
+ * as {@code address[]}.
+ *
+ * @public
+ * @param {WalletSignatureAuthConfigInputOptions['initialWhitelist'] | Address[]} whitelist -
+ *   Initial whitelist of EVM addresses
  * @returns {EncodedAuthConfigWalletSignature} ABI-encoded {@code address[]} auth config (hex)
- * @throws {ValidationError} If whitelist is not an array or contains invalid addresses
+ * @throws {ValidationError} If {@code whitelist} is not an array (raised by {@link requireArray})
+ *   or any entry fails address validation (raised by {@link requireAddress})
  */
 function createWalletSigAuthConfig(whitelist) {
   requireArray(whitelist, 'whitelist');
@@ -26,11 +39,17 @@ function createWalletSigAuthConfig(whitelist) {
 }
 
 /**
- * Create dual factor auth config
+ * Build the {@code DualFactorAuthenticator} create-wallet config bytes.
  *
- * @param { DualFactorAuthConfigInputOptions }
+ * @description Validates the inputs and ABI-encodes them as {@code (bytes32 passwordHash, address guardian)}.
+ *
+ * @public
+ * @param {Bytes32} passwordHash - 32-byte password hash
+ * @param {Address} guardianAddr - Guardian EVM address
  * @returns {EncodedAuthConfigDualFactor} ABI-encoded {@code (bytes32,address)} auth config (hex)
- * @throws {ValidationError} If passwordHash is not a valid 32-byte hex string or guardianAddr is not a valid address
+ * @throws {ValidationError} If {@code passwordHash} is not a 32-byte hex string (raised by
+ *   {@link requireBytes32}) or {@code guardianAddr} fails address validation (raised by
+ *   {@link requireAddress})
  */
 function createDualFactorAuthConfig(passwordHash, guardianAddr) {
   requireBytes32(passwordHash, 'passwordHash');

@@ -1,7 +1,12 @@
 /**
- * BIP39 mnemonic generation and PBKDF2 seed derivation for factory flows.
+ * BIP-39 mnemonic generation and PBKDF2 seed derivation.
+ *
+ * Used by the {@code WalletFactoryClient.createWallet*} flows to either generate a fresh seed for
+ * the user or derive a deterministic seed from a caller-supplied mnemonic.
  *
  * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
+ *
+ * @module internal/crypto/mnemonic
  */
 
 import crypto from 'crypto';
@@ -11,9 +16,13 @@ import { ValidationError } from '../../errors/index.js';
 import log from '../logger.js';
 
 /**
- * Generate a new mnemonic phrase (12 words)
+ * Generate a fresh BIP-39 mnemonic.
  *
- * @returns {Mnemonic} BIP39 mnemonic phrase
+ * @description Delegates to {@code ethers.Wallet.createRandom()} which uses the platform CSPRNG.
+ * Returns a 12-word phrase by default (ethers v6 default entropy).
+ *
+ * @public
+ * @returns {Mnemonic} BIP-39 mnemonic phrase
  */
 function generateMnemonic() {
   const wallet = Wallet.createRandom();
@@ -22,12 +31,18 @@ function generateMnemonic() {
 }
 
 /**
- * Derive seed from mnemonic using PBKDF2
+ * Derive a 64-byte BIP-39 seed from a mnemonic via PBKDF2-HMAC-SHA512.
  *
- * @param {Mnemonic} mnemonic - BIP39 mnemonic phrase
- * @param {string} [password=''] - Optional password for seed derivation
+ * @description Validates the mnemonic via {@link requireMnemonic}, normalises whitespace and
+ * casing, then runs the standard PBKDF2 iteration count (2048) against the BIP-39 salt prefix
+ * {@code "mnemonic" + password}.
+ *
+ * @public
+ * @param {Mnemonic} mnemonic - BIP-39 mnemonic phrase
+ * @param {string} [password=''] - Optional BIP-39 passphrase
  * @returns {Buffer} Derived seed (64 bytes)
- * @throws {ValidationError} If mnemonic is not a valid BIP39 mnemonic
+ * @throws {ValidationError} If {@code mnemonic} is not a valid BIP-39 mnemonic
+ *   (raised by {@link requireMnemonic})
  */
 function deriveSeed(mnemonic, password = '') {
   requireMnemonic(mnemonic, 'mnemonic');

@@ -1,9 +1,9 @@
 /**
- * PasswordAuthenticatorClient
- * 
- * Client for interacting with PasswordAuthenticator contract methods.
- * Handles password-based authentication and configuration.
- * 
+ * Low-level client for the {@code PasswordAuthenticator} contract.
+ *
+ * Stores a {@code keccak256(utf8(password))} hash on-chain and verifies raw UTF-8 password
+ * buffers against it. {@code Monstera} talks to this client via {@code monstera.auth.password}.
+ *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
@@ -16,6 +16,8 @@
  * @typedef {import('../../types/index.js').PasswordClientVerifyOptions} PasswordClientVerifyOptions
  * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
  * @typedef {import('../../types/index.js').PasswordClientConfigureOptions} PasswordClientConfigureOptions
+ *
+ * @module clients/auth/PasswordAuthenticatorClient
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -25,15 +27,17 @@ import { requireAddress, requireBytes, requireBytes32, requireUtf8Bytes } from '
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
+/**
+ * @public
+ */
 class PasswordAuthenticatorClient extends BaseContractClient {
-  // ============================================================================
-  // Constructor
-  // ============================================================================
-  
   /**
-   * @param {EthersProvider} readProvider - Ethers provider for read operations
-   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
-   * @param {NetworkConfig} config - Configuration object
+   * Forward provider/signer/config to {@link BaseContractClient}.
+   *
+   * @public
+   * @param {EthersProvider} readProvider - Read provider for view calls
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped write signer ({@code null} for read-only)
+   * @param {NetworkConfig} config - Resolved network configuration
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -44,11 +48,16 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Check if a wallet is configured
-   * 
-   * @param {KeyVaultAddrOptions} options - Check if wallet is configured options
-   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether the {@code PasswordAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if configured
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
@@ -68,11 +77,16 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify password using valid password auth proof
-   * 
-   * @param {PasswordClientVerifyOptions} options - Verify password options
-   * @returns {Promise<boolean>} True if password is valid, false otherwise
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * Verify a raw UTF-8 password buffer against the stored hash.
+   *
+   * @public
+   * @async
+   * @param {PasswordClientVerifyOptions} options - {@code keyVaultAddr} and {@code authProof} (UTF-8 password bytes)
+   * @returns {Promise<boolean>} {@code true} if the password matches
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authProof} is not a non-empty Uint8Array
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async verify(options = {}) {
     const { keyVaultAddr, authProof } = options;
@@ -97,14 +111,19 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Update the password of a wallet
-   * 
-   * @param {UpdatePasswordOptions} options - Update password options
-   * @returns {Promise<UpdatePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Replace the stored password hash. Caller must supply the current UTF-8 password buffer.
+   *
+   * @public
+   * @async
+   * @param {UpdatePasswordOptions} options - {@code keyVaultAddr}, {@code currentPassword} (UTF-8 {@link Uint8Array}), {@code newPasswordHash}
+   * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If addresses, {@code currentPassword} or {@code newPasswordHash} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. wrong current password)
+   * @throws {EventNotFoundError} If the {@code PasswordChanged} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updatePassword(options = {}) {
     const { keyVaultAddr, currentPassword, newPasswordHash } = options;
@@ -131,17 +150,22 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Configure password hash (IAuthenticator.configure).
+   * Configure the password hash on the authenticator ({@code IAuthenticator.configure}).
    *
-   * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes
+   * @public
+   * @async
+   * @param {PasswordClientConfigureOptions} options - {@code keyVaultAddr} and 32-byte {@code authConfig} (password hash)
+   * @returns {Promise<ConfigurePasswordResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authConfig} is not exactly 32 bytes
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts
+   * @throws {EventNotFoundError} If the {@code PasswordConfigured} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes
    * ({@code keccak256} of UTF-8 password bytes).
-   *
-   * @param {PasswordClientConfigureOptions} options - Configure password options
-   * @returns {Promise<ConfigurePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async configure(options = {}) {
     const { keyVaultAddr, authConfig } = options;

@@ -1,11 +1,16 @@
 /**
- * Composed validation for auth-proof helpers ({@link ../crypto/authProof.js}).
- * Single place for rules so {@link Monstera} delegates and crypto share one policy without drift.
+ * Composed validation rules for the auth-proof helpers in {@code internal/crypto/authProof.js}.
+ *
+ * Holding the rules in one module keeps {@code Monstera}'s public methods, the proof builders,
+ * and the underlying crypto helpers aligned — every entry point for a given proof type uses the
+ * same assertions, so divergence is impossible.
  *
  * @typedef {import('../../types/index.js').ChainId} ChainId
  * @typedef {import('../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
  * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
  * @typedef {import('../../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
+ *
+ * @module internal/validators/authProofOptions
  */
 
 import {
@@ -19,8 +24,16 @@ import {
 import { ValidationError } from '../../errors/index.js';
 
 /**
- * @param {CreateAuthProofWalletSignatureOptions} options
- * @returns {{ normalizedChainId: ChainId }}
+ * Assert the inputs of {@link createAuthProofWalletSignature}.
+ *
+ * @public
+ * @param {CreateAuthProofWalletSignatureOptions} options - Caller options
+ * @returns {{ normalizedChainId: ChainId }} Validated chain id
+ * @throws {ValidationError} If {@code signer} is not a {@code Wallet}/{@code HDNodeWallet}
+ *   ({@link requireWalletOrHdNode}); {@code chainId} is missing/invalid ({@link requireChainId});
+ *   {@code authenticatorAddr} or {@code keyVaultAddr} fail address validation
+ *   ({@link requireAddress}); {@code deadline} is not a positive integer
+ *   ({@link requirePositiveInteger}); or {@code deadline} is in the past ({@link isInFuture})
  */
 export function assertWalletSignatureAuthProofOptions(options) {
   const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr } = options;
@@ -36,8 +49,14 @@ export function assertWalletSignatureAuthProofOptions(options) {
 }
 
 /**
- * @param {CreateAuthProofMinuteSignatureWithProviderOptions} options
- * @returns {{ normalizedChainId: ChainId }}
+ * Assert the inputs of {@link createAuthProofMinuteSignature}.
+ *
+ * @public
+ * @param {CreateAuthProofMinuteSignatureWithProviderOptions} options - Caller options
+ * @returns {{ normalizedChainId: ChainId }} Validated chain id
+ * @throws {ValidationError} If {@code provider} does not expose {@code getBlock};
+ *   {@code keyVaultAddr} or {@code authenticatorAddr} fail address validation;
+ *   {@code chainId} is missing/invalid; or {@code passwordHash} is not a 32-byte hex string
  */
 export function assertMinuteSignatureAuthProofOptions(options) {
   const { provider, keyVaultAddr, authenticatorAddr, chainId, passwordHash } = options;
@@ -54,10 +73,17 @@ export function assertMinuteSignatureAuthProofOptions(options) {
 }
 
 /**
- * Minute proof inputs plus dual-factor-only fields (guardian signer + EIP-712 deadline).
+ * Assert the inputs of {@link createAuthProofDualFactor}.
  *
- * @param {CreateAuthProofDualFactorWithProviderOptions} options
- * @returns {{ normalizedChainId: ChainId }}
+ * @description Re-uses {@link assertMinuteSignatureAuthProofOptions} for the shared minute-proof
+ * fields, then adds the dual-factor-specific guardian signer + EIP-712 deadline checks.
+ *
+ * @public
+ * @param {CreateAuthProofDualFactorWithProviderOptions} options - Caller options
+ * @returns {{ normalizedChainId: ChainId }} Validated chain id
+ * @throws {ValidationError} Forwarded from {@link assertMinuteSignatureAuthProofOptions}; plus
+ *   thrown if {@code signer} is not a {@code Wallet}/{@code HDNodeWallet}, {@code deadline} is not
+ *   a positive integer, or {@code deadline} is in the past
  */
 export function assertDualFactorAuthProofOptions(options) {
   const { signer, deadline } = options;

@@ -1,5 +1,18 @@
 /**
- * PasswordMinuteSignatureAuthenticator Contract ABI
+ * Solidity ABI for the {@code PasswordMinuteSignatureAuthenticator} contract.
+ *
+ * Used by {@link PasswordMinuteSignatureAuthenticatorClient}; covers configure / verify, password
+ * change, EIP-712 domain reads, and every relevant event / custom error.
+ *
+ * @module contracts/abi/authenticators/passwordMinuteSignatureAuthenticator
+ */
+
+/**
+ * Frozen ABI fragment array for {@code PasswordMinuteSignatureAuthenticator}.
+ *
+ * @public
+ * @readonly
+ * @type {ReadonlyArray<object>}
  */
 export const PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI = [
   {

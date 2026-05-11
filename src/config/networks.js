@@ -1,18 +1,31 @@
 /**
- * Network Configuration
+ * Built-in network presets and contract address defaults for Oasis Sapphire.
  *
- * Defines network presets for Oasis Sapphire testnet and mainnet
- * with default RPC URLs and contract addresses.
+ * Provides:
+ * - {@link NETWORKS}: per-network metadata (name, chain id, default RPC URL, explorer URL)
+ * - {@link DEFAULT_ADDRESSES}: SDK-shipped factory + authenticator contract addresses per network
+ * - {@link buildNetworkConfig}: pure helper that merges user overrides on top of the presets
+ *
+ * Consumed by {@code MonsteraConfig.resolveBaseConfig}, which is itself called by the {@code Monstera}
+ * facade during {@code connect}. No network I/O happens here — this module is fully static.
  *
  * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
+ * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
+ * @typedef {import('../types/index.js').NetworkPresets} NetworkPresets
  * @typedef {import('../types/index.js').BuildNetworkConfigInput} BuildNetworkConfigInput
+ *
+ * @module config/networks
  */
 
 import { normalizeChainId } from '../internal/utils/normalize.js';
 
 /**
- * Network configuration presets
+ * Network metadata presets for Sapphire testnet and mainnet.
+ *
+ * @public
+ * @readonly
+ * @type {NetworkPresets}
  */
 const NETWORKS = {
   testnet: {
@@ -30,8 +43,15 @@ const NETWORKS = {
 };
 
 /**
- * Hardcoded contract addresses for Monstera SDK
- * These addresses are built into the SDK - users don't need to provide them.
+ * SDK-shipped contract address defaults for the Monstera deployment on each network.
+ *
+ * @remarks Users do not need to pass these — they are merged in by {@link buildNetworkConfig}.
+ * Per-call {@code addresses} overrides on the connect options take precedence over these defaults
+ * and are typically only used for local / staging deployments.
+ *
+ * @public
+ * @readonly
+ * @type {DefaultContractAddresses}
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
@@ -51,10 +71,21 @@ const DEFAULT_ADDRESSES = {
 };
 
 /**
- * Build network configuration from preset key with optional RPC, chain id, and address overrides.
+ * Build a {@link NetworkConfig} from a preset key plus optional overrides.
  *
- * @param {BuildNetworkConfigInput} config - Preset key and optional overrides
- * @returns {NetworkConfig}
+ * @description Pure function: looks up the preset by {@code network} ({@code "testnet"} or
+ * {@code "mainnet"}), merges user-supplied {@code addresses} on top of {@link DEFAULT_ADDRESSES},
+ * and applies {@code rpcUrl} / {@code chainId} overrides if provided. The chain id is normalised
+ * via {@link normalizeChainId} so callers may pass decimal or {@code 0x}-hex strings.
+ *
+ * @remarks Does NOT validate that {@code network} is a known preset; an unknown key results in a
+ * {@code TypeError} on property access. The {@code MonsteraConfig.resolveBaseConfig} caller
+ * computes {@code network} from a boolean and runs {@code validateContractAddresses} afterwards,
+ * so end users never reach this branch.
+ *
+ * @public
+ * @param {BuildNetworkConfigInput} config - Preset key and optional RPC / chain id / address overrides
+ * @returns {NetworkConfig} Fully resolved network configuration
  */
 function buildNetworkConfig(config) {
   const { network, rpcUrl, addresses, chainId } = config;

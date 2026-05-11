@@ -1,7 +1,20 @@
 /**
- * Event Registry
- * 
- * Central registry for all contract events organized by contract
+ * Central event registry.
+ *
+ * Re-exports the per-contract event definition records used by {@link parseEventFromReceipt}
+ * to decode logs. Each per-contract module exports a frozen object of
+ * {@code { eventName, fieldMapping }} entries — one per ABI event the SDK actually consumes.
+ *
+ * Public surface:
+ * - {@link WalletFactoryEvents}
+ * - {@link KeyVaultEvents}
+ * - {@link WalletSignatureAuthenticatorEvents}
+ * - {@link PasswordAuthenticatorEvents}
+ * - {@link DualFactorAuthenticatorEvents}
+ * - {@link PasswordMinuteSignatureAuthenticatorEvents}
+ * - {@link parseEventFromReceipt} — generic decoder used by {@code BaseContractClient.executeWrite}
+ *
+ * @module events
  */
 
 import WalletSignatureAuthenticatorEvents from './walletSignatureAuthenticator.js';

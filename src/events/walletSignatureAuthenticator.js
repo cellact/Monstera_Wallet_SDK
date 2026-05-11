@@ -1,9 +1,14 @@
 /**
- * WalletSignatureAuthenticator Events
- * 
- * All event definitions for the WalletSignatureAuthenticator contract
+ * Event definition records for the {@code WalletSignatureAuthenticator} contract.
+ *
+ * @module events/walletSignatureAuthenticator
  */
 
+/**
+ * @public
+ * @readonly
+ * @type {Record<string, { eventName: string, fieldMapping: Record<string, string>, description: string }>}
+ */
 export default {
   AddressAdded: {
     eventName: 'AddressAdded',

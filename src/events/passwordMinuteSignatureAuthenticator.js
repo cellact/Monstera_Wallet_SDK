@@ -1,9 +1,14 @@
 /**
- * PasswordMinuteSignatureAuthenticator Events
- * 
- * All event definitions for the PasswordMinuteSignatureAuthenticator contract
+ * Event definition records for the {@code PasswordMinuteSignatureAuthenticator} contract.
+ *
+ * @module events/passwordMinuteSignatureAuthenticator
  */
 
+/**
+ * @public
+ * @readonly
+ * @type {Record<string, { eventName: string, fieldMapping: Record<string, string>, description: string }>}
+ */
 export default {
     PasswordChanged: {
       eventName: 'PasswordChanged',

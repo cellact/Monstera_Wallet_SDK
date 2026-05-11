@@ -1,13 +1,17 @@
 /**
- * AuthenticatorClient
- * 
- * Registry/factory for all authenticator clients.
- * Makes it easy to add new authenticator types without modifying the main SDK.
- * 
+ * Authenticator registry exposed to the {@link Monstera} facade as {@code monstera.auth}.
+ *
+ * Eagerly instantiates one client per built-in authenticator type ({@code password},
+ * {@code walletSignature}, {@code dualFactor}, {@code passwordMinuteSignature}) and exposes them as
+ * named properties as well as via {@link AuthenticatorClient#getClient}. Add a new authenticator
+ * by importing its client and assigning it on a new property in the constructor.
+ *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../../types/index.js').AuthenticatorClientInstance} AuthenticatorClientInstance
+ *
+ * @module clients/auth/AuthenticatorClient
  */
 
 import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
@@ -18,42 +22,36 @@ import { ValidationError } from '../../errors/index.js';
 import log from '../../internal/logger.js';
 import { requireString } from '../../internal/assert.js';
 
+/**
+ * @public
+ */
 class AuthenticatorClient {
-  // ============================================================================
-  // Constructor
-  // ============================================================================
-  
   /**
-   * @param {EthersProvider} readProvider - Ethers provider for read operations
-   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
-   * @param {NetworkConfig} config - Configuration object
+   * Wire one client per built-in authenticator type.
+   *
+   * @public
+   * @param {EthersProvider} readProvider - Read provider shared with each child client
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped write signer ({@code null} for read-only)
+   * @param {NetworkConfig} config - Resolved network config (must include all authenticator addresses)
    */
   constructor(readProvider, writeSigner, config) {
     this.readProvider = readProvider;
     this.writeSigner = writeSigner;
     this.config = config;
 
-    // Initialize all authenticator clients
-    // To add a new authenticator:
-    // 1. Create the client class (e.g., BiometricAuthenticatorClient.js)
-    // 2. Import it above
-    // 3. Add it here: this.newAuthType = new NewAuthenticatorClient(...)
     this.walletSignature = new WalletSignatureAuthenticatorClient(readProvider, writeSigner, config);
     this.password = new PasswordAuthenticatorClient(readProvider, writeSigner, config);
     this.dualFactor = new DualFactorAuthenticatorClient(readProvider, writeSigner, config);
     this.passwordMinuteSignature = new PasswordMinuteSignatureAuthenticatorClient(readProvider, writeSigner, config);
   }
 
-  // ============================================================================
-  // Instance Methods
-  // ============================================================================
-
   /**
-   * Get a specific authenticator client by type
-   * 
-   * @param {string} type - Authenticator type ('walletSignature', 'password', etc.)
-   * @returns {AuthenticatorClientInstance} Authenticator client instance
-   * @throws {ValidationError} If {@code type} is missing or not a string, or the authenticator type is not registered
+   * Resolve a registered authenticator client by string key.
+   *
+   * @public
+   * @param {string} type - Authenticator type ({@code 'walletSignature'}, {@code 'password'}, {@code 'dualFactor'}, {@code 'passwordMinuteSignature'})
+   * @returns {AuthenticatorClientInstance} The matching client instance
+   * @throws {ValidationError} If {@code type} is missing, not a string, or not a registered authenticator type
    */
   getClient(type) {
     requireString(type, 'type');
@@ -70,9 +68,11 @@ class AuthenticatorClient {
   }
 
   /**
-   * Get all registered authenticator types
-   * 
-   * @returns {string[]} Array of authenticator type names
+   * List the registered authenticator type names.
+   *
+   * @public
+   * @returns {string[]} Names suitable for {@link AuthenticatorClient#getClient}
+   * @remarks Filters out the constructor-stored {@code readProvider}, {@code writeSigner}, {@code config} keys.
    */
   getAvailableTypes() {
     return Object.keys(this).filter(key => !['readProvider', 'writeSigner', 'config'].includes(key));

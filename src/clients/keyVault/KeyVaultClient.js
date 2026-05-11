@@ -1,11 +1,12 @@
 /**
- * KeyVaultClient
+ * Low-level client for the {@code KeyVault} contract.
  *
- * Client for interacting with KeyVault contract methods.
- * Handles key vault operations, signing, and account management.
+ * KeyVault is the Sapphire-confidential signing and account-management layer of a Monstera wallet:
+ * it stores HD seeds, imported keys, and the authenticator binding, and runs all signing operations
+ * inside an authenticated context. Most {@link Monstera} read/write methods funnel through this client.
  *
  * @remarks
- * This is the preferred contract surface from {@link Monstera}: signing and account helpers take `keyVaultAddr`.
+ * This is the preferred contract surface from {@link Monstera}: signing and account helpers take {@code keyVaultAddr}.
  * WalletLogic exposes parallel proxy methods that forward to KeyVault; using KeyVault directly avoids an extra hop.
  *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
@@ -37,6 +38,8 @@
  * @typedef {import('../../types/index.js').ImportKeyResult} ImportKeyResult
  * @typedef {import('../../types/index.js').DeactivateKeyResult} DeactivateKeyResult
  * @typedef {import('../../types/index.js').ActivateKeyResult} ActivateKeyResult
+ *
+ * @module clients/keyVault/KeyVaultClient
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -53,15 +56,17 @@ import {
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
+/**
+ * @public
+ */
 class KeyVaultClient extends BaseContractClient {
-  // ============================================================================
-  // Constructor
-  // ============================================================================
-  
   /**
-   * @param {EthersProvider} readProvider - Ethers provider for read operations
-   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
-   * @param {NetworkConfig} config - Configuration object
+   * Forward provider/signer/config to {@link BaseContractClient}.
+   *
+   * @public
+   * @param {EthersProvider} readProvider - Read provider for view calls
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped write signer ({@code null} for read-only)
+   * @param {NetworkConfig} config - Resolved network configuration
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -72,11 +77,16 @@ class KeyVaultClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Get the storage contract address holding the keys
-   * 
-   * @param {KeyVaultAddrOptions} options - Get storage address options
+   * Get the {@code WalletStorage} contract bound to a KeyVault (where keys actually live).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
    * @returns {Promise<Address>} Storage contract address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getStorageAddr(options = {}) {
     const { keyVaultAddr } = options;
@@ -96,11 +106,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get the current authenticator contract address for a wallet 
-   * 
-   * @param {KeyVaultAddrOptions} options - Get authenticator options
+   * Get the authenticator contract currently bound to a KeyVault.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
    * @returns {Promise<Address>} Authenticator address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAuthenticatorAddr(options = {}) {
     const { keyVaultAddr } = options;
@@ -120,11 +135,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get the current KeyVaultImplementation contract address
-   * 
-   * @param {KeyVaultAddrOptions} options - Get implementation options
+   * Get the current KeyVault implementation address (proxy → impl).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
    * @returns {Promise<Address>} Implementation address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultImplAddr(options = {}) {
     const { keyVaultAddr } = options;
@@ -144,11 +164,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Check if a given keyVault is initialized 
-   * 
-   * @param {KeyVaultAddrOptions} options - Check if keyVault is initialized options
-   * @returns {Promise<boolean>} True if keyVault is initialized, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether a KeyVault has been initialized.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if the KeyVault is initialized
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isInitialized(options = {}) {
     const { keyVaultAddr } = options;
@@ -168,11 +193,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get one of a wallet's account addresses for a given index
-   * 
-   * @param {KeyVaultAddrIndexOptions} options - Get account address options
+   * Get the wallet's HD account address at a given index.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrIndexOptions} options - {@code keyVaultAddr} and {@code index}
    * @returns {Promise<Address>} Account address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if index is invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code index} is not a non-negative integer
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddr(options = {}) {
     const { keyVaultAddr, index } = options;
@@ -193,11 +223,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get multiple account addresses from a wallet for a given range of indexes
-   * 
-   * @param {KeyVaultAccountSliceOptions} options - Get account addresses options
-   * @returns {Promise<Address[]>} Array of account addresses
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if fromIndex/count are invalid
+   * Get a contiguous slice of HD account addresses from the wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAccountSliceOptions} options - {@code keyVaultAddr}, {@code fromIndex}, {@code count}
+   * @returns {Promise<Address[]>} Array of account addresses (length {@code count})
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code fromIndex}/{@code count} is not a non-negative integer
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddresses(options = {}) {
     const { keyVaultAddr, fromIndex, count } = options;
@@ -219,11 +254,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Sign a raw transaction (authenticated function)
-   * 
-   * @param {KeyVaultClientSignTransactionOptions} options - Sign transaction options
-   * @returns {Promise<Bytes>} Signed transaction
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * Sign a raw EVM transaction with the wallet's HD account at {@code index} (authenticated view).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientSignTransactionOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, plus tx fields
+   * @returns {Promise<Bytes>} RLP-encoded signed transaction
+   * @throws {ValidationError} If addresses, {@code authProof}, or numeric tx fields are missing/invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async signTransaction(options = {}) {
     const { keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId } = options;
@@ -252,11 +292,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Sign an EIP-191 message (authenticated function)
-   * 
-   * @param {KeyVaultClientSignMessageOptions} options - Sign message options
-   * @returns {Promise<Bytes>} Signed message (bytes)
+   * Sign an EIP-191 personal message with the wallet's HD account at {@code index} (authenticated view).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientSignMessageOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, {@code message}
+   * @returns {Promise<Bytes>} Signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async signMessage(options = {}) {
     const { keyVaultAddr, authProof, index, message } = options;
@@ -279,11 +324,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Sign a 32-byte hash (authenticated function)
-   * 
-   * @param {KeyVaultClientSignHashOptions} options - Sign hash options
-   * @returns {Promise<Bytes>} Signed hash (bytes)
+   * Sign a 32-byte hash with the wallet's HD account at {@code index} (authenticated view).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientSignHashOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, 32-byte {@code hash}
+   * @returns {Promise<Bytes>} Signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async sign(options = {}) {
     const { keyVaultAddr, authProof, index, hash } = options;
@@ -306,11 +356,19 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Execute a function with an auth proof (authenticated function)
-   * 
-   * @param {KeyVaultClientExecuteWithAuthOptions} options - Execute function options
-   * @returns {Promise<Bytes>} Execute function result (bytes)
+   * Execute an arbitrary KeyVault implementation function gated by an auth proof (authenticated view).
+   *
+   * Used internally by {@link Monstera#signAuthorization}; advanced callers can supply their own
+   * {@code implCall} bytes when extending KeyVault.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientExecuteWithAuthOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code implCall}
+   * @returns {Promise<Bytes>} Raw return bytes from the implementation function
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof or implementation revert)
+   * @throws {WalletError} For other unrecognised failures
    */
   async executeWithAuth(options = {}) {
     const { keyVaultAddr, authProof, implCall } = options;
@@ -332,11 +390,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get all imported key IDs (V2)
+   * List the IDs of all keys imported into a KeyVault (V2).
    *
-   * @param {KeyVaultAddrOptions} options - Get imported key IDs options
-   * @returns {Promise<Bytes32[]>} Array of imported key IDs
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<Bytes32[]>} Imported key IDs
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getImportedKeyIds(options = {}) {
     const { keyVaultAddr } = options;
@@ -356,13 +419,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get metadata for an imported key (V2)
-   * 
-   * @dev Returns curve, chain, active status, etc. Not the private key.
+   * Get metadata for an imported key (V2). Does not return private key material.
    *
-   * @param {KeyVaultImportedKeyOptions} options - Get key metadata options
-   * @returns {Promise<KeyMetadataResult>} Key metadata (curve, chain, active, labelHash)
-   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId}
+   * @returns {Promise<KeyMetadataResult>} {@code curve}, {@code chain}, {@code active}, {@code labelHash}
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. unknown {@code keyId})
+   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyMetadata(options = {}) {
     const { keyVaultAddr, keyId } = options;
@@ -383,11 +449,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Check if a key exists (V2)
+   * Check whether an imported key exists in a KeyVault (V2).
    *
-   * @param {KeyVaultImportedKeyOptions} options - Key exists options
-   * @returns {Promise<boolean>} True if key exists, false otherwise
-   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId}
+   * @returns {Promise<boolean>} {@code true} if the key exists
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async keyExists(options = {}) {
     const { keyVaultAddr, keyId } = options;
@@ -408,11 +479,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Sign a hash with an imported key (V2, authenticated view)
+   * Sign a digest with an imported key (V2, authenticated view).
    *
-   * @param {KeyVaultClientSignWithImportedKeyOptions} options - Sign with imported key options
-   * @returns {Promise<Bytes>} Signature (format depends on curve)
+   * @public
+   * @async
+   * @param {KeyVaultClientSignWithImportedKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code keyId}, 32-byte {@code digest}
+   * @returns {Promise<Bytes>} Signature bytes (format depends on the imported key's curve)
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async signWithImportedKey(options = {}) {
     const { keyVaultAddr, authProof, keyId, digest } = options;
@@ -435,11 +511,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get the address for an imported key (V2)
+   * Get the address (Ethereum address, Solana pubkey, etc.) corresponding to an imported key (V2).
    *
-   * @param {KeyVaultImportedKeyOptions} options - Get imported key address options
-   * @returns {Promise<Bytes>} Address (Ethereum address, Solana pubkey, etc. as bytes)
-   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId}
+   * @returns {Promise<Bytes>} Address bytes (curve/chain-dependent encoding)
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getImportedKeyAddr(options = {}) {
     const { keyVaultAddr, keyId } = options;
@@ -460,11 +541,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Get Solana address at HD index (V2)
+   * Get the Solana public key for an HD account at {@code index} (V2).
    *
-   * @param {KeyVaultAddrIndexOptions} options - Get Solana address options
-   * @returns {Promise<Bytes>} Solana public key (bytes)
-   * @throws {ValidationError} If keyVaultAddr or index is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultAddrIndexOptions} options - {@code keyVaultAddr} and {@code index}
+   * @returns {Promise<Bytes>} Solana public key bytes
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code index} is not a non-negative integer
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. Solana base keys not configured)
+   * @throws {WalletError} For other unrecognised failures
    */
   async getSolanaAddr(options = {}) {
     const { keyVaultAddr, index } = options;
@@ -485,11 +571,16 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Sign a Solana message (V2, authenticated view)
+   * Sign a Solana message with the HD account at {@code index} (V2, authenticated view).
    *
-   * @param {KeyVaultClientSignSolanaOptions} options - Sign Solana options
-   * @returns {Promise<Bytes>} Signature
+   * @public
+   * @async
+   * @param {KeyVaultClientSignSolanaOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, {@code message}
+   * @returns {Promise<Bytes>} Solana signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async signSolana(options = {}) {
     const { keyVaultAddr, authProof, index, message } = options;
@@ -516,13 +607,17 @@ class KeyVaultClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Initialize a KeyVault contract
-   * 
-   * @param {InitializeOptions} options - Initialize key vault options
-   * @returns {Promise<BaseTransactionResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
+   * Initialize a freshly deployed KeyVault by wiring its storage, authenticator, and access token.
+   *
+   * @public
+   * @async
+   * @param {InitializeOptions} options - {@code keyVaultAddr}, {@code storageAddr}, {@code authenticatorAddr}, {@code accessToken}
+   * @returns {Promise<BaseTransactionResult>} Standard write result
+   * @throws {ValidationError} If any address is invalid or {@code accessToken} is not a 32-byte hex string
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. already initialized)
+   * @throws {WalletError} For other unrecognised failures
    */
   async initialize(options = {}) {
     const { keyVaultAddr, storageAddr, authenticatorAddr, accessToken } = options;
@@ -543,14 +638,19 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Update the keyVaultImplementation contract address (authenticated function)
-   * 
-   * @param {KeyVaultClientUpdateKeyVaultImplOptions} options - Update keyVaultImplementation options
-   * @returns {Promise<UpdateKeyVaultImplAddrResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Upgrade a KeyVault proxy to a new implementation (authenticated write).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientUpdateKeyVaultImplOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code newImplAddr}
+   * @returns {Promise<UpdateKeyVaultImplAddrResult>} Standard write result with parsed {@code oldImpl}/{@code newImpl}
+   * @throws {ValidationError} If addresses or {@code authProof} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code ImplementationUpgraded} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddr(options = {}) {
     const { keyVaultAddr, authProof, newImplAddr } = options;
@@ -576,14 +676,19 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Update the authenticator (Authenticated function)
-   * 
-   * @param {KeyVaultClientUpdateAuthenticatorOptions} options - Update authenticator options
-   * @returns {Promise<UpdateAuthenticatorAddrResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Swap the authenticator contract bound to a KeyVault (authenticated write).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientUpdateAuthenticatorOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code newAuthenticatorAddr}, {@code newAuthConfig}
+   * @returns {Promise<UpdateAuthenticatorAddrResult>} Standard write result with parsed {@code oldAuth}/{@code newAuth}
+   * @throws {ValidationError} If addresses, {@code authProof}, or {@code newAuthConfig} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts
+   * @throws {EventNotFoundError} If the {@code AuthenticatorChanged} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddr(options = {}) {
     const { keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig } = options;
@@ -610,14 +715,19 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Import an external private key (V2)
+   * Import an external private key into the KeyVault (V2, authenticated write).
    *
-   * @param {KeyVaultClientImportKeyOptions} options - Import key options
-   * @returns {Promise<ImportKeyResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {KeyVaultClientImportKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code keyId}, {@code privateKey}, optional {@code publicKey}, {@code curve}, {@code chain}, {@code label}
+   * @returns {Promise<ImportKeyResult>} Standard write result with parsed {@code keyId}/{@code curve}/{@code chain}
+   * @throws {ValidationError} If addresses, {@code authProof}, key material, or metadata fields are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or duplicate key)
+   * @throws {EventNotFoundError} If the {@code KeyImported} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async importKey(options = {}) {
     const { keyVaultAddr, authProof, keyId, privateKey, publicKey, curve, chain, label } = options;
@@ -648,14 +758,21 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Deactivate an imported key (V2, soft delete)
+   * Deactivate an imported key (V2, soft delete; authenticated write).
    *
-   * @param {KeyVaultClientDeactivateActivateKeyOptions} options - Deactivate key options
-   * @returns {Promise<DeactivateKeyResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * The key is preserved on-chain but cannot sign until reactivated via {@link KeyVaultClient#activateKey}.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientDeactivateActivateKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code keyId}
+   * @returns {Promise<DeactivateKeyResult>} Standard write result with parsed {@code keyId}
+   * @throws {ValidationError} If addresses, {@code authProof}, or {@code keyId} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or unknown {@code keyId})
+   * @throws {EventNotFoundError} If the {@code KeyDeactivated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async deactivateKey(options = {}) {
     const { keyVaultAddr, authProof, keyId } = options;
@@ -681,14 +798,19 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Reactivate a previously deactivated key (V2)
+   * Reactivate a previously deactivated imported key (V2, authenticated write).
    *
-   * @param {KeyVaultClientDeactivateActivateKeyOptions} options - Activate key options
-   * @returns {Promise<ActivateKeyResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {KeyVaultClientDeactivateActivateKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code keyId}
+   * @returns {Promise<ActivateKeyResult>} Standard write result with parsed {@code keyId}
+   * @throws {ValidationError} If addresses, {@code authProof}, or {@code keyId} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or unknown {@code keyId})
+   * @throws {EventNotFoundError} If the {@code KeyActivated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async activateKey(options = {}) {
     const { keyVaultAddr, authProof, keyId } = options;
@@ -714,13 +836,21 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
-   * Set base keys for a chain's HD derivation (V2)
+   * Provision HD base keys for a chain (V2, authenticated write).
    *
-   * @param {KeyVaultClientSetChainBaseKeysOptions} options - Set chain base keys options
-   * @returns {Promise<BaseTransactionResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
+   * Used to install deterministic Ed25519 / EVM base keys for chains that derive accounts via index.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientSetChainBaseKeysOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code chain}, {@code basePrivateKey}, {@code baseChainCode}
+   * @returns {Promise<BaseTransactionResult>} Standard write result
+   * @throws {ValidationError} If addresses, {@code authProof}, {@code chain}, or seed material are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or already provisioned)
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks {@code requireEvents} is set to {@code false}: missing events do not fail this call.
    */
   async setChainBaseKeys(options = {}) {
     const { keyVaultAddr, authProof, chain, basePrivateKey, baseChainCode } = options;

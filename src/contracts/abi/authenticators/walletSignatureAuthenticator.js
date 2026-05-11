@@ -1,5 +1,18 @@
 /**
- * WalletSignatureAuthenticator Contract ABI
+ * Solidity ABI for the {@code WalletSignatureAuthenticator} contract.
+ *
+ * Used by {@link WalletSignatureAuthenticatorClient}; covers configure / verify, whitelist
+ * administration, EIP-712 domain reads, and all relevant events / custom errors.
+ *
+ * @module contracts/abi/authenticators/walletSignatureAuthenticator
+ */
+
+/**
+ * Frozen ABI fragment array for {@code WalletSignatureAuthenticator}.
+ *
+ * @public
+ * @readonly
+ * @type {ReadonlyArray<object>}
  */
 export const WALLET_SIGNATURE_AUTHENTICATOR_ABI = [
   {

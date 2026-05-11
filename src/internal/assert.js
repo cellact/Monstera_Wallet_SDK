@@ -1,12 +1,15 @@
 /**
- * Validation utilities
- * 
- * Pure validation functions that can be used anywhere in the SDK.
- * These throw errors on validation failure.
- * 
+ * Pure validation functions used SDK-wide.
+ *
+ * Each helper either passes silently or throws {@link ValidationError} so callers can lean on
+ * structured error context for diagnostics. Many helpers compose: e.g. {@link requireAddress}
+ * defers to {@link requireString} first to give consistent "missing parameter" messages.
+ *
  * @typedef {import('../types/index.js').Address} Address
  * @typedef {import('../types/index.js').Mnemonic} Mnemonic
  * @typedef {import('../types/index.js').ChainId} ChainId
+ *
+ * @module internal/assert
  */
 
 import { ValidationError } from '../errors/index.js';
@@ -16,21 +19,27 @@ import { normalizeBigInt, normalizeChainId } from './utils/normalize.js';
 import { nowUnixTimestampSeconds } from './utils/time.js';
 
 /**
- * Check if a value is a valid Ethereum address (uses ethers; EIP-55 checksum when mixed-case).
+ * Boolean predicate: is {@code value} a syntactically valid EVM address?
  *
- * @param {string} value - Value to check
- * @returns {boolean} True if valid address
+ * @description Defers to {@code ethers.isAddress}; mixed-case input is treated as EIP-55 and the
+ * checksum is enforced. Lower-case / upper-case (non-mixed) input is accepted.
+ *
+ * @public
+ * @param {unknown} value - Candidate value
+ * @returns {boolean} {@code true} when {@code value} is a string ethers accepts as an address
  */
 function isAddress(value) {
   return typeof value === 'string' && ethersIsAddress(value);
 }
 
 /**
- * Require an address value
- * 
+ * Assert that {@code value} is a valid EVM address.
+ *
+ * @public
  * @param {string} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is not provided or is not a non-empty string ({@link requireString}) or is not a valid address string
+ * @param {string} [name='address'] - Parameter name for the resulting error message
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} fails {@link requireString} or is not a valid address
  */
 function requireAddress(value, name = 'address') {
   requireString(value, name);
@@ -40,11 +49,18 @@ function requireAddress(value, name = 'address') {
 }
 
 /**
- * Require a bytes value
- * 
- * @param {string|Uint8Array} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing, not a valid bytes string or Uint8Array ({@link requireUtf8Bytes})
+ * Assert that {@code value} is a valid bytes value (either a {@code 0x}-prefixed hex string or a
+ * {@link Uint8Array}).
+ *
+ * @description Allows the empty hex string {@code "0x"} and zero-length Uint8Arrays — use
+ * {@link requireNonEmptyBytes} when empty bytes are not acceptable.
+ *
+ * @public
+ * @param {string | Uint8Array} value - Value to validate
+ * @param {string} [name='bytes'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is missing, a string that is not valid hex, or any
+ *   other non-{@link Uint8Array} value
  */
 function requireBytes(value, name = 'bytes') {
   // Allows `0x` (empty hex); use {@link requireNonEmptyBytes} when empty bytes are invalid.
@@ -59,14 +75,9 @@ function requireBytes(value, name = 'bytes') {
   
   // String must be valid hex
   if (typeof value === 'string') {
-    // Check if it's a valid hex string
     if (!/^0x[a-fA-F0-9]*$/.test(value)) {
       throw new ValidationError(`${name} must be a valid hex string (0x...) or Uint8Array`, name, value);
     }
-    // Optional: validate even length (hex pairs)
-    // if (value.length > 2 && (value.length - 2) % 2 !== 0) {
-    //   throw new ValidationError(`${name} hex string must have even length (pairs of hex digits)`, name, value);
-    // }
     return;
   }
   
@@ -74,11 +85,16 @@ function requireBytes(value, name = 'bytes') {
 }
 
 /**
- * Require non-empty bytes: valid hex or Uint8Array per {@link requireBytes}, but not `0x` or length-0 Uint8Array.
+ * Assert that {@code value} is non-empty bytes.
  *
- * @param {string|Uint8Array} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value fails {@link requireBytes} or is empty
+ * @description Composes {@link requireBytes} and additionally rejects {@code "0x"} and
+ * zero-length {@link Uint8Array}.
+ *
+ * @public
+ * @param {string | Uint8Array} value - Value to validate
+ * @param {string} [name='bytes'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} fails {@link requireBytes} or is empty bytes
  */
 function requireNonEmptyBytes(value, name = 'bytes') {
   requireBytes(value, name);
@@ -94,11 +110,14 @@ function requireNonEmptyBytes(value, name = 'bytes') {
 }
 
 /**
- * Require a 32-byte hex string value
- * 
+ * Assert that {@code value} is exactly a 32-byte {@code 0x}-prefixed hex string.
+ *
+ * @public
  * @param {string} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing, not a non-empty string ({@link requireString}) or is not a valid 32-byte hex string
+ * @param {string} [name='bytes32'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} fails {@link requireString} or is not a 32-byte hex
+ *   string per {@code ethers.isHexString(value, 32)}
  */
 function requireBytes32(value, name = 'bytes32') {
   requireString(value, name);
@@ -108,11 +127,16 @@ function requireBytes32(value, name = 'bytes32') {
 }
 
 /**
- * Require a Uint8Array value
- * 
+ * Assert that {@code value} is a non-empty {@link Uint8Array}.
+ *
+ * @description Used by the password authProof encoder to require pre-UTF-8-encoded password bytes
+ * (so plaintext strings never travel through the SDK).
+ *
+ * @public
  * @param {Uint8Array} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing or is not a non-empty Uint8Array ({@link requireUtf8Bytes})
+ * @param {string} [name='utf8Bytes'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is not a {@link Uint8Array} or has length 0
  */
 function requireUtf8Bytes(value, name = 'utf8Bytes') {
   if (!(value instanceof Uint8Array)) {
@@ -124,11 +148,13 @@ function requireUtf8Bytes(value, name = 'utf8Bytes') {
 }
 
 /**
- * Require a string value
- * 
+ * Assert that {@code value} is a non-empty string.
+ *
+ * @public
  * @param {string} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing, not a string, empty, or whitespace-only
+ * @param {string} [name='string'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is missing, not a string, empty, or whitespace-only
  */
 function requireString(value, name = 'string') {
   if (!value || typeof value !== 'string' || value.trim() === '') {
@@ -137,26 +163,29 @@ function requireString(value, name = 'string') {
 }
 
 /**
- * Require a valid BIP39 mnemonic phrase (12 or 24 words)
- * 
+ * Assert that {@code value} is a valid BIP-39 mnemonic phrase.
+ *
+ * @description Normalises whitespace before counting words, accepts 12-word or 24-word phrases,
+ * and runs {@code ethers.Mnemonic.isValidMnemonic} for wordlist / checksum verification.
+ *
+ * @public
  * @param {Mnemonic} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing, not a non-empty string ({@link requireString}) or is not a valid BIP39 mnemonic
+ * @param {string} [name='mnemonic'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} fails {@link requireString}, is not 12 or 24 words,
+ *   or fails {@code Mnemonic.isValidMnemonic} (invalid words / checksum)
  */
 function requireMnemonic(value, name = 'mnemonic') {
   requireString(value, name);
   
-  // Normalize the mnemonic more aggressively to handle ethers v6 whitespace issues
-  // Remove all types of whitespace (spaces, tabs, newlines) and replace with single space
   const normalized = value
     .trim()
-    .replace(/[\s\n\r\t]+/g, ' ')  // Replace all whitespace types with single space
-    .replace(/\s+/g, ' ')           // Ensure no double spaces
+    .replace(/[\s\n\r\t]+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 
   const words = normalized.split(' ').filter(word => word.length > 0);
   
-  // Check word count (must be 12 or 24 words)
   if (words.length !== 12 && words.length !== 24) {
     throw new ValidationError(
       `${name} must be a valid BIP39 mnemonic with 12 or 24 words (got ${words.length} words)`,
@@ -165,8 +194,6 @@ function requireMnemonic(value, name = 'mnemonic') {
     );
   }
 
-  // Use ethers v6 official validation method
-  // Mnemonic.isValidMnemonic() checks: wordlist membership, valid length, and checksum
   if (!Mnemonic.isValidMnemonic(normalized)) {
     throw new ValidationError(
       `${name} is not a valid BIP39 mnemonic (invalid words, length, or checksum)`,
@@ -177,20 +204,24 @@ function requireMnemonic(value, name = 'mnemonic') {
 }
 
 /**
- * Require a number value (supports both Number and BigInt)
- * 
- * @param {number|BigInt} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @param {Record<string, unknown>} options - Validation options
- * @param {boolean} [options.allowZero=true] - Allow zero
- * @param {boolean} [options.allowNegative=false] - Allow negative numbers
- * @param {boolean} [options.requireInteger=false] - Require integer
- * @throws {ValidationError} If value is missing, not a number or BigInt ({@link requireNumber})
+ * Assert that {@code value} is a number (supports {@code number} and {@code bigint}).
+ *
+ * @description Configurable via {@code options} for zero, negative, and integer constraints. Used
+ * as the building block for the more specific {@link requireNonNegativeInteger} and
+ * {@link requirePositiveInteger}.
+ *
+ * @public
+ * @param {number | bigint} value - Value to validate
+ * @param {string} [name='number'] - Parameter name
+ * @param {{ allowZero?: boolean, allowNegative?: boolean, requireInteger?: boolean }} [options={}] -
+ *   Constraint flags
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is missing, not a number / bigint, violates
+ *   {@code allowZero}, violates {@code allowNegative}, or violates {@code requireInteger}
  */
 function requireNumber(value, name = 'number', options = {}) {
   const { allowZero = true, allowNegative = false, requireInteger = false } = options;
 
-  // Accept both number and BigInt
   if (value === undefined || value === null) {
     throw new ValidationError(`${name} is required`, name, value);
   }
@@ -202,9 +233,6 @@ function requireNumber(value, name = 'number', options = {}) {
     throw new ValidationError(`${name} is required and must be a number or BigInt`, name, value);
   }
 
-  // Convert BigInt to Number for comparisons (safe for reasonable ranges)
-  // Note: This conversion is safe for gas values, nonces, etc. but may lose precision
-  // for very large BigInt values (> Number.MAX_SAFE_INTEGER)
   const numValue = isBigInt ? Number(value) : value;
 
   if (!allowZero && numValue === 0) {
@@ -217,7 +245,6 @@ function requireNumber(value, name = 'number', options = {}) {
 
   if (requireInteger) {
     if (isBigInt) {
-      // BigInt is always an integer, so validation passes
       return;
     }
     if (!Number.isInteger(numValue)) {
@@ -227,33 +254,39 @@ function requireNumber(value, name = 'number', options = {}) {
 }
 
 /**
- * Require a non-negative integer (supports both Number and BigInt)
- * 
- * @param {number|BigInt} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is not a non-negative integer ({@link requireNumber})
+ * Assert that {@code value} is a non-negative integer ({@code number} or {@code bigint}).
+ *
+ * @public
+ * @param {number | bigint} value - Value to validate
+ * @param {string} [name='number'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} Forwarded from {@link requireNumber}
  */
 function requireNonNegativeInteger(value, name = 'number') {
   requireNumber(value, name, { allowZero: true, allowNegative: false, requireInteger: true });
 }
 
 /**
- * Require a positive integer (supports both Number and BigInt)
- * 
- * @param {number|BigInt} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is not a positive integer ({@link requireNumber})
+ * Assert that {@code value} is a positive (non-zero) integer ({@code number} or {@code bigint}).
+ *
+ * @public
+ * @param {number | bigint} value - Value to validate
+ * @param {string} [name='number'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} Forwarded from {@link requireNumber}
  */
 function requirePositiveInteger(value, name = 'number') {
   requireNumber(value, name, { allowZero: false, allowNegative: false, requireInteger: true });
 }
 
 /**
- * Require an array value
- * 
+ * Assert that {@code value} is a non-empty array.
+ *
+ * @public
  * @param {Array} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing or is not an array ({@link requireArray})
+ * @param {string} [name='array'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is not an array, or has length 0
  */
 function requireArray(value, name = 'array') {
   if (!Array.isArray(value)) {
@@ -265,11 +298,16 @@ function requireArray(value, name = 'array') {
 }
 
 /**
- * Require a Wallet or HDNodeWallet value
- * 
+ * Assert that {@code value} is an ethers {@code Wallet} or {@code HDNodeWallet}.
+ *
+ * @description Used by the auth-proof builders that need a real signer instance (private-key or
+ * HD-derived) — does NOT accept arbitrary signer-shaped duck types.
+ *
+ * @public
  * @param {Wallet | HDNodeWallet} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing or is not a Wallet or HDNodeWallet ({@link requireWalletOrHdNode})
+ * @param {string} [name='signer'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is missing or not an instance of either class
  */
 function requireWalletOrHdNode(value, name = 'signer') {
   if (!value || !(value instanceof Wallet || value instanceof HDNodeWallet)) {
@@ -278,11 +316,13 @@ function requireWalletOrHdNode(value, name = 'signer') {
 }
 
 /**
- * Require a string or number value
- * 
- * @param {string|number} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing or is not a string or number ({@link requireStringOrNumber})
+ * Assert that {@code value} is a non-empty string or a non-zero number.
+ *
+ * @public
+ * @param {string | number} value - Value to validate
+ * @param {string} [name='string or number'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is missing or not a string / number
  */
 function requireStringOrNumber(value, name = 'string or number') {
   if (!value || typeof value !== 'string' && typeof value !== 'number') {
@@ -291,12 +331,17 @@ function requireStringOrNumber(value, name = 'string or number') {
 }
 
 /**
- * Require a parsable EVM chain id (number, bigint, decimal string, or {@code 0x} hex string).
+ * Assert that {@code value} is parseable to a finite EVM chain id and return the normalised value.
  *
- * @param {unknown} value
- * @param {string} [name='chainId']
- * @returns {ChainId} 
- * @throws {ValidationError} If missing or not parseable to a finite chain id
+ * @description Accepts {@code number}, {@code bigint}, decimal string, or {@code 0x}-prefixed hex
+ * string; defers to {@link normalizeChainId} for parsing.
+ *
+ * @public
+ * @param {unknown} value - Value to validate
+ * @param {string} [name='chainId'] - Parameter name
+ * @returns {ChainId} Normalised chain id
+ * @throws {ValidationError} If {@code value} is missing or {@link normalizeChainId} returns
+ *   {@code undefined}
  */
 function requireChainId(value, name = 'chainId') {
   if (value === undefined || value === null) {
@@ -314,14 +359,19 @@ function requireChainId(value, name = 'chainId') {
 }
 
 /**
- * Require a finite {@link BigInt} value, accepting {@code bigint}, safe integer {@code number},
- * or a non-empty decimal / {@code 0x} hex string. Uses {@link normalizeBigInt}.
+ * Assert that {@code value} is parseable to a finite {@link bigint} and return it.
  *
- * @param {unknown} value
- * @param {string} [name='value']
- * @param {{ allowNegative?: boolean }} [options]
- * @returns {bigint}
- * @throws {ValidationError} If missing, not coercible, or when {@code allowNegative} is false and value is negative
+ * @description Accepts {@code bigint}, safe-integer {@code number}, or non-empty decimal /
+ * {@code 0x}-hex string; defers to {@link normalizeBigInt}.
+ *
+ * @public
+ * @param {unknown} value - Value to validate
+ * @param {string} [name='value'] - Parameter name
+ * @param {{ allowNegative?: boolean }} [options={}] - When {@code allowNegative === false},
+ *   negative values throw
+ * @returns {bigint} Normalised value
+ * @throws {ValidationError} If {@code value} is missing, not coercible, or when negative values
+ *   are forbidden and the value is negative
  */
 function requireBigInt(value, name = 'value', options = {}) {
   const { allowNegative = true } = options;
@@ -347,11 +397,15 @@ function requireBigInt(value, name = 'value', options = {}) {
 }
 
 /**
- * Check if a value is in the future
+ * Assert that {@code value} is a Unix timestamp (seconds) strictly in the future.
  *
- * @param {number} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is not in the future ({@link isInFuture})
+ * @description Used by deadline assertions in the auth-proof builders.
+ *
+ * @public
+ * @param {number} value - Unix timestamp in seconds
+ * @param {string} [name='date'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is not in the future relative to {@link nowUnixTimestampSeconds}
  */
 function isInFuture(value, name = 'date') {
   const nowInSeconds = nowUnixTimestampSeconds();
@@ -361,11 +415,13 @@ function isInFuture(value, name = 'date') {
 }
 
 /**
- * Require a boolean value
- * 
+ * Assert that {@code value} is a boolean.
+ *
+ * @public
  * @param {boolean} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing or is not a boolean ({@link requireBoolean})
+ * @param {string} [name='boolean'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is not a {@code boolean}
  */
 function requireBoolean(value, name = 'boolean') {
   if (typeof value !== 'boolean') {
@@ -374,12 +430,16 @@ function requireBoolean(value, name = 'boolean') {
 }
 
 /**
- * Require a non-null object with at least one own enumerable key.
- * Plain objects and arrays count as objects; empty `{}` and empty `[]` throw.
+ * Assert that {@code value} is a non-null object with at least one own enumerable key.
  *
+ * @description Plain objects and arrays both count as objects; empty {@code {}} or empty
+ * {@code []} throws.
+ *
+ * @public
  * @param {object} value - Value to validate
- * @param {string} name - Parameter name for error message
- * @throws {ValidationError} If value is missing or is not an object ({@link requireObject}) or has no enumerable keys
+ * @param {string} [name='object'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is missing, not an object, or has no own keys
  */
 function requireObject(value, name = 'object') {
   if (!value || typeof value !== 'object') {

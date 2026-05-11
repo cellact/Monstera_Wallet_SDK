@@ -1,5 +1,18 @@
 /**
- * PasswordAuthenticator Contract ABI
+ * Solidity ABI for the {@code PasswordAuthenticator} contract.
+ *
+ * Used by {@link PasswordAuthenticatorClient}; covers configure / verify / changePassword and the
+ * full set of events and custom errors needed by {@code sdkErrorPipeline}.
+ *
+ * @module contracts/abi/authenticators/passwordAuthenticator
+ */
+
+/**
+ * Frozen ABI fragment array for {@code PasswordAuthenticator}.
+ *
+ * @public
+ * @readonly
+ * @type {ReadonlyArray<object>}
  */
 export const PASSWORD_AUTHENTICATOR_ABI = [
 	{

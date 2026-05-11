@@ -1,14 +1,26 @@
 /**
- * Pure normalization helpers (no throws).
+ * Pure normalisation helpers used by config + assertion code.
+ *
+ * @description Both helpers return {@code undefined} on failure rather than throwing, so callers
+ * (typically the {@code require*} helpers in {@link ../assert.js}) can wrap them in their own
+ * structured {@link ValidationError} messages.
  *
  * @typedef {import('../../types/index.js').ChainId} ChainId
+ *
+ * @module internal/utils/normalize
  */
 
 /**
- * Normalize an EVM chain id for config / ethers (integer number when ≤ {@link Number.MAX_SAFE_INTEGER}, else lowercase hex string).
+ * Normalise an EVM chain id into the {@link ChainId} representation used internally.
  *
- * @param {unknown} value
- * @returns {ChainId | undefined}
+ * @description Accepts {@code bigint}, {@code number}, decimal string, or {@code 0x}-hex string.
+ * Returns a {@code number} when the value fits in {@link Number.MAX_SAFE_INTEGER}; otherwise
+ * returns a lowercase {@code 0x}-hex string. Returns {@code undefined} on missing / non-finite /
+ * unparseable input.
+ *
+ * @public
+ * @param {unknown} value - Candidate chain id
+ * @returns {ChainId | undefined} Normalised chain id, or {@code undefined}
  */
 function normalizeChainId(value) {
   if (value === undefined || value === null) {
@@ -41,10 +53,14 @@ function normalizeChainId(value) {
 }
 
 /**
- * Coerce a value to {@link BigInt} (bigint, finite integer number, or trimmed decimal / {@code 0x} hex string).
+ * Coerce a value to {@link bigint}.
  *
- * @param {unknown} value
- * @returns {bigint | undefined}
+ * @description Accepts {@code bigint}, finite integer {@code number}, or trimmed decimal /
+ * {@code 0x}-hex string. Returns {@code undefined} on missing / invalid input.
+ *
+ * @public
+ * @param {unknown} value - Candidate bigint
+ * @returns {bigint | undefined} Coerced value, or {@code undefined}
  */
 function normalizeBigInt(value) {
   if (value === undefined || value === null) {

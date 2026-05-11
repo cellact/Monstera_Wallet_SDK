@@ -1,9 +1,14 @@
 /**
- * KeyVault Events
- * 
- * All event definitions for the KeyVault contract
+ * Event definition records for the {@code KeyVault} contract.
+ *
+ * @module events/keyVault
  */
 
+/**
+ * @public
+ * @readonly
+ * @type {Record<string, { eventName: string, fieldMapping: Record<string, string>, description: string }>}
+ */
 export default {
   AuthenticatorChanged: {
     eventName: 'AuthenticatorChanged',

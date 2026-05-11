@@ -1,5 +1,19 @@
 /**
- * WalletLogic Contract ABI
+ * Solidity ABI for the {@code WalletLogic} contract (wallet proxy).
+ *
+ * Hand-checked subset used by {@link WalletLogicClient}: proxy reads, KeyVault-forwarded
+ * authenticated calls, initialisation, and every relevant event / custom error so the SDK can
+ * decode reverts.
+ *
+ * @module contracts/abi/core/walletLogic
+ */
+
+/**
+ * Frozen ABI fragment array for {@code WalletLogic}.
+ *
+ * @public
+ * @readonly
+ * @type {ReadonlyArray<object>}
  */
 export const WALLET_LOGIC_ABI = [
   {

@@ -1,9 +1,16 @@
 /**
- * Monstera Wallet SDK
- * 
- * Main SDK class for interacting with Monstera wallet contracts.
- * Provides clean API for read and write operations.
- * 
+ * Monstera Wallet SDK — top-level facade ({@link Monstera}).
+ *
+ * Public entry point that wires the read provider and Sapphire-wrapped write signer to the
+ * four domain clients ({@link WalletFactoryClient}, {@link WalletLogicClient}, {@link KeyVaultClient},
+ * {@link AuthenticatorClient}) and offers high-level helpers that accept structured options.
+ *
+ * Most methods on this class delegate to one of the underlying clients after running the
+ * structured input through {@link AuthConfigBuilder} (create-wallet `authConfig`) or
+ * {@link AuthProofBuilder} (KeyVault `authProof`); contract calls then go through
+ * {@link BaseContractClient.executeRead} / {@link BaseContractClient.executeWrite}, so any error
+ * surfaced on this class is a {@link WalletError} subclass produced by `sdkErrorPipeline`.
+ *
  * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../types/index.js').NetworkPresets} NetworkPresets
@@ -104,15 +111,18 @@ import {
 } from '../internal/auth/defaults/authProofDefaults.js';
 
 /**
- * Monstera Wallet SDK
+ * Main entry point for Monstera wallet operations on Oasis Sapphire.
  *
- * Main entry point for wallet operations on Oasis Sapphire.
+ * Construct via {@link Monstera.connect} for the typical case, or pass a fully resolved
+ * {@link MonsteraConfigOptions} to the constructor for advanced wiring.
  *
  * @remarks
  * Top-level methods prefer {@link KeyVaultClient} (`keyVaultAddr`): signing, account queries, upgrades, and imports
  * mirror what WalletLogic ultimately forwards to KeyVault, so calling KeyVault directly is simpler and matches most docs.
  * {@link WalletLogicClient} remains available as {@link Monstera#logic} for wallet-proxy-shaped calls (`walletAddr`), e.g.
  * {@link Monstera#initializeWalletLogic} or advanced use when you must hit the WalletLogic contract explicitly.
+ *
+ * @public
  */
 class Monstera {
   // ============================================================================
@@ -120,7 +130,19 @@ class Monstera {
   // ============================================================================
 
   /**
-   * @param {MonsteraConfigOptions} config - SDK configuration
+   * Build a Monstera SDK instance from a fully resolved network config.
+   *
+   * Validates the config, lazily creates a Sapphire JSON-RPC provider when one isn't supplied,
+   * wraps any provided signer for Sapphire encrypted writes, and instantiates the four domain clients
+   * plus the {@link AuthConfigBuilder} / {@link AuthProofBuilder} used by the high-level helpers.
+   *
+   * @public
+   * @param {MonsteraConfigOptions} config - Fully resolved SDK configuration (network, addresses, optional signer/provider)
+   * @throws {ConfigError} If {@code config} is missing required fields ({@code rpcUrl}, {@code chainId}, {@code network}, {@code addresses}) or required contract addresses are missing
+   * @throws {ValidationError} If contract addresses are present but malformed, or if {@code signer} is a non-string non-Signer value
+   * @throws {SapphireRequiredError} If wrapping the provided signer with the Sapphire ethers adapter fails
+   *
+   * @remarks Prefer {@link Monstera.connect} unless you already have a resolved {@link NetworkConfig}.
    */
   constructor(config) {
     assertValidResolvedConfig(config);
@@ -158,13 +180,19 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Connect to Monstera on a given network (read by default, write when a signer is provided)
+   * Connect to Monstera on a given network (read by default, write when a signer is provided).
    *
-   * Without a truthy `signer`, creates a read-only client (optional `provider`, else RPC from config).
-   * With a `signer`, creates a write-capable client.
+   * Without a truthy {@code signer}, creates a read-only client (optional {@code provider}, else RPC from config).
+   * With a {@code signer} (private key string or {@link EthersSigner}), creates a write-capable client whose
+   * signer is wrapped for Sapphire encrypted transactions.
    *
-   * @param {ConnectOptions} options - Connect options
+   * @public
+   * @static
+   * @param {ConnectOptions} options - Connect options ({@code mainnet} required; optional signer/provider/overrides)
    * @returns {Monstera} SDK instance
+   * @throws {ConfigError} If {@code mainnet} is missing or required contract addresses can't be resolved
+   * @throws {ValidationError} If {@code mainnet} is not a boolean, address overrides are malformed, or {@code signer} is invalid
+   * @throws {SapphireRequiredError} If a signer was provided but Sapphire wrapping failed
    */
   static connect(options) {
     const logLevel = options?.logLevel ?? (options?.debug === true ? 'debug' : 'error');
@@ -197,7 +225,10 @@ class Monstera {
   /**
    * Set the SDK log level. Affects the shared logger used by all Monstera code.
    *
+   * @public
    * @param {'error' | 'warn' | 'info' | 'debug'} level - Minimum level to emit (error < warn < info < debug)
+   * @returns {void}
+   * @throws {Error} If {@code level} is not one of the four supported levels
    */
   setLogLevel(level) {
     log.setLevel(level);
@@ -208,17 +239,21 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Version of the SDK
+   * SDK version string (e.g. {@code "1.2.3"}).
+   *
+   * @public
    * @static
    * @readonly
-   * @returns {string} SDK version string
+   * @returns {string} SDK version string, or {@code "unknown"} if it cannot be resolved
    */
   static get version() {
     return MonsteraConfig.version;
   }
   
   /**
-   * Network presets for testnet and mainnet
+   * Network presets for testnet and mainnet (chain id, RPC URL, explorer URL, etc.).
+   *
+   * @public
    * @static
    * @readonly
    * @returns {NetworkPresets} Network configuration presets
@@ -230,16 +265,19 @@ class Monstera {
   /**
    * Built-in contract address defaults shipped with the SDK (no network I/O).
    *
+   * @public
    * @static
    * @readonly
-   * @returns {DefaultContractAddresses} Static defaults by network
+   * @returns {DefaultContractAddresses} Static defaults keyed by network ({@code testnet} / {@code mainnet})
    */
   static get defaultAddresses() {
     return MonsteraConfig.defaultAddresses;
   }
 
   /**
-   * Required contract addresses for the SDK to function
+   * Ordered list of {@link ContractAddresses} keys that must be present after config is resolved.
+   *
+   * @public
    * @static
    * @readonly
    * @returns {RequiredContractAddressKeys} Ordered list of required {@link ContractAddresses} keys
@@ -253,37 +291,47 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Network name for the configured network
+   * Network name for the configured network (e.g. {@code "sapphire-mainnet"}).
+   *
+   * @public
    * @readonly
    * @returns {string} Network name
    */
   get network() { return this.config.network; }
 
   /**
-   * Chain ID for the configured network
+   * Chain ID for the configured network.
+   *
+   * @public
    * @readonly
    * @returns {ChainId} Chain ID
    */
   get chainId() { return this.config.chainId; }
 
   /**
-   * RPC URL for the configured network
+   * RPC URL for the configured network.
+   *
+   * @public
    * @readonly
    * @returns {string} RPC URL
    */
   get rpcUrl() { return this.config.rpcUrl; }
 
   /**
-   * Contract addresses for the configured network
+   * Resolved contract addresses for the configured network (defaults merged with overrides).
+   *
+   * @public
    * @readonly
    * @returns {ContractAddresses} Contract addresses
    */
   get addresses() { return this.config.addresses; }
 
   /**
-   * Provider instance (if provided)
+   * Provider explicitly passed to the constructor (does not include the auto-created RPC provider).
+   *
+   * @public
    * @readonly
-   * @returns {EthersProvider|null} Provider instance or null
+   * @returns {EthersProvider|null} Provider instance or {@code null}
    */
   get provider() { return this.config.provider; }
 
@@ -292,16 +340,22 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Check if SDK instance can perform write operations
-   * @returns {boolean}
+   * Whether this SDK instance has a wrapped write signer and can submit transactions.
+   *
+   * @public
+   * @returns {boolean} {@code true} when a Sapphire-wrapped signer is configured
    */
   hasWriteAccess() {
     return this.writeSigner !== null;
   }
 
   /**
-   * Get the signer address (if available)
-   * @returns {Promise<Address|null>}
+   * Get the address of the configured write signer.
+   *
+   * @public
+   * @async
+   * @returns {Promise<Address|null>} Signer address, or {@code null} when no signer is configured
+   * @throws {Error} If the underlying signer's {@code getAddress()} rejects (rare; e.g. hardware-wallet failures)
    */
   async getSignerAddr() {
     if (!this.writeSigner) return null;
@@ -309,30 +363,41 @@ class Monstera {
   }
 
   /**
-   * Get a specific authenticator client by type
-   * 
-   * @param {string} type - Authenticator type ('walletSignature', 'password', etc.)
-   * @returns {AuthenticatorClientInstance} Authenticator client instance
-   * @throws {ValidationError} If authenticator type is not found
+   * Get a specific authenticator client by type, e.g. {@code 'walletSignature'} or {@code 'password'}.
+   *
+   * @public
+   * @param {string} type - Authenticator type ({@code 'walletSignature'}, {@code 'password'}, {@code 'dualFactor'}, {@code 'passwordMinuteSignature'})
+   * @returns {AuthenticatorClientInstance} The matching authenticator client instance
+   * @throws {ValidationError} If {@code type} is missing, not a string, or not a registered authenticator type
    */
   getAuthClient(type) {
     return this.auth.getClient(type);
   }
 
   /**
-   * Get all registered authenticator types
-   * 
-   * @returns {string[]} Array of authenticator type names
+   * List the authenticator types registered on this SDK instance.
+   *
+   * @public
+   * @returns {string[]} Array of authenticator type names (suitable for {@link Monstera#getAuthClient})
    */
   getAvailableAuthTypes() {
     return this.auth.getAvailableTypes();
   }
 
   /**
-   * Build {@code authProof} for WalletSignatureAuthenticator
+   * Build the EIP-712 {@code authProof} for {@code WalletSignatureAuthenticator}.
    *
-   * @param {CreateAuthProofWalletSignatureOptions} options
-   * @returns {Promise<EncodedAuthProofWalletSignature>} encoded auth proof 
+   * Signs {@code WalletAuth(wallet, deadline)} typed data with the supplied {@code signer} and ABI-encodes
+   * {@code (uint256 deadline, bytes signature)}. {@code authenticatorAddr}, {@code chainId} and {@code deadline}
+   * default from the SDK config (deadline = now + 1 hour).
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofWalletSignatureOptions} options - Inputs for the proof
+   * @returns {Promise<EncodedAuthProofWalletSignature>} ABI-encoded auth proof bytes
+   * @throws {ValidationError} If {@code signer} is not a {@link EthersWallet}/{@link EthersHDNodeWallet}, or if {@code keyVaultAddr}, {@code authenticatorAddr}, {@code chainId}, or {@code deadline} are missing/invalid (e.g. deadline in the past)
+   * @throws {NetworkError} If the signer's transport fails during typed-data signing
+   * @throws {WalletError} For other unrecognised signing failures
    */
   async createAuthProofWalletSignature(options = {}) {
     const resolved = withWalletSignatureProofDefaults(this.config, options);
@@ -340,11 +405,19 @@ class Monstera {
   }
 
   /**
-   * Build {@code authProof} for PasswordMinuteSignatureAuthenticator
+   * Build the {@code authProof} for {@code PasswordMinuteSignatureAuthenticator}.
    *
-   * @param {CreateAuthProofMinuteSignatureOptions} options
-   * @returns {Promise<CreateAuthProofMinuteSignatureResult>}
-   * @throws {ValidationError} If addresses or passwordHash are invalid
+   * Reads the latest block from the SDK read provider to derive the current minute bucket,
+   * derives an ephemeral signer from {@code keccak256(passwordHash || minuteBucket)},
+   * signs the EIP-191 digest of {@code keccak256(wallet, authenticator, chainId, minuteBucket)},
+   * and ABI-encodes {@code (bytes signature)}.
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofMinuteSignatureOptions} options - Inputs ({@code keyVaultAddr}, {@code passwordHash}, optional {@code chainId} / {@code authenticatorAddr})
+   * @returns {Promise<CreateAuthProofMinuteSignatureResult>} Encoded auth proof, minute bucket, and derived signer address
+   * @throws {ValidationError} If {@code keyVaultAddr}, {@code authenticatorAddr}, {@code chainId} are missing/invalid, or {@code passwordHash} is not a 32-byte hex string
+   * @throws {NetworkError} If the read provider fails to return the latest block
    */
   async createAuthProofMinuteSignature(options = {}) {
     const resolved = withMinuteSignatureProofDefaults(this.config, options);
@@ -355,11 +428,19 @@ class Monstera {
   }
 
   /**
-   * Build {@code authProof} for DualFactorAuthenticator
-   * 
-   * @param {CreateAuthProofDualFactorOptions} options
-   * @returns {Promise<EncodedAuthProofDualFactor>} encoded auth proof 
-   * @throws {ValidationError} If addresses or passwordHash are invalid
+   * Build the {@code authProof} for {@code DualFactorAuthenticator}.
+   *
+   * Combines a minute-bucket password signature ({@link Monstera#createAuthProofMinuteSignature}) with a
+   * guardian EIP-712 signature over {@code DualFactorAuth(wallet, deadline)} and ABI-encodes
+   * {@code (bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}.
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofDualFactorOptions} options - Inputs ({@code keyVaultAddr}, {@code passwordHash}, guardian {@code signer}, optional {@code deadline}/{@code chainId}/{@code authenticatorAddr})
+   * @returns {Promise<EncodedAuthProofDualFactor>} ABI-encoded dual-factor auth proof bytes
+   * @throws {ValidationError} If addresses, {@code chainId}, {@code passwordHash}, {@code signer}, or {@code deadline} are missing/invalid
+   * @throws {NetworkError} If the read provider fails to return the latest block during the minute leg, or guardian signing fails over the network
+   * @throws {WalletError} For other unrecognised signing failures
    */
   async createAuthProofDualFactor(options = {}) {
     const resolved = withDualFactorProofDefaults(this.config, options);
@@ -374,26 +455,40 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Initialize a KeyVault contract
-   * 
-   * @param {InitializeOptions} options - Initialize key vault options
-   * @returns {Promise<BaseTransactionResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
+   * Initialize a freshly deployed KeyVault contract by wiring its storage, authenticator, and access token.
+   *
+   * Delegates to {@link KeyVaultClient#initialize}.
+   *
+   * @public
+   * @async
+   * @param {InitializeOptions} options - {@code keyVaultAddr}, {@code storageAddr}, {@code authenticatorAddr}, {@code accessToken}
+   * @returns {Promise<BaseTransactionResult>} Standard write result ({@code success}, {@code transactionHash}, {@code blockNumber}, {@code gasUsed})
+   * @throws {ValidationError} If any address is invalid or {@code accessToken} is not a 32-byte hex string
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC call to broadcast the transaction or fetch its receipt fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Most callers should use a {@code createWallet*} factory method instead, which wires the KeyVault for you.
    */
   async initialize(options = {}) {
     return this.keyVault.initialize(options);
   }
 
   /**
-   * Initialize a wallet logic with a new keyVault 
-   * 
-   * @param {InitializeWalletLogicOptions} options
-   * @returns {Promise<BaseTransactionResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
+   * Initialize a freshly deployed WalletLogic proxy by binding it to a {@code keyVaultAddr}.
+   *
+   * Delegates to {@link WalletLogicClient#initialize}.
+   *
+   * @public
+   * @async
+   * @param {InitializeWalletLogicOptions} options - {@code walletAddr} (proxy) and {@code keyVaultAddr}
+   * @returns {Promise<BaseTransactionResult>} Standard write result
+   * @throws {ValidationError} If {@code walletAddr} or {@code keyVaultAddr} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {WalletError} For other unrecognised failures
    */
   async initializeWalletLogic(options = {}) {
     return this.logic.initialize(options);
@@ -404,14 +499,22 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Configure password
-   * 
-   * @param {ConfigurePasswordOptions} options
-   * @returns {Promise<ConfigurePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Configure {@code PasswordAuthenticator} for a wallet by storing the password hash on-chain.
+   *
+   * The {@code passwordHash} is forwarded directly as the encoded {@code authConfig} (bytes32).
+   * Delegates to {@link PasswordAuthenticatorClient#configure}.
+   *
+   * @public
+   * @async
+   * @param {ConfigurePasswordOptions} options - {@code keyVaultAddr} and 32-byte {@code passwordHash}
+   * @returns {Promise<ConfigurePasswordResult>} Standard write result with the parsed {@code wallet} field
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code passwordHash} is not a 32-byte hex string
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code PasswordConfigured} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async configurePassword(options = {}) {
     const { keyVaultAddr, passwordHash } = options;
@@ -422,14 +525,21 @@ class Monstera {
   }
 
   /**
-   * Configure the wallet signature authenticator
-   * 
-   * @param {ConfigureWalletSignatureOptions} options
-   * @returns {Promise<ConfigureWalletSignatureResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Configure {@code WalletSignatureAuthenticator} for a wallet by ABI-encoding {@code initialWhitelist}.
+   *
+   * Delegates to {@link WalletSignatureAuthenticatorClient#configure}.
+   *
+   * @public
+   * @async
+   * @param {ConfigureWalletSignatureOptions} options - {@code keyVaultAddr} and {@code initialWhitelist} (at least one address)
+   * @returns {Promise<ConfigureWalletSignatureResult>} Standard write result with parsed {@code wallet} and {@code initialWhitelist}
+   * @throws {ValidationError} If {@code keyVaultAddr} or any whitelist address is invalid, or {@code initialWhitelist} is empty
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletConfigured} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async configureWalletSignature(options = {}) {
     const { keyVaultAddr, initialWhitelist } = options;
@@ -440,14 +550,21 @@ class Monstera {
   }
 
   /**
-   * Configure password dual factor
-   * 
-   * @param {ConfigureDualFactorOptions} options
-   * @returns {Promise<ConfigurePasswordDualFactorResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Configure {@code DualFactorAuthenticator} for a wallet by ABI-encoding {@code (passwordHash, guardianAddr)}.
+   *
+   * Delegates to {@link DualFactorAuthenticatorClient#configure}.
+   *
+   * @public
+   * @async
+   * @param {ConfigureDualFactorOptions} options - {@code keyVaultAddr}, 32-byte {@code passwordHash}, guardian {@code guardianAddr}
+   * @returns {Promise<ConfigurePasswordDualFactorResult>} Standard write result with parsed {@code wallet} and {@code guardian}
+   * @throws {ValidationError} If {@code keyVaultAddr}/{@code guardianAddr} are invalid or {@code passwordHash} is not a 32-byte hex string
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletConfigured} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async configureDualFactor(options = {}) {
     const { keyVaultAddr, passwordHash, guardianAddr } = options;
@@ -458,14 +575,21 @@ class Monstera {
   }
 
   /**
-   * Configure password minute signature
-   * 
-   * @param {ConfigurePasswordMinuteOptions} options
-   * @returns {Promise<ConfigurePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Configure {@code PasswordMinuteSignatureAuthenticator} for a wallet by storing the password hash on-chain.
+   *
+   * Delegates to {@link PasswordMinuteSignatureAuthenticatorClient#configure}.
+   *
+   * @public
+   * @async
+   * @param {ConfigurePasswordMinuteOptions} options - {@code keyVaultAddr} and 32-byte {@code passwordHash}
+   * @returns {Promise<ConfigurePasswordResult>} Standard write result with the parsed {@code wallet} field
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code passwordHash} is not a 32-byte hex string
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code PasswordConfigured} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async configurePasswordMinuteSignature(options = {}) {
     const { keyVaultAddr, passwordHash } = options;
@@ -480,22 +604,25 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Create a new HD Wallet
-   * 
-   * Deploys complete wallet stack:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-updateable)
-   *      3. WalletLogic proxy (orchestration, admin-updateable)
-   * 
-   * @param {CreateWalletBaseOptions} options - Wallet creation options
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If authConfig is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Create a new HD wallet (full stack) and store its mnemonic on the result.
+   *
+   * Deploys WalletStorage, KeyVault, and a WalletLogic BeaconProxy. Encodes structured {@code authConfig}
+   * via {@link AuthConfigBuilder} before delegating to {@link WalletFactoryClient#createWallet}.
+   *
+   * @public
+   * @async
+   * @param {CreateWalletBaseOptions} options - {@code authConfig} (structured or pre-encoded) and optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Write result plus addresses ({@code wallet}, {@code keyVault}, {@code storage}, {@code authenticator}) and the generated {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig} is missing/invalid for the resolved authenticator, or {@code authenticatorAddr} is set but not a built-in authenticator
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    *
    * @remarks
-   * Mnemonic backup and memory handling: {@link WalletFactoryClient#createWallet}.
+   * Mnemonic memory handling: see {@link WalletFactoryClient#createWallet}. Treat {@link WalletCreationResult.mnemonic} as a high-value secret.
    */
   async createWallet(options = {}) {
     return this.factory.createWallet(
@@ -504,22 +631,24 @@ class Monstera {
   }
 
   /**
-   * Create a new HD Wallet from a provided mnemonic
-   * 
-   * Deploys complete wallet stack:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-updateable)
-   *      3. WalletLogic proxy (orchestration, admin-updateable)
-   * 
-   * @param {CreateWalletFromMnemonicOptions} options - Wallet creation options
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If authConfig is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Create a new HD wallet (full stack) deterministically from a caller-supplied mnemonic.
    *
-   * @remarks
-   * Mnemonic on the result: {@link WalletFactoryClient#createWalletFromMnemonic}.
+   * Same deployment shape as {@link Monstera#createWallet}; the seed is derived from {@code options.mnemonic}
+   * via PBKDF2-SHA512 instead of being generated. The mnemonic is echoed back on the result.
+   *
+   * @public
+   * @async
+   * @param {CreateWalletFromMnemonicOptions} options - {@code authConfig}, {@code mnemonic}, optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Write result plus addresses and the supplied {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig} is invalid or {@code mnemonic} is not a valid BIP39 phrase
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Mnemonic on the result: see {@link WalletFactoryClient#createWalletFromMnemonic}.
    */
   async createWalletFromMnemonic(options = {}) {
     return this.factory.createWalletFromMnemonic(
@@ -528,25 +657,24 @@ class Monstera {
   }
 
   /**
-   * Create a new HD wallet with a post-creation hook
-   * 
-   * Deploys complete wallet stack:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-updateable)
-   *      3. WalletLogic proxy (orchestration, admin-updateable)
-   * 
-   * The hook is called after the wallet is created.
-   * The hook contract must implement IWalletCreationHook interface.
-   * 
-   * @param {CreateWalletWithHookOptions} options - Wallet creation options
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Create a new HD wallet (full stack) and execute a post-creation hook.
    *
-   * @remarks
-   * Mnemonic handling: {@link WalletFactoryClient#createWallet}.
+   * The hook contract at {@code hookAddr} must implement {@code IWalletCreationHook}; the SDK does not
+   * enforce that interface — passing a non-conforming address will revert on-chain.
+   *
+   * @public
+   * @async
+   * @param {CreateWalletWithHookOptions} options - {@code authConfig}, {@code hookAddr}, {@code hookData}, optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Write result plus addresses and generated {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig}, {@code hookAddr}, or {@code hookData} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction (or the hook itself) reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
    */
   async createWalletWithHook(options = {}) {
     return this.factory.createWalletWithHook(
@@ -555,25 +683,24 @@ class Monstera {
   }
 
   /**
-   * Create a new HD Wallet 
-   * 
-   * Deploys core wallet stack only:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (KeyVault address is the wallet address)
-   * 
-   * Use this when you want to interact with KeyVault directly,
-   * or when deploying your own custom logic contract separately.
+   * Create a new HD wallet (core stack only — WalletStorage + KeyVault, no WalletLogic proxy).
    *
-   * @remarks
-   * See {@link WalletFactoryClient#createWalletCore}: {@code wallet} and {@code keyVault} in the result are the same address for this flow.
-   * Mnemonic handling: {@link WalletFactoryClient#createWallet}.
+   * Use when you intend to interact with KeyVault directly or deploy a custom logic contract later.
+   * In the returned event, {@code wallet} and {@code keyVault} are the same address by design.
    *
-   * @param {CreateWalletBaseOptions} options - Wallet creation options
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If authConfig is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {CreateWalletBaseOptions} options - {@code authConfig} (structured or pre-encoded) and optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Write result with addresses ({@code wallet} === {@code keyVault}) and generated {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig} is invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
    */
   async createWalletCore(options = {}) {
     return this.factory.createWalletCore(
@@ -582,26 +709,24 @@ class Monstera {
   }
 
   /**
-   * Create a new HD wallet with a custom logic contract
-   * 
-   * Deploys minimal wallet stack:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (KeyVault address is the wallet address)
-   * 
-   * Deploys a minimal proxy (clone) of the customLogicImpl.
-   * Unlike default BeaconProxy wallets:
-   * - Custom logic wallets are NOT affected by admin beacon updates
-   * - Each wallet gets its own independent clone
+   * Create a new HD wallet using a minimal-proxy (clone) of a custom WalletLogic implementation.
    *
-   * @remarks
-   * Mnemonic handling: {@link WalletFactoryClient#createWallet}.
+   * Custom-logic wallets are independent of the factory's beacon — admin upgrades to the default
+   * WalletLogic do not affect them.
    *
-   * @param {CreateWalletWithCustomLogicOptions} options - Wallet creation options
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {CreateWalletWithCustomLogicOptions} options - {@code authConfig}, {@code customLogicImplAddr}, {@code logicData}, optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Write result plus addresses and generated {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig}, {@code customLogicImplAddr}, or {@code logicData} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
    */
   async createWalletWithCustomLogic(options = {}) {
     return this.factory.createWalletWithCustomLogic(
@@ -616,76 +741,109 @@ class Monstera {
   // --- Factory Reads ---
 
   /**
-   * Check if an address is a wallet created by this factory
-   * 
-   * @param {WalletProxyOptions} options
-   * @returns {Promise<boolean>} True if address is a wallet created by this factory, false otherwise
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * Check whether a given address was deployed by the configured factory.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr} (proxy address)
+   * @returns {Promise<boolean>} {@code true} if the address is a wallet created by this factory
+   * @throws {ValidationError} If {@code walletAddr} is missing or not a valid address
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isWallet(options = {}) {
     return this.factory.isWallet(options);
   }
 
   /**
-   * Get the admin address
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
+   * Get the current factory admin address.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context (no required fields)
    * @returns {Promise<Address>} Admin address
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAdmin(options = {}) {
     return this.factory.getAdmin(options);
   }
 
   /**
-   * Get current WalletLogic implementation (current walletLogic contract address)
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
+   * Get the current WalletLogic implementation address (the contract behind the beacon).
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Address>} Current WalletLogic implementation
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getWalletLogicImplAddr(options = {}) {
     return this.factory.getWalletLogicImplAddr(options);
   }
 
   /**
-   * Get the keyVault contract address for a wallet
-   * 
-   * @param {WalletProxyOptions} options
+   * Resolve the KeyVault contract for a wallet proxy via the factory mapping.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
    * @returns {Promise<Address>} KeyVault contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultAddr(options = {}) {
     return this.factory.getKeyVaultAddr(options);
   }
 
   /**
-   * Get the storage contract address for a wallet
-   * 
-   * @param {WalletProxyOptions} options
+   * Resolve the WalletStorage contract address for a wallet proxy.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
    * @returns {Promise<Address>} Storage contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getStorageAddr(options = {}) {
     return this.factory.getStorageAddr(options);
   }
 
   /**
-   * Get the beacon address for a wallet 
-   * 
-   * The beacon controlling WalletLogic updates
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
+   * Get the beacon contract address that controls WalletLogic upgrades.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Address>} Beacon address
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getBeaconAddr(options = {}) {
     return this.factory.getBeaconAddr(options);
   }
 
   /**
-   * Get the secret vault address for a wallet
-   * 
-   * @param {WalletProxyOptions} options
+   * Resolve the secret-vault contract address mapped to a wallet proxy.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
    * @returns {Promise<Address>} Secret vault contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getSecretVaultAddr(options = {}) {
     return this.factory.getSecretVaultAddr(options);
@@ -694,66 +852,96 @@ class Monstera {
   // --- KeyVault Reads ---
 
   /**
-   * Get the storage contract address holding the keys
-   * 
-   * @param {KeyVaultAddrOptions} options
+   * Get the WalletStorage contract address bound to a KeyVault (where keys actually live).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
    * @returns {Promise<Address>} Storage contract address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultStorageAddr(options = {}) {
     return this.keyVault.getStorageAddr(options);
   }
 
   /**
-   * Get the current authenticator contract address for a wallet 
-   * 
-   * @param {KeyVaultAddrOptions} options
+   * Get the authenticator contract currently bound to a KeyVault.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
    * @returns {Promise<Address>} Authenticator address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAuthenticatorAddr(options = {}) {
     return this.keyVault.getAuthenticatorAddr(options);
   }
 
   /**
-   * Get the current KeyVaultImplementation contract address
-   * 
-   * @param {KeyVaultAddrOptions} options
+   * Get the current KeyVault implementation address (proxy → impl).
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
    * @returns {Promise<Address>} Implementation address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultImplAddr(options = {}) {
     return this.keyVault.getKeyVaultImplAddr(options);
   }
 
   /**
-   * Check if a given keyVault is initialized 
-   * 
-   * @param {KeyVaultAddrOptions} options
-   * @returns {Promise<boolean>} True if keyVault is initialized, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether a KeyVault has been initialized.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if the KeyVault is initialized
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isInitialized(options = {}) {
     return this.keyVault.isInitialized(options);
   }
 
   /**
-   * Get one of a wallet's account addresses for a given index
-   * 
-   * @param {KeyVaultAddrIndexOptions} options
+   * Get the wallet's HD account address at a given index.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrIndexOptions} options - {@code keyVaultAddr} and {@code index}
    * @returns {Promise<Address>} Account address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if index is invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code index} is not a non-negative integer
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddr(options = {}) {
     return this.keyVault.getAccountAddr(options);
   }
 
   /**
-   * Get multiple account addresses from a wallet for a given range of indexes
-   * 
-   * @param {KeyVaultAccountSliceOptions} options
-   * @returns {Promise<Address[]>} Array of account addresses
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid, or if fromIndex/count are invalid
+   * Get a contiguous slice of HD account addresses from the wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAccountSliceOptions} options - {@code keyVaultAddr}, {@code fromIndex}, {@code count}
+   * @returns {Promise<Address[]>} Array of account addresses (length {@code count})
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid, or {@code fromIndex}/{@code count} is not a non-negative integer
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddresses(options = {}) {
     return this.keyVault.getAccountAddresses(options);
@@ -762,11 +950,19 @@ class Monstera {
   // --- Signing Reads ---
 
   /**
-   * Sign a raw transaction (authenticated function)
-   * 
-   * @param {SignTransactionOptions} options - Sign transaction options
-   * @returns {Promise<Bytes>} Signed transaction
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * Sign a raw EVM transaction with the wallet's HD account at {@code index} (authenticated view).
+   *
+   * Encodes the structured {@code authProof} via {@link AuthProofBuilder} when needed, then delegates to
+   * {@link KeyVaultClient#signTransaction}.
+   *
+   * @public
+   * @async
+   * @param {SignTransactionOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, plus EVM tx fields
+   * @returns {Promise<Bytes>} RLP-encoded signed transaction
+   * @throws {ValidationError} If addresses, {@code authProof}, or numeric tx fields are missing/invalid
+   * @throws {NetworkError} If the RPC view call fails (e.g. provider failure during minute-bucket leg)
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async signTransaction(options = {}) {
     return this.keyVault.signTransaction(
@@ -775,11 +971,16 @@ class Monstera {
   }
 
   /**
-   * Sign an EIP-191 message (authenticated function)
-   * 
-   * @param {SignMessageOptions} options - Sign message options
-   * @returns {Promise<Bytes>} Signed message (bytes)
+   * Sign an EIP-191 personal message with the wallet's HD account at {@code index} (authenticated view).
+   *
+   * @public
+   * @async
+   * @param {SignMessageOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, {@code message}
+   * @returns {Promise<Bytes>} Signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async signMessage(options = {}) {
     return this.keyVault.signMessage(
@@ -788,11 +989,16 @@ class Monstera {
   }
 
   /**
-   * Sign a 32-byte hash (authenticated function)
-   * 
-   * @param {SignHashOptions} options - Sign hash options
-   * @returns {Promise<Bytes>} Signed hash (bytes)
+   * Sign an arbitrary 32-byte hash with the wallet's HD account at {@code index} (authenticated view).
+   *
+   * @public
+   * @async
+   * @param {SignHashOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, 32-byte {@code hash}
+   * @returns {Promise<Bytes>} Signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
+   * @throws {WalletError} For other unrecognised failures
    */
   async sign(options = {}) {
     return this.keyVault.sign(
@@ -802,17 +1008,26 @@ class Monstera {
 
 
   /**
-   * EIP-7702-style authorization signing via KeyVault (same digest as ethers {@link ethers.hashAuthorization}).
-   * Orchestration lives in {@code internal/crypto/signAuthorization.js}; hashing / verification / encoding 
-   * helpers in {@code internal/crypto/authorization.js} (barrel: {@code internal/crypto/index.js}).
+   * Sign an EIP-7702-style authorization tuple via KeyVault (same digest as ethers {@code hashAuthorization}).
    *
-   * When {@code chainId} or {@code nonce} are omitted they are read from {@code options.provider}, else 
-   * from {@link Monstera.prototype.readProvider} / {@link Monstera.prototype.writeSigner}. 
-   * For an authorization on a chain different from the SDK RPC, pass {@code provider} connected 
-   * to that chain so nonce and chain id stay consistent.
+   * Resolves missing {@code chainId} / {@code nonce} from {@code options.provider} (preferred), the SDK
+   * {@code readProvider}, or the signer's provider. The internal {@code implCall} is built and forwarded to
+   * {@link KeyVaultClient#executeWithAuth}; the raw return is decoded into an ethers-style split signature.
    *
-   * @param {SignAuthorizationOptions} options
-   * @returns {Promise<SignedAuthorizationResult>}
+   * @public
+   * @async
+   * @param {SignAuthorizationOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code delegateAddr}, optional {@code index}/{@code chainId}/{@code nonce}/{@code provider}
+   * @returns {Promise<SignedAuthorizationResult>} Ethers-compatible signed authorization
+   * @throws {ValidationError} If required addresses are invalid, {@code chainId} or {@code nonce} can't be resolved (no provider), or numeric values are out of range
+   * @throws {NetworkError} If chain id / nonce resolution or the underlying RPC call fails
+   * @throws {ContractRevertError} If the underlying view call reverts (e.g. invalid auth proof or yParity)
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks
+   * For an authorization targeting a chain different from the SDK's RPC, pass {@code provider} connected to that chain
+   * so nonce and chain id stay consistent.
+   * Orchestration lives in {@code internal/crypto/signAuthorization.js}; hashing / verification / encoding helpers in
+   * {@code internal/crypto/authorization.js} (barrel: {@code internal/crypto/index.js}).
    */
   async signAuthorization(options = {}) {
     return executeSignAuthorization(
@@ -826,11 +1041,19 @@ class Monstera {
   }
 
   /**
-   * Execute a function with an auth proof (authenticated function)
-   * 
-   * @param {ExecuteWithAuthOptions} options
-   * @returns {Promise<Bytes>} Execute function result (bytes)
+   * Execute an arbitrary KeyVault implementation function gated by an auth proof (authenticated view).
+   *
+   * Used internally by {@link Monstera#signAuthorization}; advanced callers can supply their own
+   * {@code implCall} bytes when extending KeyVault.
+   *
+   * @public
+   * @async
+   * @param {ExecuteWithAuthOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code implCall}
+   * @returns {Promise<Bytes>} Raw return bytes from the implementation function
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof or implementation revert)
+   * @throws {WalletError} For other unrecognised failures
    */
   async executeWithAuth(options = {}) {
     return this.keyVault.executeWithAuth(
@@ -839,44 +1062,64 @@ class Monstera {
   }
 
   /**
-   * Get all imported key IDs (V2)
+   * List the IDs of all keys imported into a KeyVault (V2).
    *
-   * @param {KeyVaultAddrOptions} options
-   * @returns {Promise<Bytes32[]>} Array of imported key IDs
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<Bytes32[]>} Imported key IDs
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getImportedKeyIds(options = {}) {
     return this.keyVault.getImportedKeyIds(options);
   }
 
   /**
-   * Get metadata for an imported key (V2)
+   * Get metadata for an imported key (V2). Does not return private key material.
    *
-   * @param {KeyVaultImportedKeyOptions} options
-   * @returns {Promise<KeyMetadataResult>} Key metadata (curve, chain, active, labelHash)
-   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId}
+   * @returns {Promise<KeyMetadataResult>} {@code curve}, {@code chain}, {@code active}, {@code labelHash}
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. unknown {@code keyId})
+   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyMetadata(options = {}) {
     return this.keyVault.getKeyMetadata(options);
   }
 
   /**
-   * Check if a key exists (V2)
+   * Check whether an imported key exists in a KeyVault (V2).
    *
-   * @param {KeyVaultImportedKeyOptions} options
-   * @returns {Promise<boolean>} True if key exists, false otherwise
-   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId}
+   * @returns {Promise<boolean>} {@code true} if the key exists
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async keyExists(options = {}) {
     return this.keyVault.keyExists(options);
   }
 
   /**
-   * Sign a hash with an imported key (V2, authenticated view)
+   * Sign a digest with an imported key (V2, authenticated view).
    *
-   * @param {SignWithImportedKeyOptions} options - Sign with imported key options
-   * @returns {Promise<Bytes>} Signature (format depends on curve)
+   * @public
+   * @async
+   * @param {SignWithImportedKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code keyId}, 32-byte {@code digest}
+   * @returns {Promise<Bytes>} Signature bytes (format depends on the imported key's curve)
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async signWithImportedKey(options = {}) {
     return this.keyVault.signWithImportedKey(
@@ -885,33 +1128,48 @@ class Monstera {
   }
 
   /**
-   * Get the address for an imported key (V2)
+   * Get the address (Ethereum address, Solana pubkey, etc.) corresponding to an imported key (V2).
    *
-   * @param {KeyVaultImportedKeyOptions} options
-   * @returns {Promise<Bytes>} Address (Ethereum address, Solana pubkey, etc. as bytes)
-   * @throws {ValidationError} If keyVaultAddr or keyId is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId}
+   * @returns {Promise<Bytes>} Address bytes (curve/chain-dependent encoding)
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getImportedKeyAddr(options = {}) {
     return this.keyVault.getImportedKeyAddr(options);
   }
 
   /**
-   * Get Solana address at HD index (V2)
+   * Get the Solana public key for an HD account at {@code index} (V2).
    *
-   * @param {KeyVaultAddrIndexOptions} options
-   * @returns {Promise<Bytes>} Solana public key (bytes)
-   * @throws {ValidationError} If keyVaultAddr or index is missing or invalid
+   * @public
+   * @async
+   * @param {KeyVaultAddrIndexOptions} options - {@code keyVaultAddr} and {@code index}
+   * @returns {Promise<Bytes>} Solana public key bytes
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code index} is not a non-negative integer
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. Solana base keys not configured)
+   * @throws {WalletError} For other unrecognised failures
    */
   async getSolanaAddr(options = {}) {
     return this.keyVault.getSolanaAddr(options);
   }
 
   /**
-   * Sign a Solana message (V2, authenticated view)
+   * Sign a Solana message with the HD account at {@code index} (V2, authenticated view).
    *
-   * @param {SignSolanaOptions} options - Sign Solana options
-   * @returns {Promise<Bytes>} Signature
+   * @public
+   * @async
+   * @param {SignSolanaOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, {@code message}
+   * @returns {Promise<Bytes>} Solana signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the RPC view call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async signSolana(options = {}) {
     return this.keyVault.signSolana(
@@ -922,22 +1180,32 @@ class Monstera {
   // --- Auth Reads ---
 
   /**
-   * Check if a wallet is configured
-   * 
-   * @param {KeyVaultAddrOptions} options
-   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether {@code PasswordAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if configured
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordConfigured(options = {}) {
     return this.auth.password.isConfigured(options);
   }
 
   /**
-   * Verify password
-   * 
-   * @param {VerifyPasswordOptions} options
-   * @returns {Promise<boolean>} True if password is valid, false otherwise
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * Verify a UTF-8 password buffer against the stored hash via {@code PasswordAuthenticator.verify}.
+   *
+   * @public
+   * @async
+   * @param {VerifyPasswordOptions} options - {@code keyVaultAddr} and {@code currentPassword} (raw UTF-8 {@link Uint8Array})
+   * @returns {Promise<boolean>} {@code true} if the password matches
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code currentPassword} is not a non-empty Uint8Array
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordValid(options = {}) {
     const { keyVaultAddr, currentPassword } = options;
@@ -946,54 +1214,81 @@ class Monstera {
   }
 
   /**
-   * Check if a wallet is configured
-   * 
-   * @param {KeyVaultAddrOptions} options
-   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether {@code WalletSignatureAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if configured
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isWalletSignatureConfigured(options = {}) {
     return this.auth.walletSignature.isConfigured(options);
   }
 
   /**
-   * Check if an address is whitelisted for a wallet
-   * 
-   * @param {WhitelistCheckOptions} options
-   * @returns {Promise<boolean>} True if address is whitelisted, false otherwise
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * Check whether an address is on a wallet's whitelist.
+   *
+   * @public
+   * @async
+   * @param {WhitelistCheckOptions} options - {@code keyVaultAddr} and {@code addressToCheck}
+   * @returns {Promise<boolean>} {@code true} if {@code addressToCheck} is whitelisted
+   * @throws {ValidationError} If addresses are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isWhitelisted(options = {}) {
     return this.auth.walletSignature.isWhitelisted(options);
   }
 
   /**
-   * Get all whitelisted addresses for a wallet
-   * 
-   * @param {KeyVaultAddrOptions} options
-   * @returns {Promise<Address[]>} Whitelist addresses
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Get all whitelisted addresses for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<Address[]>} Whitelisted addresses
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getWhitelist(options = {}) {
     return this.auth.walletSignature.getWhitelist(options);
   }
 
   /**
-   * Get the EIP-712 domain separator
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
-   * @returns {Promise<Bytes32>} EIP-712 domain separator
+   * Get the EIP-712 domain separator for {@code WalletSignatureAuthenticator}.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
+   * @returns {Promise<Bytes32>} 32-byte domain separator
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getDomainSeparator(options = {}) {
     return this.auth.walletSignature.getDomainSeparator(options);
   }
 
   /**
-   * Verify a signature
-   * 
-   * @param {CreateAuthProofWalletSignatureOptions} options
-   * @returns {Promise<boolean>} True if signature is valid, false otherwise
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * Build a wallet-signature auth proof and verify it on-chain.
+   *
+   * Useful as a sanity check that a wallet's authenticator accepts a freshly produced proof.
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofWalletSignatureOptions} options - Same inputs as {@link Monstera#createAuthProofWalletSignature}
+   * @returns {Promise<boolean>} {@code true} if the on-chain verifier accepts the proof
+   * @throws {ValidationError} If required parameters are missing or invalid (proof builder)
+   * @throws {NetworkError} If signing or the verify RPC call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isWalletSignatureValid(options = {}) {    
     const authProof = await this.createAuthProofWalletSignature(options);
@@ -1001,22 +1296,32 @@ class Monstera {
   }
 
   /**
-   * Check if a wallet is configured with password dual factor
-   * 
-   * @param {KeyVaultAddrOptions} options
-   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether {@code DualFactorAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if configured
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isDualFactorConfigured(options = {}) {
     return this.auth.dualFactor.isConfigured(options);
   }
 
   /**
-   * Verify dual-factor auth proof (minute password signature + guardian EIP-712).
+   * Build and verify a dual-factor auth proof (minute password signature + guardian EIP-712).
    *
-   * @param {CreateAuthProofDualFactorOptions} options
-   * @returns {Promise<boolean>} True if both factors verify
+   * @public
+   * @async
+   * @param {CreateAuthProofDualFactorOptions} options - Same inputs as {@link Monstera#createAuthProofDualFactor}
+   * @returns {Promise<boolean>} {@code true} if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If provider/signer transports fail or the verify RPC call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordDualFactorValid(options = {}) {
     const authProof = await this.createAuthProofDualFactor(options);
@@ -1024,44 +1329,63 @@ class Monstera {
   }
 
   /**
-   * Get the guardian of a wallet
-   * 
-   * @param {KeyVaultAddrOptions} options
+   * Get the configured guardian address for a dual-factor wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
    * @returns {Promise<Address>} Guardian address
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getGuardian(options = {}) {
     return this.auth.dualFactor.getGuardian(options);
   }
 
   /**
-   * Get the EIP-712 domain separator for dual factor
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
-   * @returns {Promise<Bytes32>} EIP-712 domain separator
+   * Get the EIP-712 domain separator for {@code DualFactorAuthenticator}.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
+   * @returns {Promise<Bytes32>} 32-byte domain separator
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getDomainSeparatorDualFactor(options = {}) {
     return this.auth.dualFactor.getDomainSeparator(options);
   }
 
   /**
-   * Check if a wallet is configured with password minute signature
-   * 
-   * @param {KeyVaultAddrOptions} options
-   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether {@code PasswordMinuteSignatureAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if configured
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordMinuteSignatureConfigured(options = {}) {
     return this.auth.passwordMinuteSignature.isConfigured(options);
   }
 
   /**
-   * Verfiy minute-bucket ECDSA siganture using password hash
+   * Build a minute-bucket ECDSA proof from {@code passwordHash} and verify it on-chain.
    *
-   * @param {CreateAuthProofMinuteSignatureOptions} options
-   * @returns {Promise<boolean>} True if signature matches derived signer for current minute bucket
+   * @public
+   * @async
+   * @param {CreateAuthProofMinuteSignatureOptions} options - Same inputs as {@link Monstera#createAuthProofMinuteSignature}
+   * @returns {Promise<boolean>} {@code true} if the signature matches the derived signer for the current minute bucket
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If failed to read latest block from provider
+   * @throws {NetworkError} If the read provider fails to return the latest block, or the verify RPC call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordMinuteSignatureValid(options = {}) {
     const { keyVaultAddr, passwordHash } = options;
@@ -1081,29 +1405,43 @@ class Monstera {
   // --- Factory Writes ---
 
   /**
-   * Update the WalletLogic implementation for all wallets (Admin function)
-   * 
-   * This updates the orchestration layer, not the key security.
-   * 
-   * @param {UpdateWalletLogicImplOptions} options
-   * @returns {Promise<UpdateWalletLogicImplAddrResult>}
-   * @throws {ValidationError} If newLogicAddr is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Point the factory beacon at a new WalletLogic implementation (admin only).
+   *
+   * Affects the orchestration layer of every wallet that uses the default beacon — not the
+   * KeyVault security layer.
+   *
+   * @public
+   * @async
+   * @param {UpdateWalletLogicImplOptions} options - {@code newLogicAddr}
+   * @returns {Promise<UpdateWalletLogicImplAddrResult>} Standard write result with parsed {@code newImplAddr}
+   * @throws {ValidationError} If {@code newLogicAddr} is missing or invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
+   * @throws {EventNotFoundError} If the implementation-update event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Wallets created via {@link Monstera#createWalletWithCustomLogic} do not follow this beacon.
    */
   async updateWalletLogicImplAddr(options = {}) {
     return this.factory.updateWalletLogicImplAddr(options);
   }
 
   /**
-   * Transfer admin ownership role to a new address (Admin function)
-   * 
-   * @param {TransferAdminOptions} options
-   * @returns {Promise<TransferAdminResult>}
-   * @throws {ValidationError} If newAdminAddr is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
+   * Transfer the factory admin role to a new address (admin only).
+   *
+   * @public
+   * @async
+   * @param {TransferAdminOptions} options - {@code newAdminAddr}
+   * @returns {Promise<TransferAdminResult>} Standard write result with parsed {@code newAdminAddr}
+   * @throws {ValidationError} If {@code newAdminAddr} is missing or invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the current admin)
+   * @throws {EventNotFoundError} If the {@code AdminTransferred} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async transferAdmin(options = {}) {
     return this.factory.transferAdmin(options);
@@ -1112,14 +1450,19 @@ class Monstera {
   // --- KeyVault Writes ---
 
   /**
-   * Update the keyVaultImplementation contract address (authenticated function)
-   * 
-   * @param {UpdateKeyVaultImplOptions} options
-   * @returns {Promise<UpdateKeyVaultImplAddrResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Upgrade a KeyVault proxy to a new implementation address (authenticated write).
+   *
+   * @public
+   * @async
+   * @param {UpdateKeyVaultImplOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code newKeyVaultImplAddr}
+   * @returns {Promise<UpdateKeyVaultImplAddrResult>} Standard write result with parsed {@code newImplAddr}
+   * @throws {ValidationError} If addresses or {@code authProof} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code KeyVaultImplUpdated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddr(options = {}) {
     return this.keyVault.updateKeyVaultImplAddr(
@@ -1128,14 +1471,19 @@ class Monstera {
   }
 
   /**
-   * Update the authenticator contract address (Authenticated function)
-   * 
-   * @param {UpdateAuthenticatorOptions} options - Update authenticator options
-   * @returns {Promise<UpdateAuthenticatorAddrResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Swap the authenticator contract bound to a KeyVault (authenticated write).
+   *
+   * @public
+   * @async
+   * @param {UpdateAuthenticatorOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code newAuthenticatorAddr}
+   * @returns {Promise<UpdateAuthenticatorAddrResult>} Standard write result with parsed {@code newAuthenticator}
+   * @throws {ValidationError} If addresses or {@code authProof} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code AuthenticatorUpdated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddr(options = {}) {
     return this.keyVault.updateAuthenticatorAddr(
@@ -1144,14 +1492,19 @@ class Monstera {
   }
 
   /**
-   * Import an external private key (V2)
+   * Import an external private key into the KeyVault (V2, authenticated write).
    *
-   * @param {ImportKeyOptions} options - Import key options
-   * @returns {Promise<ImportKeyResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {ImportKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code privateKey}, {@code curve}, {@code chain}, {@code labelHash}
+   * @returns {Promise<ImportKeyResult>} Standard write result with parsed {@code keyId}
+   * @throws {ValidationError} If addresses, {@code authProof}, {@code privateKey}, or metadata fields are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or duplicate key)
+   * @throws {EventNotFoundError} If the {@code KeyImported} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async importKey(options = {}) {
     return this.keyVault.importKey(
@@ -1160,14 +1513,21 @@ class Monstera {
   }
 
   /**
-   * Deactivate an imported key (V2, soft delete)
+   * Deactivate an imported key (V2, soft delete; authenticated write).
    *
-   * @param {DeactivateActivateKeyOptions} options
-   * @returns {Promise<DeactivateKeyResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * The key remains stored but cannot sign until reactivated via {@link Monstera#activateKey}.
+   *
+   * @public
+   * @async
+   * @param {DeactivateActivateKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code keyId}
+   * @returns {Promise<DeactivateKeyResult>} Standard write result with parsed {@code keyId}
+   * @throws {ValidationError} If addresses, {@code authProof}, or {@code keyId} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or unknown {@code keyId})
+   * @throws {EventNotFoundError} If the {@code KeyDeactivated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async deactivateKey(options = {}) {
     return this.keyVault.deactivateKey(
@@ -1176,14 +1536,19 @@ class Monstera {
   }
 
   /**
-   * Reactivate a previously deactivated key (V2)
+   * Reactivate a previously deactivated key (V2, authenticated write).
    *
-   * @param {DeactivateActivateKeyOptions} options
-   * @returns {Promise<ActivateKeyResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {DeactivateActivateKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code keyId}
+   * @returns {Promise<ActivateKeyResult>} Standard write result with parsed {@code keyId}
+   * @throws {ValidationError} If addresses, {@code authProof}, or {@code keyId} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or unknown {@code keyId})
+   * @throws {EventNotFoundError} If the {@code KeyActivated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async activateKey(options = {}) {
     return this.keyVault.activateKey(
@@ -1192,13 +1557,19 @@ class Monstera {
   }
 
   /**
-   * Set base keys for a chain's HD derivation (V2)
+   * Set HD base keys for a chain (V2, authenticated write).
    *
-   * @param {SetChainBaseKeysOptions} options - Set chain base keys options
-   * @returns {Promise<BaseTransactionResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
+   * Used to provision deterministic Ed25519 / EVM base keys for chains that derive accounts via index.
+   *
+   * @public
+   * @async
+   * @param {SetChainBaseKeysOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code chain}, {@code privateKey} / chain-specific seed material
+   * @returns {Promise<BaseTransactionResult>} Standard write result
+   * @throws {ValidationError} If addresses, {@code authProof}, {@code chain}, or seed material are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or already provisioned)
+   * @throws {WalletError} For other unrecognised failures
    */
   async setChainBaseKeys(options = {}) {
     return this.keyVault.setChainBaseKeys(
@@ -1209,28 +1580,41 @@ class Monstera {
   // --- Auth Writes ---
 
   /**
-   * Update the password of a wallet
-   * 
-   * @param {UpdatePasswordOptions} options
-   * @returns {Promise<UpdatePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Replace the password hash on {@code PasswordAuthenticator} (current password bytes must match the stored hash).
+   *
+   * @public
+   * @async
+   * @param {UpdatePasswordOptions} options - {@code keyVaultAddr}, {@code currentPassword} (UTF-8 {@link Uint8Array}), {@code newPasswordHash}
+   * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If {@code keyVaultAddr}/{@code newPasswordHash} are invalid or {@code currentPassword} is not a non-empty Uint8Array
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. wrong current password)
+   * @throws {EventNotFoundError} If the {@code PasswordUpdated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updatePassword(options = {}) {
     return this.auth.password.updatePassword(options);
   }
 
   /**
-   * Add a new address to the whitelist
-   * 
-   * @param {AddWhitelistOptions} options
-   * @returns {Promise<AddToWhitelistResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Add an address to a wallet's whitelist using a freshly built wallet-signature proof.
+   *
+   * Internally calls {@link Monstera#createAuthProofWalletSignature} with the same {@code options}, then forwards
+   * to {@link WalletSignatureAuthenticatorClient#addToWhitelist}.
+   *
+   * @public
+   * @async
+   * @param {AddWhitelistOptions} options - {@code keyVaultAddr}, {@code signer} (whitelisted), {@code addressToAdd}, optional EIP-712 fields
+   * @returns {Promise<AddToWhitelistResult>} Standard write result with parsed {@code addedAddress}
+   * @throws {ValidationError} If addresses, {@code signer}, or proof inputs are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
+   * @throws {NetworkError} If proof signing or the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or address already whitelisted)
+   * @throws {EventNotFoundError} If the {@code AddressAddedToWhitelist} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async addToWhitelist(options = {}) {
     const authProof = await this.createAuthProofWalletSignature(options);
@@ -1238,14 +1622,19 @@ class Monstera {
   }
 
   /**
-   * Remove an address from the whitelist
-   * 
-   * @param {RemoveWhitelistOptions} options
-   * @returns {Promise<RemoveFromWhitelistResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Remove an address from a wallet's whitelist using a freshly built wallet-signature proof.
+   *
+   * @public
+   * @async
+   * @param {RemoveWhitelistOptions} options - {@code keyVaultAddr}, {@code signer} (whitelisted), {@code addressToRemove}, optional EIP-712 fields
+   * @returns {Promise<RemoveFromWhitelistResult>} Standard write result with parsed {@code removedAddress}
+   * @throws {ValidationError} If addresses, {@code signer}, or proof inputs are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
+   * @throws {NetworkError} If proof signing or the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof, last whitelisted address)
+   * @throws {EventNotFoundError} If the {@code AddressRemovedFromWhitelist} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async removeFromWhitelist(options = {}) {
     const authProof = await this.createAuthProofWalletSignature(options);
@@ -1253,14 +1642,22 @@ class Monstera {
   }
 
   /**
-   * Update password hash (dual-factor auth required).
+   * Replace the password hash on {@code DualFactorAuthenticator} (dual-factor auth required).
    *
-   * @param {UpdatePasswordDualFactorOptions} options
-   * @returns {Promise<UpdatePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Internally calls {@link Monstera#createAuthProofDualFactor} with the same {@code options}, then forwards
+   * to {@link DualFactorAuthenticatorClient#updatePassword}.
+   *
+   * @public
+   * @async
+   * @param {UpdatePasswordDualFactorOptions} options - {@code keyVaultAddr}, {@code passwordHash} (current), {@code newPasswordHash}, guardian {@code signer}, optional {@code deadline}/{@code chainId}/{@code authenticatorAddr}
+   * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If addresses, password hashes, {@code signer}, or {@code deadline} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
+   * @throws {NetworkError} If proof signing or the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code PasswordUpdated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordDualFactor(options = {}) {
     const authProof = await this.createAuthProofDualFactor(options);
@@ -1268,14 +1665,19 @@ class Monstera {
   }
 
   /**
-   * Update guardian (dual-factor auth required).
+   * Replace the guardian address on {@code DualFactorAuthenticator} (dual-factor auth required).
    *
-   * @param {UpdateGuardianOptions} options
-   * @returns {Promise<UpdateGuardianResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {UpdateGuardianOptions} options - {@code keyVaultAddr}, {@code passwordHash} (current), {@code newGuardian}, current guardian {@code signer}, optional {@code deadline}/{@code chainId}/{@code authenticatorAddr}
+   * @returns {Promise<UpdateGuardianResult>} Standard write result with parsed {@code newGuardian}
+   * @throws {ValidationError} If addresses, {@code passwordHash}, {@code signer}, or {@code deadline} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
+   * @throws {NetworkError} If proof signing or the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code GuardianUpdated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateGuardian(options = {}) {
     const authProof = await this.createAuthProofDualFactor(options);
@@ -1283,14 +1685,20 @@ class Monstera {
   }
 
   /**
-   * Update password hash (current password bytes must match stored hash).
+   * Replace the password hash on {@code PasswordMinuteSignatureAuthenticator}
+   * (current password bytes must match the stored hash).
    *
-   * @param {UpdatePasswordOptions} options
-   * @returns {Promise<UpdatePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {UpdatePasswordOptions} options - {@code keyVaultAddr}, {@code currentPassword} (UTF-8 {@link Uint8Array}), {@code newPasswordHash}
+   * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If {@code keyVaultAddr}/{@code newPasswordHash} are invalid or {@code currentPassword} is not a non-empty Uint8Array
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. wrong current password)
+   * @throws {EventNotFoundError} If the {@code PasswordUpdated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordMinuteSignature(options = {}) {
     return this.auth.passwordMinuteSignature.updatePassword(options);

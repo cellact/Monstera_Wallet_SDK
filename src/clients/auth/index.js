@@ -1,7 +1,13 @@
 /**
- * Auth Package
- * 
- * Exports authenticator clients for authentication operations.
+ * Authenticator clients barrel.
+ *
+ * Re-exports the {@link AuthenticatorClient} registry plus each individual authenticator client
+ * ({@link PasswordAuthenticatorClient}, {@link WalletSignatureAuthenticatorClient},
+ * {@link DualFactorAuthenticatorClient}, {@link PasswordMinuteSignatureAuthenticatorClient})
+ * for both internal SDK use and advanced consumers that want to talk to a single authenticator
+ * contract directly.
+ *
+ * @module clients/auth
  */
 
 import AuthenticatorClient from './AuthenticatorClient.js';

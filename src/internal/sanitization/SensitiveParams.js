@@ -1,9 +1,21 @@
 /**
- * Parameter names whose values must never be stored on errors, logs, or debugging output.
- * Single source of truth for {@link MonsteraConfig.SENSITIVE_PARAMS} and {@link ValidationError}.
+ * Single source of truth for parameter names whose values must NEVER appear verbatim in errors,
+ * logs, or debug output.
+ *
+ * Re-exported by {@link MonsteraConfig.SENSITIVE_PARAMS}; consumed directly by {@link Sanitizer}
+ * (for log / error / encoder-error redaction) and {@link ValidationError} (so error
+ * {@code context.value} on validation failures is redacted at construction time).
+ *
+ * @module internal/sanitization/SensitiveParams
  */
 
-/** @type {readonly string[]} */
+/**
+ * Frozen list of sensitive parameter names.
+ *
+ * @public
+ * @readonly
+ * @type {readonly string[]}
+ */
 export const SENSITIVE_PARAM_NAMES = Object.freeze([
   'accessToken',
   'authConfig',

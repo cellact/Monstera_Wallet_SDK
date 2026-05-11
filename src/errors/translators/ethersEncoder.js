@@ -1,18 +1,27 @@
 /**
- * ABI encoder errors from ethers (MISSING_ARGUMENT / INVALID_ARGUMENT).
+ * Translator for ABI encoder failures originating in {@code ethers} ({@code MISSING_ARGUMENT} /
+ * {@code INVALID_ARGUMENT}).
+ *
+ * Produces a generic {@link WalletError} with code {@code "ABI_ENCODER_ERROR"}, optional
+ * {@code argumentCount} / {@code expectedArgumentCount} / {@code argument} fields, and a
+ * sanitised {@code value} (sensitive arg values like passwords are never copied verbatim).
+ *
+ * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
+ *
+ * @module errors/translators/ethersEncoder
  */
 
 import { WalletError } from '../WalletError.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
 /**
- * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
- */
-
-/**
- * @param {unknown} err
- * @param {ErrorTranslationContext} context
- * @returns {WalletError | null}
+ * Translate ABI encoder errors emitted by ethers.
+ *
+ * @public
+ * @param {unknown} err - Caught error
+ * @param {ErrorTranslationContext} context - Translator context (uses {@code methodName})
+ * @returns {WalletError | null} {@link WalletError} with code {@code "ABI_ENCODER_ERROR"} on
+ *   match, {@code null} otherwise
  */
 export function ethersEncoderTranslator(err, context) {
   const error = /** @type {Error & { code?: string }} */ (err);

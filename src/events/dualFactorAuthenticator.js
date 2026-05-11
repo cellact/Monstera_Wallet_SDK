@@ -1,9 +1,14 @@
 /**
- * DualFactorAuthenticator Events
- * 
- * All event definitions for the DualFactorAuthenticator contract
+ * Event definition records for the {@code DualFactorAuthenticator} contract.
+ *
+ * @module events/dualFactorAuthenticator
  */
 
+/**
+ * @public
+ * @readonly
+ * @type {Record<string, { eventName: string, fieldMapping: Record<string, string>, description: string }>}
+ */
 export default {
   PasswordChanged: {
     eventName: 'PasswordChanged',

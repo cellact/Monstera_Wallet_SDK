@@ -1,15 +1,31 @@
 /**
+ * Optional npm-registry version check used by {@link MonsteraUtils.checkVersionOnce}.
+ *
+ * Three layers:
+ * - {@link compareVersions} / {@link getVersionType} (in {@code utils/version.js}) — pure semver
+ *   helpers
+ * - {@link fetchLatestVersion} — npm registry fetch (Node-only, CORS-safe in browsers)
+ * - {@link checkAndWarnVersion} — orchestrates fetch + compare + warn at {@code log.warn} level
+ *
+ * Failures are swallowed so the SDK never breaks because of registry issues.
+ *
  * @typedef {import('../types/index.js').VersionCheckResult} VersionCheckResult
+ *
+ * @module internal/versionCheck
  */
 
 import { compareVersions, getVersionType } from './utils/version.js';
 import log from './logger.js';
 
 /**
- * Check if current version is outdated
- * @param {string} currentVersion - Current SDK version
- * @param {string} latestVersion - Latest available version
- * @returns {Promise<VersionCheckResult>}
+ * Compare two semver strings and produce a structured outdated / up-to-date / newer result.
+ *
+ * @public
+ * @async
+ * @param {string} currentVersion - Currently running SDK version
+ * @param {string} latestVersion - Latest available version (e.g. from npm registry)
+ * @returns {Promise<VersionCheckResult>} Structured comparison result with a human-readable
+ *   {@code recommendation}
  */
 export async function checkVersion(currentVersion, latestVersion) {
   log.debug('Checking SDK version', { currentVersion, latestVersion });
@@ -30,12 +46,18 @@ export async function checkVersion(currentVersion, latestVersion) {
 }
 
 /**
- * Fetch latest version from npm registry
- * @returns {Promise<string|null>} Latest version or null if fetch fails
+ * Fetch the latest published version of {@code @monstera_protocol/sdk} from the npm registry.
+ *
+ * @description Skipped in browser environments where the registry is unreachable via CORS.
+ * Always swallows fetch / parse errors and returns {@code null} so callers never see exceptions.
+ *
+ * @public
+ * @async
+ * @returns {Promise<string | null>} Latest version string, or {@code null} when the lookup is
+ *   skipped or fails
  */
 export async function fetchLatestVersion() {
   log.debug('fetchLatestVersion', {});
-  // Only check in Node.js (browser has CORS issues with npm registry)
   if (typeof window !== 'undefined') {
     log.debug('fetchLatestVersion skipped: browser environment (npm registry not reachable via CORS)');
     return null;
@@ -49,36 +71,38 @@ export async function fetchLatestVersion() {
     return data.version;
   } catch (error) {
     log.warn('Failed to fetch latest version', { error: error.message });
-    // Silently fail - don't spam console in case of network issues
     return null;
   }
 }
 
 /**
- * Check version and display warning if outdated.
- * This runs only when the SDK is configured with `checkVersion: true`.
- * @param {string} currentVersion - Current SDK version
+ * Compare {@code currentVersion} against the latest published version and {@code log.warn} when
+ * a non-patch update is available.
+ *
+ * @description Skips when {@code currentVersion} is the literal {@code "unknown"} (e.g. broken
+ * build) or the registry lookup fails. Patch / prerelease updates are intentionally not warned
+ * about. Errors are caught upstream by {@link MonsteraUtils.checkVersionOnce}.
+ *
+ * @public
+ * @async
+ * @param {string} currentVersion - Currently running SDK version
  * @returns {Promise<void>}
  */
 export async function checkAndWarnVersion(currentVersion) {
-  // Skip if version is unknown (e.g., in some build scenarios)
   if (currentVersion === 'unknown') {
     return;
   }
   
-  // Fetch latest version
   const latestVersion = await fetchLatestVersion();
   
   if (!latestVersion) {
     log.debug('checkAndWarnVersion', { skipped: true, reason: 'no latest version' });
-    return; // Failed to fetch, silently skip
+    return;
   }
 
-  // Check if outdated
   const result = await checkVersion(currentVersion, latestVersion);
   
   if (result.isOutdated) {
-    // Only warn for major/minor updates (not patch/prerelease)
     if (result.versionType === 'major' || result.versionType === 'minor') {
       log.warn('Monstera SDK update available', {
         currentVersion,

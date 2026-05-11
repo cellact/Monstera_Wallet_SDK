@@ -1,12 +1,21 @@
 /**
- * Sapphire Provider Wrapper
- * 
- * Handles provider creation and Sapphire wrapper integration
- * for encrypted transaction support.
- * 
+ * Sapphire-aware provider / signer construction.
+ *
+ * The SDK runs on Oasis Sapphire, where every state-changing transaction must be encrypted via
+ * {@code wrapEthersSigner} from {@code @oasisprotocol/sapphire-ethers-v6}. This module is the
+ * single boundary through which write signers are built: it normalises the user-supplied signer
+ * (private key string or {@link EthersSigner} instance), wraps it for confidential calls, and
+ * surfaces a uniform {@link SapphireRequiredError} when wrapping fails (e.g. missing peer
+ * dependency).
+ *
+ * Read-only providers do not need to be wrapped and are constructed via the shared
+ * {@link createProvider} re-export.
+ *
  * @typedef {import('../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../types/index.js').EthersSigner} EthersSigner
  * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
+ *
+ * @module providers/sapphire
  */
 
 import { ConfigError, SapphireRequiredError, ValidationError } from '../errors/index.js';
@@ -16,10 +25,18 @@ import { wrapEthersSigner } from '@oasisprotocol/sapphire-ethers-v6';
 import log from '../internal/logger.js';
 
 /**
- * Wrap signer for Sapphire encrypted transactions
- * 
- * @param {EthersSigner} signer - Ethers signer instance
- * @returns {WrappedEthersSigner} Wrapped signer with Sapphire encryption
+ * Wrap an ethers signer with the Sapphire confidential transaction wrapper.
+ *
+ * @description Delegates to {@code wrapEthersSigner}; any failure (typically a missing peer
+ * dependency or unsupported signer shape) is logged at {@code warn} level and rethrown as a
+ * {@link SapphireRequiredError} so callers see one canonical error type for "Sapphire is not
+ * available".
+ *
+ * @public
+ * @param {EthersSigner} signer - A standard ethers signer
+ * @returns {WrappedEthersSigner} Sapphire-wrapped signer that encrypts transaction calldata
+ * @throws {SapphireRequiredError} If {@code wrapEthersSigner} throws (typically because
+ *   {@code @oasisprotocol/sapphire-ethers-v6} is not installed or the input is not a usable signer)
  */
 function wrapSigner(signer) {
   try {
@@ -34,16 +51,30 @@ function wrapSigner(signer) {
 }
 
 /**
- * Create signer for write operations (with Sapphire wrapper)
- * 
- * @param {string|EthersSigner} signer - Private key string or Signer instance
- * @param {string} rpcUrl - RPC URL (required if signer is a private key)
- * @returns {WrappedEthersSigner} Wrapped signer for encrypted transactions
+ * Build the Sapphire-wrapped signer used for every write call in the SDK.
+ *
+ * @description Accepts either a private-key hex string or an existing ethers {@link EthersSigner}
+ * instance, normalises it into a {@code Wallet}-compatible signer (constructing one against
+ * {@code rpcUrl} when given a key), and finally wraps it via {@link wrapSigner}. The
+ * {@code role} label is forwarded to the underlying provider only as a log hint.
+ *
+ * @remarks Detection of "is this a signer?" is duck-typed on the presence of {@code signMessage};
+ * any other input shape is rejected with {@link ValidationError}. Private-key strings are NOT
+ * inspected here — invalid keys surface from the underlying {@code Wallet} constructor.
+ *
+ * @public
+ * @param {string | EthersSigner} providedSigner - Private-key hex string, or an ethers signer
+ * @param {string} [rpcUrl] - JSON-RPC URL used only when {@code providedSigner} is a private key
+ * @param {string} [role] - Optional log label (defaults to {@code "write"})
+ * @returns {WrappedEthersSigner} Sapphire-wrapped signer ready for encrypted writes
+ * @throws {ConfigError} If a private-key string is provided without {@code rpcUrl}
+ * @throws {ValidationError} If {@code providedSigner} is neither a string nor a signer-shaped
+ *   object exposing {@code signMessage}
+ * @throws {SapphireRequiredError} If Sapphire wrapping fails (see {@link wrapSigner})
  */
 function createWriteSigner(providedSigner, rpcUrl, role) {
   let signer;
   
-  // If it's a string, treat it as a private key
   if (typeof providedSigner === 'string') {
     if (!rpcUrl) {
       throw new ConfigError('RPC URL is required when providing private key as string', 'rpcUrl');
@@ -51,7 +82,6 @@ function createWriteSigner(providedSigner, rpcUrl, role) {
     const provider = createProvider(rpcUrl, role);
     signer = new Wallet(providedSigner, provider);
   } 
-  // If it's already a Signer
   else if (providedSigner && typeof providedSigner.signMessage === 'function') {
     signer = providedSigner;
   }
@@ -65,7 +95,6 @@ function createWriteSigner(providedSigner, rpcUrl, role) {
 
   log.debug('createWriteSigner', { role: role ?? 'write' });
 
-  // Wrap with Sapphire for encrypted transactions
   return wrapSigner(signer);
 }
 

@@ -1,12 +1,12 @@
 /**
- * Monstera SDK - Main Entry Point
- * 
- * Single point of entry for the SDK.
- * The Monstera class is exported as the default export.
- * 
- * Error classes are automatically re-exported from './errors/index.js'
- * - No manual maintenance required when adding new error classes
- * - Single source of truth: src/errors/index.js
+ * Monstera SDK - Public package entry point.
+ *
+ * Re-exports the {@link Monstera} class as both the default export and a named export,
+ * and re-exports every {@link WalletError} subclass plus the error pipeline helpers
+ * from `./errors/index.js` (single source of truth) so consumers can `instanceof`-check
+ * thrown errors without importing from a deep path.
+ *
+ * @module @monstera_protocol/sdk
  */
 
 import Monstera from './sdk/Monstera.js';

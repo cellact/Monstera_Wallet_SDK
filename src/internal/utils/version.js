@@ -1,13 +1,26 @@
 /**
- * Version comparison and utility functions
+ * Pure semver helpers used by the optional npm version-check flow.
+ *
+ * Implements just enough of the semver spec for our needs:
+ * - {@link parseVersion} — split a {@code MAJOR.MINOR.PATCH[-PRE][+BUILD]} string
+ * - {@link compareVersions} — three-way compare two semver strings
+ * - {@link getVersionType} — classify the difference ({@code major}/{@code minor}/...)
+ * - {@link satisfiesRange} — minimal range-matcher (caret, tilde, comparison ops, dash range)
+ *
+ * @module internal/utils/version
  */
 
 import { requireString } from '../assert.js';
 
 /**
- * Parse semantic version string into components
- * @param {string} version - Semantic version string
- * @returns {Record<string, number|string|null>} Parsed version object with {major, minor, patch, prerelease, build, raw}
+ * Parse a semver string into structured components.
+ *
+ * @public
+ * @param {string} version - Semver string like {@code "1.2.3-rc.1+build5"}
+ * @returns {{ major: number, minor: number, patch: number, prerelease: string | null, build: string | null, raw: string }}
+ *   Parsed components with the original {@code raw} string preserved
+ * @throws {ValidationError} If {@code version} fails {@link requireString}
+ * @throws {Error} If {@code version} does not match the semver pattern
  */
 export function parseVersion(version) {
     requireString(version, 'version');
@@ -31,10 +44,17 @@ export function parseVersion(version) {
   }
   
   /**
-   * Compare two versions
-   * @param {string} v1 - First version
-   * @param {string} v2 - Second version
-   * @returns {number} -1 if v1 < v2, 0 if equal, 1 if v1 > v2
+   * Three-way comparison of two semver strings.
+   *
+   * @description Standard semver precedence: major / minor / patch numerically; prerelease
+   * lexicographic, with a stable version ranked higher than any prerelease.
+   *
+   * @public
+   * @param {string} v1 - Left operand
+   * @param {string} v2 - Right operand
+   * @returns {-1 | 0 | 1} {@code -1} when {@code v1 < v2}, {@code 0} when equal, {@code 1} when
+   *   {@code v1 > v2}
+   * @throws {Error} Forwarded from {@link parseVersion}
    */
   export function compareVersions(v1, v2) {
     const parsed1 = parseVersion(v1);
@@ -69,11 +89,18 @@ export function parseVersion(version) {
   }
   
   /**
-   * Check if version satisfies range
-   * Supports: ^, ~, >=, <=, >, <, =, and combinations
-   * @param {string} version - Version to check
-   * @param {string} range - Range string (e.g., "^1.0.0", ">=1.0.0", "1.0.0 - 2.0.0")
-   * @returns {boolean}
+   * Test whether a version satisfies a range expression.
+   *
+   * @description Recognises the operators {@code ^}, {@code ~}, {@code >=}, {@code <=}, {@code >},
+   * {@code <}, {@code =}, an exact version, and the dash range {@code "A - B"}. NOT a full semver
+   * range implementation — does not handle compound ranges, OR clauses ({@code "||"}), pre-release
+   * inclusion rules, etc.
+   *
+   * @public
+   * @param {string} version - Concrete version to test
+   * @param {string} range - Range expression
+   * @returns {boolean} {@code true} if {@code version} satisfies {@code range}
+   * @throws {Error} Forwarded from {@link parseVersion} / {@link compareVersions}
    */
   export function satisfiesRange(version, range) {
     const parsedVersion = parseVersion(version);
@@ -132,10 +159,17 @@ export function parseVersion(version) {
   }
   
   /**
-   * Get version type difference between two versions
-   * @param {string} v1 - First version
-   * @param {string} v2 - Second version
-   * @returns {string} 'major', 'minor', 'patch', 'prerelease', or 'equal'
+   * Classify the kind of difference between two versions.
+   *
+   * @description Returns the highest-priority component that differs ({@code "major"} > {@code
+   * "minor"} > {@code "patch"} > {@code "prerelease"}), or {@code "equal"} when the two versions
+   * are identical.
+   *
+   * @public
+   * @param {string} v1 - Left operand
+   * @param {string} v2 - Right operand
+   * @returns {'major' | 'minor' | 'patch' | 'prerelease' | 'equal'} Difference classification
+   * @throws {Error} Forwarded from {@link parseVersion}
    */
   export function getVersionType(v1, v2) {
     const parsed1 = parseVersion(v1);

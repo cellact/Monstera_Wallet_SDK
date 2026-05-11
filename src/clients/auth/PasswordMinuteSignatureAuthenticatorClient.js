@@ -1,10 +1,10 @@
 /**
- * PasswordMinuteSignatureAuthenticatorClient
- * 
- * Client for interacting with PasswordMinuteSignatureAuthenticator contract methods.
- * Configure with a bytes32 password hash; {@link verify} expects an ABI-encoded ECDSA
- * signature over the per-minute EIP-191 digest (not raw password bytes).
- * 
+ * Low-level client for the {@code PasswordMinuteSignatureAuthenticator} contract.
+ *
+ * Stores a {@code keccak256(utf8(password))} hash on-chain and verifies an ABI-encoded ECDSA
+ * signature over the per-minute EIP-191 digest. {@link Monstera} talks to this client via
+ * {@code monstera.auth.passwordMinuteSignature}.
+ *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
@@ -17,6 +17,8 @@
  * @typedef {import('../../types/index.js').PasswordMinuteClientVerifyOptions} PasswordMinuteClientVerifyOptions
  * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
  * @typedef {import('../../types/index.js').PasswordMinuteClientConfigureOptions} PasswordMinuteClientConfigureOptions
+ *
+ * @module clients/auth/PasswordMinuteSignatureAuthenticatorClient
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -26,15 +28,17 @@ import { requireAddress, requireNonEmptyBytes, requireBytes32, requireUtf8Bytes 
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
+/**
+ * @public
+ */
 class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
-  // ============================================================================
-  // Constructor
-  // ============================================================================
-  
   /**
-   * @param {EthersProvider} readProvider - Ethers provider for read operations
-   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
-   * @param {NetworkConfig} config - Configuration object
+   * Forward provider/signer/config to {@link BaseContractClient}.
+   *
+   * @public
+   * @param {EthersProvider} readProvider - Read provider for view calls
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped write signer ({@code null} for read-only)
+   * @param {NetworkConfig} config - Resolved network configuration
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -45,11 +49,16 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Check if a wallet is configured
-   * 
-   * @param {KeyVaultAddrOptions} options - Check if wallet is configured options
-   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether {@code PasswordMinuteSignatureAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if configured
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
@@ -69,18 +78,23 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify minute-bucket ECDSA signature
+   * Verify a minute-bucket ECDSA signature.
    *
-   * Contract expects {@code authProof = abi.encode(bytes signature)} where
-   * {@code signature} is a 65-byte secp256k1 signature. The contract hashes
-   * {@code keccak256(abi.encodePacked(wallet, address(this), chainId, minuteBucket))},
-   * applies EIP-191, derives a deterministic signing key from
-   * {@code (passwordHash, minuteBucket)} via Sapphire, and checks
+   * @public
+   * @async
+   * @param {PasswordMinuteClientVerifyOptions} options - {@code keyVaultAddr} and ABI-encoded {@code authProof}
+   * @returns {Promise<boolean>} {@code true} if the signature is valid for the current minute bucket
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authProof} is not non-empty bytes
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks
+   * Contract expects {@code authProof = abi.encode(bytes signature)} where {@code signature} is a
+   * 65-byte secp256k1 signature. The contract hashes
+   * {@code keccak256(abi.encodePacked(wallet, address(this), chainId, minuteBucket))}, applies EIP-191,
+   * derives a deterministic signing key from {@code (passwordHash, minuteBucket)} via Sapphire, and checks
    * {@code recover(digest, signature)} matches that derived address.
-   *
-   * @param {PasswordMinuteClientVerifyOptions} options - Verify options
-   * @returns {Promise<boolean>} True if the signature is valid for the current minute bucket
-   * @throws {ValidationError} If required parameters are missing or invalid
    */
   async verify(options = {}) {
     const { keyVaultAddr, authProof } = options;
@@ -105,14 +119,19 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Update the password of a wallet
-   * 
-   * @param {UpdatePasswordOptions} options - Update password options
-   * @returns {Promise<UpdatePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Replace the stored password hash. Caller must supply the current UTF-8 password buffer.
+   *
+   * @public
+   * @async
+   * @param {UpdatePasswordOptions} options - {@code keyVaultAddr}, {@code currentPassword} (UTF-8 {@link Uint8Array}), {@code newPasswordHash}
+   * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If addresses, {@code currentPassword} or {@code newPasswordHash} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. wrong current password)
+   * @throws {EventNotFoundError} If the {@code PasswordChanged} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updatePassword(options = {}) {
     const { keyVaultAddr, currentPassword, newPasswordHash } = options;
@@ -139,17 +158,22 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Configure password 
+   * Configure the password hash on the authenticator ({@code IAuthenticator.configure}).
    *
-   * Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes,
+   * @public
+   * @async
+   * @param {PasswordMinuteClientConfigureOptions} options - {@code keyVaultAddr} and 32-byte {@code authConfig} (password hash)
+   * @returns {Promise<ConfigurePasswordResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authConfig} is not exactly 32 bytes
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts
+   * @throws {EventNotFoundError} If the {@code PasswordConfigured} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Contract stores {@code bytes32(config)}: {@code authConfig} must be exactly 32 bytes,
    * the keccak256 hash of the UTF-8 password ({@code keccak256(utf8Bytes(password))}).
-   *
-   * @param {PasswordMinuteClientConfigureOptions} options - Configure password options
-   * @returns {Promise<ConfigurePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async configure(options = {}) {
     const { keyVaultAddr, authConfig } = options;

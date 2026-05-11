@@ -1,5 +1,19 @@
 /**
- * KeyVault Contract ABI
+ * Solidity ABI for the {@code KeyVault} contract.
+ *
+ * Hand-checked subset used by {@link KeyVaultClient}: read methods, authenticated views, write
+ * methods (initialise, upgrade, key import / activation), all relevant events, and every custom
+ * Solidity error so {@code sdkErrorPipeline} can decode revert reasons.
+ *
+ * @module contracts/abi/core/keyVault
+ */
+
+/**
+ * Frozen ABI fragment array for {@code KeyVault}.
+ *
+ * @public
+ * @readonly
+ * @type {ReadonlyArray<object>}
  */
 export const KEYVAULT_ABI = [
   {

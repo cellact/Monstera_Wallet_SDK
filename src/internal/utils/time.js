@@ -1,23 +1,31 @@
 /**
- * Shared time helpers (Unix seconds, minute buckets).
+ * Shared time helpers used by deadline assertions and the minute-bucket auth flows.
+ *
+ * @module internal/utils/time
  */
 
 import { ValidationError } from '../../errors/index.js';
 
 /**
- * Current Unix timestamp in whole seconds (local clock).
+ * Current Unix timestamp in whole seconds, taken from the local clock.
  *
- * @returns {number}
+ * @public
+ * @returns {number} {@code Math.floor(Date.now() / 1000)}
  */
 function nowUnixTimestampSeconds() {
   return Math.floor(Date.now() / 1000);
 }
 
 /**
- * Floor unix timestamp (seconds) to the start of its minute bucket.
+ * Floor a Unix timestamp (in seconds) to the start of its minute bucket.
  *
- * @param {number} timestampSeconds
- * @returns {number}
+ * @description Used by the password-minute / dual-factor auth flows so off-chain and on-chain
+ * agree on the same bucket to derive the ephemeral signer.
+ *
+ * @public
+ * @param {number} timestampSeconds - Unix timestamp in seconds
+ * @returns {number} Largest multiple of 60 that is ≤ {@code timestampSeconds}
+ * @throws {ValidationError} If {@code timestampSeconds} is not a finite non-negative integer
  */
 function floorTimestampToMinuteBucket(timestampSeconds) {
   if (

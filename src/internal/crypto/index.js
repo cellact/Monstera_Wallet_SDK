@@ -1,6 +1,11 @@
 /**
- * Internal crypto barrel: mnemonic/seed, auth config/proof bytes, EIP-7702 authorization.
- * Not a public package export; import from other `src/` modules only.
+ * Internal crypto barrel.
+ *
+ * Re-exports every primitive used by the auth-config / auth-proof encoders and the wallet-creation
+ * flows that need EIP-7702 authorisations or BIP-39 mnemonics. NOT a public package export — only
+ * other modules under {@code src/} should import from here.
+ *
+ * @module internal/crypto
  */
 
 export { createWalletSigAuthConfig, createDualFactorAuthConfig } from './authConfig.js';

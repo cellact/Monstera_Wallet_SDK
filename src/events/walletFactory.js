@@ -1,9 +1,17 @@
 /**
- * WalletFactory Events
- * 
- * All event definitions for the WalletFactory contract
+ * Event definition records for the {@code WalletFactory} contract.
+ *
+ * Each entry is consumed by {@code parseEventFromReceipt} and projects ABI event args onto
+ * SDK-friendly field names (e.g. {@code storage_} → {@code storage}).
+ *
+ * @module events/walletFactory
  */
 
+/**
+ * @public
+ * @readonly
+ * @type {Record<string, { eventName: string, fieldMapping: Record<string, string>, description: string }>}
+ */
 export default {
   WalletCreated: {
     eventName: 'WalletCreated',

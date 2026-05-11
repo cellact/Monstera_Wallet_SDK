@@ -1,6 +1,12 @@
 /**
- * Stateless execution pipeline for contract reads and writes: error context,
- * Sapphire write path (tx → receipt → events), and error translation.
+ * Stateless execution pipeline shared by every {@link BaseContractClient} subclass.
+ *
+ * Handles three responsibilities:
+ *   1. Build sanitised SDK error context (via {@code Sanitizer}) so secrets stay out of thrown errors.
+ *   2. Run the Sapphire write flow: tx → receipt → optional event parsing → standardised
+ *      {@link BaseTransactionResult} payload.
+ *   3. Translate any caught error through {@code sdkErrorPipeline} (custom-error decode, RPC revert
+ *      extraction, fallback enrichment for mined-but-failed transactions).
  *
  * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../types/index.js').ExecuteWriteOptions} ExecuteWriteOptions
@@ -10,6 +16,8 @@
  * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../internal/sanitization/Sanitizer.js').Sanitizer} Sanitizer
+ *
+ * @module base/ExecutionPipeline
  */
 
 import { parseEventFromReceipt } from '../events/index.js';
@@ -28,14 +36,20 @@ import {
 import log from '../internal/logger.js';
 import { sanitizer as defaultSanitizer } from '../internal/sanitization/index.js';
 
+/**
+ * @public
+ */
 export default class ExecutionPipeline {
   /**
+   * Construct a pipeline with explicit dependencies (used by every {@link BaseContractClient}).
+   *
+   * @public
    * @param {object} deps
-   * @param {EthersProvider} deps.readProvider
-   * @param {WrappedEthersSigner | null} deps.writeSigner
-   * @param {import('../errors/pipeline.js').ErrorPipeline} [deps.errorPipeline]
-   * @param {Sanitizer} [deps.sanitizer]
-   * @param {NetworkConfig} deps.config
+   * @param {EthersProvider} deps.readProvider - Read provider, used both for plain reads and for revert enrichment after a failed write
+   * @param {WrappedEthersSigner | null} deps.writeSigner - Sapphire-wrapped signer used for writes ({@code null} for read-only clients)
+   * @param {import('../errors/pipeline.js').ErrorPipeline} [deps.errorPipeline] - Override for the default {@code sdkErrorPipeline}
+   * @param {Sanitizer} [deps.sanitizer] - Override for the default sanitiser (redacts sensitive fields from the error context)
+   * @param {NetworkConfig} deps.config - Resolved network config (used for {@code rpcUrl} in error context)
    */
   constructor({ readProvider, writeSigner, errorPipeline, sanitizer, config }) {
     this._readProvider = readProvider;
@@ -46,20 +60,31 @@ export default class ExecutionPipeline {
   }
 
   /**
-   * Build standardized error context from method parameters (sanitizer applied).
+   * Build a sanitised SDK error context from arbitrary call options.
    *
-   * @param {Record<string, unknown>} options
-   * @returns {Record<string, unknown>}
+   * The sanitiser strips known sensitive parameters (passwords, mnemonics, raw private keys, etc.)
+   * before the result is attached to thrown {@link WalletError}s.
+   *
+   * @public
+   * @param {Record<string, unknown>} [options] - Method options to redact
+   * @returns {Record<string, unknown>} Sanitised context safe to attach to errors
    */
   buildErrorContext(options = {}) {
     return this._sanitizer.forErrorContext({ ...options });
   }
 
   /**
+   * Run a read {@code operation} and translate any thrown error through the SDK error pipeline.
+   *
+   * @public
+   * @async
    * @template TResult
-   * @param {() => Promise<TResult>} operation
-   * @param {Record<string, unknown>} context
-   * @returns {Promise<TResult>}
+   * @param {() => Promise<TResult>} operation - The async ethers read call
+   * @param {Record<string, unknown>} [context] - Method name + extra fields for the error context (sanitised)
+   * @returns {Promise<TResult>} The value returned by {@code operation}
+   * @throws {NetworkError} If the underlying RPC transport fails
+   * @throws {ContractRevertError} If the call reverts (custom error or {@code Error(string)})
+   * @throws {WalletError} For any other failure (after translation)
    */
   async executeRead(operation, context = {}) {
     const { methodName, revertInterface, ...rest } = context;
@@ -79,10 +104,20 @@ export default class ExecutionPipeline {
   }
 
   /**
-   * @template TResult extends BaseTransactionResult
-   * @param {() => Promise<any>} operation
-   * @param {Record<string, unknown>} options
-   * @returns {Promise<TResult>}
+   * Run a write {@code operation} (broadcast → wait → parse events) and translate failures.
+   *
+   * @public
+   * @async
+   * @template {BaseTransactionResult} TResult
+   * @param {() => Promise<any>} operation - The async ethers write call (returns a transaction response)
+   * @param {Record<string, unknown>} [options] - {@code methodName}, {@code parseEvents}, {@code requireEvents}, {@code extraData}, {@code revertInterface} plus error-context fields
+   * @returns {Promise<TResult>} {@link BaseTransactionResult} merged with parsed events and {@code extraData}
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If broadcast or receipt fetch fails
+   * @throws {ContractRevertError} If the transaction reverts (decoded via {@code revertInterface} when available)
+   * @throws {EventNotFoundError} If {@code requireEvents !== false} and a required event is missing
+   * @throws {EventParseError} If a matching log fails to decode or map
+   * @throws {WalletError} For any other failure (after translation)
    */
   async executeWrite(operation, options = {}) {
     const {
@@ -118,8 +153,14 @@ export default class ExecutionPipeline {
   }
 
   /**
+   * Resolve the {@link EthersInterface} used to decode custom Solidity errors.
+   *
+   * Falls back to the first {@code parseEvents} contract's interface when no explicit
+   * {@code revertInterface} is provided.
+   *
+   * @private
    * @param {ExecuteWriteOptions} options
-   * @returns {EthersInterface | null}
+   * @returns {EthersInterface | null} ABI interface, or {@code null} when none is available
    */
   _getRevertInterface(options) {
     if (options.revertInterface) {
@@ -130,19 +171,29 @@ export default class ExecutionPipeline {
   }
 
   /**
+   * Pick the read provider used to enrich revert data after a failed write.
+   *
+   * @private
    * @param {ExecuteWriteOptions} options
-   * @returns {EthersProvider | null}
+   * @returns {EthersProvider | null} Provider attached to the call, or the signer's provider, or {@code null}
    */
   _getReadProvider(options) {
     return options.readProvider ?? options.writeSigner?.provider ?? null;
   }
 
   /**
-   * @param {EthersProvider} readProvider
-   * @param {TransactionReceipt} receipt
-   * @param {string} txHash
-   * @param {EthersInterface | null} iface
-   * @returns {Promise<{ revertData: string | null, revertReason: string | null, revertArgs: unknown, revertSignature: string | null }>}
+   * Replay a mined-but-failed transaction with {@code eth_call} at the receipt's block to recover
+   * revert data that ethers v6 omits from {@code tx.wait()} failures.
+   *
+   * Best-effort: always returns an object even when enrichment fails.
+   *
+   * @private
+   * @async
+   * @param {EthersProvider} readProvider - Provider used to replay the call (must support {@code call} at a block tag)
+   * @param {TransactionReceipt} receipt - Receipt of the failed transaction
+   * @param {string} txHash - Transaction hash (for {@code getTransaction} lookup)
+   * @param {EthersInterface | null} iface - ABI used to decode custom errors
+   * @returns {Promise<{ revertData: string | null, revertReason: string | null, revertArgs: unknown, revertSignature: string | null }>} Enrichment data (any field may be {@code null})
    */
   async _enrichMinedTransactionRevert(readProvider, receipt, txHash, iface) {
     const result = {
@@ -214,11 +265,23 @@ export default class ExecutionPipeline {
   }
 
   /**
-   * @template TResult extends BaseTransactionResult
-   * @param {() => Promise<any>} txFn
-   * @param {ExecuteWriteOptions} options
-   * @returns {Promise<TResult>}
-   * 
+   * Execute a single write transaction (broadcast → wait → parse events → build result).
+   *
+   * Most errors are not re-thrown directly: they fall through to the catch block where revert
+   * enrichment runs and the error pipeline produces the final {@link WalletError}.
+   *
+   * @private
+   * @async
+   * @template {BaseTransactionResult} TResult
+   * @param {() => Promise<any>} txFn - Function that returns the ethers tx response
+   * @param {ExecuteWriteOptions} [options] - Resolved options (signer, parseEvents, etc.)
+   * @returns {Promise<TResult>} {@link BaseTransactionResult} with parsed events and {@code extraData} merged
+   * @throws {WriteRequiresSignerError} If no write signer is supplied (defensive — checked again here even after the registry)
+   * @throws {NetworkError} If broadcast returns no tx response or no receipt
+   * @throws {EventNotFoundError} If {@code requireEvents !== false} and a parsed event is missing
+   * @throws {EventParseError} If event decoding/mapping fails after a matching log
+   * @throws {WalletError} Re-thrown after applying SDK context (subclass errors propagate unchanged)
+   *
    * @remarks
    * When {@code requireEvents} is {@code false}, an empty {@code eventData} from parsing skips {@link EventNotFoundError};
    * thrown errors from invalid {@code eventDef} or {@link EventParseError} during decode/mapping still propagate.

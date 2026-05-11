@@ -1,17 +1,29 @@
 /**
- * EIP-712 / signer failures for auth-proof builders (replaces signingErrorMapper).
+ * Translator dedicated to signing-side failures emitted by the auth-proof builders.
+ *
+ * @description Only engages when {@code context.authProofType} and {@code context.functionName}
+ * are both set — otherwise returns {@code null} immediately so the rest of the pipeline runs as
+ * usual. Distinguishes three buckets:
+ * - Transport failures (network / timeout / server) → {@link NetworkError}
+ * - ABI encoding failures → {@link ValidationError} on {@code authProof}
+ * - Anything else → generic {@link WalletError} with code {@code "UNKNOWN_ERROR"}
+ *
+ * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
+ *
+ * @module errors/translators/signing
  */
 
 import { NetworkError, ValidationError, WalletError } from '../WalletError.js';
 
 /**
- * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
- */
-
-/**
- * @param {unknown} error
- * @param {ErrorTranslationContext} context
- * @returns {WalletError | NetworkError | ValidationError | null}
+ * Translate signing / EIP-712 / auth-proof builder failures.
+ *
+ * @public
+ * @param {unknown} error - Caught error
+ * @param {ErrorTranslationContext} context - Translator context (uses {@code authProofType},
+ *   {@code functionName}, {@code validationExtra})
+ * @returns {WalletError | NetworkError | ValidationError | null} The categorised error, or
+ *   {@code null} when context is missing the auth-proof markers
  */
 export function signingTranslator(error, context) {
   const { authProofType, functionName, validationExtra = {} } = context;

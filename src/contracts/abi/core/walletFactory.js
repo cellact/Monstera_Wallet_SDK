@@ -1,5 +1,19 @@
 /**
- * WalletFactory Contract ABI
+ * Solidity ABI for the {@code WalletFactory} contract.
+ *
+ * Hand-checked subset used by {@link WalletFactoryClient}: every wallet creation entry point,
+ * factory administration calls, and all events / custom errors needed by {@code sdkErrorPipeline}
+ * to translate reverts.
+ *
+ * @module contracts/abi/core/walletFactory
+ */
+
+/**
+ * Frozen ABI fragment array for {@code WalletFactory}.
+ *
+ * @public
+ * @readonly
+ * @type {ReadonlyArray<object>}
  */
 export const WALLET_FACTORY_ABI = [
 	{

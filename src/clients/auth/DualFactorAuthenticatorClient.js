@@ -1,10 +1,10 @@
 /**
- * DualFactorAuthenticatorClient
- * 
- * Client for interacting with DualFactorAuthenticator contract methods.
- * Combines a minute-bucket ECDSA proof (derived from password hash via Sapphire)
- * with a guardian EIP-712 signature over {@code DualFactorAuth(wallet, deadline)}.
- * 
+ * Low-level client for the {@code DualFactorAuthenticator} contract.
+ *
+ * Combines a minute-bucket ECDSA proof (derived from the password hash via Sapphire) with a
+ * guardian EIP-712 signature over {@code DualFactorAuth(wallet, deadline)}. {@link Monstera} talks
+ * to this client via {@code monstera.auth.dualFactor}.
+ *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
@@ -19,6 +19,8 @@
  * @typedef {import('../../types/index.js').DualFactorClientUpdatePasswordOptions} DualFactorClientUpdatePasswordOptions
  * @typedef {import('../../types/index.js').DualFactorClientConfigureOptions} DualFactorClientConfigureOptions
  * @typedef {import('../../types/index.js').DualFactorClientUpdateGuardianOptions} DualFactorClientUpdateGuardianOptions
+ *
+ * @module clients/auth/DualFactorAuthenticatorClient
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -28,15 +30,17 @@ import { requireAddress, requireNonEmptyBytes, requireBytes32 } from '../../inte
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
+/**
+ * @public
+ */
 class DualFactorAuthenticatorClient extends BaseContractClient {
-  // ============================================================================
-  // Constructor
-  // ============================================================================
-  
   /**
-   * @param {EthersProvider} readProvider - Ethers provider for read operations
-   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
-   * @param {NetworkConfig} config - Configuration object
+   * Forward provider/signer/config to {@link BaseContractClient}.
+   *
+   * @public
+   * @param {EthersProvider} readProvider - Read provider for view calls
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped write signer ({@code null} for read-only)
+   * @param {NetworkConfig} config - Resolved network configuration
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -47,11 +51,16 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Check if a wallet is configured
-   * 
-   * @param {KeyVaultAddrOptions} options - Check if wallet is configured options
-   * @returns {Promise<boolean>} True if wallet is configured, false otherwise
-   * @throws {ValidationError} If keyVaultAddr is missing or invalid
+   * Check whether {@code DualFactorAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if configured
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
@@ -71,16 +80,22 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify dual-factor auth proof (IAuthenticator.verify).
+   * Verify a dual-factor proof ({@code IAuthenticator.verify}).
    *
-   * {@code authProof = abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}
-   * where {@code minutePasswordSignature} and {@code guardianSignature} are each 65-byte ECDSA signatures:
-   * minute key signs the EIP-191 digest for the current minute bucket; guardian signs EIP-712 typed data
-   * with struct hash {@code keccak256(abi.encode(AUTH_TYPEHASH, wallet, deadline))} and {@code deadline} not expired.
+   * @public
+   * @async
+   * @param {DualFactorClientVerifyOptions} options - {@code keyVaultAddr} and ABI-encoded {@code authProof}
+   * @returns {Promise<boolean>} {@code true} if both the minute-bucket signature and guardian EIP-712 signature verify
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authProof} is not non-empty bytes
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    *
-   * @param {DualFactorClientVerifyOptions} options - Verify options
-   * @returns {Promise<boolean>} True if both factors verify
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * @remarks
+   * {@code authProof = abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}.
+   * {@code minutePasswordSignature} is a 65-byte ECDSA signature over the EIP-191 digest for the current minute bucket;
+   * the guardian signs EIP-712 typed data with struct hash {@code keccak256(abi.encode(AUTH_TYPEHASH, wallet, deadline))}
+   * and {@code deadline} must not be expired.
    */
   async verify(options = {}) {
     const { keyVaultAddr, authProof } = options;
@@ -101,11 +116,16 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Get the guardian of a wallet
-   * 
-   * @param {KeyVaultAddrOptions} options - Get guardian options 
+   * Read the configured guardian address for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
    * @returns {Promise<Address>} Guardian address
-   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getGuardian(options = {}) {
     const { keyVaultAddr } = options;
@@ -125,10 +145,15 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Get the EIP-712 domain separator
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
-   * @returns {Promise<Bytes32>} EIP-712 domain separator
+   * Read the EIP-712 domain separator for {@code DualFactorAuthenticator}.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
+   * @returns {Promise<Bytes32>} 32-byte domain separator
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getDomainSeparator(options = {}) {
     log.info('DualFactorAuthenticator: getDomainSeparator');
@@ -149,14 +174,19 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Update the password hash of a wallet using valid dual factor auth proof
-   * 
-   * @param {DualFactorClientUpdatePasswordOptions} options - Update password options
-   * @returns {Promise<UpdatePasswordResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Replace the stored password hash using a dual-factor proof.
+   *
+   * @public
+   * @async
+   * @param {DualFactorClientUpdatePasswordOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code newPasswordHash}
+   * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If addresses, {@code authProof} or {@code newPasswordHash} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code PasswordChanged} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updatePassword(options = {}) {
     const { keyVaultAddr, authProof, newPasswordHash } = options;
@@ -183,14 +213,19 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Configure the dual factor authenticator for a wallet
+   * Configure the dual-factor authenticator with ABI-encoded {@code (passwordHash, guardianAddr)}.
    *
-   * @param {DualFactorClientConfigureOptions} options - Configure options
-   * @returns {Promise<ConfigurePasswordDualFactorResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {DualFactorClientConfigureOptions} options - {@code keyVaultAddr} and {@code authConfig}
+   * @returns {Promise<ConfigurePasswordDualFactorResult>} Standard write result with parsed {@code wallet} and {@code guardian}
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authConfig} is not non-empty bytes
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts
+   * @throws {EventNotFoundError} If the {@code WalletConfigured} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async configure(options = {}) {
     const { keyVaultAddr, authConfig } = options;
@@ -216,14 +251,19 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Update the guardian of a wallet using valid dual factor auth proof
+   * Replace the guardian address using a dual-factor proof.
    *
-   * @param {DualFactorClientUpdateGuardianOptions} options - Update guardian options
-   * @returns {Promise<UpdateGuardianResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * @public
+   * @async
+   * @param {DualFactorClientUpdateGuardianOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code newGuardian}
+   * @returns {Promise<UpdateGuardianResult>} Standard write result with parsed {@code wallet} and {@code newGuardian}
+   * @throws {ValidationError} If addresses or {@code authProof} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code GuardianChanged} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateGuardian(options = {}) {
     const { keyVaultAddr, authProof, newGuardian } = options;

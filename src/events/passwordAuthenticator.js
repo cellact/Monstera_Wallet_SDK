@@ -1,9 +1,14 @@
 /**
- * PasswordAuthenticator Events
- * 
- * All event definitions for the PasswordAuthenticator contract
+ * Event definition records for the {@code PasswordAuthenticator} contract.
+ *
+ * @module events/passwordAuthenticator
  */
 
+/**
+ * @public
+ * @readonly
+ * @type {Record<string, { eventName: string, fieldMapping: Record<string, string>, description: string }>}
+ */
 export default {
   PasswordChanged: {
     eventName: 'PasswordChanged',

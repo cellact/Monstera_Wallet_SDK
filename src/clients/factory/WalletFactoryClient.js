@@ -1,13 +1,10 @@
 /**
- * WalletFactoryClient
+ * Low-level client for the {@code WalletFactory} contract.
  *
- * Client for interacting with WalletFactory contract methods.
- * Handles wallet creation and factory administration.
+ * Handles wallet creation (full stack, core-only, with hook, with custom logic) and admin operations
+ * (beacon upgrade, admin transfer). All creation methods accept already-encoded {@link EncodedAuthConfigOptions}
+ * — the {@link Monstera} facade uses {@link AuthConfigBuilder} to encode structured input before delegating here.
  *
- * Creation methods expect {@link EncodedAuthConfigOptions}: hex-encoded {@code authConfig}
- * for the factory contract (output of built-in encoders, {@code AuthConfigBuilder.prototype.encode}, manual encoding, or custom authenticators).
- * Monstera create-wallet APIs accept structured configs and encode before calling these methods.
- * 
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
@@ -25,6 +22,8 @@
  * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
  * @typedef {import('../../types/index.js').UpdateWalletLogicImplOptions} UpdateWalletLogicImplOptions
  * @typedef {import('../../types/index.js').TransferAdminOptions} TransferAdminOptions
+ *
+ * @module clients/factory/WalletFactoryClient
  */
 
 import BaseContractClient from '../../base/BaseContractClient.js';
@@ -35,15 +34,17 @@ import { requireAddress, requireBytes, requireMnemonic, requireNonEmptyBytes } f
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
+/**
+ * @public
+ */
 class WalletFactoryClient extends BaseContractClient {
-  // ============================================================================
-  // Constructor
-  // ============================================================================
-  
   /**
-   * @param {EthersProvider} readProvider - Ethers provider for read operations
-   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for write operations (null for read-only clients)
-   * @param {NetworkConfig} config - Configuration object
+   * Forward provider/signer/config to {@link BaseContractClient}.
+   *
+   * @public
+   * @param {EthersProvider} readProvider - Read provider for view calls
+   * @param {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped write signer ({@code null} for read-only)
+   * @param {NetworkConfig} config - Resolved network configuration
    */
   constructor(readProvider, writeSigner, config) {
     super(readProvider, writeSigner, config);
@@ -54,22 +55,20 @@ class WalletFactoryClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Prepare wallet creation by generating mnemonic and deriving seed
+   * Generate a fresh BIP39 mnemonic and derive its seed for wallet creation.
    *
    * @private
-   * @returns {{ mnemonic: Mnemonic; seed: Bytes }} Object containing generated mnemonic and derived seed
+   * @returns {{ mnemonic: Mnemonic; seed: Bytes }} Fresh mnemonic phrase and 64-byte seed (hex)
+   * @throws {Error} If the underlying RNG fails (e.g. {@code crypto.randomBytes} unavailable)
+   *
    * @remarks
    * The mnemonic string stays reachable while {@link BaseContractClient#executeWrite} runs (submit tx, wait for receipt, parse events).
    * Callers attach it to the result via {@code extraData} so integrators can back up the phrase — intentional, not accidental exposure through the pipeline.
-   * JavaScript cannot reliably zero-fill string secrets; minimizing retention is limited to not holding the result longer than necessary.
+   * JavaScript cannot reliably zero-fill string secrets; minimising retention is limited to not holding the result longer than necessary.
    */
   _prepareWalletCreation() {
-    // Off-chain: Generate mnemonic
     const mnemonic = generateMnemonic();
-    
-    // Off-chain: Derive seed from mnemonic
     const seed = deriveSeed(mnemonic);
-    
     return { mnemonic, seed };
   }
 
@@ -78,11 +77,16 @@ class WalletFactoryClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Check if an address is a wallet created by this factory
-   * 
-   * @param {WalletProxyOptions} options - Is wallet options
-   * @returns {Promise<boolean>} True if address is a wallet created by this factory, false otherwise
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * Check whether {@code walletAddr} was deployed by this factory.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr} (proxy address)
+   * @returns {Promise<boolean>} {@code true} if {@code walletAddr} is a wallet created by this factory
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async isWallet(options = {}) {
     const { walletAddr } = options;
@@ -102,10 +106,15 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Get the admin address
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
+   * Get the current factory admin address.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Address>} Admin address
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getAdmin(options = {}) {
     log.info('WalletFactory: getAdmin');
@@ -122,10 +131,15 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Get current WalletLogic implementation (current walletLogic contract address)
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
+   * Get the current WalletLogic implementation address (beacon target).
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Address>} Current WalletLogic implementation
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getWalletLogicImplAddr(options = {}) {
     log.info('WalletFactory: getWalletLogicImplAddr');
@@ -142,11 +156,16 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Get the keyVault contract address for a wallet
-   * 
-   * @param {WalletProxyOptions} options - KeyVault options
+   * Resolve the KeyVault contract for a wallet proxy.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
    * @returns {Promise<Address>} KeyVault contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultAddr(options = {}) {
     const { walletAddr } = options;
@@ -166,11 +185,16 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Get the storage contract address for a wallet
-   * 
-   * @param {WalletProxyOptions} options - Storage options
+   * Resolve the WalletStorage contract address for a wallet proxy.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
    * @returns {Promise<Address>} Storage contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getStorageAddr(options = {}) {
     const { walletAddr } = options;
@@ -190,12 +214,15 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Get the beacon address for a wallet 
-   * 
-   * The beacon controlling WalletLogic updates
-   * 
-   * @param {Record<string, unknown>} [options={}] - Options object
+   * Get the beacon contract that controls WalletLogic upgrades.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Address>} Beacon address
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getBeaconAddr(options = {}) {
     log.info('WalletFactory: getBeaconAddr');
@@ -212,11 +239,16 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Get the secretVault address mapped to a wallet
-   * 
-   * @param {WalletProxyOptions} options - SecretVault options
-   * @returns {Promise<Address>} SecretVault contract address
-   * @throws {ValidationError} If walletAddr is missing or invalid
+   * Resolve the secret-vault contract address mapped to a wallet proxy.
+   *
+   * @public
+   * @async
+   * @param {WalletProxyOptions} options - {@code walletAddr}
+   * @returns {Promise<Address>} Secret vault contract address
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
    */
   async getSecretVaultAddr(options = {}) {
     const { walletAddr } = options;
@@ -240,19 +272,19 @@ class WalletFactoryClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Create a new HD Wallet
-   * 
-   * Deploys complete wallet stack:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-updateable)
-   *      3. WalletLogic proxy (orchestration, admin-updateable)
-   * 
-   * @param {FactoryClientCreateWalletBaseOptions} options - Wallet creation options ({@code authConfig} must be encoded)
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If authConfig is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Create a new HD wallet (full stack: WalletStorage + KeyVault + WalletLogic BeaconProxy).
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletBaseOptions} options - {@code authConfig} (encoded), optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Standard write result plus {@code wallet}, {@code keyVault}, {@code storage}, {@code authenticator}, and the generated {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig} is missing or not non-empty bytes
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    *
    * @remarks
    * {@link WalletCreationResult.mnemonic} is the generated phrase, returned on purpose for backup (see {@link WalletCreationResult}).
@@ -285,19 +317,19 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Create a new HD Wallet from a provided mnemonic
-   * 
-   * Deploys complete wallet stack:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-updateable)
-   *      3. WalletLogic proxy (orchestration, admin-updateable)
-   * 
-   * @param {FactoryClientCreateWalletFromMnemonicOptions} options - Wallet creation options ({@code authConfig} must be encoded)
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If authConfig is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Create a new HD wallet (full stack) deterministically from a caller-supplied mnemonic.
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletFromMnemonicOptions} options - {@code authConfig} (encoded), {@code mnemonic}, optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Standard write result plus addresses and the supplied {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig} is missing or {@code mnemonic} is not a valid BIP39 phrase
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    *
    * @remarks
    * {@link WalletCreationResult.mnemonic} echoes the caller-supplied phrase for a uniform result shape (same security expectations as {@link WalletFactoryClient#createWallet}).
@@ -330,25 +362,24 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Create a new HD wallet with a post-creation hook
-   * 
-   * Deploys complete wallet stack:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (auth + signing, user-updateable)
-   *      3. WalletLogic proxy (orchestration, admin-updateable)
-   * 
-   * The hook is called after the wallet is created.
-   * The hook contract must implement IWalletCreationHook interface.
-   * 
-   * @param {FactoryClientCreateWalletWithHookOptions} options - Wallet creation options ({@code authConfig} must be encoded)
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Create a new HD wallet (full stack) and call a post-creation hook contract.
    *
-   * @remarks
-   * Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
+   * The hook contract at {@code hookAddr} must implement {@code IWalletCreationHook}; the SDK does not
+   * enforce that interface — passing a non-conforming address will revert on-chain.
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletWithHookOptions} options - {@code authConfig} (encoded), {@code hookAddr}, {@code hookData}, optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Standard write result plus addresses and generated {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig}, {@code hookAddr}, or {@code hookData} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction (or the hook itself) reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
    */
   async createWalletWithHook(options = {}) {
     const { authConfig, hookAddr, hookData } = options;
@@ -379,27 +410,27 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Create a new HD Wallet 
-   * 
-   * Deploys core wallet stack only:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (KeyVault address is the wallet address)
-   * 
-   * Use this when you want to interact with KeyVault directly,
-   * or when deploying your own custom logic contract separately.
+   * Create a new HD wallet (core stack only — WalletStorage + KeyVault, no WalletLogic proxy).
+   *
+   * Use when you intend to interact with KeyVault directly or deploy a custom logic contract later.
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletBaseOptions} options - {@code authConfig} (encoded), optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Standard write result with addresses and generated {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig} is missing or not non-empty bytes
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    *
    * @remarks
    * The returned {@link WalletCreationResult} is parsed from the same {@code WalletCreated} event as full wallet creation.
    * For this core-only path the factory records the KeyVault address as both {@code wallet} and {@code keyVault};
    * identical values are intentional (KeyVault is the wallet address here), not an event-parsing mistake.
    * Mnemonic in the result: see {@link WalletFactoryClient#createWallet}.
-   *
-   * @param {FactoryClientCreateWalletBaseOptions} options - Wallet creation options ({@code authConfig} must be encoded)
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If authConfig is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
    */
   async createWalletCore(options = {}) {
     const { authConfig } = options;
@@ -428,26 +459,24 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Create a new HD wallet with a custom logic contract
-   * 
-   * Deploys minimal wallet stack:
-   *      1. WalletStorage (holds keys, locked to KeyVault)
-   *      2. KeyVault (KeyVault address is the wallet address)
-   * 
-   * Deploys a minimal proxy (clone) of the customLogicImpl.
-   * Unlike default BeaconProxy wallets:
-   * - Custom logic wallets are NOT affected by admin beacon updates
-   * - Each wallet gets its own independent clone
-   * 
-   * @param {FactoryClientCreateWalletWithCustomLogicOptions} options - Wallet creation options ({@code authConfig} must be encoded)
-   * @returns {Promise<WalletCreationResult>}
-   * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Create a new HD wallet using a minimal-proxy (clone) of a custom WalletLogic implementation.
    *
-   * @remarks
-   * Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
+   * Custom-logic wallets are independent of the factory's beacon — admin upgrades to the default
+   * WalletLogic do not affect them.
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletWithCustomLogicOptions} options - {@code authConfig} (encoded), {@code customLogicImplAddr}, {@code logicData}, optional {@code authenticatorAddr}
+   * @returns {Promise<WalletCreationResult>} Standard write result plus addresses and generated {@code mnemonic}
+   * @throws {ValidationError} If {@code authConfig}, {@code customLogicImplAddr}, or {@code logicData} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
    */
   async createWalletWithCustomLogic(options = {}) {
     const { authConfig, customLogicImplAddr, logicData } = options;
@@ -478,16 +507,21 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Update the WalletLogic implementation for all wallets (Admin function)
-   * 
-   * This updates the orchestration layer, not the key security.
-   * 
-   * @param {UpdateWalletLogicImplOptions} options - Update logic options
-   * @returns {Promise<UpdateWalletLogicImplAddrResult>}
-   * @throws {ValidationError} If newLogicAddr is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
-   * @throws {EventNotFoundError} If expected event is not found in receipt
+   * Point the factory beacon at a new WalletLogic implementation (admin-only).
+   *
+   * Affects the orchestration layer of every wallet using the default beacon — not the KeyVault security layer.
+   *
+   * @public
+   * @async
+   * @param {UpdateWalletLogicImplOptions} options - {@code newLogicAddr}
+   * @returns {Promise<UpdateWalletLogicImplAddrResult>} Standard write result with parsed {@code oldImpl}/{@code newImpl}
+   * @throws {ValidationError} If {@code newLogicAddr} is missing or invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not admin)
+   * @throws {EventNotFoundError} If the {@code BeaconUpgraded} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
    */
   async updateWalletLogicImplAddr(options = {}) {
     const { newLogicAddr } = options;
@@ -511,13 +545,19 @@ class WalletFactoryClient extends BaseContractClient {
   }
 
   /**
-   * Transfer admin ownership role to a new address (Admin function)
-   * 
-   * @param {TransferAdminOptions} options - Transfer admin options
-   * @returns {Promise<TransferAdminResult>}
-   * @throws {ValidationError} If newAdminAddr is missing or invalid
-   * @throws {WriteRequiresSignerError} If writeSigner is not available
-   * @throws {ContractRevertError} If transaction reverts
+   * Transfer the factory admin role (admin-only).
+   *
+   * @public
+   * @async
+   * @param {TransferAdminOptions} options - {@code newAdminAddr}
+   * @returns {Promise<TransferAdminResult>} Standard write result with {@code newAdmin} / {@code factoryAddress}
+   * @throws {ValidationError} If {@code newAdminAddr} is missing or invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the current admin)
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks {@code requireEvents} is set to {@code false}: missing {@code AdminTransferred}-style events do not fail this call.
    */
   async transferAdmin(options = {}) {
     const { newAdminAddr } = options;

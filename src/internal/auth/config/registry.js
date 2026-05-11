@@ -1,9 +1,17 @@
 /**
- * Registry: built-in authenticator address → create-wallet auth encoder (strategy).
+ * Address → encoder lookup used by {@link AuthConfigBuilder}.
+ *
+ * Wires the four built-in create-wallet authConfig encoders (password, walletSignature,
+ * dualFactor, passwordMinuteSignature) into a single
+ * {@link createRegistryByChecksumAddress}-based registry keyed by the network's authenticator
+ * addresses. Returns {@code undefined} for unknown addresses so the builder can fall back to its
+ * "advanced consumer" hex-string path.
  *
  * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../../../types/index.js').Address} Address
  * @typedef {import('../../../types/index.js').CreateWalletAuthEncoder} CreateWalletAuthEncoder
+ *
+ * @module internal/auth/config/registry
  */
 
 import { createRegistryByChecksumAddress } from '../registryByChecksumAddress.js';
@@ -13,8 +21,15 @@ import { dualFactorAuthCreateWalletEncoder } from './encoders/dualFactor.js';
 import { passwordMinuteSignatureAuthCreateWalletEncoder } from './encoders/passwordMinuteSignature.js';
 
 /**
- * @param {ContractAddresses} addresses
+ * Build the address-keyed encoder registry for create-wallet auth configs.
+ *
+ * @public
+ * @param {ContractAddresses} addresses - Resolved network addresses (per
+ *   {@link MonsteraConfig.resolveBaseConfig})
  * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => CreateWalletAuthEncoder | undefined }}
+ *   Registry exposing a single {@code getByAuthenticatorAddr} lookup
+ * @throws {ValidationError} If an address in {@code addresses} fails checksum validation
+ *   (raised by {@link createRegistryByChecksumAddress})
  */
 export function createCreateWalletAuthEncoderRegistry(addresses) {
   return createRegistryByChecksumAddress([
