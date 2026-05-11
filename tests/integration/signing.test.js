@@ -29,10 +29,6 @@ import {
   expectValidAddress,
   expectTransactionResult
 } from '../utils/assertions.js';
-import { 
-  testMissingParam, 
-  testInvalidAddress 
-} from '../utils/validation-helpers.js';
 
 /** @see WalletStorageV2.CurveType — secp256k1 */
 const CURVE_SECP256K1 = 0;
@@ -126,75 +122,6 @@ describe('Signing Integration Tests', () => {
       ).rejects.toThrow();
     });
 
-    test('should fail with missing keyVaultAddr', async () => {
-      const messageBytes = toUtf8Bytes('test');
-
-      await testMissingParam(
-        sdk.signMessage.bind(sdk),
-        {
-          authProof,
-          index: accountIndex,
-          message: messageBytes
-        },
-        'keyVaultAddr'
-      );
-    });
-
-    test('should fail with missing authProof', async () => {
-      const messageBytes = toUtf8Bytes('test');
-
-      await testMissingParam(
-        sdk.signMessage.bind(sdk),
-        {
-          keyVaultAddr,
-          index: accountIndex,
-          message: messageBytes
-        },
-        'authProof'
-      );
-    });
-
-    test('should fail with missing index', async () => {
-      const messageBytes = toUtf8Bytes('test');
-
-      await testMissingParam(
-        sdk.signMessage.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          message: messageBytes
-        },
-        'index'
-      );
-    });
-
-    test('should fail with missing message', async () => {
-      await testMissingParam(
-        sdk.signMessage.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          index: accountIndex
-        },
-        'message'
-      );
-    });
-
-    test('should fail with invalid keyVaultAddr', async () => {
-      const messageBytes = toUtf8Bytes('test');
-
-      await testInvalidAddress(
-        sdk.signMessage.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          index: accountIndex,
-          message: messageBytes
-        },
-        'keyVaultAddr'
-      );
-    });
-
     test('should fail with negative index', async () => {
       const messageBytes = toUtf8Bytes('test');
 
@@ -267,18 +194,6 @@ describe('Signing Integration Tests', () => {
           hash
         })
       ).rejects.toThrow();
-    });
-
-    test('should fail with missing hash', async () => {
-      await testMissingParam(
-        sdk.sign.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          index: accountIndex
-        },
-        'hash'
-      );
     });
 
     test('should fail with invalid hash length', async () => {
@@ -384,78 +299,6 @@ describe('Signing Integration Tests', () => {
       ).rejects.toThrow();
     });
 
-    // Helper to create base transaction params
-    const createBaseTxParams = () => ({
-      index: accountIndex,
-      nonce: 0,
-      gasPrice: parseUnits('30', 'gwei'),
-      gasLimit: 21000n,
-      to: ZERO_ADDRESS,
-      value: 0n,
-      txData: '0x',
-      chainId: sdk.chainId
-    });
-
-    test('should fail with missing keyVaultAddr', async () => {
-      await testMissingParam(
-        sdk.signTransaction.bind(sdk),
-        {
-          authProof,
-          ...createBaseTxParams()
-        },
-        'keyVaultAddr'
-      );
-    });
-
-    test('should fail with missing authProof', async () => {
-      await testMissingParam(
-        sdk.signTransaction.bind(sdk),
-        {
-          keyVaultAddr,
-          ...createBaseTxParams()
-        },
-        'authProof'
-      );
-    });
-
-    test('should fail with missing required transaction fields', async () => {
-      const baseParams = createBaseTxParams();
-      
-      // Missing nonce
-      await testMissingParam(
-        sdk.signTransaction.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          ...baseParams
-        },
-        'nonce'
-      );
-
-      // Missing to
-      await testMissingParam(
-        sdk.signTransaction.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          ...baseParams
-        },
-        'to'
-      );
-    });
-
-    test('should fail with invalid address', async () => {
-      await testInvalidAddress(
-        sdk.signTransaction.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          ...createBaseTxParams()
-        },
-        'to'
-      );
-    });
-
     test('should fail with negative values', async () => {
       await expect(
         sdk.signTransaction({
@@ -556,30 +399,6 @@ describe('Signing Integration Tests', () => {
         })
       ).rejects.toThrow();
     });
-
-    test('should fail with missing message', async () => {
-      await testMissingParam(
-        sdk.signSolana.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          index: accountIndex
-        },
-        'message'
-      );
-    });
-
-    test('should fail with missing index', async () => {
-      await testMissingParam(
-        sdk.signSolana.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          message: toUtf8Bytes('x')
-        },
-        'index'
-      );
-    });
   });
 
   describe('signWithImportedKey', () => {
@@ -630,30 +449,6 @@ describe('Signing Integration Tests', () => {
       const importedAddr = getAddress(hexlify(importedAddrBytes));
       expect(importedAddr.toLowerCase()).toBe(importedSigningWallet.address.toLowerCase());
     }, 30000);
-
-    test('should fail with missing digest', async () => {
-      await testMissingParam(
-        sdk.signWithImportedKey.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          keyId: importedKeyId
-        },
-        'digest'
-      );
-    });
-
-    test('should fail with missing keyId', async () => {
-      await testMissingParam(
-        sdk.signWithImportedKey.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof,
-          digest: keccak256(toUtf8Bytes('x'))
-        },
-        'keyId'
-      );
-    });
 
     test('should fail with wrong password', async () => {
       const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };

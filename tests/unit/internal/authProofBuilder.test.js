@@ -3,11 +3,13 @@
  */
 
 import { describe, test, expect } from '@jest/globals';
+import { Wallet } from '../../../src/adapters/ethers/index.js';
+import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { AuthProofBuilder } from '../../../src/internal/auth/proof/AuthProofBuilder.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
-import { toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
-import { ValidationError } from '../../../src/errors/index.js';
+import { ValidationError, NetworkError } from '../../../src/errors/index.js';
+import { nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 
 describe('AuthProofBuilder.encode', () => {
   const network = buildNetworkConfig({ network: 'testnet' });
@@ -81,5 +83,54 @@ describe('AuthProofBuilder.encode', () => {
         authProof: { password: toUtf8Bytes('x') }
       })
     ).rejects.toThrow(/No built-in encoder/i);
+  });
+
+  test('forwards error when getAuthenticatorAddr rejects (e.g. network failure)', async () => {
+    const builder = new AuthProofBuilder(
+      makeCtx(async () => {
+        throw new NetworkError('simulated RPC failure', null, null);
+      })
+    );
+    await expect(
+      builder.encode({
+        keyVaultAddr: VALID_TEST_ADDRESS,
+        authProof: { password: toUtf8Bytes('x') }
+      })
+    ).rejects.toThrow(NetworkError);
+  });
+
+  test('encodes structured WalletSignature authProof via walletSignature encoder', async () => {
+    const signer = Wallet.createRandom();
+    const deadline = nowUnixTimestampSeconds() + 7200;
+    const builder = new AuthProofBuilder(
+      makeCtx(async () => network.addresses.walletSignatureAuth)
+    );
+    const out = await builder.encode({
+      keyVaultAddr: VALID_TEST_ADDRESS,
+      authProof: { signer, deadline }
+    });
+    expect(typeof out.authProof).toBe('string');
+    expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
+  });
+
+  test('encodes structured DualFactor authProof via dualFactor encoder', async () => {
+    const passwordHash = keccak256(toUtf8Bytes('dual-factor-unit'));
+    const guardian = Wallet.createRandom();
+    const deadline = nowUnixTimestampSeconds() + 7200;
+    const readProvider = {
+      getBlock: async () => ({ timestamp: Math.floor(Date.now() / 1000) })
+    };
+    const builder = new AuthProofBuilder({
+      addresses: network.addresses,
+      chainId: network.chainId,
+      readProvider,
+      getAuthenticatorAddr: async () => network.addresses.dualFactorAuth
+    });
+    const out = await builder.encode({
+      keyVaultAddr: VALID_TEST_ADDRESS,
+      authProof: { passwordHash, signer: guardian, deadline }
+    });
+    expect(typeof out.authProof).toBe('string');
+    expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
   });
 });

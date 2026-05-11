@@ -162,4 +162,4 @@ async function executeSignAuthorization(deps, encodedAuthProofObject, options = 
   });
 }
 
-export { executeSignAuthorization };
+export { executeSignAuthorization, resolveSignAuthorizationInputs };

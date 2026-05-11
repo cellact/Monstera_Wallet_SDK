@@ -69,7 +69,8 @@ describe('Authentication — wallet signature', () => {
       await testMissingParam(
         sdk.configureWalletSignature.bind(sdk),
         { keyVaultAddr },
-        'initialWhitelist'
+        'initialWhitelist',
+        'whitelist'
       );
     });
 

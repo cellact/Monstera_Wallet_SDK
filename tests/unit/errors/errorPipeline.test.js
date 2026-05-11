@@ -13,6 +13,7 @@ import {
   NetworkError,
   WalletError
 } from '../../../src/errors/index.js';
+import { fallbackTranslator } from '../../../src/errors/translators/fallback.js';
 
 describe('sdk error pipeline', () => {
   test('CALL_EXCEPTION without receipt becomes ContractRevertError when revert is present', () => {
@@ -138,5 +139,31 @@ describe('sdk error pipeline', () => {
     expect(out.revertReason).toBe('AlreadyConfigured');
     expect(out.revertArgs).toBeNull();
     expect(out.revertSignature).toBe('AlreadyConfigured()');
+  });
+
+  test('fallbackTranslator always returns UNKNOWN_ERROR WalletError with sanitised context', () => {
+    const err = new Error('unexpected failure');
+    /** @type {any} */ (err).code = 'CUSTOM_CODE';
+
+    const w = fallbackTranslator(err, {
+      methodName: 'test op',
+      sdkContext: {
+        client: 'ExampleClient',
+        authProof: '0xabcd',
+        revertInterface: { junk: 'do not leak' }
+      }
+    });
+
+    expect(w.code).toBe('UNKNOWN_ERROR');
+    expect(w.message).toContain('test op');
+    expect(w.message).toContain('unexpected failure');
+    expect(w.context.client).toBe('ExampleClient');
+    expect(w.context.originalCode).toBe('CUSTOM_CODE');
+    expect(w.context.revertInterface).toBeUndefined();
+    expect(w.context.authProof).toEqual({
+      redacted: true,
+      valueKind: 'string',
+      valueLength: 6
+    });
   });
 });

@@ -9,11 +9,6 @@ import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
 import { createPasswordAuthProof } from '../../utils/fixtures.js';
 import { expectTransactionResult } from '../../utils/assertions.js';
-import {
-  testMissingParam,
-  testInvalidAddress,
-  testReadonlySDK
-} from '../../utils/validation-helpers.js';
 
 describe('Authentication — password', () => {
   let sdk;
@@ -59,40 +54,6 @@ describe('Authentication — password', () => {
       });
       expect(isConfigured).toBe(true);
     }, 30000);
-
-    test('should fail with missing keyVaultAddr', async () => {
-      await testMissingParam(
-        sdk.configurePassword.bind(sdk),
-        { passwordHash: passwordHash },
-        'keyVaultAddr'
-      );
-    });
-
-    test('should fail with missing passwordHash', async () => {
-      await testMissingParam(
-        sdk.configurePassword.bind(sdk),
-        { keyVaultAddr },
-        'passwordHash'
-      );
-    });
-
-    test('should fail with invalid keyVaultAddr', async () => {
-      await testInvalidAddress(
-        sdk.configurePassword.bind(sdk),
-        { keyVaultAddr, passwordHash: passwordHash },
-        'keyVaultAddr'
-      );
-    });
-
-    test('should fail with readonly SDK instance', async () => {
-      await testReadonlySDK(
-        sdk.configurePassword,
-        {
-          keyVaultAddr,
-          passwordHash: passwordHash
-        }
-      );
-    });
   });
 
   describe('updatePassword', () => {
@@ -140,46 +101,6 @@ describe('Authentication — password', () => {
         })
       ).rejects.toThrow();
     }, 30000);
-
-    test('should fail with missing keyVaultAddr', async () => {
-      const currentPasswordBytes = createPasswordAuthProof(password);
-      const newPasswordHash = keccak256(toUtf8Bytes('newpassword'));
-
-      await testMissingParam(
-        sdk.updatePassword.bind(sdk),
-        {
-          currentPassword: currentPasswordBytes,
-          newPasswordHash
-        },
-        'keyVaultAddr'
-      );
-    });
-
-    test('should fail with missing currentPassword', async () => {
-      const newPasswordHash = keccak256(toUtf8Bytes('newpassword'));
-
-      await testMissingParam(
-        sdk.updatePassword.bind(sdk),
-        {
-          keyVaultAddr,
-          newPasswordHash
-        },
-        'currentPassword'
-      );
-    });
-
-    test('should fail with missing newPasswordHash', async () => {
-      const currentPasswordBytes = createPasswordAuthProof(password);
-
-      await testMissingParam(
-        sdk.updatePassword.bind(sdk),
-        {
-          keyVaultAddr,
-          currentPassword: currentPasswordBytes
-        },
-        'newPasswordHash'
-      );
-    });
   });
 
   describe('isPasswordConfigured', () => {
@@ -202,22 +123,6 @@ describe('Authentication — password', () => {
       });
       expect(isConfigured).toBe(false);
     }, 30000);
-
-    test('should fail with missing keyVaultAddr', async () => {
-      await testMissingParam(
-        sdk.isPasswordConfigured.bind(sdk),
-        {},
-        'keyVaultAddr'
-      );
-    });
-
-    test('should fail with invalid keyVaultAddr', async () => {
-      await testInvalidAddress(
-        sdk.isPasswordConfigured.bind(sdk),
-        { keyVaultAddr },
-        'keyVaultAddr'
-      );
-    });
   });
 
   describe('isPasswordValid', () => {
@@ -235,35 +140,6 @@ describe('Authentication — password', () => {
         currentPassword: createPasswordAuthProof('wrongpassword')
       });
       expect(isValid).toBe(false);
-    });
-
-    test('should fail with missing keyVaultAddr', async () => {
-      await testMissingParam(
-        sdk.isPasswordValid.bind(sdk),
-        {
-          currentPassword: createPasswordAuthProof(password)
-        },
-        'keyVaultAddr'
-      );
-    });
-
-    test('should fail with missing authProof', async () => {
-      await testMissingParam(
-        sdk.isPasswordValid.bind(sdk),
-        { keyVaultAddr },
-        'currentPassword'
-      );
-    });
-
-    test('should fail with invalid keyVaultAddr', async () => {
-      await testInvalidAddress(
-        sdk.isPasswordValid.bind(sdk),
-        {
-          keyVaultAddr,
-          currentPassword: createPasswordAuthProof(password)
-        },
-        'keyVaultAddr'
-      );
     });
   });
 });

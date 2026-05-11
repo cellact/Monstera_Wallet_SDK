@@ -1,4 +1,4 @@
-import { ValidationError, WriteRequiresSignerError } from '../../src/errors/index.js';
+import { WriteRequiresSignerError } from '../../src/errors/index.js';
 import { createTestSDK } from './setup.js';
 import { INVALID_ADDRESS } from './fixtures.js';
 import { closeSdkConnections } from './teardown.js';
@@ -8,12 +8,17 @@ import { closeSdkConnections } from './teardown.js';
  * @param {Function} method - Method to test
  * @param {Object} validParams - Valid parameters object
  * @param {string} missingParam - Name of parameter to omit
+ * @param {string} [errorParameter=missingParam] - Expected {@code context.parameter} on the error
+ *   (facade methods may rename options before validation, e.g. {@code passwordHash} → {@code authConfig})
  */
-export async function testMissingParam(method, validParams, missingParam) {
+export async function testMissingParam(method, validParams, missingParam, errorParameter = missingParam) {
   const paramsWithout = { ...validParams };
   delete paramsWithout[missingParam];
-  
-  await expect(method(paramsWithout)).rejects.toThrow(ValidationError);
+
+  await expect(method(paramsWithout)).rejects.toMatchObject({
+    name: 'ValidationError',
+    context: { parameter: errorParameter }
+  });
 }
 
 /**
@@ -27,8 +32,11 @@ export async function testInvalidAddress(method, validParams, addressParam) {
     ...validParams,
     [addressParam]: INVALID_ADDRESS
   };
-  
-  await expect(method(paramsWithInvalid)).rejects.toThrow(ValidationError);
+
+  await expect(method(paramsWithInvalid)).rejects.toMatchObject({
+    name: 'ValidationError',
+    context: { parameter: addressParam }
+  });
 }
 
 /**
