@@ -95,10 +95,11 @@ That's it! Contract addresses use network presets; override with `addresses` or 
 
 ## Documentation
 
-- **[Node.js Usage](docs/node.md)** - Installation, configuration, and examples for Node.js
+- **[Node.js Usage](docs/node.md)** - Installation, configuration, examples, and running tests
 - **[Browser Usage](docs/browser.md)** - ESM and IIFE builds for browsers
 - **[API Reference](docs/api.md)** - Complete API documentation
 - **[Architecture](docs/architecture.md)** - Project structure and development guide
+- **[Contributing](CONTRIBUTING.md)** - Branches, tests, and pull-request expectations
 
 ## Examples
 

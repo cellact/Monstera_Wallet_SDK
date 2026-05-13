@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-13
+
 ### Added
 
 - **`requireNonEmptyBytes`** (`src/internal/assert.js`) and stricter empty-bytes checks across **`KeyVaultClient`**, **`WalletLogicClient`**, and built-in **authenticator** clients for fields such as **`authProof`** and **`implCall`**.

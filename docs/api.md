@@ -24,12 +24,14 @@ Create an SDK instance. **Read-only** if you omit `signer`; **write-capable** if
 
 ## Wallet Creation Methods
 
+Factory entry points require a **non-empty** `authConfig`: either a non-zero-length hex string (already-encoded bytes) or a plain object for a built-in authenticator (which the SDK encodes before calling the contract). Empty `0x` / empty bytes are rejected at validation.
+
 ### `sdk.createWallet(options)`
 
 Create a new wallet with auto-generated mnemonic.
 
 **Parameters:**
-- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes). Must be non-empty (see note above).
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
 **Returns:**
@@ -54,7 +56,7 @@ The mnemonic is returned **intentionally** so you can back it up. It stays in me
 Create a new wallet from a provided mnemonic.
 
 **Parameters:**
-- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes). Must be non-empty.
 - `mnemonic` (required): BIP39 mnemonic phrase
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
@@ -65,7 +67,7 @@ Create a new wallet from a provided mnemonic.
 Create a wallet with a post-creation hook.
 
 **Parameters:**
-- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes). Must be non-empty.
 - `hookAddr` (required): Hook contract address
 - `hookData` (required): Data for the hook
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
@@ -77,7 +79,7 @@ Create a wallet with a post-creation hook.
 Create a wallet core (KeyVault + Storage only, no WalletLogic proxy).
 
 **Parameters:**
-- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes). Must be non-empty.
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
 
 **Returns:** Same `WalletCreationResult` shape as `createWallet()`. For this method, `wallet` and `keyVault` are intentionally the same address (the KeyVault contract is the wallet for this deployment); that is not an SDK parsing bug.
@@ -87,7 +89,7 @@ Create a wallet core (KeyVault + Storage only, no WalletLogic proxy).
 Create a wallet with a custom logic implementation.
 
 **Parameters:**
-- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes)
+- `authConfig` (required): Hex-encoded authenticator config bytes, or a plain object when using a built-in `authenticatorAddr` from `sdk.addresses` (SDK encodes to bytes). Must be non-empty.
 - `customLogicImplAddr` (required): Custom logic implementation contract address
 - `logicData` (required): Initialization data for custom logic
 - `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
@@ -217,6 +219,8 @@ const requiredAddresses = Monstera.requiredAddresses;
 
 **Note:** Error classes are automatically exported from `src/errors/index.js`. Adding a new error class to that file will automatically make it available in the SDK exports.
 
+For advanced error handling / diagnostics, the package also re-exports **`decodeCustomError`**, **`extractRpcRevertBytes`**, **`applySdkContext`**, **`rethrowExecuteError`**, **`toWalletError`**, **`sdkErrorPipeline`**, and **`ErrorPipeline`** from `src/errors/index.js` (same import path as above).
+
 ## Error Handling
 
 The SDK uses consistent error types with stable error codes:
@@ -232,8 +236,11 @@ The SDK uses consistent error types with stable error codes:
 - `WriteRequiresSignerError` - Write operation requires signer (code: `WRITE_REQUIRES_SIGNER`)
 
 ```javascript
+import { ValidationError, ContractRevertError } from '@monstera_protocol/sdk';
+
+// `passwordHash` is a 32-byte 0x-prefixed string (e.g. from keccak256(utf8(password)))
 try {
-  await sdk.createWallet({ authConfig: passwordHash });
+  await sdk.createWallet({ authConfig: { passwordHash } });
 } catch (error) {
   if (error instanceof ValidationError) {
     console.error('Validation error:', error.message);

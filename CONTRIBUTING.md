@@ -35,10 +35,15 @@ Thank you for your interest in contributing! This document provides guidelines a
 
 ### Testing
 
-- Write tests for all new features
-- Ensure existing tests pass: `npm test`
-- Aim for high code coverage
-- Test error cases as well as success cases
+- Write tests for all new features; cover error cases as well as success paths.
+- **Unit tests** (default `npm test`): fast, offline-first; Jest runs with `--experimental-vm-modules`.
+- **Integration tests** live under `tests/integration/` and expect RPC access (and typically `SIGNER_PRIVATE_KEY`, `PASSWORD`, etc. via `.env`). Run the full suite with network available when validating end-to-end behavior.
+
+```bash
+npm test
+# Run a single file, e.g.:
+npm test -- tests/unit/base/contractRegistry.test.js
+```
 
 ### Documentation
 

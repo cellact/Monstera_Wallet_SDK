@@ -208,3 +208,10 @@ node examples/nodejs/1_createHDWallet.js
 
 **Note:** Examples use ES Modules. Ensure you're using Node.js 14+ with ESM support, or use a bundler.
 
+## Running tests
+
+```bash
+npm test
+```
+
+Unit tests under `tests/unit/` are intended to run without a live RPC. Integration tests under `tests/integration/` need network access and environment variables (see `examples/nodejs/` and your `.env`). See [CONTRIBUTING.md](../CONTRIBUTING.md) for more detail.
