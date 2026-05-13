@@ -13,7 +13,7 @@ import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
 import { registerSdkTeardown } from '../utils/teardown.js';
 import { Transaction, parseEther, parseUnits, Wallet } from '../../src/adapters/ethers/index.js';
 import { getAddress } from '../../src/adapters/ethers/addresses.js';
-import { getBytes, hexlify, keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { getBytes, hexlify, keccak256, randomBytes, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 import { recoverAddress, verifyMessage } from '../../src/adapters/ethers/signing.js';
 import { 
   createTestSDK, 
@@ -34,6 +34,8 @@ import {
 const CURVE_SECP256K1 = 0;
 /** @see WalletStorageV2.ChainType — Ethereum address derived from key */
 const CHAIN_ETHEREUM = 0;
+/** @see WalletStorageV2.ChainType — Solana (ed25519) HD base keys */
+const CHAIN_SOLANA = 1;
 
 describe('Signing Integration Tests', () => {
   let sdk;
@@ -356,37 +358,6 @@ describe('Signing Integration Tests', () => {
   });
 
   describe('signSolana', () => {
-    test('should return a 64-byte ed25519 signature for the message', async () => {
-      const messageBytes = toUtf8Bytes('Hello, Monstera!');
-
-      const signature = await sdk.signSolana({
-        keyVaultAddr,
-        authProof,
-        index: accountIndex,
-        message: messageBytes
-      });
-
-      expectValidHex(signature);
-      expect(getBytes(signature).length).toBe(64);
-    }, 30000);
-
-    test('should produce different signatures for different messages', async () => {
-      const sigA = await sdk.signSolana({
-        keyVaultAddr,
-        authProof,
-        index: accountIndex,
-        message: toUtf8Bytes('msg-a')
-      });
-      const sigB = await sdk.signSolana({
-        keyVaultAddr,
-        authProof,
-        index: accountIndex,
-        message: toUtf8Bytes('msg-b')
-      });
-
-      expect(sigA).not.toBe(sigB);
-    }, 30000);
-
     test('should fail with wrong password', async () => {
       const wrongAuthProof = { password: createPasswordAuthProof('wrongpassword') };
 
@@ -398,6 +369,119 @@ describe('Signing Integration Tests', () => {
           message: toUtf8Bytes('x')
         })
       ).rejects.toThrow();
+    });
+
+    describe('fresh wallet without Solana chain base keys', () => {
+      let freshSdk;
+      let freshKeyVault;
+      let freshAuthProof;
+
+      beforeAll(async () => {
+        const cfg = getTestConfig();
+        const passwordHash = keccak256(toUtf8Bytes(cfg.password));
+        freshSdk = createTestSDK();
+        const created = await freshSdk.createWallet({
+          authenticatorAddr: freshSdk.addresses.passwordAuth,
+          authConfig: { passwordHash }
+        });
+        expectTransactionResult(created);
+        freshKeyVault = created.keyVault;
+        freshAuthProof = { password: createPasswordAuthProof(cfg.password) };
+      }, 180000);
+
+      registerSdkTeardown(afterAll, () => freshSdk);
+
+      test('should revert signSolana with ChainNotConfigured', async () => {
+        await expect(
+          freshSdk.signSolana({
+            keyVaultAddr: freshKeyVault,
+            authProof: freshAuthProof,
+            index: 0,
+            message: toUtf8Bytes('Hello, Monstera!')
+          })
+        ).rejects.toMatchObject({
+          code: 'TX_REVERTED',
+          context: expect.objectContaining({ revertReason: 'ChainNotConfigured' })
+        });
+      }, 30000);
+
+      test('should revert getSolanaAddr with ChainNotConfigured', async () => {
+        await expect(
+          freshSdk.getSolanaAddr({ keyVaultAddr: freshKeyVault, index: 0 })
+        ).rejects.toMatchObject({
+          code: 'TX_REVERTED',
+          context: expect.objectContaining({ revertReason: 'ChainNotConfigured' })
+        });
+      }, 30000);
+    });
+
+    describe('fresh wallet with Solana configured via setChainBaseKeys', () => {
+      let solSdk;
+      let solKeyVault;
+      let solAuthProof;
+
+      beforeAll(async () => {
+        const cfg = getTestConfig();
+        const passwordHash = keccak256(toUtf8Bytes(cfg.password));
+        solSdk = createTestSDK();
+        const created = await solSdk.createWallet({
+          authenticatorAddr: solSdk.addresses.passwordAuth,
+          authConfig: { passwordHash }
+        });
+        expectTransactionResult(created);
+        solKeyVault = created.keyVault;
+        solAuthProof = { password: createPasswordAuthProof(cfg.password) };
+
+        const basePrivateKey = hexlify(randomBytes(32));
+        const baseChainCode = hexlify(randomBytes(32));
+        const setKeys = await solSdk.setChainBaseKeys({
+          keyVaultAddr: solKeyVault,
+          authProof: solAuthProof,
+          chain: CHAIN_SOLANA,
+          basePrivateKey,
+          baseChainCode
+        });
+        expectTransactionResult(setKeys);
+      }, 180000);
+
+      registerSdkTeardown(afterAll, () => solSdk);
+
+      test('should expose a Solana pubkey via getSolanaAddr', async () => {
+        const pk = await solSdk.getSolanaAddr({ keyVaultAddr: solKeyVault, index: 0 });
+        expectValidHex(pk);
+        expect(getBytes(pk).length).toBe(32);
+      }, 30000);
+
+      test('should return a 64-byte ed25519 signature for the message', async () => {
+        const messageBytes = toUtf8Bytes('Hello, Monstera!');
+
+        const signature = await solSdk.signSolana({
+          keyVaultAddr: solKeyVault,
+          authProof: solAuthProof,
+          index: 0,
+          message: messageBytes
+        });
+
+        expectValidHex(signature);
+        expect(getBytes(signature).length).toBe(64);
+      }, 30000);
+
+      test('should produce different signatures for different messages', async () => {
+        const sigA = await solSdk.signSolana({
+          keyVaultAddr: solKeyVault,
+          authProof: solAuthProof,
+          index: 0,
+          message: toUtf8Bytes('msg-a')
+        });
+        const sigB = await solSdk.signSolana({
+          keyVaultAddr: solKeyVault,
+          authProof: solAuthProof,
+          index: 0,
+          message: toUtf8Bytes('msg-b')
+        });
+
+        expect(sigA).not.toBe(sigB);
+      }, 30000);
     });
   });
 
