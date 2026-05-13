@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`requireNonEmptyBytes`** (`src/internal/assert.js`) and stricter empty-bytes checks across **`KeyVaultClient`**, **`WalletLogicClient`**, and built-in **authenticator** clients for fields such as **`authProof`** and **`implCall`**.
+- **`Sanitizer.forErrorContext`**: Recursive pass over nested **`extraData`** so sensitive keys inside nested objects are redacted (`src/internal/sanitization/Sanitizer.js`).
+- **Tests**: Unit coverage for **`ContractRegistry`**, **`AuthConfigBuilder.encode`**, **`createRegistryByChecksumAddress`**, **`Sanitizer.forEncoderValue`**, **`fallbackTranslator`**, extended **`AuthProofBuilder.encode`** (wallet-signature / dual-factor paths and **`getAuthenticatorAddr`** failures), **`ExecutionPipeline`**, **`sensitiveParams`**, and **`signAuthorization`** resolution / **`executeSignAuthorization`** orchestration (`tests/unit/**`). New offline **`Monstera`** validation suite (`tests/unit/monstera/offlineValidation.test.js`).
+- **`src/internal/crypto/signAuthorization.js`**: Exports **`resolveSignAuthorizationInputs`** alongside **`executeSignAuthorization`** (primarily for unit tests; same module surface as before for app code).
+
+### Changed
+
+- **`WalletFactoryClient`**: Create-wallet paths require a **non-empty** **`authConfig`**; documentation and types clarify **mnemonic** handling and factory behavior (`docs/api.md`, **`Monstera`**, **`src/types/index.js`**).
+- **Password updates**: **`PasswordAuthenticatorClient`**, **`PasswordMinuteSignatureAuthenticatorClient`**, and **`DualFactorAuthenticatorClient`** no longer remap **`walletAddr`** in update-password options (`examples/nodejs/updatePassword.js` aligned).
+- **`KeyVaultClient` / `WalletLogicClient`**: Shared address-validation helpers applied consistently on relevant entry points; **`decodeReceipt`** and **`src/internal/utils/time.js`** updated alongside stricter time/deadline handling.
+- **Documentation (JSDoc)**: Expanded module and API documentation across **`src/adapters/ethers/`**, **`src/base/`**, **`src/clients/`** (auth, factory, keyVault, logic), **`src/config/`**, and related barrels.
+- **`docs/api.md`**, **`Monstera`**, **`BaseContractClient`**, **`ExecutionPipeline`**, **`KeyVaultClient`**, **`WalletLogicClient`**, types: Clarified **KeyVault**-first vs **WalletLogic**-shaped call sites and documented **`executeWrite`** **`requireEvents`** semantics.
+
 ## [1.0.0-alpha.9] - 2026-05-06
 
 ### Added
