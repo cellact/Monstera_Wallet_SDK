@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-06-16
+
+### Added
+
+- **Username/password credentials on connect**: Optional **`credentials`** (`{ username, password }`) on **`Monstera.connect()`** resolves and caches the registered wallet's KeyVault address via the factory (`hashUsername` → `walletOfUsername` → `getKeyVaultAddr`). Vault-scoped facade methods can omit **`keyVaultAddr`**; authenticated calls default **`authProof`** to the session password for **PasswordAuthenticator** wallets (`src/internal/auth/CredentialsSession.js`).
+- **`Monstera` session helpers**: **`hasCredentials()`**, **`getSessionWalletAddr()`**, **`getSessionKeyVaultAddr()`**, and **`getWalletAddress({ index })`** for credential-backed sessions.
+- **Types**: **`ConnectCredentials`** on **`ConnectOptions`**; **`keyVaultAddr`** and **`authProof`** optional on session-aware option types when credentials are set.
+- **Tests**: Unit coverage for **`CredentialsSession`** and **`parseConnectCredentials`** (`tests/unit/internal/credentialsSession.test.js`).
+
 ### Changed
 
 - **Examples layout**: Node.js examples reorganized into task-based folders (`getting-started/`, `wallet/`, `signing/`, `authentication/`, `reference/`, etc.) with kebab-case filenames. See **[examples/README.md](examples/README.md)** for the index. Old flat paths (e.g. `1_createHDWallet.js`) are removed.
