@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-16
+
+### Added
+
+- **Action-bound authentication**: Proofs are scoped to a specific vault operation via **`AuthContext`** / **`AuthActionInput`** (`selector`, `paramsHash`, optional `target`, `actionHash`). New helpers in **`src/internal/crypto/authContext.js`**, **`src/internal/crypto/actions/`** (KeyVault and authenticator action builders), **`getSelector`**, and **`authenticatorProbe`** compute canonical hashes aligned with **KeyVaultV3** and built-in authenticators.
+- **`AuthProofOrchestrator`** and **`AuthManagementOps`**: Central orchestration for encoding action-bound proofs and wiring password / guardian / whitelist management flows (`src/internal/auth/`).
+- **`createActionBoundProofEncoder`**: Shared encoder wrapper for built-in authenticator proof paths (`src/internal/auth/proof/createActionBoundProofEncoder.js`).
+- **`Monstera`**: **`computeActionHash`**, **`executeWithAuth`**, **`computeCustomImplementationAckHash`**, **`computeCustomAuthenticatorAckHash`**; high-level vault writes now resolve action context internally via the action builders.
+- **KeyVaultV3 client surface**: Synced ABI and client methods for imported keys (**`importKey`**, **`deactivateKey`**, **`activateKey`**, **`signWithImportedKey`**), multi-chain signing (**`signSolana`**, **`setChainBaseKeys`**), policy-registry reads (**`policyRegistry`**, **`isImplementationApproved`**, **`isAuthenticatorApproved`**), and explicit **`initializeExplicit`** with **`policyRegistry`** (`src/clients/keyVault/KeyVaultClient.js`, `src/contracts/abi/core/keyVault.js`).
+- **WalletFactory policy registry**: Factory allowlist reads/writes (**`allowedAuthenticators`**, **`allowedKeyVaultImplementations`**, **`setAuthenticatorAllowed`**, **`setKeyVaultImplementationAllowed`**, **`setWalletImplementationAllowed`**, **`setWalletAuthenticatorAllowed`**, **`isFactoryImplementationApproved`**, **`isFactoryAuthenticatorApproved`**, **`getKeyVaultTemplate`**) plus updated **`WalletFactory`** ABI/events (`src/clients/factory/WalletFactoryClient.js`).
+- **Username wallet registration**: **`createWalletForUsername`**, **`createWalletForUsernameFromMnemonic`**, **`createWalletForUsernameHash`**, **`createWalletForUsernameHashFromMnemonic`**, **`hashUsername`**, **`walletOfUsername`**, **`getWalletUsernameHash`**; **`normalizeUsername`** helper (`src/internal/utils/normalize.js`); **`UsernameRegistered`** event parsing; **`UsernameWalletCreationResult`** type.
+- **`IAuthenticator`** ABI fragment (`src/contracts/abi/interfaces/iAuthenticator.js`).
+- **Tests**: Unit coverage for **`authContext`**, **`authenticatorProbe`**, **`getSelector`**, and KeyVault action builders (`tests/unit/crypto/`); integration tests updated for action-bound auth flows.
+
+### Changed
+
+- **BREAKING — structured `authProof`**: Built-in **`createAuthProof*`** inputs and vault write paths expect structured proof objects with an **`action`** (`selector` + `paramsHash`) or a precomputed **`actionHash`**. Pre-encoded proof hex strings alone are no longer sufficient for action-gated KeyVaultV3 calls—update callers to pass action context (see updated **`examples/nodejs/`** scripts).
+- **BREAKING — network presets**: Default **`factory`**, authenticator, and related contract addresses in **`config/networks.js`** updated for current Sapphire **KeyVaultV3** / **WalletFactory** deployments (factory addresses updated again for username-registration contracts).
+- **Authenticator clients**: Password, wallet-signature, dual-factor, and password-minute clients aligned with action-bound verify/configure flows and updated ABIs.
+- **`signAuthorization`**: Uses action-bound proof encoding and **`executeWithAuth`** internally.
+- **Examples**: Node.js examples refreshed for structured auth proofs, env validation, **`signAuthorization`**, factory policy helpers, and slimmer **`keyVaultMethods.js`** demo surface.
+
 ## [1.0.0] - 2026-05-13
 
 ### Added
