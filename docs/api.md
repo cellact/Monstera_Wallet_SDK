@@ -96,6 +96,89 @@ Create a wallet with a custom logic implementation.
 
 **Returns:** Same as `createWallet()`
 
+### `sdk.createWalletForUsername(options)`
+
+Create a new wallet and register it to a normalized username (trim + lowercase before hashing). The factory stores only `keccak256(bytes(username))`, not the plaintext.
+
+**Parameters:**
+- `authConfig` (required): Same as `createWallet()`
+- `username` (required): Username string (normalized by the SDK before sending on-chain)
+- `authenticatorAddr` (optional): Authenticator contract address (defaults to PasswordAuthenticator)
+
+**Returns:** Same as `createWallet()`, plus `usernameHash` from the `UsernameRegistered` event.
+
+### `sdk.createWalletForUsernameFromMnemonic(options)`
+
+Same as `createWalletForUsername()`, but uses a caller-supplied mnemonic instead of generating one.
+
+**Parameters:** `authConfig`, `username`, `mnemonic`, optional `authenticatorAddr`
+
+**Returns:** Same as `createWalletForUsername()`
+
+### `sdk.createWalletForUsernameHash(options)`
+
+Create a wallet registered to a precomputed username hash. Prefer this when avoiding plaintext usernames on-chain.
+
+**Parameters:**
+- `authConfig` (required)
+- `usernameHash` (required): `bytes32` hash (use `sdk.hashUsername({ username })` to compute)
+- `authenticatorAddr` (optional)
+
+**Returns:** Same as `createWalletForUsername()`
+
+### `sdk.createWalletForUsernameHashFromMnemonic(options)`
+
+Same as `createWalletForUsernameHash()`, but uses a caller-supplied mnemonic.
+
+**Parameters:** `authConfig`, `usernameHash`, `mnemonic`, optional `authenticatorAddr`
+
+**Returns:** Same as `createWalletForUsername()`
+
+## Action-bound authentication (2.0+)
+
+KeyVaultV3 binds every auth proof to the **specific operation** being authorized. Each proof covers a canonical action hash derived from:
+
+- `selector` — 4-byte function selector of the vault operation
+- `paramsHash` — `keccak256(abi.encode(...))` of call parameters (excluding `authProof`)
+- `target` (optional) — executing contract (defaults to `keyVaultAddr`)
+
+### High-level KeyVault calls (recommended)
+
+For `signMessage`, `sign`, `signTransaction`, `importKey`, upgrades, and similar **`Monstera`** methods, pass a **structured** `authProof` object. The SDK builds the action context automatically:
+
+```javascript
+import { toUtf8Bytes } from 'ethers';
+
+const authProof = { password: toUtf8Bytes('your-password') };
+
+await sdk.signMessage({
+  keyVaultAddr,
+  authProof,
+  index: 0,
+  message: toUtf8Bytes('Hello')
+});
+```
+
+Supported structured shapes depend on the vault’s authenticator (e.g. `{ password: Uint8Array }`, `{ passwordHash, signer, deadline?, action? }` for dual-factor). See `src/types/index.js` for full typedefs.
+
+### Low-level proof builders
+
+`createAuthProofWalletSignature`, `createAuthProofMinuteSignature`, and `createAuthProofDualFactor` require an **`action`** (`selector` + `paramsHash`) or a precomputed **`actionHash`**. Use `sdk.computeActionHash()` when you need the on-chain hash explicitly.
+
+```javascript
+const authProof = await sdk.createAuthProofWalletSignature({
+  signer: walletSigner,
+  keyVaultAddr,
+  deadline: Math.floor(Date.now() / 1000) + 3600,
+  action: {
+    selector: '0x...',   // 4-byte selector
+    paramsHash: '0x...'    // keccak256(abi.encode(...)) of params
+  }
+});
+```
+
+Pre-encoded proof hex strings without action context are **not** sufficient for KeyVaultV3 gated calls.
+
 ## SDK Instance Methods
 
 ```javascript
@@ -108,14 +191,22 @@ const signerAddress = await sdk.getSignerAddr(); // string | null
 // Set log level at runtime ('error' | 'warn' | 'info' | 'debug')
 sdk.setLogLevel('debug');
 
-// Create an auth proof for wallet signature authentication
+// Create an auth proof for wallet signature authentication (low-level; action required)
 const authProof = await sdk.createAuthProofWalletSignature({
-  signer: walletSigner,        // Wallet or HDNodeWallet instance
-  keyVaultAddr: keyVaultAddr,  // KeyVault address
-  authenticatorAddr: '0x...',  // Optional: authenticator address (defaults to config)
-  deadline: 1234567890,        // Optional: Unix timestamp (defaults to 1h from now)
-  chainId: 23295              // Optional: Chain ID (defaults to config chainId)
+  signer: walletSigner,
+  keyVaultAddr,
+  deadline: Math.floor(Date.now() / 1000) + 3600,
+  action: {
+    selector: '0x...',
+    paramsHash: '0x...'
+  }
 });
+
+// Hash a normalized username (trim + lowercase)
+const usernameHash = await sdk.hashUsername({ username: 'alice' });
+
+// Resolve username hash → wallet proxy address
+const walletAddr = await sdk.walletOfUsername({ usernameHash });
 ```
 
 ## SDK Clients
@@ -129,6 +220,13 @@ await sdk.createWalletFromMnemonic({ authConfig, mnemonic });
 await sdk.createWalletWithHook({ authConfig, hookAddr, hookData });
 await sdk.createWalletCore({ authConfig });
 await sdk.createWalletWithCustomLogic({ authConfig, customLogicImplAddr, logicData });
+await sdk.createWalletForUsername({ authConfig, username });
+await sdk.createWalletForUsernameFromMnemonic({ authConfig, username, mnemonic });
+await sdk.createWalletForUsernameHash({ authConfig, usernameHash });
+await sdk.createWalletForUsernameHashFromMnemonic({ authConfig, usernameHash, mnemonic });
+await sdk.hashUsername({ username });
+await sdk.walletOfUsername({ usernameHash });
+await sdk.getWalletUsernameHash({ walletAddr });
 await sdk.isWallet({ walletAddr });
 await sdk.getAdmin();
 await sdk.getWalletLogicImplAddr();
@@ -136,20 +234,33 @@ await sdk.getKeyVaultAddr({ walletAddr });
 await sdk.getStorageAddr({ walletAddr });
 await sdk.getBeaconAddr();
 await sdk.getSecretVaultAddr({ walletAddr });
+await sdk.getKeyVaultTemplate();
+await sdk.allowedAuthenticators({ authenticatorAddr });
+await sdk.allowedKeyVaultImplementations({ implementationAddr });
+await sdk.isFactoryImplementationApproved({ keyVaultAddr, implementationAddr });
+await sdk.isFactoryAuthenticatorApproved({ keyVaultAddr, authenticatorAddr });
 await sdk.updateWalletLogicImplAddr({ newLogicAddr });
 await sdk.transferAdmin({ newAdminAddr });
+await sdk.setAuthenticatorAllowed({ authenticatorAddr, allowed });
+await sdk.setKeyVaultImplementationAllowed({ implementationAddr, allowed });
+await sdk.setWalletImplementationAllowed({ walletOrKeyVaultAddr, implementationAddr, allowed });
+await sdk.setWalletAuthenticatorAllowed({ walletOrKeyVaultAddr, authenticatorAddr, allowed });
 
 // Logic client (`sdk.logic`) — WalletLogic proxy contract. Monstera wraps `initializeWalletLogic` here only;
 // prefer KeyVault methods on `sdk` below for signing and accounts (WalletLogic delegates to KeyVault anyway).
 await sdk.initializeWalletLogic({ walletAddr, keyVaultAddr });
 
 // KeyVault-shaped API on `sdk` — signing, accounts, upgrades (`keyVaultAddr`)
-// authProof may be hex bytes, Uint8Array, or a plain object when the vault uses a built-in authenticator
-// (shape matches that authenticator, e.g. { password: Uint8Array } for password auth — see types in src/types/index.js)
+// authProof: structured object for the vault's authenticator (SDK binds action automatically)
+// e.g. { password: Uint8Array } for password auth — see types in src/types/index.js
 await sdk.getKeyVaultStorageAddr({ keyVaultAddr });
 await sdk.getAuthenticatorAddr({ keyVaultAddr });
 await sdk.getKeyVaultImplAddr({ keyVaultAddr });
+await sdk.getPolicyRegistry({ keyVaultAddr });
 await sdk.isInitialized({ keyVaultAddr });
+await sdk.computeActionHash({ keyVaultAddr, selector, paramsHash });
+await sdk.isImplementationApproved({ keyVaultAddr, implementationAddr });
+await sdk.isAuthenticatorApproved({ keyVaultAddr, authenticatorAddr });
 await sdk.getAccountAddr({ keyVaultAddr, index });
 await sdk.getAccountAddresses({ keyVaultAddr, fromIndex, count });
 await sdk.signTransaction({ keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId });
@@ -159,12 +270,22 @@ await sdk.signAuthorization({ keyVaultAddr, authProof, delegateAddr, index, chai
 await sdk.signSolana({ keyVaultAddr, authProof, index, message });
 await sdk.getSolanaAddr({ keyVaultAddr, index });
 await sdk.importKey({ keyVaultAddr, authProof, keyId, privateKey, curve, chain, label });
+await sdk.deactivateKey({ keyVaultAddr, authProof, keyId });
+await sdk.activateKey({ keyVaultAddr, authProof, keyId });
 await sdk.signWithImportedKey({ keyVaultAddr, authProof, keyId, digest });
 await sdk.getImportedKeyAddr({ keyVaultAddr, keyId });
+await sdk.getImportedKeyIds({ keyVaultAddr });
+await sdk.getKeyMetadata({ keyVaultAddr, keyId });
+await sdk.setChainBaseKeys({ keyVaultAddr, authProof, chain, basePrivateKey, baseChainCode });
 await sdk.executeWithAuth({ keyVaultAddr, authProof, implCall });
-await sdk.initialize({ keyVaultAddr, storageAddr, authenticatorAddr, accessToken });
+await sdk.initialize({ keyVaultAddr, storageAddr, authenticatorAddr, accessToken, authConfig });
+await sdk.initializeExplicit({ keyVaultAddr, storageAddr, authenticatorAddr, accessToken, authConfig, policyRegistry });
 await sdk.updateKeyVaultImplAddr({ keyVaultAddr, authProof, newImplAddr });
+await sdk.updateKeyVaultImplAddrCustom({ keyVaultAddr, authProof, newImplAddr, customAckHash });
 await sdk.updateAuthenticatorAddr({ keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig });
+await sdk.updateAuthenticatorAddrCustom({ keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig, customAckHash });
+await sdk.computeCustomImplementationAckHash({ keyVaultAddr, newImplAddr });
+await sdk.computeCustomAuthenticatorAckHash({ keyVaultAddr, newAuthenticatorAddr, newAuthConfig });
 
 // Auth client - authenticator management
 const passwordAuth = sdk.getAuthClient('password');
@@ -181,7 +302,7 @@ Sign an EIP-7702-style **authorization** for a delegate contract through the Key
 **Parameters:**
 
 - `keyVaultAddr` (required): KeyVault contract address
-- `authProof` (required): Same rules as other KeyVault calls — hex bytes, `Uint8Array`, or a plain object for the vault’s built-in authenticator (e.g. `{ password: Uint8Array }`)
+- `authProof` (required): Structured object for the vault’s authenticator (e.g. `{ password: Uint8Array }`). The SDK binds the proof to the `signAuthorization` action automatically.
 - `delegateAddr` (required): Delegate (implementation) contract address for the authorization
 - `index` (optional): HD account index (default `0`)
 - `chainId` (optional): Chain ID; if omitted, fetched from `provider` / SDK read provider / signer provider

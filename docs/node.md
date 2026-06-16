@@ -30,6 +30,31 @@ const sdk = Monstera.connect({
 });
 ```
 
+### Action-bound auth proofs (2.0+)
+
+KeyVaultV3 requires proofs bound to the operation being performed. For high-level calls (`signMessage`, `sign`, `importKey`, etc.), pass a **structured** `authProof` and the SDK resolves the action context for you:
+
+```javascript
+import { toUtf8Bytes } from 'ethers';
+
+const authProof = { password: toUtf8Bytes(process.env.PASSWORD) };
+
+await sdk.signMessage({
+  keyVaultAddr,
+  authProof,
+  index: 0,
+  message: toUtf8Bytes('Hello from Monstera')
+});
+```
+
+Low-level `createAuthProof*` helpers require an explicit `action` or `actionHash`. See [API Reference — Action-bound authentication](api.md#action-bound-authentication-20) and the [2.0.0 changelog](../CHANGELOG.md#200---2026-06-16).
+
+### Upgrading from 1.x
+
+- Update `authProof` usage to structured objects on KeyVault calls (see examples in `examples/nodejs/`).
+- Confirm network preset addresses match your deployments, or override via `addresses` in `Monstera.connect()`.
+- New wallets use **KeyVaultV3**; factory creation requires authenticators on the factory allowlist (`allowedAuthenticators`).
+
 ## Network Switching
 
 ```javascript

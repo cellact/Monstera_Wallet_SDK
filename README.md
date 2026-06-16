@@ -11,7 +11,7 @@ Monstera is an SDK for **API-driven wallets where private keys never leave a Sap
 It gives you one wallet with a single cryptographic root and **many isolated accounts**, each of which can be mapped to products, environments, or features.
 
 Your application sends **auth proofs** (password-based, wallet-signature-based, dual-factor, or custom).  
-Monstera verifies them on-chain, derives the correct account from the wallet’s HD root, and signs **inside the enclave**.  
+Monstera verifies them on-chain against the **specific operation** being performed (action-bound authentication), derives the correct account from the wallet’s HD root, and signs **inside the enclave**.  
 Your backend never sees private keys and never has to handle raw key material.
 
 ## How it works (high level)
@@ -22,8 +22,9 @@ Your backend never sees private keys and never has to handle raw key material.
 - The user authenticates once (password, wallet signature, dual-factor, etc.).  
   Authentication is attached to the wallet, **not** to individual accounts.
 - When you call `sign*` from the SDK (including `signAuthorization` for EIP-7702-style delegations):
-  - You send an `authProof` plus signing params.
-  - The wallet’s authenticator verifies the proof.
+  - You send a structured `authProof` (e.g. `{ password: Uint8Array }`) plus signing params.
+  - The SDK binds the proof to that operation (selector + params hash) before the vault verifies it.
+  - The wallet’s authenticator checks the proof for that action.
   - If valid, the KeyVault derives the requested account key and signs **inside the enclave**.
   - Only the signature leaves; the private key never does.
 
@@ -34,8 +35,10 @@ Responsibilities are split so that no single contract can compromise a wallet on
 
 - 🔐 **Encrypted Transactions** - Automatic Sapphire wrapper for confidential transactions
 - 🌐 **Network Support** - Built-in testnet and mainnet presets
-- 🔑 **Wallet Management** - Create and manage smart contract wallets
+- 🔑 **Wallet Management** - Create and manage smart contract wallets (including username registration)
 - 🔒 **Multiple Authenticators** - Password, wallet signature, dual-factor, and password-minute-signature authentication
+- 🛡️ **Action-bound auth** - Proofs scoped to the exact vault operation (KeyVaultV3)
+- 🔗 **Multi-chain & imported keys** - Solana signing, external key import, per-chain base keys
 - 📋 **Optional Logging** - Configurable log levels (`error`, `warn`, `info`, `debug`); logs never include secrets
 - ⚡ **Simple API** - Clean, intuitive interface with comprehensive error handling
 
@@ -90,6 +93,8 @@ console.log('Save this mnemonic securely:', wallet.mnemonic);
 ```
 
 That's it! Contract addresses use network presets; override with `addresses` or `rpcUrl` if needed. Use `monstera.setLogLevel('debug')` at runtime to change log verbosity.
+
+**Upgrading from 1.x?** See the [2.0.0 changelog](CHANGELOG.md#200---2026-06-16) for action-bound `authProof` and network preset changes.
 
 **Need more details?** See [Full wallet creation guide](docs/node.md#basic-usage).
 

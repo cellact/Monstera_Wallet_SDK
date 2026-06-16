@@ -95,6 +95,8 @@ The same options as Node.js apply in the browser:
 
 Logs never include secrets (mnemonics, passwords, auth proofs). See [Node.js configuration](node.md#configuration) and [API Reference](api.md) for full option details.
 
+**2.0+ note:** KeyVault calls use action-bound authentication. Pass structured `authProof` objects (e.g. `{ password: Uint8Array }`) on `signMessage` / `sign` / similar methods; see [Action-bound authentication](api.md#action-bound-authentication-20).
+
 ## Entry Points
 
 The SDK provides multiple entry points via `package.json` exports:
