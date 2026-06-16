@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monstera SDK - Global IIFE Example</title>
+</head>
+<body>
+  <h1>Monstera SDK - Global IIFE Example</h1>
+  <p>Open browser console to see output</p>
+
+  <!-- Load ethers first (required peer dependency) -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+
+  <!-- Queue stub for async loading (optional - for async script loading) -->
+  <script>
+    // This allows calling Monstera before the script loads
+    window.Monstera = window.Monstera || function() {
+      (window.Monstera.q = window.Monstera.q || []).push(arguments);
+    };
+    window.Monstera.q = window.Monstera.q || [];
+  </script>
+
+  <!-- Load Monstera SDK as IIFE global -->
+  <script src="../../../dist/monstera.global.js"></script>
+
+  <script>
+    console.log('Monstera SDK loaded:', window.Monstera);
+    console.log('SDK Version:', window.Monstera.version);
+    console.log('Networks:', window.Monstera.networks);
+
+    // Example: Create a read-only SDK instance
+    try {
+      const sdk = window.Monstera.connect({
+        mainnet: false
+      });
+      console.log('SDK instance created:', sdk);
+      console.log('Network:', sdk.network);
+      console.log('Chain ID:', sdk.chainId);
+    } catch (error) {
+      console.error('Error creating SDK:', error);
+    }
+
+    // Test error classes are exposed
+    console.log('Error classes available:', {
+      WalletError: window.Monstera.WalletError,
+      ValidationError: window.Monstera.ValidationError
+    });
+  </script>
+</body>
+</html>
+

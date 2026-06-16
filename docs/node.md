@@ -186,50 +186,30 @@ sdk.setLogLevel('error');  // quiet again
 
 ## Examples
 
-The SDK includes comprehensive Node.js examples in `examples/nodejs/`:
+Examples are organized by task under `examples/nodejs/`. See **[examples/README.md](../examples/README.md)** for the full index and **[examples/nodejs/README.md](../examples/nodejs/README.md)** for the Node.js catalog.
 
-**Wallet Creation:**
-- **`1_createHDWallet.js`** - Create a hierarchical deterministic wallet
-- **`1.2_createWalletWithHook.js`** - Create wallet with initialization hook
-- **`1.3_createWalletCore.js`** - Create wallet core functionality
-- **`1.4_createWalletCustom.js`** - Create wallet with custom logic
-- **`1.5_createWalletWithMnemonic.js`** - Create wallet from provided mnemonic
+**Start here (flows):**
+- `getting-started/01-create-wallet.js` — Create an HD wallet
+- `getting-started/02-use-wallet.js` — Get addresses and sign messages
 
-**Wallet Usage:**
-- **`2_useWallet.js`** - Basic wallet usage examples
-- **`3_useWalletSigAuth.js`** - Wallet signature authentication
-- **`4_getAddress.js`** - Get account addresses
-- **`6.1_signTransaction.js`** - Sign transactions
-- **`6.2_getAccounts.js`** - Get multiple account addresses
-- **`signAuthorization.js`** - EIP-7702-style authorization signing via `sdk.signAuthorization`
+**Common recipes:**
+- `signing/sign-transaction.js` — Sign and broadcast a transaction
+- `signing/sign-authorization.js` — EIP-7702-style authorization via `signAuthorization`
+- `authentication/password/update-password.js` — Update wallet password
+- `authentication/wallet-signature/whitelist-flow.js` — Wallet-signature auth flow
 
-**Authentication:**
-- **`authenticator.js`** - Authenticator operations
-- **`updatePassword.js`** - Update wallet password
-- **`updateAuthenticator.js`** - Update authenticator
-- **`passwordAuthMethods.js`** - Password authenticator methods
-- **`walletSigAuthMethods.js`** - Wallet signature authenticator methods
-- **`passwordMinuteSignatureAuth.js`** - Password minute-signature authenticator
-- **`removeWhitelistedWallet.js`** - Remove from whitelist
-
-**Administration:**
-- **`5_updateToNewLogic.js`** - Update wallet logic implementation
-- **`13.2_updateKeyVault.js`** - Update KeyVault implementation
-- **`transferAdmin.js`** - Transfer factory admin
-- **`factoryMethods.js`** - Factory contract methods
-- **`walletLogicMethods.js`** - Wallet logic contract methods
-- **`keyVaultMethods.js`** - Key vault operations
-- **`network-switching.js`** - Switch between testnet and mainnet
+**Reference tours** (many methods per client): `examples/nodejs/reference/`
 
 ### Running Examples
 
 ```bash
-# Set up environment variables
-export SIGNER_PRIVATE_KEY=0x...
+cp examples/nodejs/.env.example .env
+# Edit .env — at minimum SIGNER_PRIVATE_KEY and PASSWORD
 
-# Run a Node.js example
-node examples/nodejs/1_createHDWallet.js
+node examples/nodejs/getting-started/01-create-wallet.js
 ```
+
+Or use npm scripts: `npm run example:create-wallet`
 
 **Note:** Examples use ES Modules. Ensure you're using Node.js 14+ with ESM support, or use a bundler.
 

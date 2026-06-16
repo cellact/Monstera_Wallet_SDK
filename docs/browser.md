@@ -109,7 +109,9 @@ The SDK provides multiple entry points via `package.json` exports:
 
 The SDK includes browser examples in `examples/browser/`:
 
-- **`browser-esm.html`** - ESM usage with `<script type="module">`
-- **`browser-global.html`** - IIFE global bundle usage
-- **`browser-global-async.html`** - Async loading with queue stub
+- **`esm/basic-connect.html`** - ESM usage with `<script type="module">`
+- **`iife/global.html`** - IIFE global bundle usage
+- **`iife/global-async.html`** - Async loading with queue stub
+
+See [examples/browser/README.md](../examples/browser/README.md) for details.
 

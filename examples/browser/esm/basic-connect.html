@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monstera SDK - ESM Example</title>
+</head>
+<body>
+  <h1>Monstera SDK - ESM Example</h1>
+  <p>Open browser console to see output</p>
+
+  <!-- Load ethers first (required peer dependency) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "ethers": "https://cdn.jsdelivr.net/npm/ethers@6/+esm"
+      }
+    }
+  </script>
+
+  <!-- Load Monstera SDK as ESM -->
+  <script type="module">
+    import { Monstera } from '../../../dist/monstera.mjs';
+    import { ethers } from 'ethers';
+
+    console.log('Monstera SDK loaded:', Monstera);
+    console.log('SDK Version:', Monstera.version);
+    console.log('Networks:', Monstera.networks);
+
+    // Example: Create a read-only SDK instance
+    try {
+      const sdk = Monstera.connect({
+        mainnet: false
+      });
+      console.log('SDK instance created:', sdk);
+      console.log('Network:', sdk.network);
+      console.log('Chain ID:', sdk.chainId);
+    } catch (error) {
+      console.error('Error creating SDK:', error);
+    }
+  </script>
+</body>
+</html>
+

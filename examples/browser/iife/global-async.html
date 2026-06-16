@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monstera SDK - Async Loading Example</title>
+</head>
+<body>
+  <h1>Monstera SDK - Async Loading Example</h1>
+  <p>This demonstrates the queue stub for async script loading.</p>
+  <p>Open browser console to see output</p>
+
+  <!-- Load ethers first -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+
+  <!-- Queue stub - allows calling Monstera before script loads -->
+  <script>
+    (function() {
+      var Monstera = window.Monstera || function() {
+        (Monstera.q = Monstera.q || []).push(arguments);
+      };
+      Monstera.q = Monstera.q || [];
+      window.Monstera = Monstera;
+    })();
+
+    // Call Monstera BEFORE the script loads (queued)
+    console.log('Calling Monstera before script loads...');
+    Monstera('connect', { mainnet: false, signer: '0x...' });
+    console.log('Queue:', Monstera.q);
+  </script>
+
+  <!-- Load Monstera SDK asynchronously -->
+  <script>
+    (function() {
+      var script = document.createElement('script');
+      script.async = true;
+      script.src = '../../../dist/monstera.global.js';
+      script.onload = function() {
+        console.log('Monstera SDK loaded!');
+        console.log('Monstera:', window.Monstera);
+        console.log('Queue processed automatically');
+      };
+      var firstScript = document.getElementsByTagName('script')[0];
+      firstScript.parentNode.insertBefore(script, firstScript);
+    })();
+  </script>
+</body>
+</html>
+

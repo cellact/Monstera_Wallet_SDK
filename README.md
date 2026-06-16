@@ -108,10 +108,11 @@ That's it! Contract addresses use network presets; override with `addresses` or 
 
 ## Examples
 
-Check out the `examples/` directory for comprehensive examples:
+Check out the **[examples/](examples/)** directory — organized by task with flows, recipes, and reference tours:
 
-- **Node.js**: `examples/nodejs/` - Wallet creation, authentication, signing (transactions, messages, EIP-7702 authorizations via `signAuthorization`), and more
-- **Browser**: `examples/browser/` - ESM and IIFE usage examples
+- **[examples/README.md](examples/README.md)** — Start here: “I want to…” index
+- **Node.js**: [examples/nodejs/](examples/nodejs/) — `getting-started/`, `wallet/`, `signing/`, `authentication/`, and more
+- **Browser**: [examples/browser/](examples/browser/) — ESM and IIFE usage
 
 ## Security
 

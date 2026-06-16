@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Examples layout**: Node.js examples reorganized into task-based folders (`getting-started/`, `wallet/`, `signing/`, `authentication/`, `reference/`, etc.) with kebab-case filenames. See **[examples/README.md](examples/README.md)** for the index. Old flat paths (e.g. `1_createHDWallet.js`) are removed.
+
 ## [2.0.0] - 2026-06-16
 
 ### Added
@@ -41,7 +45,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **`WalletFactoryClient`**: Create-wallet paths require a **non-empty** **`authConfig`**; documentation and types clarify **mnemonic** handling and factory behavior (`docs/api.md`, **`Monstera`**, **`src/types/index.js`**).
-- **Password updates**: **`PasswordAuthenticatorClient`**, **`PasswordMinuteSignatureAuthenticatorClient`**, and **`DualFactorAuthenticatorClient`** no longer remap **`walletAddr`** in update-password options (`examples/nodejs/updatePassword.js` aligned).
+- **Password updates**: **`PasswordAuthenticatorClient`**, **`PasswordMinuteSignatureAuthenticatorClient`**, and **`DualFactorAuthenticatorClient`** no longer remap **`walletAddr`** in update-password options (`examples/nodejs/authentication/password/update-password.js` aligned).
 - **`KeyVaultClient` / `WalletLogicClient`**: Shared address-validation helpers applied consistently on relevant entry points; **`decodeReceipt`** and **`src/internal/utils/time.js`** updated alongside stricter time/deadline handling.
 - **Documentation (JSDoc)**: Expanded module and API documentation across **`src/adapters/ethers/`**, **`src/base/`**, **`src/clients/`** (auth, factory, keyVault, logic), **`src/config/`**, and related barrels.
 - **`docs/api.md`**, **`Monstera`**, **`BaseContractClient`**, **`ExecutionPipeline`**, **`KeyVaultClient`**, **`WalletLogicClient`**, types: Clarified **KeyVault**-first vs **WalletLogic**-shaped call sites and documented **`executeWrite`** **`requireEvents`** semantics.
@@ -90,7 +94,7 @@ authenticators/**` describe historical paths only.
 
 - **BREAKING — SDK initialization**: `Monstera.readonly()` is removed. Use **`Monstera.connect()`** for both flows: omit **`signer`** (and optionally pass **`provider`**) for read-only; pass **`signer`** for a write-capable instance. Replace `Monstera.readonly(options)` with `Monstera.connect(options)` and delete the `.readonly` call.
 - **BREAKING — `Monstera.connect()`**: **`signer` is optional.** Read-only connections no longer throw when `signer` is omitted (previously `connect()` required a signer). Omitting `signer` matches the former `readonly()` behavior.
-- **BREAKING — internal crypto imports**: Monolithic **`src/internal/crypto/wallet.js`** is removed. Import from **`src/internal/crypto/index.js`** or the specific module (`mnemonic.js`, `authorization.js`, etc.). **`hashPassword`** is no longer exported; hash passwords off-chain with **`ethers.keccak256(ethers.toUtf8Bytes(password))`** (same pattern as **[`examples/nodejs/passwordAuthMethods.js`](examples/nodejs/passwordAuthMethods.js)**).
+- **BREAKING — internal crypto imports**: Monolithic **`src/internal/crypto/wallet.js`** is removed. Import from **`src/internal/crypto/index.js`** or the specific module (`mnemonic.js`, `authorization.js`, etc.). **`hashPassword`** is no longer exported; hash passwords off-chain with **`ethers.keccak256(ethers.toUtf8Bytes(password))`** (same pattern as **[`examples/nodejs/reference/password-auth-client.js`](examples/nodejs/reference/password-auth-client.js)**).
 - **`errors/ethersErrorTranslator`**: Shared helper for **`CALL_EXCEPTION` / `UNPREDICTABLE_GAS_LIMIT`** revert resolution (decode paths unified); clearer **`ContractRevertError`** messages and merged **`sdkContext`** when mapping ethers/RPC failures.
 - **`SapphireWriteWrapper`**: After ethers v6 **`wait()`**, mined reverts that omit calldata/revert bytes are enriched by replaying the transaction with **`getTransaction`** + **`eth_call`** at the mined block when a read provider is available, then decoding with the contract ABI so **`ContractRevertError`** can include revert reason and args.
 - **`registryByChecksumAddress`**: Uses **`toChecksumAddress`** from the crypto barrel (`authorization.js`); invalid authenticator addresses throw **`ValidationError`** during lookup instead of silently missing the registry key.
@@ -106,7 +110,7 @@ authenticators/**` describe historical paths only.
 
 - **`Monstera.prototype.signAuthorization`**: EIP-7702-style authorization signing through the KeyVault (digest aligned with ethers `Authorization` / `hashAuthorization`). Omitting `chainId` or `nonce` resolves them via `options.provider`, else `readProvider` / the connected signer’s provider. Orchestration lives in `src/internal/crypto/signAuthorization.js`; encoding and hashing helpers in `src/internal/crypto/wallet.js`.
 - **Types (JSDoc)**: `SignAuthorizationOptions`, `SignedAuthorizationResult`, and `AuthorizationSplitSignature` in `src/types/index.js`.
-- **Example**: `examples/nodejs/signAuthorization.js` shows encoding an `authProof` and calling `signAuthorization`.
+- **Example**: `examples/nodejs/signing/sign-authorization.js` shows encoding an `authProof` and calling `signAuthorization`.
 
 ### Changed
 
