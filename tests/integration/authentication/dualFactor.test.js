@@ -9,6 +9,12 @@ import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js'
 import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
 import { expectTransactionResult, expectValidTxHash, expectValidHex } from '../../utils/assertions.js';
+import {
+  buildDualFactorChangePasswordAction,
+  buildChangeGuardianAction
+} from '../../../src/internal/crypto/actions/index.js';
+import { buildAuthContext } from '../../../src/internal/crypto/authContext.js';
+import { createTestVaultSignAction } from '../../utils/fixtures.js';
 
 describe('Authentication — dual factor', () => {
   let sdk;
@@ -94,7 +100,8 @@ describe('Authentication — dual factor', () => {
       const ok = await sdk.isPasswordDualFactorValid({
         keyVaultAddr: newWallet.keyVault,
         passwordHash,
-        signer: testWallet.connect(sdk.provider)
+        signer: testWallet.connect(sdk.provider),
+        action: createTestVaultSignAction()
       });
       expect(ok).toBe(true);
     }, 30000);
@@ -106,11 +113,11 @@ describe('Authentication — dual factor', () => {
       });
 
       const wrongSigner = Wallet.createRandom().connect(sdk.provider);
-
       const ok = await sdk.isPasswordDualFactorValid({
         keyVaultAddr: newWallet.keyVault,
         passwordHash,
-        signer: wrongSigner
+        signer: wrongSigner,
+        action: createTestVaultSignAction()
       });
       expect(ok).toBe(false);
     }, 30000);
@@ -138,14 +145,16 @@ describe('Authentication — dual factor', () => {
       const okNew = await sdk.isPasswordDualFactorValid({
         keyVaultAddr: newWallet.keyVault,
         passwordHash: nextHash,
-        signer: testWallet.connect(sdk.provider)
+        signer: testWallet.connect(sdk.provider),
+        action: buildDualFactorChangePasswordAction(sdk.addresses.dualFactorAuth, nextHash)
       });
       expect(okNew).toBe(true);
 
       const okOld = await sdk.isPasswordDualFactorValid({
         keyVaultAddr: newWallet.keyVault,
         passwordHash,
-        signer: testWallet.connect(sdk.provider)
+        signer: testWallet.connect(sdk.provider),
+        action: buildDualFactorChangePasswordAction(sdk.addresses.dualFactorAuth, nextHash)
       });
       expect(okOld).toBe(false);
 
@@ -183,7 +192,8 @@ describe('Authentication — dual factor', () => {
       const okNext = await sdk.isPasswordDualFactorValid({
         keyVaultAddr: newWallet.keyVault,
         passwordHash,
-        signer: nextGuardian.connect(sdk.provider)
+        signer: nextGuardian.connect(sdk.provider),
+        action: buildChangeGuardianAction(sdk.addresses.dualFactorAuth, nextGuardian.address)
       });
       expect(okNext).toBe(true);
 
@@ -203,17 +213,33 @@ describe('Authentication — dual factor', () => {
         authConfig: { passwordHash, guardianAddr: testWalletAddr }
       });
 
+      const action = createTestVaultSignAction();
+
       const authProof = await sdk.createAuthProofDualFactor({
         keyVaultAddr: newWallet.keyVault,
         passwordHash,
-        signer: testWallet.connect(sdk.provider)
+        signer: testWallet.connect(sdk.provider),
+        action
       });
 
       expectValidHex(authProof);
 
+      const actionHash = await sdk.keyVault.computeActionHash({
+        keyVaultAddr: newWallet.keyVault,
+        selector: action.selector,
+        paramsHash: action.paramsHash
+      });
+      const authContext = buildAuthContext({
+        target: newWallet.keyVault,
+        selector: action.selector,
+        paramsHash: action.paramsHash,
+        actionHash
+      });
+
       const ok = await sdk.auth.dualFactor.verify({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        authProof,
+        action: authContext
       });
       expect(ok).toBe(true);
     }, 30000);

@@ -31,6 +31,11 @@ async function main() {
   console.log("Wallet factory methods");
   console.log("=".repeat(60));
 
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY and WALLET_ADDRESS env vars");
+    process.exit(1);
+  }
+
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${sdk.network}`);
 

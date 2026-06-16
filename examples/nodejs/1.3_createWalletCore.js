@@ -29,6 +29,11 @@ async function main() {
   console.log("Step 1.3: Create HD wallet core");
   console.log("=".repeat(60));
 
+  if (!SIGNER_PRIVATE_KEY || !PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY and PASSWORD env vars");
+    process.exit(1);
+  }
+
   // ============ STEP 1: Prepare auth config ============
   console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Prepare auth config");
@@ -60,16 +65,13 @@ async function main() {
   console.log("\n" + "=".repeat(60));
   console.log("Architecture created:");
   console.log(`
-  Wallet (BeaconProxy) ──► WalletLogic (orchestration)
-  ${result.wallet}
+  KeyVault (core wallet — wallet === keyVault)
+  ${result.keyVault}
       │
-      └──► KeyVault (auth + signing, YOU control updates)
-          ${result.keyVault}
-              │
-              ├──► PasswordAuthenticator (verifies your password)
-              │
-              └──► WalletStorage (holds keys, locked to KeyVault)
-                  ${result.storage}
+      ├──► PasswordAuthenticator (verifies your password)
+      │
+      └──► WalletStorage (holds keys, locked to KeyVault)
+          ${result.storage}
   `);
   console.log("⚠️  IMPORTANT: Save the mnemonic phrase securely!");
   console.log("=".repeat(60));

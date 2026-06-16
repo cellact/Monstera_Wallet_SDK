@@ -16,6 +16,7 @@
  * @typedef {import('../../types/index.js').KeyVaultClientSignMessageOptions} KeyVaultClientSignMessageOptions
  * @typedef {import('../../types/index.js').KeyVaultClientSignHashOptions} KeyVaultClientSignHashOptions
  * @typedef {import('../../types/index.js').InitializeOptions} InitializeOptions
+ * @typedef {import('../../types/index.js').InitializeExplicitOptions} InitializeExplicitOptions
  * @typedef {import('../../types/index.js').KeyVaultClientUpdateAuthenticatorOptions} KeyVaultClientUpdateAuthenticatorOptions
  * @typedef {import('../../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../../types/index.js').UpdateAuthenticatorAddrResult} UpdateAuthenticatorAddrResult
@@ -34,6 +35,14 @@
  * @typedef {import('../../types/index.js').KeyVaultImportedKeyOptions} KeyVaultImportedKeyOptions
  * @typedef {import('../../types/index.js').KeyVaultClientExecuteWithAuthOptions} KeyVaultClientExecuteWithAuthOptions
  * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplOptions} KeyVaultClientUpdateKeyVaultImplOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplCustomOptions} KeyVaultClientUpdateKeyVaultImplCustomOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientUpdateAuthenticatorCustomOptions} KeyVaultClientUpdateAuthenticatorCustomOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientComputeCustomImplementationAckHashOptions} KeyVaultClientComputeCustomImplementationAckHashOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientComputeCustomAuthenticatorAckHashOptions} KeyVaultClientComputeCustomAuthenticatorAckHashOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientIsImplementationApprovedOptions} KeyVaultClientIsImplementationApprovedOptions
+ * @typedef {import('../../types/index.js').KeyVaultClientIsAuthenticatorApprovedOptions} KeyVaultClientIsAuthenticatorApprovedOptions
+ * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrCustomResult} UpdateKeyVaultImplAddrCustomResult
+ * @typedef {import('../../types/index.js').UpdateAuthenticatorAddrCustomResult} UpdateAuthenticatorAddrCustomResult
  * @typedef {import('../../types/index.js').KeyVaultClientDeactivateActivateKeyOptions} KeyVaultClientDeactivateActivateKeyOptions
  * @typedef {import('../../types/index.js').ImportKeyResult} ImportKeyResult
  * @typedef {import('../../types/index.js').DeactivateKeyResult} DeactivateKeyResult
@@ -51,7 +60,8 @@ import {
   requireNonEmptyBytes,
   requireBytes32,
   requireNonNegativeInteger,
-  requireString
+  requireString,
+  requireBytes4
 } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
@@ -125,13 +135,92 @@ class KeyVaultClient extends BaseContractClient {
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
-    return this.executeRead( 
+    return this.executeRead(
       {
         operation: () => keyVault.authenticator(),
         methodName: 'get authenticator',
         ...options
       }
     );
+  }
+
+  /**
+   * Compute the canonical {@code actionHash} for a vault-authenticated call.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions & { selector: string; paramsHash: Bytes32 }} options -
+   *   {@code keyVaultAddr}, 4-byte {@code selector}, and {@code paramsHash}
+   * @returns {Promise<Bytes32>} Action hash bound into auth proofs
+   * @throws {ValidationError} If {@code keyVaultAddr}, {@code selector}, or {@code paramsHash} are invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async computeActionHash(options = {}) {
+    const { keyVaultAddr, selector, paramsHash } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireBytes4(selector, 'selector');
+    requireBytes32(paramsHash, 'paramsHash');
+    log.info('KeyVault: computeActionHash');
+    log.debug('Computing action hash for keyVault', sanitizer.forLog(options));
+
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeRead({
+      operation: () => keyVault.computeActionHash(selector, paramsHash),
+      methodName: 'compute action hash',
+      ...options
+    });
+  }
+
+  /**
+   * Compute the custom implementation acknowledgement hash for {@code upgradeImplementationCustom}.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientComputeCustomImplementationAckHashOptions} options -
+   *   {@code keyVaultAddr} and {@code newImplementation}
+   * @returns {Promise<Bytes32>}
+   */
+  async computeCustomImplementationAckHash(options = {}) {
+    const { keyVaultAddr, newImplementation } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireAddress(newImplementation, 'newImplementation');
+    log.info('KeyVault: computeCustomImplementationAckHash');
+
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeRead({
+      operation: () => keyVault.computeCustomImplementationAckHash(newImplementation),
+      methodName: 'compute custom implementation acknowledgement hash',
+      ...options
+    });
+  }
+
+  /**
+   * Compute the custom authenticator acknowledgement hash for {@code changeAuthenticatorCustom}.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientComputeCustomAuthenticatorAckHashOptions} options -
+   *   {@code keyVaultAddr}, {@code newAuthenticator}, and {@code configHash}
+   * @returns {Promise<Bytes32>}
+   */
+  async computeCustomAuthenticatorAckHash(options = {}) {
+    const { keyVaultAddr, newAuthenticator, configHash } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireAddress(newAuthenticator, 'newAuthenticator');
+    requireBytes32(configHash, 'configHash');
+    log.info('KeyVault: computeCustomAuthenticatorAckHash');
+
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeRead({
+      operation: () => keyVault.computeCustomAuthenticatorAckHash(newAuthenticator, configHash),
+      methodName: 'compute custom authenticator acknowledgement hash',
+      ...options
+    });
   }
 
   /**
@@ -190,6 +279,76 @@ class KeyVaultClient extends BaseContractClient {
         ...options
       }
     );
+  }
+
+  /**
+   * Read the policy registry address configured for this KeyVault.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<Address>}
+   */
+  async getPolicyRegistry(options = {}) {
+    const { keyVaultAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    log.info('KeyVault: getPolicyRegistry');
+
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeRead({
+      operation: () => keyVault.policyRegistry(),
+      methodName: 'get policy registry',
+      ...options
+    });
+  }
+
+  /**
+   * Check whether an implementation is locally approved on this KeyVault.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientIsImplementationApprovedOptions} options -
+   *   {@code keyVaultAddr} and {@code implementation}
+   * @returns {Promise<boolean>}
+   */
+  async isImplementationApproved(options = {}) {
+    const { keyVaultAddr, implementation } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireAddress(implementation, 'implementation');
+    log.info('KeyVault: isImplementationApproved');
+
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeRead({
+      operation: () => keyVault.approvedImplementations(implementation),
+      methodName: 'check if implementation is approved',
+      ...options
+    });
+  }
+
+  /**
+   * Check whether an authenticator is locally approved on this KeyVault.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientIsAuthenticatorApprovedOptions} options -
+   *   {@code keyVaultAddr} and {@code authenticator}
+   * @returns {Promise<boolean>}
+   */
+  async isAuthenticatorApproved(options = {}) {
+    const { keyVaultAddr, authenticator } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireAddress(authenticator, 'authenticator');
+    log.info('KeyVault: isAuthenticatorApproved');
+
+    const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeRead({
+      operation: () => keyVault.approvedAuthenticators(authenticator),
+      methodName: 'check if authenticator is approved',
+      ...options
+    });
   }
 
   /**
@@ -607,32 +766,72 @@ class KeyVaultClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Initialize a freshly deployed KeyVault by wiring its storage, authenticator, and access token.
+   * Initialize a freshly deployed KeyVault (policy registry defaults to {@code msg.sender} on-chain).
    *
    * @public
    * @async
-   * @param {InitializeOptions} options - {@code keyVaultAddr}, {@code storageAddr}, {@code authenticatorAddr}, {@code accessToken}
+   * @param {InitializeOptions} options - {@code keyVaultAddr}, {@code storageAddr}, {@code authenticatorAddr}, {@code accessToken}, {@code authConfig}
    * @returns {Promise<BaseTransactionResult>} Standard write result
-   * @throws {ValidationError} If any address is invalid or {@code accessToken} is not a 32-byte hex string
+   * @throws {ValidationError} If any address is invalid, {@code authConfig} is missing, or {@code accessToken} is not a 32-byte hex string
    * @throws {WriteRequiresSignerError} If no write signer is configured
    * @throws {NetworkError} If the RPC interaction fails
    * @throws {ContractRevertError} If the transaction reverts (e.g. already initialized)
    * @throws {WalletError} For other unrecognised failures
    */
   async initialize(options = {}) {
-    const { keyVaultAddr, storageAddr, authenticatorAddr, accessToken } = options;
+    const { keyVaultAddr, storageAddr, authenticatorAddr, accessToken, authConfig } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(storageAddr, 'storageAddr');
     requireAddress(authenticatorAddr, 'authenticatorAddr');
     requireBytes32(accessToken, 'accessToken');
+    requireNonEmptyBytes(authConfig, 'authConfig');
     log.info('KeyVault: initialize');
     log.debug('Initializing keyVault with storage and authenticator addresses', sanitizer.forLog(options));
 
     const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
 
     return this.executeWrite({
-      operation: () => keyVault.initialize(storageAddr, authenticatorAddr, accessToken),
+      operation: () => keyVault.initialize(storageAddr, authenticatorAddr, accessToken, authConfig),
       methodName: 'initialize key vault',
+      ...options
+    });
+  }
+
+  /**
+   * Initialize a KeyVault with an explicit policy registry address.
+   *
+   * @public
+   * @async
+   * @param {InitializeExplicitOptions} options - Same as {@link KeyVaultClient#initialize} plus required {@code policyRegistry}
+   * @returns {Promise<BaseTransactionResult>} Standard write result
+   * @throws {ValidationError} If any address is invalid, {@code authConfig} is missing, or {@code accessToken} is not a 32-byte hex string
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. already initialized)
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async initializeExplicit(options = {}) {
+    const { keyVaultAddr, storageAddr, authenticatorAddr, accessToken, authConfig, policyRegistry } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireAddress(storageAddr, 'storageAddr');
+    requireAddress(authenticatorAddr, 'authenticatorAddr');
+    requireBytes32(accessToken, 'accessToken');
+    requireNonEmptyBytes(authConfig, 'authConfig');
+    requireAddress(policyRegistry, 'policyRegistry');
+    log.info('KeyVault: initializeExplicit');
+    log.debug('Initializing keyVault with explicit policy registry', sanitizer.forLog(options));
+
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeWrite({
+      operation: () => keyVault.initialize(
+        storageAddr,
+        authenticatorAddr,
+        accessToken,
+        authConfig,
+        policyRegistry
+      ),
+      methodName: 'initialize key vault with explicit policy registry',
       ...options
     });
   }
@@ -676,6 +875,36 @@ class KeyVaultClient extends BaseContractClient {
   }
 
   /**
+   * Upgrade a KeyVault implementation via the custom acknowledgement path.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientUpdateKeyVaultImplCustomOptions} options -
+   *   {@code keyVaultAddr}, {@code authProof}, {@code newImplAddr}, {@code customAckHash}
+   * @returns {Promise<UpdateKeyVaultImplAddrCustomResult>}
+   */
+  async updateKeyVaultImplAddrCustom(options = {}) {
+    const { keyVaultAddr, authProof, newImplAddr, customAckHash } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireNonEmptyBytes(authProof, 'authProof');
+    requireAddress(newImplAddr, 'newImplAddr');
+    requireBytes32(customAckHash, 'customAckHash');
+    log.info('KeyVault: updateKeyVaultImplAddrCustom');
+
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeWrite({
+      operation: () => keyVault.upgradeImplementationCustom(authProof, newImplAddr, customAckHash),
+      methodName: 'upgrade key vault implementation (custom)',
+      parseEvents: [{
+        eventDef: KeyVaultEvents.CustomImplementationUpgraded,
+        contract: keyVault
+      }],
+      ...options
+    });
+  }
+
+  /**
    * Swap the authenticator contract bound to a KeyVault (authenticated write).
    *
    * @public
@@ -712,6 +941,42 @@ class KeyVaultClient extends BaseContractClient {
         ...options
       }
     );
+  }
+
+  /**
+   * Swap the authenticator via the custom acknowledgement path.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultClientUpdateAuthenticatorCustomOptions} options -
+   *   {@code keyVaultAddr}, {@code authProof}, {@code newAuthenticatorAddr}, {@code newAuthConfig}, {@code customAckHash}
+   * @returns {Promise<UpdateAuthenticatorAddrCustomResult>}
+   */
+  async updateAuthenticatorAddrCustom(options = {}) {
+    const { keyVaultAddr, authProof, newAuthenticatorAddr, newAuthConfig, customAckHash } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireNonEmptyBytes(authProof, 'authProof');
+    requireAddress(newAuthenticatorAddr, 'newAuthenticatorAddr');
+    requireNonEmptyBytes(newAuthConfig, 'newAuthConfig');
+    requireBytes32(customAckHash, 'customAckHash');
+    log.info('KeyVault: updateAuthenticatorAddrCustom');
+
+    const keyVault = this.getWriteContract(getKeyVaultContract, keyVaultAddr);
+
+    return this.executeWrite({
+      operation: () => keyVault.changeAuthenticatorCustom(
+        authProof,
+        newAuthenticatorAddr,
+        newAuthConfig,
+        customAckHash
+      ),
+      methodName: 'change authenticator (custom)',
+      parseEvents: [{
+        eventDef: KeyVaultEvents.CustomAuthenticatorChanged,
+        contract: keyVault
+      }],
+      ...options
+    });
   }
 
   /**

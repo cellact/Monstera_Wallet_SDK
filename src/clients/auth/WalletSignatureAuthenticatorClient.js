@@ -1,7 +1,7 @@
 /**
  * Low-level client for the {@code WalletSignatureAuthenticator} contract.
  *
- * Backs the wallet-signature flow: an EIP-712 {@code WalletAuth(wallet, deadline)} signature from
+ * Backs the wallet-signature flow: an EIP-712 {@code WalletAuth(wallet, actionHash, deadline)} signature from
  * a whitelisted address proves identity for KeyVault calls and whitelist administration.
  * {@link Monstera} talks to this client via {@code monstera.auth.walletSignature}.
  *
@@ -16,6 +16,7 @@
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
  * @typedef {import('../../types/index.js').WhitelistCheckOptions} WhitelistCheckOptions
+ * @typedef {import('../../types/index.js').AuthContext} AuthContext
  * @typedef {import('../../types/index.js').WalletSignatureClientVerifyOptions} WalletSignatureClientVerifyOptions
  * @typedef {import('../../types/index.js').WalletSignatureClientAddToWhitelistOptions} WalletSignatureClientAddToWhitelistOptions
  * @typedef {import('../../types/index.js').WalletSignatureClientConfigureOptions} WalletSignatureClientConfigureOptions
@@ -27,7 +28,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletSignatureAuthenticatorContract } from '../../contracts/authenticators/WalletSignatureAuthenticator.js';
 import { WalletSignatureAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireNonEmptyBytes } from '../../internal/assert.js';
+import { requireAddress, requireNonEmptyBytes, requireObject } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -165,21 +166,22 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify an ABI-encoded {@code (uint256 deadline, bytes signature)} proof against the wallet's whitelist.
+   * Verify an ABI-encoded {@code (uint256 deadline, bytes signature)} proof bound to an action.
    *
    * @public
    * @async
-   * @param {WalletSignatureClientVerifyOptions} options - {@code keyVaultAddr} and {@code authProof}
-   * @returns {Promise<boolean>} {@code true} if the proof is accepted (recovered signer is whitelisted and {@code deadline} not expired)
-   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authProof} is not non-empty bytes
+   * @param {WalletSignatureClientVerifyOptions} options - {@code keyVaultAddr}, {@code action}, and {@code authProof}
+   * @returns {Promise<boolean>} {@code true} if the proof is accepted (recovered signer is whitelisted, {@code actionHash} matches, and {@code deadline} not expired)
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid, {@code action} is missing, or {@code authProof} is not non-empty bytes
    * @throws {NetworkError} If the read call fails over RPC
    * @throws {ContractRevertError} If the underlying call reverts
    * @throws {WalletError} For other unrecognised failures
    */ 
   async verify(options = {}) {
-    const { keyVaultAddr, authProof } = options;
+    const { keyVaultAddr, authProof, action } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
+    requireObject(action, 'action');
     log.info('WalletSignatureAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
@@ -187,7 +189,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
 
     return this.executeRead(
       {
-        operation: () => walletSigAuth.verify(keyVaultAddr, authProof),
+        operation: () => walletSigAuth.verify(keyVaultAddr, action, authProof),
         methodName: 'verify signature',
         ...options
       }

@@ -1,16 +1,16 @@
 /**
  * Update the authenticator of a wallet
- * 
+ *
  * Run: node examples/nodejs/updateAuthenticator.js
- * 
+ *
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x... (your private key)
  *   WALLET_ADDRESS=0x... (your wallet address)
  *   PASSWORD=mysecretpassword123
- * 
+ *
  * Optional env vars:
- *   NEW_AUTHENTICATOR_ADDRESS=0x... (your new authenticator address; defaults to PasswordAuthenticator)
- * 
+ *   NEW_AUTHENTICATOR_ADDRESS=0x... (defaults to PasswordAuthenticator on the connected network)
+ *
  * Steps:
  * 1. Get current authenticator
  * 2. Update authenticator to new address
@@ -21,23 +21,25 @@ import { Monstera } from '../../src/index.js';
 import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 
 // ============ CONFIGURATION ============
-const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
+const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 const PASSWORD = process.env.PASSWORD;
-const NEW_AUTHENTICATOR_ADDRESS = process.env.NEW_AUTHENTICATOR_ADDRESS || "0xc54aDC2B8Dc7b2AF787c8a30945e32CdB1bB2ee7";
 
 const sdk = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY
 });
 
+const NEW_AUTHENTICATOR_ADDRESS =
+  process.env.NEW_AUTHENTICATOR_ADDRESS || sdk.addresses.passwordAuth;
+
 async function main() {
   console.log("=".repeat(60));
   console.log("Update authenticator");
   console.log("=".repeat(60));
 
-  if (!WALLET_ADDRESS) {
-    console.error("ERROR: Set WALLET_ADDRESS env var");
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS || !PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, WALLET_ADDRESS, and PASSWORD env vars");
     process.exit(1);
   }
 
@@ -45,21 +47,19 @@ async function main() {
   console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Get Current Authenticator");
   console.log("=".repeat(60));
-  
-  // Get KeyVault info
+
   const keyVault = await sdk.getKeyVaultAddr({
     walletAddr: WALLET_ADDRESS
   });
   const oldAuthenticator = await sdk.getAuthenticatorAddr({
     keyVaultAddr: keyVault
   });
-  
+
   console.log("\nWallet Stack:");
   console.log(`  Wallet (proxy): ${WALLET_ADDRESS}`);
   console.log(`  └── KeyVault:   ${keyVault}`);
   console.log(`      └── Auth:   ${oldAuthenticator}`);
 
-  // check if wallet is initilized 
   const isInitialized = await sdk.isInitialized({
     keyVaultAddr: keyVault
   });
@@ -69,10 +69,8 @@ async function main() {
     process.exit(1);
   }
 
-  // Prepare auth proof
   const authProof = toUtf8Bytes(PASSWORD);
 
-  // Prepare new auth config (password hash for PasswordAuthenticator)
   console.log("\n2. Preparing auth config...");
   const passwordHash = keccak256(toUtf8Bytes(PASSWORD));
   console.log("   Password hash:", passwordHash.slice(0, 20) + "...");
@@ -105,7 +103,6 @@ async function main() {
   });
   console.log("   Current Auth:", currentAuthenticator);
 
-  // Verify the new authenticator is used
   const isSame = currentAuthenticator.toLowerCase() === NEW_AUTHENTICATOR_ADDRESS.toLowerCase();
   console.log("   Is Same?:", isSame ? "✅ Yes" : "❌ No");
 

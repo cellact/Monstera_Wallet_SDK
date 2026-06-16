@@ -349,6 +349,33 @@ export const DUAL_FACTOR_AUTHENTICATOR_ABI = [
 				"type": "address"
 			},
 			{
+				"components": [
+					{
+						"internalType": "address",
+						"name": "target",
+						"type": "address"
+					},
+					{
+						"internalType": "bytes4",
+						"name": "selector",
+						"type": "bytes4"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "paramsHash",
+						"type": "bytes32"
+					},
+					{
+						"internalType": "bytes32",
+						"name": "actionHash",
+						"type": "bytes32"
+					}
+				],
+				"internalType": "struct IAuthenticator.AuthContext",
+				"name": "context",
+				"type": "tuple"
+			},
+			{
 				"internalType": "bytes",
 				"name": "authProof",
 				"type": "bytes"

@@ -22,6 +22,18 @@
  * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
  * @typedef {import('../../types/index.js').UpdateWalletLogicImplOptions} UpdateWalletLogicImplOptions
  * @typedef {import('../../types/index.js').TransferAdminOptions} TransferAdminOptions
+ * @typedef {import('../../types/index.js').FactoryAllowedAuthenticatorsOptions} FactoryAllowedAuthenticatorsOptions
+ * @typedef {import('../../types/index.js').FactoryAllowedKeyVaultImplementationsOptions} FactoryAllowedKeyVaultImplementationsOptions
+ * @typedef {import('../../types/index.js').FactoryIsImplementationApprovedOptions} FactoryIsImplementationApprovedOptions
+ * @typedef {import('../../types/index.js').FactoryIsAuthenticatorApprovedOptions} FactoryIsAuthenticatorApprovedOptions
+ * @typedef {import('../../types/index.js').SetAuthenticatorAllowedOptions} SetAuthenticatorAllowedOptions
+ * @typedef {import('../../types/index.js').SetKeyVaultImplementationAllowedOptions} SetKeyVaultImplementationAllowedOptions
+ * @typedef {import('../../types/index.js').SetWalletAuthenticatorAllowedOptions} SetWalletAuthenticatorAllowedOptions
+ * @typedef {import('../../types/index.js').SetWalletImplementationAllowedOptions} SetWalletImplementationAllowedOptions
+ * @typedef {import('../../types/index.js').SetAuthenticatorAllowedResult} SetAuthenticatorAllowedResult
+ * @typedef {import('../../types/index.js').SetKeyVaultImplementationAllowedResult} SetKeyVaultImplementationAllowedResult
+ * @typedef {import('../../types/index.js').SetWalletAuthenticatorAllowedResult} SetWalletAuthenticatorAllowedResult
+ * @typedef {import('../../types/index.js').SetWalletImplementationAllowedResult} SetWalletImplementationAllowedResult
  *
  * @module clients/factory/WalletFactoryClient
  */
@@ -30,7 +42,7 @@ import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletFactoryContract } from '../../contracts/core/walletFactory.js';
 import { WalletFactoryEvents } from '../../events/index.js';
 import { generateMnemonic, deriveSeed } from '../../internal/crypto/index.js';
-import { requireAddress, requireBytes, requireMnemonic, requireNonEmptyBytes } from '../../internal/assert.js';
+import { requireAddress, requireBoolean, requireBytes, requireMnemonic, requireNonEmptyBytes } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -262,6 +274,149 @@ class WalletFactoryClient extends BaseContractClient {
       {
         operation: () => factory.walletSecretVault(walletAddr),
         methodName: 'get secret vault address',
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Get the KeyVault implementation used as the minimal-proxy clone template.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
+   * @returns {Promise<Address>} KeyVault template implementation address
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async getKeyVaultTemplate(options = {}) {
+    log.info('WalletFactory: getKeyVaultTemplate');
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.keyVaultTemplate(),
+        methodName: 'get key vault template',
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Check whether an authenticator is approved for a wallet via the factory policy registry.
+   *
+   * @public
+   * @async
+   * @param {FactoryAllowedAuthenticatorsOptions} options - {@code authenticatorAddr}
+   * @returns {Promise<boolean>} {@code true} if the authenticator is on the factory allowlist
+   * @throws {ValidationError} If {@code authenticator} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async allowedAuthenticators(options = {}) {
+    const { authenticatorAddr } = options;
+    requireAddress(authenticatorAddr, 'authenticatorAddr');
+    log.info('WalletFactory: allowedAuthenticators');
+    log.debug('Checking factory authenticator allowlist', sanitizer.forLog(options));
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.allowedAuthenticators(authenticatorAddr),
+        methodName: 'check allowed authenticator',
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Check whether a KeyVault implementation is globally recommended for new wallets.
+   *
+   * @public
+   * @async
+   * @param {FactoryAllowedKeyVaultImplementationsOptions} options - {@code implementationAddr}
+   * @returns {Promise<boolean>} {@code true} if the implementation is on the factory allowlist
+   * @throws {ValidationError} If {@code implementationAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async allowedKeyVaultImplementations(options = {}) {
+    const { implementationAddr } = options;
+    requireAddress(implementationAddr, 'implementationAddr');
+    log.info('WalletFactory: allowedKeyVaultImplementations');
+    log.debug('Checking factory key vault implementation allowlist', sanitizer.forLog(options));
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.allowedKeyVaultImplementations(implementationAddr),
+        methodName: 'check allowed key vault implementation',
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Check whether a KeyVault implementation is approved for a wallet via the factory policy registry.
+   *
+   * @public
+   * @async
+   * @param {FactoryIsImplementationApprovedOptions} options - {@code keyVaultAddr}, {@code implementationAddr}
+   * @returns {Promise<boolean>} {@code true} if the factory policy registry approves the implementation for the KeyVault
+   * @throws {ValidationError} If {@code keyVaultAddr} or {@code implementationAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isImplementationApproved(options = {}) {
+    const { keyVaultAddr, implementationAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireAddress(implementationAddr, 'implementationAddr');
+    log.info('WalletFactory: isImplementationApproved');
+    log.debug('Checking factory implementation policy', sanitizer.forLog(options));
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.isImplementationApproved(keyVaultAddr, implementationAddr),
+        methodName: 'check factory implementation policy',
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Check whether an authenticator is approved for a wallet via the factory policy registry.
+   *
+   * @public
+   * @async
+   * @param {FactoryIsAuthenticatorApprovedOptions} options - {@code keyVaultAddr}, {@code authenticatorAddr}
+   * @returns {Promise<boolean>} {@code true} if the factory policy registry approves the authenticator for the KeyVault
+   * @throws {ValidationError} If {@code keyVaultAddr} or {@code authenticatorAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isAuthenticatorApproved(options = {}) {
+    const { keyVaultAddr, authenticatorAddr } = options;
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    requireAddress(authenticatorAddr, 'authenticatorAddr');
+    log.info('WalletFactory: isAuthenticatorApproved');
+    log.debug('Checking factory authenticator policy', sanitizer.forLog(options));
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.isAuthenticatorApproved(keyVaultAddr, authenticatorAddr),
+        methodName: 'check factory authenticator policy',
         ...options
       }
     );
@@ -576,6 +731,156 @@ class WalletFactoryClient extends BaseContractClient {
           newAdmin: newAdminAddr, 
           factoryAddress: this.config.addresses.factory 
         },
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Allow or disallow an authenticator for new wallet creation (admin-only).
+   *
+   * @public
+   * @async
+   * @param {SetAuthenticatorAllowedOptions} options - {@code authenticator}, {@code allowed}
+   * @returns {Promise<SetAuthenticatorAllowedResult>} Standard write result with parsed allowlist event fields
+   * @throws {ValidationError} If {@code authenticator} is missing/invalid or {@code allowed} is not a boolean
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not admin)
+   * @throws {EventNotFoundError} If the {@code AuthenticatorAllowed} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async setAuthenticatorAllowed(options = {}) {
+    const { authenticatorAddr, allowed } = options;
+    requireAddress(authenticatorAddr, 'authenticatorAddr');
+    requireBoolean(allowed, 'allowed');
+    log.info('WalletFactory: setAuthenticatorAllowed');
+    log.debug('Updating factory authenticator allowlist', sanitizer.forLog(options));
+
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeWrite(
+      {
+        operation: () => factory.setAuthenticatorAllowed(authenticatorAddr, allowed),
+        methodName: 'set authenticator allowed',
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.AuthenticatorAllowed,
+          contract: factory
+        }],
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Allow or disallow a KeyVault implementation for new wallet creation (admin-only).
+   *
+   * @public
+   * @async
+   * @param {SetKeyVaultImplementationAllowedOptions} options - {@code implementation}, {@code allowed}
+   * @returns {Promise<SetKeyVaultImplementationAllowedResult>} Standard write result with parsed allowlist event fields
+   * @throws {ValidationError} If {@code implementation} is missing/invalid or {@code allowed} is not a boolean
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not admin)
+   * @throws {EventNotFoundError} If the {@code KeyVaultImplementationAllowed} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async setKeyVaultImplementationAllowed(options = {}) {
+    const { implementationAddr, allowed } = options;
+    requireAddress(implementationAddr, 'implementationAddr');
+    requireBoolean(allowed, 'allowed');
+    log.info('WalletFactory: setKeyVaultImplementationAllowed');
+    log.debug('Updating factory key vault implementation allowlist', sanitizer.forLog(options));
+
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeWrite(
+      {
+        operation: () => factory.setKeyVaultImplementationAllowed(implementationAddr, allowed),
+        methodName: 'set key vault implementation allowed',
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.KeyVaultImplementationAllowed,
+          contract: factory
+        }],
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Allow or disallow a KeyVault implementation for a specific wallet via the factory policy registry (admin-only).
+   *
+   * @public
+   * @async
+   * @param {SetWalletImplementationAllowedOptions} options - {@code walletOrKeyVaultAddr}, {@code implementation}, {@code allowed}
+   * @returns {Promise<SetWalletImplementationAllowedResult>} Standard write result with parsed policy event fields
+   * @throws {ValidationError} If addresses are missing/invalid or {@code allowed} is not a boolean
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not admin)
+   * @throws {EventNotFoundError} If the {@code WalletImplementationAllowed} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async setWalletImplementationAllowed(options = {}) {
+    const { walletOrKeyVaultAddr, implementationAddr, allowed } = options;
+    requireAddress(walletOrKeyVaultAddr, 'walletOrKeyVaultAddr');
+    requireAddress(implementationAddr, 'implementationAddr');
+    requireBoolean(allowed, 'allowed');
+    log.info('WalletFactory: setWalletImplementationAllowed');
+    log.debug('Updating wallet implementation policy', sanitizer.forLog(options));
+
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeWrite(
+      {
+        operation: () => factory.setWalletImplementationAllowed(walletOrKeyVaultAddr, implementationAddr, allowed),
+        methodName: 'set wallet implementation allowed',
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.WalletImplementationAllowed,
+          contract: factory
+        }],
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Allow or disallow an authenticator for a specific wallet via the factory policy registry (admin-only).
+   *
+   * @public
+   * @async
+   * @param {SetWalletAuthenticatorAllowedOptions} options - {@code walletOrKeyVaultAddr}, {@code authenticator}, {@code allowed}
+   * @returns {Promise<SetWalletAuthenticatorAllowedResult>} Standard write result with parsed policy event fields
+   * @throws {ValidationError} If addresses are missing/invalid or {@code allowed} is not a boolean
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not admin)
+   * @throws {EventNotFoundError} If the {@code WalletAuthenticatorAllowed} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async setWalletAuthenticatorAllowed(options = {}) {
+    const { walletOrKeyVaultAddr, authenticatorAddr, allowed } = options;
+    requireAddress(walletOrKeyVaultAddr, 'walletOrKeyVaultAddr');
+    requireAddress(authenticatorAddr, 'authenticatorAddr');
+    requireBoolean(allowed, 'allowed');
+    log.info('WalletFactory: setWalletAuthenticatorAllowed');
+    log.debug('Updating wallet authenticator policy', sanitizer.forLog(options));
+
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeWrite(
+      {
+        operation: () => factory.setWalletAuthenticatorAllowed(walletOrKeyVaultAddr, authenticatorAddr, allowed),
+        methodName: 'set wallet authenticator allowed',
+        parseEvents: [{
+          eventDef: WalletFactoryEvents.WalletAuthenticatorAllowed,
+          contract: factory
+        }],
         ...options
       }
     );

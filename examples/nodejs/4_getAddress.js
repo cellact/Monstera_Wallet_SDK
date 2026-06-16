@@ -14,7 +14,7 @@ import { Monstera } from '../../src/index.js';
 
 // ============ CONFIGURATION ============
 const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
-const INDEX = parseInt(process.env.INDEX || "0");
+const INDEX = Number.parseInt(process.env.INDEX || '0', 10);
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 
 const sdk = Monstera.connect({
@@ -27,8 +27,13 @@ async function main() {
   console.log("Step 4: Get Account Address");
   console.log("=".repeat(60));
 
-  if (!WALLET_ADDRESS) {
-    console.error("ERROR: Set WALLET_ADDRESS env var");
+  if (!WALLET_ADDRESS || !SIGNER_PRIVATE_KEY) {
+    console.error("ERROR: Set WALLET_ADDRESS and SIGNER_PRIVATE_KEY env vars");
+    process.exit(1);
+  }
+
+  if (!Number.isInteger(INDEX) || INDEX < 0) {
+    console.error("ERROR: INDEX must be a non-negative integer");
     process.exit(1);
   }
   

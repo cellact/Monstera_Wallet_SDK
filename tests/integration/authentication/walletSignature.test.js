@@ -10,7 +10,7 @@ import { defaultAbiCoder } from '../../../src/adapters/ethers/encoding.js';
 import { ValidationError } from '../../../src/errors/index.js';
 import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
-import { randomAddress, calculateDeadline } from '../../utils/fixtures.js';
+import { randomAddress, calculateDeadline, createTestVaultSignAction } from '../../utils/fixtures.js';
 import { expectTransactionResult, expectValidTxHash, expectValidHex } from '../../utils/assertions.js';
 import { nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 import {
@@ -138,7 +138,8 @@ describe('Authentication — wallet signature', () => {
 
       const isValid = await sdk.isWalletSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        signer: testWallet.connect(sdk.provider)
+        signer: testWallet.connect(sdk.provider),
+        action: createTestVaultSignAction()
       });
       expect(isValid).toBe(true);
     }, 30000);
@@ -154,7 +155,8 @@ describe('Authentication — wallet signature', () => {
 
       const isValid = await sdk.isWalletSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        signer: otherWallet.connect(sdk.provider)
+        signer: otherWallet.connect(sdk.provider),
+        action: createTestVaultSignAction()
       });
       expect(isValid).toBe(false);
     }, 30000);
@@ -462,27 +464,43 @@ describe('Authentication — wallet signature', () => {
 
     test('should build an auth proof that the contract accepts', async () => {
       const newWallet = await walletWithWalletSig();
+      const action = createTestVaultSignAction();
 
       const authProof = await sdk.createAuthProofWalletSignature({
         keyVaultAddr: newWallet.keyVault,
-        signer: testWallet.connect(sdk.provider)
+        signer: testWallet.connect(sdk.provider),
+        action
       });
 
       expectValidHex(authProof);
 
+      const actionHash = await sdk.keyVault.computeActionHash({
+        keyVaultAddr: newWallet.keyVault,
+        selector: action.selector,
+        paramsHash: action.paramsHash
+      });
+
       const ok = await sdk.auth.walletSignature.verify({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        authProof,
+        action: {
+          target: newWallet.keyVault,
+          selector: action.selector,
+          paramsHash: action.paramsHash,
+          actionHash
+        }
       });
       expect(ok).toBe(true);
     }, 30000);
 
     test('should default authenticatorAddr and deadline when omitted', async () => {
       const newWallet = await walletWithWalletSig();
+      const action = createTestVaultSignAction();
 
       const authProof = await sdk.createAuthProofWalletSignature({
         keyVaultAddr: newWallet.keyVault,
-        signer: testWallet.connect(sdk.provider)
+        signer: testWallet.connect(sdk.provider),
+        action
       });
 
       const decoded = defaultAbiCoder.decode(
@@ -494,25 +512,51 @@ describe('Authentication — wallet signature', () => {
         typeof deadlineBn === 'bigint' ? Number(deadlineBn) : Number(deadlineBn);
       expect(deadlineSec).toBeGreaterThan(nowUnixTimestampSeconds());
 
+      const actionHash = await sdk.keyVault.computeActionHash({
+        keyVaultAddr: newWallet.keyVault,
+        selector: action.selector,
+        paramsHash: action.paramsHash
+      });
+
       const ok = await sdk.auth.walletSignature.verify({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        authProof,
+        action: {
+          target: newWallet.keyVault,
+          selector: action.selector,
+          paramsHash: action.paramsHash,
+          actionHash
+        }
       });
       expect(ok).toBe(true);
     }, 30000);
 
     test('should accept explicit authenticatorAddr matching the configured authenticator', async () => {
       const newWallet = await walletWithWalletSig();
+      const action = createTestVaultSignAction();
 
       const authProof = await sdk.createAuthProofWalletSignature({
         keyVaultAddr: newWallet.keyVault,
         signer: testWallet.connect(sdk.provider),
-        authenticatorAddr: sdk.addresses.walletSignatureAuth
+        authenticatorAddr: sdk.addresses.walletSignatureAuth,
+        action
+      });
+
+      const actionHash = await sdk.keyVault.computeActionHash({
+        keyVaultAddr: newWallet.keyVault,
+        selector: action.selector,
+        paramsHash: action.paramsHash
       });
 
       const ok = await sdk.auth.walletSignature.verify({
         keyVaultAddr: newWallet.keyVault,
-        authProof
+        authProof,
+        action: {
+          target: newWallet.keyVault,
+          selector: action.selector,
+          paramsHash: action.paramsHash,
+          actionHash
+        }
       });
       expect(ok).toBe(true);
     }, 30000);
@@ -546,7 +590,8 @@ describe('Authentication — wallet signature', () => {
         sdk.createAuthProofWalletSignature({
           signer: testWallet.connect(sdk.provider),
           keyVaultAddr,
-          deadline: pastDeadline
+          deadline: pastDeadline,
+          action: createTestVaultSignAction()
         })
       ).rejects.toThrow(ValidationError);
     });
@@ -570,7 +615,8 @@ describe('Authentication — wallet signature', () => {
           signer: testWallet.connect(sdk.provider),
           keyVaultAddr,
           authenticatorAddr: sdk.addresses.walletSignatureAuth,
-          deadline: calculateDeadline()
+          deadline: calculateDeadline(),
+          action: createTestVaultSignAction()
         },
         'authenticatorAddr'
       );

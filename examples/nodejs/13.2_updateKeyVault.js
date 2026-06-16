@@ -37,8 +37,8 @@ async function main() {
   console.log("Step 13.2: Update KeyVaultImplementation");
   console.log("=".repeat(60));
 
-  if (!WALLET_ADDRESS) {
-    console.error("ERROR: Set WALLET_ADDRESS env var");
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS || !PASSWORD || !NEW_KEYVAULT_IMPL_ADDRESS) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, WALLET_ADDRESS, PASSWORD, and NEW_KEYVAULT_IMPL_ADDRESS env vars");
     process.exit(1);
   }
 
@@ -75,6 +75,7 @@ async function main() {
   // Prepare auth proof
   const authProof = toUtf8Bytes(PASSWORD);
 
+  let newImplAddr;
   try {
     // Update KeyVaultImplementation
     const result = await sdk.updateKeyVaultImplAddr({
@@ -93,7 +94,7 @@ async function main() {
     console.log(`Match: ${currentKeyVaultImplAddr === newImplAddr}`);
 
   } catch (error) {
-    console.error("\n❌ Update failed: ", error);
+    console.error("\n❌ Update failed:", error.message);
     process.exit(1);
   }
 

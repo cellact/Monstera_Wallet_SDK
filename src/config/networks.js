@@ -55,18 +55,18 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    factory: '0x4971c68f9c783a74D6f3d55aA515231E05375652',
-    passwordAuth: '0x461f38fdCD44a92cD0fBE7ba9498903EFd944740',
-    walletSignatureAuth: '0xc06E821da811b0735DA5493F1732a25EB7005412',
-    dualFactorAuth: '0xCAb1585C37118d066Bc3AD79919B4CAE5cd42BC2',
-    passwordMinuteSignatureAuth: '0x151ed065b04583ABB0Ceb21d37C266e41AA3c7E8',
+    factory: '0x9616f999De47f3aBdeb34d0094828C6311C44099',
+    passwordAuth: '0x34d2426BA65b6d782fE570F08658038974F840b8',
+    walletSignatureAuth: '0xF283b3A7FE88932968D9278e72A27A35CEBBf5eD',
+    dualFactorAuth: '0xBfd22Afcbcf514e3e352372dDDF1526b0c3464D3',
+    passwordMinuteSignatureAuth: '0xBb8b2343e34A26432F59ea8A7c857F003b5e3ccc',
   },
   mainnet: {
-    factory: '0x08Ae4eAf21dae5aAe8E03E4189578f09Fb95ED76',
-    passwordAuth: '0xFCF80E508787f3a1C6a33f471b8FF7832683fbc2',
-    walletSignatureAuth: '0x4b294756bB7F9DF7f3b8ad3A546246DE68068Af5',
-    dualFactorAuth: '0x5422f5b59F816A39587895e6d169d38C2fc1b2E5',
-    passwordMinuteSignatureAuth: '0x61D5299c91ff789d5a636A5046576c3c08397644',
+    factory: '0x5F1332440C29DEEe1c9a8A251331371e403921d8',
+    passwordAuth: '0x93c675336372EBb64dA38018bE28d5EA1a8cC26A',
+    walletSignatureAuth: '0xC5AAFBC2e3D7D7674cE317AE0A02bF43f2eD2AA9',
+    dualFactorAuth: '0xB82D5511e43723A377d6e1d9B52Ec31979e56c97',
+    passwordMinuteSignatureAuth: '0x63B0A8E71a91a2Fc4116FAc57B76beAB82d559d3',
   }
 };
 

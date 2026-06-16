@@ -38,6 +38,11 @@ async function main() {
   console.log("Step 5: Update WalletLogic (Admin)");
   console.log("=".repeat(60));
 
+  if (!SIGNER_PRIVATE_KEY || !ADMIN_ADDRESS || !NEW_LOGIC_ADDRESS) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, ADMIN_ADDRESS, and NEW_LOGIC_ADDRESS env vars");
+    process.exit(1);
+  }
+
   // Verify caller is admin
   const admin = await sdk.getAdmin();
   console.log(`   Admin: ${admin}`);

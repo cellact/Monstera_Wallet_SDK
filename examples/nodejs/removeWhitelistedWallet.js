@@ -37,9 +37,9 @@ async function main() {
   console.log("Remove from whitelist");
   console.log("=".repeat(60));
 
-  if (!ALLOWED_1_KEY || !ALLOWED_2_KEY) {
-    console.error("ERROR: Set ALLOWED_1_KEY and ALLOWED_2_KEY env vars");
-    console.error("These should be private keys for accounts that are whitelisted");
+  if (!SIGNER_PRIVATE_KEY || !ALLOWED_1_KEY || !ALLOWED_2_KEY) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, ALLOWED_1_KEY, and ALLOWED_2_KEY env vars");
+    console.error("ALLOWED_* keys should be private keys for accounts that are whitelisted");
     process.exit(1);
   }
 
@@ -136,7 +136,7 @@ async function main() {
       addressToCheck: allowed2Signer.address
     });
     // should be false as allowed2Signer is now removed from the whitelist
-    console.log(`   ✅ isWhitelisted: ${isWhitelistedResult ? "❌ No" : "✅ Yes"}`);
+    console.log(`   isWhitelisted: ${isWhitelistedResult ? "✅ Yes" : "❌ No"}`);
   } catch (error) {
     console.log(`   ❌ FAILED to remove: ${error.message}`);
   }

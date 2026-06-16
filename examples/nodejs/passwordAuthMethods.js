@@ -28,8 +28,8 @@ async function main() {
   console.log("Password authenticator methods");
   console.log("=".repeat(60));
 
-  if (!WALLET_ADDRESS) {
-    console.error("ERROR: Set WALLET_ADDRESS env var");
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS || !PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, WALLET_ADDRESS, and PASSWORD env vars");
     process.exit(1);
   }
   console.log("Configuring password for wallet:", WALLET_ADDRESS);
@@ -49,28 +49,26 @@ async function main() {
     keyVaultAddr: keyVault
   });
   console.log("Is Configured:", isConfigured ? "✅ Yes" : "❌ No");
-  if (isConfigured) {
-    console.error("Wallet is already configured. Skipping configuration...");
-    process.exit(1);
+  if (!isConfigured) {
+    // ============ STEP 2: Configure password ============
+    console.log("\n" + "=".repeat(60));
+    console.log("STEP 2: Configure password");
+    console.log("=".repeat(60));
+
+    const authConfig = keccak256(toUtf8Bytes(PASSWORD));
+
+    const result = await sdk.configurePassword({
+      keyVaultAddr: keyVault,
+      passwordHash: authConfig
+    });
+
+    console.log("   Transaction:", result.transactionHash);
+    console.log("   Wallet Address (KeyVault address):", result.wallet);
+    console.log("   Gas Used:", result.gasUsed);
+    console.log("   Block Number:", result.blockNumber);
+  } else {
+    console.log("Wallet is already configured. Skipping configuration...");
   }
-
-  // ============ STEP 2: Configure password ============
-  console.log("\n" + "=".repeat(60));
-  console.log("STEP 2: Configure password");
-  console.log("=".repeat(60));
-
-  // prepare password hash (keccak256 of password)
-  const authConfig = keccak256(toUtf8Bytes(PASSWORD));
-
-  const result = await sdk.configurePassword({
-    keyVaultAddr: keyVault,
-    passwordHash: authConfig
-  });
-
-  console.log("   Transaction:", result.transactionHash);
-  console.log("   Wallet Address (KeyVault address):", result.wallet);
-  console.log("   Gas Used:", result.gasUsed);
-  console.log("   Block Number:", result.blockNumber);
 
   // ============ STEP 3: Verify password ============
   console.log("\n" + "=".repeat(60));

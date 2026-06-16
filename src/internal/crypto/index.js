@@ -12,8 +12,35 @@ export { createWalletSigAuthConfig, createDualFactorAuthConfig } from './authCon
 export {
   createAuthProofWalletSignature,
   createAuthProofMinuteSignature,
-  createAuthProofDualFactor
+  createAuthProofDualFactor,
+  createAuthProofPassword
 } from './authProof.js';
+export {
+  AUTH_CONTEXT_TYPEHASH,
+  computeParamsHash,
+  assertAuthActionInput,
+  buildAuthContext,
+  fetchKeyVaultActionHash,
+  computeAuthenticatorActionHash,
+  resolveActionHash
+} from './authContext.js';
+export { getSelector } from './getSelector.js';
+export {
+  buildSignAction,
+  buildSignMessageAction,
+  buildSignTransactionAction,
+  buildExecuteWithAuthAction,
+  buildUpgradeImplementationAction,
+  buildUpgradeImplementationCustomAction,
+  buildChangeAuthenticatorAction,
+  buildChangeAuthenticatorCustomAction,
+  buildImportKeyAction,
+  buildDeactivateKeyAction,
+  buildActivateKeyAction,
+  buildSignWithImportedKeyAction,
+  buildSignSolanaAction,
+  buildSetChainBaseKeysAction
+} from './actions/index.js';
 export { generateMnemonic, deriveSeed } from './mnemonic.js';
 export {
   normalizeAuthorizationTuple,

@@ -514,18 +514,20 @@ describe('Wallet Management Integration Tests', () => {
   });
 
   describe('initialize', () => {
-    // Helper to create access token for initialize tests
     const createAccessToken = () => hexlify(randomBytes(32));
+    const createAuthConfig = () => createPasswordAuthProof('init');
 
     test('should fail with missing keyVaultAddr', async () => {
       const accessToken = createAccessToken();
+      const authConfig = createAuthConfig();
 
       await testMissingParam(
         sdk.initialize.bind(sdk),
         {
           storageAddr,
           authenticatorAddr,
-          accessToken
+          accessToken,
+          authConfig
         },
         'keyVaultAddr'
       );
@@ -533,13 +535,15 @@ describe('Wallet Management Integration Tests', () => {
 
     test('should fail with missing storageAddr', async () => {
       const accessToken = createAccessToken();
+      const authConfig = createAuthConfig();
 
       await testMissingParam(
         sdk.initialize.bind(sdk),
         {
           keyVaultAddr,
           authenticatorAddr,
-          accessToken
+          accessToken,
+          authConfig
         },
         'storageAddr'
       );
@@ -547,32 +551,53 @@ describe('Wallet Management Integration Tests', () => {
 
     test('should fail with missing authenticatorAddr', async () => {
       const accessToken = createAccessToken();
+      const authConfig = createAuthConfig();
 
       await testMissingParam(
         sdk.initialize.bind(sdk),
         {
           keyVaultAddr,
           storageAddr,
-          accessToken
+          accessToken,
+          authConfig
         },
         'authenticatorAddr'
       );
     });
 
     test('should fail with missing accessToken', async () => {
+      const authConfig = createAuthConfig();
+
       await testMissingParam(
         sdk.initialize.bind(sdk),
         {
           keyVaultAddr,
           storageAddr,
-          authenticatorAddr
+          authenticatorAddr,
+          authConfig
         },
         'accessToken'
       );
     });
 
+    test('should fail with missing authConfig', async () => {
+      const accessToken = createAccessToken();
+
+      await testMissingParam(
+        sdk.initialize.bind(sdk),
+        {
+          keyVaultAddr,
+          storageAddr,
+          authenticatorAddr,
+          accessToken
+        },
+        'authConfig'
+      );
+    });
+
     test('should fail with invalid keyVaultAddr', async () => {
       const accessToken = createAccessToken();
+      const authConfig = createAuthConfig();
 
       await testInvalidAddress(
         sdk.initialize.bind(sdk),
@@ -580,7 +605,8 @@ describe('Wallet Management Integration Tests', () => {
           keyVaultAddr: keyVaultAddr,
           storageAddr,
           authenticatorAddr,
-          accessToken
+          accessToken,
+          authConfig
         },
         'keyVaultAddr'
       );
@@ -588,6 +614,7 @@ describe('Wallet Management Integration Tests', () => {
 
     test('should fail with readonly SDK instance', async () => {
       const accessToken = createAccessToken();
+      const authConfig = createAuthConfig();
 
       await testReadonlySDK(
         sdk.initialize,
@@ -595,7 +622,8 @@ describe('Wallet Management Integration Tests', () => {
           keyVaultAddr,
           storageAddr,
           authenticatorAddr,
-          accessToken
+          accessToken,
+          authConfig
         }
       );
     });

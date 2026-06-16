@@ -39,9 +39,9 @@ async function main() {
   console.log("Step 3: Test WalletSignatureAuthenticator");
   console.log("=".repeat(60));
 
-  if (!ALLOWED_1_KEY || !ALLOWED_2_KEY) {
-    console.error("ERROR: Set ALLOWED_1_KEY and ALLOWED_2_KEY env vars");
-    console.error("These should be private keys for accounts that will be whitelisted");
+  if (!SIGNER_PRIVATE_KEY || !ALLOWED_1_KEY || !ALLOWED_2_KEY) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, ALLOWED_1_KEY, and ALLOWED_2_KEY env vars");
+    console.error("ALLOWED_* keys should be private keys for accounts that will be whitelisted");
     process.exit(1);
   }
 

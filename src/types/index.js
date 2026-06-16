@@ -220,7 +220,11 @@
 
 /** @typedef {UpdateProxyImplementationResult} UpdateKeyVaultImplAddrResult */
 
+/** @typedef {UpdateKeyVaultImplAddrResult & { customAckHash: Bytes32 }} UpdateKeyVaultImplAddrCustomResult */
+
 /** @typedef {BaseTransactionResult & { oldAuth: Address; newAuth: Address }} UpdateAuthenticatorAddrResult */
+
+/** @typedef {UpdateAuthenticatorAddrResult & { customAckHash: Bytes32 }} UpdateAuthenticatorAddrCustomResult */
 
 /** @typedef {BaseTransactionResult & { wallet: Address; added: Address }} AddToWhitelistResult */
 
@@ -474,6 +478,36 @@
  * @property {Address} storageAddr - WalletStorage contract address
  * @property {Address} authenticatorAddr - Authenticator contract address
  * @property {Bytes32} accessToken - Secret token for storage access (bytes32)
+ * @property {Bytes} authConfig - ABI-encoded authenticator configuration bytes
+ */
+
+/**
+ * @typedef {InitializeOptions & { policyRegistry: Address }} InitializeExplicitOptions
+ */
+
+// ============================================================================
+// Auth Context (action-scoped proofs)
+// ============================================================================
+
+/**
+ * Canonical commitment for an authenticated vault / authenticator call.
+ *
+ * @typedef {Object} AuthContext
+ * @property {Address} target - Contract that will execute the action
+ * @property {Bytes4} selector - 4-byte function selector
+ * @property {Bytes32} paramsHash - {@code keccak256(abi.encode(...))} of user params excluding {@code authProof}
+ * @property {Bytes32} actionHash - Canonical action hash bound into the proof
+ */
+
+/**
+ * Caller input for action-scoped proofs. Vault {@code actionHash} is resolved on-chain via
+ * {@link KeyVaultClient#computeActionHash}. Authenticator {@code actionHash} is derived off-chain
+ * via {@link computeAuthenticatorActionHash} (matches {@code DualFactorAuthenticator._buildContext}).
+ *
+ * @typedef {Object} AuthActionInput
+ * @property {Bytes4} selector - 4-byte function selector
+ * @property {Bytes32} paramsHash - Hashed call parameters excluding {@code authProof}
+ * @property {Address} [target] - Executing contract (defaults to {@code keyVaultAddr})
  */
 
 // ============================================================================
@@ -484,6 +518,7 @@
  * Structured input options to create auth proof for PasswordAuthenticator.
  * @typedef {Object} PasswordAuthProofInputOptions
  * @property {Uint8Array} password - UTF-8 password bytes (e.g. from {@code ethers.toUtf8Bytes})
+ * @property {AuthActionInput} action - Operation being authorized ({@code selector}, {@code paramsHash}, optional {@code target})
  */
 
 /**
@@ -491,6 +526,8 @@
  * @typedef {Object} WalletSignatureAuthProofInputOptions
  * @property {EthersWallet | EthersHDNodeWallet} signer
  * @property {number} [deadline] - Deadline for the auth proof (Unix timestamp in seconds) (optional)
+ * @property {AuthActionInput} [action] - Operation being authorized; required when {@code actionHash} is omitted
+ * @property {Bytes32} [actionHash] - Pre-resolved on-chain action hash; required when {@code action} is omitted
  */
 
 /**
@@ -499,12 +536,16 @@
  * @property {Bytes32} passwordHash
  * @property {EthersWallet | EthersHDNodeWallet} signer
  * @property {number} [deadline] - Deadline for the auth proof (Unix timestamp in seconds) (optional)
+ * @property {AuthActionInput} [action] - Operation being authorized; required when {@code actionHash} is omitted
+ * @property {Bytes32} [actionHash] - Pre-resolved on-chain action hash; required when {@code action} is omitted
  */
 
 /**
  * Structured input options to create auth proof for PasswordMinuteSignatureAuthenticator.
  * @typedef {Object} PasswordMinuteSignatureAuthProofInputOptions
  * @property {Bytes32} passwordHash
+ * @property {AuthActionInput} [action] - Operation being authorized; required when {@code actionHash} is omitted
+ * @property {Bytes32} [actionHash] - Pre-resolved on-chain action hash; required when {@code action} is omitted
  */
 
 /**
@@ -557,39 +598,6 @@
  * @property {(authenticatorAddr: Address) => KeyVaultAuthProofEncoder | undefined} getByAuthenticatorAddr
  */
 
-/**
- * PasswordAuthenticator encoder: {@code input} is {@link PasswordAuthProofInputOptions} only.
- * Structurally assignable to {@link KeyVaultAuthProofEncoder} for the registry.
- *
- * @typedef {Object} PasswordAuthProofEncoderOptions
- * @property {string} id
- * @property {(ctx: AuthProofEncodeContext, input: PasswordAuthProofInputOptions) => Promise<Bytes>} encode
- */
-
-/**
- * WalletSignatureAuthenticator encoder: {@code input} is {@link WalletSignatureAuthProofInputOptions} only.
- *
- * @typedef {Object} WalletSignatureAuthProofEncoderOptions
- * @property {string} id
- * @property {(ctx: AuthProofEncodeContext, input: WalletSignatureAuthProofInputOptions) => Promise<Bytes>} encode
- */
-
-/**
- * DualFactorAuthenticator encoder: {@code input} is {@link DualFactorAuthProofInputOptions} only.
- *
- * @typedef {Object} DualFactorAuthProofEncoderOptions
- * @property {string} id
- * @property {(ctx: AuthProofEncodeContext, input: DualFactorAuthProofInputOptions) => Promise<Bytes>} encode
- */
-
-/**
- * PasswordMinuteSignatureAuthenticator encoder: {@code input} is {@link PasswordMinuteSignatureAuthProofInputOptions} only.
- *
- * @typedef {Object} PasswordMinuteAuthProofEncoderOptions
- * @property {string} id
- * @property {(ctx: AuthProofEncodeContext, input: PasswordMinuteSignatureAuthProofInputOptions) => Promise<Bytes>} encode
- */
-
 // ============================================================================
 // Auth Proof — Encoded / On-Wire Payloads
 // ============================================================================
@@ -597,13 +605,14 @@
 // ABI layouts and unions for {@code authProof} as consumed on-chain (after encoding), not structured SDK inputs.
 
 /**
- * Raw UTF-8 password bytes for {@code PasswordAuthenticator.verify} (not ABI-encoded).
- * @typedef {Uint8Array} PasswordAuthenticatorVerifyAuthProof
+ * ABI-encoded proof for {@code PasswordAuthenticator.verify} and {@code changePassword}.
+ * Layout: {@code abi.encode(bytes password, bytes32 actionHash)}.
+ * @typedef {Bytes} EncodedAuthProofPassword
  */
 
 /**
  * ABI-encoded proof for {@code WalletSignatureAuthenticator} (verify, whitelist writes, etc.).
- * Layout: {@code abi.encode(uint256 deadline, bytes signature)}; {@code signature} is over EIP-712 {@code WalletAuth(wallet, deadline)}.
+ * Layout: {@code abi.encode(uint256 deadline, bytes signature)}; {@code signature} is over EIP-712 {@code WalletAuth(address wallet,bytes32 actionHash,uint256 deadline)}.
  * @typedef {Bytes} EncodedAuthProofWalletSignature
  */
 
@@ -632,7 +641,7 @@
  * Union of all **created / on-wire** {@code authProof} payloads for direct contract clients (e.g. {@link KeyVaultClient}).
  * Does not include structured {@link AuthProofInputOptions}; use that in {@link Monstera} (with {@link AuthProofBuilder.prototype.encode}) before calling the client.
  * @typedef {(
- *   | PasswordAuthenticatorVerifyAuthProof
+ *   | EncodedAuthProofPassword
  *   | EncodedAuthProofWalletSignature
  *   | EncodedAuthProofDualFactor
  *   | EncodedAuthProofPasswordMinute
@@ -766,11 +775,6 @@
  * @typedef {CreateAuthProofBaseOptions & WalletSignatureAuthProofInputOptions } CreateAuthProofWalletSignatureOptions
  */
 
-// /**
-//  * Inputs to build a password-based proof for flows that encode the password path (not the same bytes as {@link PasswordAuthenticatorVerifyAuthProof}).
-//  * @typedef {CreateAuthProofBaseOptions & PasswordAuthProofInputOptions } CreateAuthProofPasswordOptions
-//  */
-
 /**
  * Inputs to build {@link EncodedAuthProofPasswordMinute} (minute-bucket ECDSA path).
  * @typedef {CreateAuthProofBaseOptions & PasswordMinuteSignatureAuthProofInputOptions } CreateAuthProofMinuteSignatureOptions
@@ -789,6 +793,41 @@
 /**
  * {@link CreateAuthProofDualFactorOptions} plus a provider for the minute-bucket leg (crypto / internal callers).
  * @typedef {CreateAuthProofDualFactorOptions & { provider: EthersAbstractProvider }} CreateAuthProofDualFactorWithProviderOptions
+ */
+
+/**
+ * Shared fields returned by {@link AuthProofOrchestrator#prepare} after resolving {@code actionHash}.
+ *
+ * @typedef {Object} AuthProofFlowResultBase
+ * @property {Bytes32} actionHash - Canonical action hash bound into the proof
+ * @property {AuthContext | null} action - Full auth context when {@code includeAuthContext} is set
+ */
+
+/**
+ * Result of {@link AuthProofOrchestrator#resolveAuthAction}.
+ *
+ * @typedef {Object} ResolvedAuthAction
+ * @property {AuthActionInput} action - Resolved action input
+ * @property {Bytes32} actionHash - Canonical action hash for the action
+ */
+
+/**
+ * Options for {@link AuthProofOrchestrator#prepare}.
+ *
+ * @typedef {Object} AuthProofFlowOptions
+ * @property {boolean} [includeAuthContext] - When true, attach a full {@link AuthContext} on the result
+ * @property {boolean} [useVerifyProbe] - When true, use the canonical {@code IAuthenticator.verify} probe action
+ */
+
+/**
+ * Result of {@link AuthProofOrchestrator#prepare}.
+ *
+ * @typedef {AuthProofFlowResultBase & {
+ *   resolved: Record<string, unknown>;
+ *   authProof: Bytes;
+ *   minuteBucket?: number;
+ *   derivedAddress?: Address;
+ * }} AuthProofFlowResult
  */
 
 // ============================================================================
@@ -934,6 +973,25 @@
  */
 
 /**
+ * @typedef {KeyVaultClientUpdateKeyVaultImplOptions & { customAckHash: Bytes32 }} KeyVaultClientUpdateKeyVaultImplCustomOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { newImplementation: Address }} KeyVaultClientComputeCustomImplementationAckHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { newAuthenticator: Address; configHash: Bytes32 }} KeyVaultClientComputeCustomAuthenticatorAckHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { implementation: Address }} KeyVaultClientIsImplementationApprovedOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authenticator: Address }} KeyVaultClientIsAuthenticatorApprovedOptions
+
+/**
  * @typedef {KeyVaultClientAuthBaseOptions & ImportedKeyBase} KeyVaultClientDeactivateActivateKeyOptions
  */
 
@@ -942,6 +1000,10 @@
  *   newAuthenticatorAddr: Address;
  *   newAuthConfig: Bytes;
  * }} KeyVaultClientUpdateAuthenticatorOptions
+ */
+
+/**
+ * @typedef {KeyVaultClientUpdateAuthenticatorOptions & { customAckHash: Bytes32 }} KeyVaultClientUpdateAuthenticatorCustomOptions
  */
 
 // ============================================================================
@@ -982,7 +1044,7 @@
 /**
  * Authenticated KeyVault implementation upgrade via WalletLogic proxy.
  * {@code authProof} is opaque bytes for the wallet's authenticator (contract validates). Typical layouts:
- * {@link EncodedAuthProofDualFactor}, {@link EncodedAuthProofWalletSignature}, {@link EncodedAuthProofPasswordMinute}, or {@link PasswordAuthenticatorVerifyAuthProof} (raw UTF-8) for password-only flows — match your vault's authenticator.
+ * {@link EncodedAuthProofDualFactor}, {@link EncodedAuthProofWalletSignature}, {@link EncodedAuthProofPasswordMinute}, or {@link EncodedAuthProofPassword} — match your vault's authenticator.
  * @typedef {WalletProxyOptions & { authProof: Bytes; newImplAddr: Address }} WalletLogicUpdateKeyVaultImplOptions
  */
 
@@ -990,6 +1052,26 @@
 
 /**
  * @typedef {{ keyVaultAddr: Address }} KeyVaultAddrOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { selector: string; paramsHash: Bytes32 }} ComputeActionHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { newImplementation: Address }} ComputeCustomImplementationAckHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { newAuthenticator: Address; configHash: Bytes32 }} ComputeCustomAuthenticatorAckHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { implementation: Address }} IsImplementationApprovedOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authenticator: Address }} IsAuthenticatorApprovedOptions
  */
 
 /**
@@ -1035,6 +1117,14 @@
  */
 
 /**
+ * @typedef {KeyVaultAuthBaseOptions & { newImplAddr: Address; customAckHash: Bytes32 }} UpdateKeyVaultImplCustomOptions
+ */
+
+/**
+ * @typedef {KeyVaultAuthBaseOptions & { newAuthenticatorAddr: Address; newAuthConfig: Bytes; customAckHash: Bytes32 }} UpdateAuthenticatorCustomOptions
+ */
+
+/**
  * @typedef {KeyVaultAuthBaseOptions & ImportedKeyBase} DeactivateActivateKeyOptions
  */
 
@@ -1046,7 +1136,65 @@
  * @typedef {{ newAdminAddr: Address }} TransferAdminOptions
  */
 
+/**
+ * @typedef {{ authenticatorAddr: Address }} FactoryAllowedAuthenticatorsOptions
+ */
+
+/**
+ * @typedef {{ implementationAddr: Address }} FactoryAllowedKeyVaultImplementationsOptions
+ */
+
+/**
+ * Factory policy-registry view: whether {@code implementationAddr} is approved for {@code keyVaultAddr}.
+ * @typedef {KeyVaultAddrOptions & { implementationAddr: Address }} FactoryIsImplementationApprovedOptions
+ */
+
+/**
+ * Factory policy-registry view: whether {@code authenticatorAddr} is approved for {@code keyVaultAddr}.
+ * @typedef {KeyVaultAddrOptions & { authenticatorAddr: Address }} FactoryIsAuthenticatorApprovedOptions
+ */
+
+/**
+ * @typedef {{ authenticatorAddr: Address; allowed: boolean }} SetAuthenticatorAllowedOptions
+ */
+
+/**
+ * @typedef {{ implementationAddr: Address; allowed: boolean }} SetKeyVaultImplementationAllowedOptions
+ */
+
+/**
+ * @typedef {{ walletOrKeyVaultAddr: Address; authenticatorAddr: Address; allowed: boolean }} SetWalletAuthenticatorAllowedOptions
+ */
+
+/**
+ * @typedef {{ walletOrKeyVaultAddr: Address; implementationAddr: Address; allowed: boolean }} SetWalletImplementationAllowedOptions
+ */
+
+/** @typedef {BaseTransactionResult & { authenticatorAddr: Address; allowed: boolean }} SetAuthenticatorAllowedResult */
+
+/** @typedef {BaseTransactionResult & { implementationAddr: Address; allowed: boolean }} SetKeyVaultImplementationAllowedResult */
+
+/** @typedef {BaseTransactionResult & { keyVault: Address; authenticatorAddr: Address; allowed: boolean }} SetWalletAuthenticatorAllowedResult */
+
+/** @typedef {BaseTransactionResult & { keyVault: Address; implementationAddr: Address; allowed: boolean }} SetWalletImplementationAllowedResult */
+
 // --- Flows composed with CreateAuthProof* ---
+
+/**
+ * Inputs for password proof flows after {@link withPasswordProofDefaults}.
+ *
+ * @typedef {KeyVaultAddrOptions & {
+ *   password: Uint8Array;
+ *   action?: AuthActionInput;
+ *   actionHash?: Bytes32;
+ *   chainId?: ChainId;
+ *   authenticatorAddr?: Address;
+ * }} PreparePasswordFlowOptions
+ */
+
+/**
+ * @typedef {PreparePasswordFlowOptions & { chainId: ChainId; authenticatorAddr: Address }} ResolvedPasswordFlowOptions
+ */
 
 /**
  * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array }} VerifyPasswordOptions
@@ -1075,29 +1223,29 @@
 /**
  * currentPassword is raw password bytes (utf8 password bytes)
  * newPasswordHash is the new password hash (bytes32)
- * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array; newPasswordHash: Bytes32 }} UpdatePasswordOptions
+ * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array; newPasswordHash: Bytes32; chainId?: ChainId; authenticatorAddr?: Address }} UpdatePasswordOptions
  */
 
 // --- Authenticator client methods (encoded {@code authProof} / {@code authConfig}) ---
 
 /**
- * {@code PasswordAuthenticator.verify} — expects raw UTF-8 password bytes ({@link PasswordAuthenticatorVerifyAuthProof}), not ABI-encoded.
- * @typedef {KeyVaultAddrOptions & { authProof: PasswordAuthenticatorVerifyAuthProof }} PasswordClientVerifyOptions
+ * {@code PasswordAuthenticator.verify} — expects {@link EncodedAuthProofPassword}.
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPassword; action: AuthContext }} PasswordClientVerifyOptions
  */
 
 /**
  * {@code PasswordMinuteSignatureAuthenticator.verify} — expects {@link EncodedAuthProofPasswordMinute}.
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordMinute }} PasswordMinuteClientVerifyOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordMinute; action: AuthContext }} PasswordMinuteClientVerifyOptions
  */
 
 /**
  * {@code WalletSignatureAuthenticator.verify} — expects {@link EncodedAuthProofWalletSignature}.
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature }} WalletSignatureClientVerifyOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; action: AuthContext }} WalletSignatureClientVerifyOptions
  */
 
 /**
  * {@code DualFactorAuthenticator.verify} — expects {@link EncodedAuthProofDualFactor}.
- * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor }} DualFactorClientVerifyOptions
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor; action: AuthContext }} DualFactorClientVerifyOptions
  */
 
 /**

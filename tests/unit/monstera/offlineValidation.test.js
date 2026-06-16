@@ -20,7 +20,8 @@ import {
   ZERO_ADDRESS,
   createPasswordAuthProof,
   calculateDeadline,
-  randomAddress
+  randomAddress,
+  createTestVaultSignAction
 } from '../../utils/fixtures.js';
 import {
   testMissingParam,
@@ -63,8 +64,7 @@ describe('Monstera offline validation', () => {
       await testMissingParam(
         sdk.configurePassword.bind(sdk),
         { keyVaultAddr },
-        'passwordHash',
-        'authConfig'
+        'passwordHash'
       );
       await testInvalidAddress(
         sdk.configurePassword.bind(sdk),
@@ -109,7 +109,6 @@ describe('Monstera offline validation', () => {
         { currentPassword: createPasswordAuthProof('x') },
         'keyVaultAddr'
       );
-      await testMissingParam(sdk.isPasswordValid.bind(sdk), { keyVaultAddr }, 'currentPassword', 'authProof');
       await testInvalidAddress(
         sdk.isPasswordValid.bind(sdk),
         {
@@ -355,12 +354,14 @@ describe('Monstera offline validation', () => {
 
     test('initialize (KeyVault)', async () => {
       const accessToken = hexlify(randomBytes(32));
+      const authConfig = createPasswordAuthProof('init');
       await testMissingParam(
         sdk.initialize.bind(sdk),
         {
           storageAddr,
           authenticatorAddr,
-          accessToken
+          accessToken,
+          authConfig
         },
         'keyVaultAddr'
       );
@@ -369,7 +370,8 @@ describe('Monstera offline validation', () => {
         {
           keyVaultAddr,
           authenticatorAddr,
-          accessToken
+          accessToken,
+          authConfig
         },
         'storageAddr'
       );
@@ -378,7 +380,8 @@ describe('Monstera offline validation', () => {
         {
           keyVaultAddr,
           storageAddr,
-          accessToken
+          accessToken,
+          authConfig
         },
         'authenticatorAddr'
       );
@@ -387,11 +390,12 @@ describe('Monstera offline validation', () => {
         {
           keyVaultAddr,
           storageAddr,
-          authenticatorAddr
+          authenticatorAddr,
+          authConfig
         },
         'accessToken'
       );
-      await testInvalidAddress(
+      await testMissingParam(
         sdk.initialize.bind(sdk),
         {
           keyVaultAddr,
@@ -399,13 +403,25 @@ describe('Monstera offline validation', () => {
           authenticatorAddr,
           accessToken
         },
+        'authConfig'
+      );
+      await testInvalidAddress(
+        sdk.initialize.bind(sdk),
+        {
+          keyVaultAddr,
+          storageAddr,
+          authenticatorAddr,
+          accessToken,
+          authConfig
+        },
         'keyVaultAddr'
       );
       await testReadonlySDK(sdk.initialize, {
         keyVaultAddr,
         storageAddr,
         authenticatorAddr,
-        accessToken
+        accessToken,
+        authConfig
       });
     });
   });
@@ -605,10 +621,14 @@ describe('Monstera offline validation', () => {
 
       await testMissingParam(
         sdk.isWalletSignatureValid.bind(sdk),
-        { signer: signer() },
+        { signer: signer(), action: createTestVaultSignAction() },
         'keyVaultAddr'
       );
-      await testMissingParam(sdk.isWalletSignatureValid.bind(sdk), { keyVaultAddr }, 'signer');
+      await testMissingParam(
+        sdk.isWalletSignatureValid.bind(sdk),
+        { keyVaultAddr, action: createTestVaultSignAction() },
+        'signer'
+      );
 
       await testMissingParam(
         sdk.isWhitelisted.bind(sdk),
@@ -685,11 +705,14 @@ describe('Monstera offline validation', () => {
     });
 
     test('createAuthProofWalletSignature', async () => {
+      const action = createTestVaultSignAction();
+
       await testMissingParam(
         sdk.createAuthProofWalletSignature.bind(sdk),
         {
           keyVaultAddr,
-          deadline: calculateDeadline()
+          deadline: calculateDeadline(),
+          action
         },
         'signer'
       );
@@ -697,7 +720,8 @@ describe('Monstera offline validation', () => {
         sdk.createAuthProofWalletSignature.bind(sdk),
         {
           signer: signer(),
-          deadline: calculateDeadline()
+          deadline: calculateDeadline(),
+          action
         },
         'keyVaultAddr'
       );
@@ -706,7 +730,8 @@ describe('Monstera offline validation', () => {
         {
           signer: signer(),
           keyVaultAddr,
-          deadline: calculateDeadline()
+          deadline: calculateDeadline(),
+          action
         },
         'keyVaultAddr'
       );
@@ -716,7 +741,8 @@ describe('Monstera offline validation', () => {
           signer: signer(),
           keyVaultAddr,
           authenticatorAddr: sdk.addresses.walletSignatureAuth,
-          deadline: calculateDeadline()
+          deadline: calculateDeadline(),
+          actionHash: keccak256(toUtf8Bytes('offline-wallet-signature-action-hash'))
         },
         'authenticatorAddr'
       );

@@ -15,6 +15,7 @@
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../types/index.js').NetworkPresets} NetworkPresets
  * @typedef {import('../types/index.js').InitializeOptions} InitializeOptions
+ * @typedef {import('../types/index.js').InitializeExplicitOptions} InitializeExplicitOptions
  * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
  * @typedef {import('../types/index.js').ConfigurePasswordResult} ConfigurePasswordResult
  * @typedef {import('../types/index.js').ConfigureWalletSignatureResult} ConfigureWalletSignatureResult
@@ -26,8 +27,10 @@
  * @typedef {import('../types/index.js').SignHashOptions} SignHashOptions
  * @typedef {import('../types/index.js').UpdateWalletLogicImplAddrResult} UpdateWalletLogicImplAddrResult
  * @typedef {import('../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
+ * @typedef {import('../types/index.js').UpdateKeyVaultImplAddrCustomResult} UpdateKeyVaultImplAddrCustomResult
  * @typedef {import('../types/index.js').UpdateAuthenticatorOptions} UpdateAuthenticatorOptions
  * @typedef {import('../types/index.js').UpdateAuthenticatorAddrResult} UpdateAuthenticatorAddrResult
+ * @typedef {import('../types/index.js').UpdateAuthenticatorAddrCustomResult} UpdateAuthenticatorAddrCustomResult
  * @typedef {import('../types/index.js').UpdatePasswordResult} UpdatePasswordResult
  * @typedef {import('../types/index.js').AddToWhitelistResult} AddToWhitelistResult
  * @typedef {import('../types/index.js').RemoveFromWhitelistResult} RemoveFromWhitelistResult
@@ -57,6 +60,11 @@
  * @typedef {import('../types/index.js').KeyVaultAccountSliceOptions} KeyVaultAccountSliceOptions
  * @typedef {import('../types/index.js').KeyVaultAddrIndexOptions} KeyVaultAddrIndexOptions
  * @typedef {import('../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
+ * @typedef {import('../types/index.js').ComputeActionHashOptions} ComputeActionHashOptions
+ * @typedef {import('../types/index.js').ComputeCustomImplementationAckHashOptions} ComputeCustomImplementationAckHashOptions
+ * @typedef {import('../types/index.js').ComputeCustomAuthenticatorAckHashOptions} ComputeCustomAuthenticatorAckHashOptions
+ * @typedef {import('../types/index.js').IsImplementationApprovedOptions} IsImplementationApprovedOptions
+ * @typedef {import('../types/index.js').IsAuthenticatorApprovedOptions} IsAuthenticatorApprovedOptions
  * @typedef {import('../types/index.js').KeyVaultImportedKeyOptions} KeyVaultImportedKeyOptions
  * @typedef {import('../types/index.js').AddWhitelistOptions} AddWhitelistOptions
  * @typedef {import('../types/index.js').ConfigureDualFactorOptions} ConfigureDualFactorOptions
@@ -68,9 +76,23 @@
  * @typedef {import('../types/index.js').TransferAdminOptions} TransferAdminOptions
  * @typedef {import('../types/index.js').UpdateGuardianOptions} UpdateGuardianOptions
  * @typedef {import('../types/index.js').UpdateKeyVaultImplOptions} UpdateKeyVaultImplOptions
+ * @typedef {import('../types/index.js').UpdateKeyVaultImplCustomOptions} UpdateKeyVaultImplCustomOptions
+ * @typedef {import('../types/index.js').UpdateAuthenticatorCustomOptions} UpdateAuthenticatorCustomOptions
  * @typedef {import('../types/index.js').UpdatePasswordDualFactorOptions} UpdatePasswordDualFactorOptions
  * @typedef {import('../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
  * @typedef {import('../types/index.js').UpdateWalletLogicImplOptions} UpdateWalletLogicImplOptions
+ * @typedef {import('../types/index.js').FactoryAllowedAuthenticatorsOptions} FactoryAllowedAuthenticatorsOptions
+ * @typedef {import('../types/index.js').FactoryAllowedKeyVaultImplementationsOptions} FactoryAllowedKeyVaultImplementationsOptions
+ * @typedef {import('../types/index.js').FactoryIsImplementationApprovedOptions} FactoryIsImplementationApprovedOptions
+ * @typedef {import('../types/index.js').FactoryIsAuthenticatorApprovedOptions} FactoryIsAuthenticatorApprovedOptions
+ * @typedef {import('../types/index.js').SetAuthenticatorAllowedOptions} SetAuthenticatorAllowedOptions
+ * @typedef {import('../types/index.js').SetKeyVaultImplementationAllowedOptions} SetKeyVaultImplementationAllowedOptions
+ * @typedef {import('../types/index.js').SetWalletAuthenticatorAllowedOptions} SetWalletAuthenticatorAllowedOptions
+ * @typedef {import('../types/index.js').SetWalletImplementationAllowedOptions} SetWalletImplementationAllowedOptions
+ * @typedef {import('../types/index.js').SetAuthenticatorAllowedResult} SetAuthenticatorAllowedResult
+ * @typedef {import('../types/index.js').SetKeyVaultImplementationAllowedResult} SetKeyVaultImplementationAllowedResult
+ * @typedef {import('../types/index.js').SetWalletAuthenticatorAllowedResult} SetWalletAuthenticatorAllowedResult
+ * @typedef {import('../types/index.js').SetWalletImplementationAllowedResult} SetWalletImplementationAllowedResult
  * @typedef {import('../types/index.js').VerifyPasswordOptions} VerifyPasswordOptions
  * @typedef {import('../types/index.js').WhitelistCheckOptions} WhitelistCheckOptions
  * @typedef {import('../types/index.js').WalletProxyOptions} WalletProxyOptions
@@ -83,6 +105,17 @@
  * @typedef {import('../types/index.js').SignAuthorizationOptions} SignAuthorizationOptions
  * @typedef {import('../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
  * @typedef {import('../types/index.js').ConnectOptions} ConnectOptions
+ * @typedef {import('../types/index.js').AuthContext} AuthContext
+ * @typedef {import('../types/index.js').AuthActionInput} AuthActionInput
+ * @typedef {import('../types/index.js').EncodedAuthProofPassword} EncodedAuthProofPassword
+ * @typedef {import('../types/index.js').EncodedAuthProofPasswordMinute} EncodedAuthProofPasswordMinute
+ * @typedef {import('../types/index.js').PreparePasswordFlowOptions} PreparePasswordFlowOptions
+ * @typedef {import('../types/index.js').EncodeAuthProofInputOptions} EncodeAuthProofInputOptions
+ * @typedef {import('../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
+ * @typedef {import('../types/index.js').ResolvedPasswordFlowOptions} ResolvedPasswordFlowOptions
+ * @typedef {import('../types/index.js').AuthProofFlowOptions} AuthProofFlowOptions
+ * @typedef {import('../types/index.js').ResolvedAuthAction} ResolvedAuthAction
+ *
  */
 
 import MonsteraConfig from '../config/monstera.js';
@@ -93,22 +126,29 @@ import WalletLogicClient from '../clients/logic/index.js';
 import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
 import {
-  createAuthProofWalletSignature,
-  createAuthProofMinuteSignature,
-  createAuthProofDualFactor,
-  createWalletSigAuthConfig,
-  createDualFactorAuthConfig
+  buildSignAction,
+  buildSignMessageAction,
+  buildSignTransactionAction,
+  buildExecuteWithAuthAction,
+  buildUpgradeImplementationAction,
+  buildUpgradeImplementationCustomAction,
+  buildChangeAuthenticatorAction,
+  buildChangeAuthenticatorCustomAction,
+  buildImportKeyAction,
+  buildDeactivateKeyAction,
+  buildActivateKeyAction,
+  buildSignWithImportedKeyAction,
+  buildSignSolanaAction,
+  buildSetChainBaseKeysAction
 } from '../internal/crypto/index.js';
+import { ValidationError } from '../errors/index.js';
 import { executeSignAuthorization } from '../internal/crypto/signAuthorization.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { assertValidResolvedConfig } from '../internal/validators/networkConfig.js';
 import { AuthConfigBuilder } from '../internal/auth/config/AuthConfigBuilder.js';
 import { AuthProofBuilder } from '../internal/auth/proof/AuthProofBuilder.js';
-import {
-  withWalletSignatureProofDefaults,
-  withMinuteSignatureProofDefaults,
-  withDualFactorProofDefaults
-} from '../internal/auth/defaults/authProofDefaults.js';
+import { AuthProofOrchestrator } from '../internal/auth/AuthProofOrchestrator.js';
+import { AuthManagementOps } from '../internal/auth/AuthManagementOps.js';
 
 /**
  * Main entry point for Monstera wallet operations on Oasis Sapphire.
@@ -168,6 +208,15 @@ class Monstera {
       getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
     });
     this._authConfigBuilder = new AuthConfigBuilder({ addresses: config.addresses });
+    this._authProofOrchestrator = new AuthProofOrchestrator({
+      config: this.config,
+      readProvider: this.readProvider
+    });
+    this._authManagementOps = new AuthManagementOps({
+      config: this.config,
+      authProofOrchestrator: this._authProofOrchestrator,
+      auth: this.auth
+    });
 
     // Check version in background only when explicitly enabled.
     if (config?.checkVersion === true && !MonsteraUtils.versionCheckDone) {
@@ -387,21 +436,21 @@ class Monstera {
   /**
    * Build the EIP-712 {@code authProof} for {@code WalletSignatureAuthenticator}.
    *
-   * Signs {@code WalletAuth(wallet, deadline)} typed data with the supplied {@code signer} and ABI-encodes
+   * Signs {@code WalletAuth(wallet, actionHash, deadline)} typed data with the supplied {@code signer} and ABI-encodes
    * {@code (uint256 deadline, bytes signature)}. {@code authenticatorAddr}, {@code chainId} and {@code deadline}
    * default from the SDK config (deadline = now + 1 hour).
    *
    * @public
    * @async
-   * @param {CreateAuthProofWalletSignatureOptions} options - Inputs for the proof
+   * @param {CreateAuthProofWalletSignatureOptions} options - Inputs for the proof ({@code action} or {@code actionHash} required)
    * @returns {Promise<EncodedAuthProofWalletSignature>} ABI-encoded auth proof bytes
-   * @throws {ValidationError} If {@code signer} is not a {@link EthersWallet}/{@link EthersHDNodeWallet}, or if {@code keyVaultAddr}, {@code authenticatorAddr}, {@code chainId}, or {@code deadline} are missing/invalid (e.g. deadline in the past)
+   * @throws {ValidationError} If {@code signer} is not a {@link EthersWallet}/{@link EthersHDNodeWallet}, addresses or {@code chainId}/{@code deadline} are invalid, or neither {@code action} nor {@code actionHash} is supplied
    * @throws {NetworkError} If the signer's transport fails during typed-data signing
    * @throws {WalletError} For other unrecognised signing failures
    */
   async createAuthProofWalletSignature(options = {}) {
-    const resolved = withWalletSignatureProofDefaults(this.config, options);
-    return createAuthProofWalletSignature(resolved);
+    const { authProof } = await this._authProofOrchestrator.prepare('walletSignature', options);
+    return authProof;
   }
 
   /**
@@ -409,46 +458,79 @@ class Monstera {
    *
    * Reads the latest block from the SDK read provider to derive the current minute bucket,
    * derives an ephemeral signer from {@code keccak256(passwordHash || minuteBucket)},
-   * signs the EIP-191 digest of {@code keccak256(wallet, authenticator, chainId, minuteBucket)},
+   * signs the EIP-191 digest of {@code keccak256(wallet, authenticator, chainId, minuteBucket, actionHash)},
    * and ABI-encodes {@code (bytes signature)}.
    *
    * @public
    * @async
-   * @param {CreateAuthProofMinuteSignatureOptions} options - Inputs ({@code keyVaultAddr}, {@code passwordHash}, optional {@code chainId} / {@code authenticatorAddr})
+   * @param {CreateAuthProofMinuteSignatureOptions} options - Inputs ({@code keyVaultAddr}, {@code passwordHash}, {@code action} or {@code actionHash}, optional {@code chainId} / {@code authenticatorAddr})
    * @returns {Promise<CreateAuthProofMinuteSignatureResult>} Encoded auth proof, minute bucket, and derived signer address
-   * @throws {ValidationError} If {@code keyVaultAddr}, {@code authenticatorAddr}, {@code chainId} are missing/invalid, or {@code passwordHash} is not a 32-byte hex string
+   * @throws {ValidationError} If {@code keyVaultAddr}, {@code authenticatorAddr}, {@code chainId} are missing/invalid, {@code passwordHash} is not a 32-byte hex string, or neither {@code action} nor {@code actionHash} is supplied
    * @throws {NetworkError} If the read provider fails to return the latest block
    */
   async createAuthProofMinuteSignature(options = {}) {
-    const resolved = withMinuteSignatureProofDefaults(this.config, options);
-    return createAuthProofMinuteSignature({
-      provider: this.readProvider,
-      ...resolved
-    });
+    const { authProof, minuteBucket, derivedAddress } = await this._authProofOrchestrator.prepare(
+      'minuteSignature',
+      options
+    );
+    return { authProof, minuteBucket, derivedAddress };
   }
 
   /**
    * Build the {@code authProof} for {@code DualFactorAuthenticator}.
    *
-   * Combines a minute-bucket password signature ({@link Monstera#createAuthProofMinuteSignature}) with a
-   * guardian EIP-712 signature over {@code DualFactorAuth(wallet, deadline)} and ABI-encodes
-   * {@code (bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}.
-   *
    * @public
    * @async
-   * @param {CreateAuthProofDualFactorOptions} options - Inputs ({@code keyVaultAddr}, {@code passwordHash}, guardian {@code signer}, optional {@code deadline}/{@code chainId}/{@code authenticatorAddr})
-   * @returns {Promise<EncodedAuthProofDualFactor>} ABI-encoded dual-factor auth proof bytes
-   * @throws {ValidationError} If addresses, {@code chainId}, {@code passwordHash}, {@code signer}, or {@code deadline} are missing/invalid
-   * @throws {NetworkError} If the read provider fails to return the latest block during the minute leg, or guardian signing fails over the network
-   * @throws {WalletError} For other unrecognised signing failures
+   * @param {CreateAuthProofDualFactorOptions} options
+   * @returns {Promise<EncodedAuthProofDualFactor>}
    */
   async createAuthProofDualFactor(options = {}) {
-    const resolved = withDualFactorProofDefaults(this.config, options);
-    return createAuthProofDualFactor({
-      provider: this.readProvider,
-      ...resolved
+    const { authProof } = await this._authProofOrchestrator.prepare('dualFactor', options);
+    return authProof;
+  }
+
+  /**
+   * Encode structured {@code authProof} for a KeyVault call, injecting {@code action} when omitted.
+   *
+   * @private
+   * @async
+   * @param {EncodeAuthProofInputOptions} options - Public KeyVault call options
+   * @param {(options: EncodeAuthProofInputOptions) => AuthActionInput} buildAction -
+   *   Builds the vault action ({@code selector} + {@code paramsHash}) for this call
+   * @returns {Promise<EncodeAuthProofOptionsResult>}
+   */
+  async _encodeVaultAuthProof(options, buildAction) {
+    const { authProof } = options;
+
+    if (!authProof || typeof authProof === 'string' || authProof instanceof Uint8Array) {
+      return this._authProofBuilder.encode(options);
+    }
+
+    if (typeof authProof !== 'object' || Array.isArray(authProof)) {
+      return this._authProofBuilder.encode(options);
+    }
+
+    if (authProof.action != null) {
+      return this._authProofBuilder.encode(options);
+    }
+
+    if (typeof buildAction !== 'function') {
+      throw new ValidationError(
+        'authProof.action is required for structured auth proofs on this call',
+        'authProof',
+        authProof
+      );
+    }
+
+    return this._authProofBuilder.encode({
+      ...options,
+      authProof: {
+        ...authProof,
+        action: buildAction(options)
+      }
     });
   }
+
 
   // ============================================================================
   // Initialize Methods (Write)
@@ -461,9 +543,9 @@ class Monstera {
    *
    * @public
    * @async
-   * @param {InitializeOptions} options - {@code keyVaultAddr}, {@code storageAddr}, {@code authenticatorAddr}, {@code accessToken}
+   * @param {InitializeOptions} options - {@code keyVaultAddr}, {@code storageAddr}, {@code authenticatorAddr}, {@code accessToken}, {@code authConfig}
    * @returns {Promise<BaseTransactionResult>} Standard write result ({@code success}, {@code transactionHash}, {@code blockNumber}, {@code gasUsed})
-   * @throws {ValidationError} If any address is invalid or {@code accessToken} is not a 32-byte hex string
+   * @throws {ValidationError} If any address is invalid, {@code authConfig} is missing, or {@code accessToken} is not a 32-byte hex string
    * @throws {WriteRequiresSignerError} If no signer is configured
    * @throws {NetworkError} If the RPC call to broadcast the transaction or fetch its receipt fails
    * @throws {ContractRevertError} If the transaction reverts on-chain
@@ -473,6 +555,25 @@ class Monstera {
    */
   async initialize(options = {}) {
     return this.keyVault.initialize(options);
+  }
+
+  /**
+   * Initialize a KeyVault with an explicit policy registry (factory-managed policy).
+   *
+   * Delegates to {@link KeyVaultClient#initializeExplicit}.
+   *
+   * @public
+   * @async
+   * @param {InitializeExplicitOptions} options - Same as {@link Monstera#initialize} plus required {@code policyRegistry}
+   * @returns {Promise<BaseTransactionResult>} Standard write result
+   * @throws {ValidationError} If any address is invalid, {@code authConfig} is missing, or {@code accessToken} is not a 32-byte hex string
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC call to broadcast the transaction or fetch its receipt fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async initializeExplicit(options = {}) {
+    return this.keyVault.initializeExplicit(options);
   }
 
   /**
@@ -518,9 +619,10 @@ class Monstera {
    */
   async configurePassword(options = {}) {
     const { keyVaultAddr, passwordHash } = options;
-
-    const authConfig = passwordHash;
-
+    const { authConfig } = this._authConfigBuilder.encode({
+      authConfig: { passwordHash },
+      authenticatorAddr: this.config.addresses.passwordAuth
+    });
     return this.auth.password.configure({ keyVaultAddr, authConfig });
   }
 
@@ -543,9 +645,10 @@ class Monstera {
    */
   async configureWalletSignature(options = {}) {
     const { keyVaultAddr, initialWhitelist } = options;
-
-    const authConfig = createWalletSigAuthConfig(initialWhitelist);
-
+    const { authConfig } = this._authConfigBuilder.encode({
+      authConfig: { initialWhitelist },
+      authenticatorAddr: this.config.addresses.walletSignatureAuth
+    });
     return this.auth.walletSignature.configure({ keyVaultAddr, authConfig });
   }
 
@@ -568,9 +671,10 @@ class Monstera {
    */
   async configureDualFactor(options = {}) {
     const { keyVaultAddr, passwordHash, guardianAddr } = options;
-
-    const authConfig = createDualFactorAuthConfig(passwordHash, guardianAddr);
-
+    const { authConfig } = this._authConfigBuilder.encode({
+      authConfig: { passwordHash, guardianAddr },
+      authenticatorAddr: this.config.addresses.dualFactorAuth
+    });
     return this.auth.dualFactor.configure({ keyVaultAddr, authConfig });
   }
 
@@ -593,9 +697,10 @@ class Monstera {
    */
   async configurePasswordMinuteSignature(options = {}) {
     const { keyVaultAddr, passwordHash } = options;
-
-    const authConfig = passwordHash;
-
+    const { authConfig } = this._authConfigBuilder.encode({
+      authConfig: { passwordHash },
+      authenticatorAddr: this.config.addresses.passwordMinuteSignatureAuth
+    });
     return this.auth.passwordMinuteSignature.configure({ keyVaultAddr, authConfig });
   }
 
@@ -849,6 +954,91 @@ class Monstera {
     return this.factory.getSecretVaultAddr(options);
   }
 
+  /**
+   * Get the KeyVault implementation used as the minimal-proxy clone template.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
+   * @returns {Promise<Address>} KeyVault template implementation address
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async getKeyVaultTemplate(options = {}) {
+    return this.factory.getKeyVaultTemplate(options);
+  }
+
+  /**
+   * Check whether an authenticator is globally allowed for new wallet creation.
+   *
+   * @public
+   * @async
+   * @param {FactoryAllowedAuthenticatorsOptions} options - {@code authenticatorAddr}
+   * @returns {Promise<boolean>} {@code true} if the authenticator is on the factory allowlist
+   * @throws {ValidationError} If {@code authenticatorAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async allowedAuthenticators(options = {}) {
+    return this.factory.allowedAuthenticators(options);
+  }
+
+  /**
+   * Check whether a KeyVault implementation is globally recommended for new wallets.
+   *
+   * @public
+   * @async
+   * @param {FactoryAllowedKeyVaultImplementationsOptions} options - {@code implementationAddr}
+   * @returns {Promise<boolean>} {@code true} if the implementation is on the factory allowlist
+   * @throws {ValidationError} If {@code implementationAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async allowedKeyVaultImplementations(options = {}) {
+    return this.factory.allowedKeyVaultImplementations(options);
+  }
+
+  /**
+   * Check whether a KeyVault implementation is approved via the factory policy registry.
+   *
+   * Distinct from {@link Monstera#isImplementationApproved}, which reads the KeyVault's local allowlist.
+   * Equivalent to {@link WalletFactoryClient#isImplementationApproved}.
+   *
+   * @public
+   * @async
+   * @param {FactoryIsImplementationApprovedOptions} options - {@code keyVaultAddr}, {@code implementationAddr}
+   * @returns {Promise<boolean>}
+   * @throws {ValidationError} If addresses are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isFactoryImplementationApproved(options = {}) {
+    return this.factory.isImplementationApproved(options);
+  }
+
+  /**
+   * Check whether an authenticator is approved via the factory policy registry.
+   *
+   * Distinct from {@link Monstera#isAuthenticatorApproved}, which reads the KeyVault's local allowlist.
+   * Equivalent to {@link WalletFactoryClient#isAuthenticatorApproved}.
+   *
+   * @public
+   * @async
+   * @param {FactoryIsAuthenticatorApprovedOptions} options - {@code keyVaultAddr}, {@code authenticatorAddr}
+   * @returns {Promise<boolean>}
+   * @throws {ValidationError} If addresses are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isFactoryAuthenticatorApproved(options = {}) {
+    return this.factory.isAuthenticatorApproved(options);
+  }
+
   // --- KeyVault Reads ---
 
   /**
@@ -916,6 +1106,102 @@ class Monstera {
   }
 
   /**
+   * Compute the canonical {@code actionHash} for a vault-authenticated call.
+   *
+   * @public
+   * @async
+   * @param {ComputeActionHashOptions} options - {@code keyVaultAddr}, 4-byte {@code selector}, and {@code paramsHash}
+   * @returns {Promise<Bytes32>} Action hash bound into auth proofs
+   * @throws {ValidationError} If {@code keyVaultAddr}, {@code selector}, or {@code paramsHash} are invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async computeActionHash(options = {}) {
+    return this.keyVault.computeActionHash(options);
+  }
+
+  /**
+   * Compute the custom implementation acknowledgement hash for {@code upgradeImplementationCustom}.
+   *
+   * @public
+   * @async
+   * @param {ComputeCustomImplementationAckHashOptions} options - {@code keyVaultAddr} and {@code newImplementation}
+   * @returns {Promise<Bytes32>}
+   * @throws {ValidationError} If addresses are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async computeCustomImplementationAckHash(options = {}) {
+    return this.keyVault.computeCustomImplementationAckHash(options);
+  }
+
+  /**
+   * Compute the custom authenticator acknowledgement hash for {@code changeAuthenticatorCustom}.
+   *
+   * @public
+   * @async
+   * @param {ComputeCustomAuthenticatorAckHashOptions} options - {@code keyVaultAddr}, {@code newAuthenticator}, {@code configHash}
+   * @returns {Promise<Bytes32>}
+   * @throws {ValidationError} If addresses or {@code configHash} are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async computeCustomAuthenticatorAckHash(options = {}) {
+    return this.keyVault.computeCustomAuthenticatorAckHash(options);
+  }
+
+  /**
+   * Read the policy registry address configured for a KeyVault.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<Address>}
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async getPolicyRegistry(options = {}) {
+    return this.keyVault.getPolicyRegistry(options);
+  }
+
+  /**
+   * Check whether an implementation is locally approved on a KeyVault.
+   *
+   * @public
+   * @async
+   * @param {IsImplementationApprovedOptions} options - {@code keyVaultAddr} and {@code implementation}
+   * @returns {Promise<boolean>}
+   * @throws {ValidationError} If addresses are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isImplementationApproved(options = {}) {
+    return this.keyVault.isImplementationApproved(options);
+  }
+
+  /**
+   * Check whether an authenticator is locally approved on a KeyVault.
+   *
+   * @public
+   * @async
+   * @param {IsAuthenticatorApprovedOptions} options - {@code keyVaultAddr} and {@code authenticator}
+   * @returns {Promise<boolean>}
+   * @throws {ValidationError} If addresses are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isAuthenticatorApproved(options = {}) {
+    return this.keyVault.isAuthenticatorApproved(options);
+  }
+
+  /**
    * Get the wallet's HD account address at a given index.
    *
    * @public
@@ -966,7 +1252,18 @@ class Monstera {
    */
   async signTransaction(options = {}) {
     return this.keyVault.signTransaction(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildSignTransactionAction({
+          index: o.index,
+          nonce: o.nonce,
+          gasPrice: o.gasPrice,
+          gasLimit: o.gasLimit,
+          to: o.to,
+          value: o.value,
+          txData: o.txData,
+          chainId: o.chainId
+        })
+      )
     );
   }
 
@@ -984,7 +1281,9 @@ class Monstera {
    */
   async signMessage(options = {}) {
     return this.keyVault.signMessage(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildSignMessageAction({ index: o.index, message: o.message })
+      )
     );
   }
 
@@ -1002,7 +1301,9 @@ class Monstera {
    */
   async sign(options = {}) {
     return this.keyVault.sign(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildSignAction({ index: o.index, digest: o.hash })
+      )
     );
   }
 
@@ -1033,10 +1334,11 @@ class Monstera {
     return executeSignAuthorization(
       {
         keyVault: this.keyVault,
-        fallbackProvider: this.readProvider ?? this.writeSigner?.provider ?? null
+        fallbackProvider: this.readProvider ?? this.writeSigner?.provider ?? null,
+        encodeVaultAuthProof: (opts, buildAction) => this._encodeVaultAuthProof(opts, buildAction)
       },
-      await this._authProofBuilder.encode(options),
-      options
+      options,
+      buildExecuteWithAuthAction
     );
   }
 
@@ -1057,7 +1359,9 @@ class Monstera {
    */
   async executeWithAuth(options = {}) {
     return this.keyVault.executeWithAuth(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildExecuteWithAuthAction({ implCall: o.implCall })
+      )
     );
   }
 
@@ -1123,7 +1427,9 @@ class Monstera {
    */
   async signWithImportedKey(options = {}) {
     return this.keyVault.signWithImportedKey(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildSignWithImportedKeyAction({ keyId: o.keyId, digest: o.digest })
+      )
     );
   }
 
@@ -1173,7 +1479,9 @@ class Monstera {
    */
   async signSolana(options = {}) {
     return this.keyVault.signSolana(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildSignSolanaAction({ index: o.index, message: o.message })
+      )
     );
   }
 
@@ -1208,9 +1516,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordValid(options = {}) {
-    const { keyVaultAddr, currentPassword } = options;
-    const authProof = currentPassword;
-    return this.auth.password.verify({ keyVaultAddr, authProof });
+    const { authProof, action } = await this._authProofOrchestrator.prepare(
+      'password',
+      {
+        keyVaultAddr: options.keyVaultAddr,
+        password: options.currentPassword
+      },
+      { includeAuthContext: true, useVerifyProbe: true }
+    );
+    return this.auth.password.verify({ keyVaultAddr: options.keyVaultAddr, authProof, action });
   }
 
   /**
@@ -1290,9 +1604,16 @@ class Monstera {
    * @throws {ContractRevertError} If the underlying call reverts
    * @throws {WalletError} For other unrecognised failures
    */
-  async isWalletSignatureValid(options = {}) {    
-    const authProof = await this.createAuthProofWalletSignature(options);
-    return this.auth.walletSignature.verify({keyVaultAddr: options.keyVaultAddr, authProof});
+  async isWalletSignatureValid(options = {}) {
+    const { authProof, action } = await this._authProofOrchestrator.prepare('walletSignature', options, {
+      includeAuthContext: true,
+      useVerifyProbe: true
+    });
+    return this.auth.walletSignature.verify({
+      keyVaultAddr: options.keyVaultAddr,
+      authProof,
+      action
+    });
   }
 
   /**
@@ -1324,8 +1645,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordDualFactorValid(options = {}) {
-    const authProof = await this.createAuthProofDualFactor(options);
-    return this.auth.dualFactor.verify({ keyVaultAddr: options.keyVaultAddr, authProof });
+    const { authProof, action } = await this._authProofOrchestrator.prepare('dualFactor', options, {
+      includeAuthContext: true,
+      useVerifyProbe: true
+    });
+    return this.auth.dualFactor.verify({
+      keyVaultAddr: options.keyVaultAddr,
+      authProof,
+      action
+    });
   }
 
   /**
@@ -1381,20 +1709,19 @@ class Monstera {
    * @public
    * @async
    * @param {CreateAuthProofMinuteSignatureOptions} options - Same inputs as {@link Monstera#createAuthProofMinuteSignature}
-   * @returns {Promise<boolean>} {@code true} if the signature matches the derived signer for the current minute bucket
+   * @returns {Promise<boolean>} {@code true} if the signature matches the derived signer for the current minute bucket and action
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {NetworkError} If the read provider fails to return the latest block, or the verify RPC call fails
    * @throws {ContractRevertError} If the underlying call reverts
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordMinuteSignatureValid(options = {}) {
-    const { keyVaultAddr, passwordHash } = options;
-    const proofData = await this.createAuthProofMinuteSignature({
-      keyVaultAddr,
-      passwordHash
+    const { keyVaultAddr } = options;
+    const { authProof, action } = await this._authProofOrchestrator.prepare('minuteSignature', options, {
+      includeAuthContext: true,
+      useVerifyProbe: true
     });
-    const authProof = proofData.authProof;
-    return this.auth.passwordMinuteSignature.verify({ keyVaultAddr, authProof });
+    return this.auth.passwordMinuteSignature.verify({ keyVaultAddr, authProof, action });
   }
 
 
@@ -1447,6 +1774,82 @@ class Monstera {
     return this.factory.transferAdmin(options);
   }
 
+  /**
+   * Allow or disallow an authenticator for new wallet creation (factory admin only).
+   *
+   * @public
+   * @async
+   * @param {SetAuthenticatorAllowedOptions} options - {@code authenticatorAddr}, {@code allowed}
+   * @returns {Promise<SetAuthenticatorAllowedResult>}
+   * @throws {ValidationError} If {@code authenticatorAddr} is missing/invalid or {@code allowed} is not a boolean
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
+   * @throws {EventNotFoundError} If the {@code AuthenticatorAllowed} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async setAuthenticatorAllowed(options = {}) {
+    return this.factory.setAuthenticatorAllowed(options);
+  }
+
+  /**
+   * Allow or disallow a KeyVault implementation for new wallet creation (factory admin only).
+   *
+   * @public
+   * @async
+   * @param {SetKeyVaultImplementationAllowedOptions} options - {@code implementationAddr}, {@code allowed}
+   * @returns {Promise<SetKeyVaultImplementationAllowedResult>}
+   * @throws {ValidationError} If {@code implementationAddr} is missing/invalid or {@code allowed} is not a boolean
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
+   * @throws {EventNotFoundError} If the {@code KeyVaultImplementationAllowed} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async setKeyVaultImplementationAllowed(options = {}) {
+    return this.factory.setKeyVaultImplementationAllowed(options);
+  }
+
+  /**
+   * Allow or disallow a KeyVault implementation for a specific wallet via the factory policy registry (factory admin only).
+   *
+   * @public
+   * @async
+   * @param {SetWalletImplementationAllowedOptions} options - {@code walletOrKeyVaultAddr}, {@code implementationAddr}, {@code allowed}
+   * @returns {Promise<SetWalletImplementationAllowedResult>}
+   * @throws {ValidationError} If addresses are missing/invalid or {@code allowed} is not a boolean
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
+   * @throws {EventNotFoundError} If the {@code WalletImplementationAllowed} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async setWalletImplementationAllowed(options = {}) {
+    return this.factory.setWalletImplementationAllowed(options);
+  }
+
+  /**
+   * Allow or disallow an authenticator for a specific wallet via the factory policy registry (factory admin only).
+   *
+   * @public
+   * @async
+   * @param {SetWalletAuthenticatorAllowedOptions} options - {@code walletOrKeyVaultAddr}, {@code authenticatorAddr}, {@code allowed}
+   * @returns {Promise<SetWalletAuthenticatorAllowedResult>}
+   * @throws {ValidationError} If addresses are missing/invalid or {@code allowed} is not a boolean
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
+   * @throws {EventNotFoundError} If the {@code WalletAuthenticatorAllowed} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async setWalletAuthenticatorAllowed(options = {}) {
+    return this.factory.setWalletAuthenticatorAllowed(options);
+  }
+
   // --- KeyVault Writes ---
 
   /**
@@ -1466,7 +1869,35 @@ class Monstera {
    */
   async updateKeyVaultImplAddr(options = {}) {
     return this.keyVault.updateKeyVaultImplAddr(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildUpgradeImplementationAction({ newImplAddr: o.newImplAddr })
+      )
+    );
+  }
+
+  /**
+   * Upgrade a KeyVault implementation via the custom acknowledgement path.
+   *
+   * @public
+   * @async
+   * @param {UpdateKeyVaultImplCustomOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code newImplAddr}, {@code customAckHash}
+   * @returns {Promise<UpdateKeyVaultImplAddrCustomResult>}
+   * @throws {ValidationError} If addresses, {@code authProof}, or {@code customAckHash} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code CustomImplementationUpgraded} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async updateKeyVaultImplAddrCustom(options = {}) {
+    return this.keyVault.updateKeyVaultImplAddrCustom(
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildUpgradeImplementationCustomAction({
+          newImplAddr: o.newImplAddr,
+          customAckHash: o.customAckHash
+        })
+      )
     );
   }
 
@@ -1487,7 +1918,39 @@ class Monstera {
    */
   async updateAuthenticatorAddr(options = {}) {
     return this.keyVault.updateAuthenticatorAddr(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildChangeAuthenticatorAction({
+          newAuthenticatorAddr: o.newAuthenticatorAddr,
+          newAuthConfig: o.newAuthConfig
+        })
+      )
+    );
+  }
+
+  /**
+   * Swap the authenticator via the custom acknowledgement path.
+   *
+   * @public
+   * @async
+   * @param {UpdateAuthenticatorCustomOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code newAuthenticatorAddr}, {@code newAuthConfig}, {@code customAckHash}
+   * @returns {Promise<UpdateAuthenticatorAddrCustomResult>}
+   * @throws {ValidationError} If addresses, {@code authProof}, {@code newAuthConfig}, or {@code customAckHash} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
+   * @throws {EventNotFoundError} If the {@code CustomAuthenticatorChanged} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async updateAuthenticatorAddrCustom(options = {}) {
+    return this.keyVault.updateAuthenticatorAddrCustom(
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildChangeAuthenticatorCustomAction({
+          newAuthenticatorAddr: o.newAuthenticatorAddr,
+          newAuthConfig: o.newAuthConfig,
+          customAckHash: o.customAckHash
+        })
+      )
     );
   }
 
@@ -1508,7 +1971,16 @@ class Monstera {
    */
   async importKey(options = {}) {
     return this.keyVault.importKey(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildImportKeyAction({
+          keyId: o.keyId,
+          privateKey: o.privateKey,
+          publicKey: o.publicKey,
+          curve: o.curve,
+          chain: o.chain,
+          label: o.label
+        })
+      )
     );
   }
 
@@ -1531,7 +2003,9 @@ class Monstera {
    */
   async deactivateKey(options = {}) {
     return this.keyVault.deactivateKey(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildDeactivateKeyAction({ keyId: o.keyId })
+      )
     );
   }
 
@@ -1552,7 +2026,9 @@ class Monstera {
    */
   async activateKey(options = {}) {
     return this.keyVault.activateKey(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildActivateKeyAction({ keyId: o.keyId })
+      )
     );
   }
 
@@ -1573,7 +2049,13 @@ class Monstera {
    */
   async setChainBaseKeys(options = {}) {
     return this.keyVault.setChainBaseKeys(
-      await this._authProofBuilder.encode(options)
+      await this._encodeVaultAuthProof(options, (o) =>
+        buildSetChainBaseKeysAction({
+          chain: o.chain,
+          basePrivateKey: o.basePrivateKey,
+          baseChainCode: o.baseChainCode
+        })
+      )
     );
   }
 
@@ -1595,7 +2077,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePassword(options = {}) {
-    return this.auth.password.updatePassword(options);
+    return this._authManagementOps.updatePassword(options);
   }
 
   /**
@@ -1617,8 +2099,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async addToWhitelist(options = {}) {
-    const authProof = await this.createAuthProofWalletSignature(options);
-    return this.auth.walletSignature.addToWhitelist({keyVaultAddr: options.keyVaultAddr, authProof, addressToAdd: options.addressToAdd});
+    return this._authManagementOps.addToWhitelist(options);
   }
 
   /**
@@ -1637,8 +2118,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async removeFromWhitelist(options = {}) {
-    const authProof = await this.createAuthProofWalletSignature(options);
-    return this.auth.walletSignature.removeFromWhitelist({keyVaultAddr: options.keyVaultAddr, authProof, addressToRemove: options.addressToRemove});
+    return this._authManagementOps.removeFromWhitelist(options);
   }
 
   /**
@@ -1660,8 +2140,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordDualFactor(options = {}) {
-    const authProof = await this.createAuthProofDualFactor(options);
-    return this.auth.dualFactor.updatePassword({ keyVaultAddr: options.keyVaultAddr, authProof, newPasswordHash: options.newPasswordHash });
+    return this._authManagementOps.updatePasswordDualFactor(options);
   }
 
   /**
@@ -1680,8 +2159,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updateGuardian(options = {}) {
-    const authProof = await this.createAuthProofDualFactor(options);
-    return this.auth.dualFactor.updateGuardian({ keyVaultAddr: options.keyVaultAddr, authProof, newGuardian: options.newGuardian });
+    return this._authManagementOps.updateGuardian(options);
   }
 
   /**
@@ -1701,7 +2179,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordMinuteSignature(options = {}) {
-    return this.auth.passwordMinuteSignature.updatePassword(options);
+    return this._authManagementOps.updatePasswordMinuteSignature(options);
   }
 }
 

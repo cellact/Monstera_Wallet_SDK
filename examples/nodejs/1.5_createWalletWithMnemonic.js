@@ -6,6 +6,9 @@
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x...
  *   PASSWORD=mysecretpassword123
+ *
+ * Optional env vars:
+ *   MNEMONIC="word1 word2 ..." (defaults to a well-known BIP39 test phrase)
  * 
  * This creates:
  *   - WalletStorage (holds private keys, locked to KeyVault)
@@ -19,9 +22,10 @@ import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.PASSWORD;
-// Example: Use a valid BIP39 mnemonic (12 words from the BIP39 wordlist)
-// This is a well-known test mnemonic - in production, use a secure randomly generated one
-const MNEMONIC = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+// Example: well-known BIP39 test mnemonic — override via MNEMONIC env in production
+const MNEMONIC =
+  process.env.MNEMONIC ||
+  'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
 
 const sdk = Monstera.connect({
   mainnet: false,
@@ -33,6 +37,11 @@ async function main() {
   console.log("=".repeat(60));
   console.log("Step 1.5: Create HD wallet from mnemonic");
   console.log("=".repeat(60));
+
+  if (!SIGNER_PRIVATE_KEY || !PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY and PASSWORD env vars");
+    process.exit(1);
+  }
 
   // ============ STEP 1: Get signer address ============
   console.log("\n" + "=".repeat(60));

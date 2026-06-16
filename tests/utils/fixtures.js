@@ -1,7 +1,14 @@
 import { Wallet } from '../../src/adapters/ethers/index.js';
 import { ZeroAddress } from '../../src/adapters/ethers/addresses.js';
 import { defaultAbiCoder } from '../../src/adapters/ethers/encoding.js';
-import { toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { toUtf8Bytes, keccak256 } from '../../src/adapters/ethers/hashing.js';
+import { computeParamsHash } from '../../src/internal/crypto/authContext.js';
+import {
+  buildSignMessageAction,
+  buildChangeAuthenticatorAction
+} from '../../src/internal/crypto/actions/keyVault.js';
+import { getSelector } from '../../src/internal/crypto/getSelector.js';
+import { KEYVAULT_ABI } from '../../src/contracts/abi/core/keyVault.js';
 import { nowUnixTimestampSeconds } from '../../src/internal/utils/time.js';
 
 /**
@@ -11,6 +18,19 @@ import { nowUnixTimestampSeconds } from '../../src/internal/utils/time.js';
  */
 export function createPasswordAuthProof(password) {
   return toUtf8Bytes(password);
+}
+
+/**
+ * Structured password auth proof input for {@link AuthProofBuilder}.
+ *
+ * @param {string} password
+ * @param {import('../../src/types/index.js').AuthActionInput} action
+ */
+export function createPasswordAuthProofInput(password, action) {
+  return {
+    password: createPasswordAuthProof(password),
+    action
+  };
 }
 
 /**
@@ -40,7 +60,7 @@ export function calculateDeadline(hoursFromNow = 1) {
  * @param {number} options.deadline - Deadline timestamp (optional)
  * @returns {Promise<string>} Auth proof signature
  */
-export async function createWalletSigAuthProof({ sdk, keyVaultAddr, signerWallet, deadline }) {
+export async function createWalletSigAuthProof({ sdk, keyVaultAddr, signerWallet, deadline, action }) {
   if (!deadline) {
     deadline = calculateDeadline();
   }
@@ -48,7 +68,8 @@ export async function createWalletSigAuthProof({ sdk, keyVaultAddr, signerWallet
   return await sdk.createAuthProofWalletSignature({
     keyVaultAddr,
     signer: signerWallet,
-    deadline
+    deadline,
+    action
   });
 }
 
@@ -121,6 +142,56 @@ export function createDefaultAuthProofParams(overrides = {}) {
     authenticatorAddr: VALID_TEST_ADDRESS,
     keyVaultAddr: VALID_TEST_ADDRESS,
     deadline: calculateDeadline(1),
+    actionHash: keccak256(toUtf8Bytes('default-auth-proof-action-hash')),
     ...overrides
+  };
+}
+
+/**
+ * Build a deterministic KeyVault {@code sign} action input for dual-factor proof tests.
+ *
+ * @param {Object} [params={}]
+ * @param {number} [params.index=0]
+ * @param {string} [params.digest] - 32-byte hex digest (defaults to zero)
+ * @returns {import('../../src/types/index.js').AuthActionInput}
+ */
+export function createTestVaultSignAction({ index = 0, digest = `0x${'00'.repeat(32)}` } = {}) {
+  return {
+    selector: getSelector(KEYVAULT_ABI, 'sign'),
+    paramsHash: computeParamsHash(['uint32', 'bytes32'], [index, digest])
+  };
+}
+
+/**
+ * @param {number} index
+ * @param {Uint8Array} messageBytes
+ * @returns {import('../../src/types/index.js').AuthActionInput}
+ */
+export function createVaultSignMessageAction(index, messageBytes) {
+  return buildSignMessageAction({ index, message: messageBytes });
+}
+
+/**
+ * @param {string} newAuthenticatorAddr
+ * @param {string} newAuthConfigHex
+ * @returns {import('../../src/types/index.js').AuthActionInput}
+ */
+export function createChangeAuthenticatorAction(newAuthenticatorAddr, newAuthConfigHex) {
+  return buildChangeAuthenticatorAction({
+    newAuthenticatorAddr,
+    newAuthConfig: newAuthConfigHex
+  });
+}
+
+/**
+ * @param {string} functionName
+ * @param {string[]} types
+ * @param {unknown[]} values
+ * @returns {import('../../src/types/index.js').AuthActionInput}
+ */
+export function createVaultAction(functionName, types, values) {
+  return {
+    selector: getSelector(KEYVAULT_ABI, functionName),
+    paramsHash: computeParamsHash(types, values)
   };
 }

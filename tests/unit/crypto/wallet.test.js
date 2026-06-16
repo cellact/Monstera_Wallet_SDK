@@ -24,8 +24,10 @@ import {
   createWalletSigAuthConfig,
   createDualFactorAuthConfig,
   createAuthProofMinuteSignature,
-  createAuthProofDualFactor
+  createAuthProofDualFactor,
+  computeParamsHash
 } from '../../../src/internal/crypto/index.js';
+import { createTestVaultSignAction } from '../../utils/fixtures.js';
 import { floorTimestampToMinuteBucket, nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 import { NetworkError } from '../../../src/errors/index.js';
 
@@ -66,10 +68,7 @@ describe('Wallet Crypto Utilities', () => {
 
       const authProof = await createAuthProofWalletSignature({
         signer,
-        chainId,
-        authenticatorAddr,
-        deadline,
-        keyVaultAddr
+        ...defaultParams
       });
       expect(authProof).toBeDefined();
       expect(typeof authProof).toBe('string');
@@ -82,46 +81,31 @@ describe('Wallet Crypto Utilities', () => {
       await expect(
         createAuthProofWalletSignature({
           signer: null,
-          chainId,
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams
         })
       ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
       await expect(
         createAuthProofWalletSignature({
           signer: undefined,
-          chainId,
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams
         })
       ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ (123),
-          chainId,
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams
         })
       ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ ('invalid'),
-          chainId,
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams
         })
       ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ (randomAddress()),
-          chainId,
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams
         })
       ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
     });
@@ -132,28 +116,22 @@ describe('Wallet Crypto Utilities', () => {
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId: null,
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams,
+          chainId: null
         })
       ).rejects.toThrow('chainId is required and must be a chain id');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId: undefined,
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams,
+          chainId: undefined
         })
       ).rejects.toThrow('chainId is required and must be a chain id');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId: /** @type {any} */ ({ chainId }),
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams,
+          chainId: /** @type {any} */ ({ chainId })
         })
       ).rejects.toThrow(
         'chainId must be a finite chain id (number, bigint, decimal string, or hex string)'
@@ -161,10 +139,8 @@ describe('Wallet Crypto Utilities', () => {
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId: /** @type {any} */ ([]),
-          authenticatorAddr,
-          deadline,
-          keyVaultAddr
+          ...defaultParams,
+          chainId: /** @type {any} */ ([])
         })
       ).rejects.toThrow(
         'chainId must be a finite chain id (number, bigint, decimal string, or hex string)'
@@ -177,37 +153,29 @@ describe('Wallet Crypto Utilities', () => {
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr: null,
-          deadline,
-          keyVaultAddr
+          ...defaultParams,
+          authenticatorAddr: null
         })
       ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr: undefined,
-          deadline,
-          keyVaultAddr
+          ...defaultParams,
+          authenticatorAddr: undefined
         })
       ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr: /** @type {any} */ (123),
-          deadline,
-          keyVaultAddr
+          ...defaultParams,
+          authenticatorAddr: /** @type {any} */ (123)
         })
       ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr: /** @type {any} */ ({ address: authenticatorAddr }),
-          deadline,
-          keyVaultAddr
+          ...defaultParams,
+          authenticatorAddr: /** @type {any} */ ({ address: authenticatorAddr })
         })
       ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
     });
@@ -218,36 +186,28 @@ describe('Wallet Crypto Utilities', () => {
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline,
+          ...defaultParams,
           keyVaultAddr: null
         })
       ).rejects.toThrow('keyVaultAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline,
+          ...defaultParams,
           keyVaultAddr: undefined
         })
       ).rejects.toThrow('keyVaultAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline,
+          ...defaultParams,
           keyVaultAddr: /** @type {any} */ (123)
         })
       ).rejects.toThrow('keyVaultAddr is required and must be a non-empty string');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline,
+          ...defaultParams,
           keyVaultAddr: /** @type {any} */ ({ address: keyVaultAddr })
         })
       ).rejects.toThrow('keyVaultAddr is required and must be a non-empty string');
@@ -259,37 +219,29 @@ describe('Wallet Crypto Utilities', () => {
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline: null,
-          keyVaultAddr
+          ...defaultParams,
+          deadline: null
         })
       ).rejects.toThrow('deadline is required');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline: undefined,
-          keyVaultAddr
+          ...defaultParams,
+          deadline: undefined
         })
       ).rejects.toThrow('deadline is required');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline: 123.5,
-          keyVaultAddr
+          ...defaultParams,
+          deadline: 123.5
         })
       ).rejects.toThrow('deadline must be an integer');
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline: /** @type {any} */ ({ deadline }),
-          keyVaultAddr
+          ...defaultParams,
+          deadline: /** @type {any} */ ({ deadline })
         })
       ).rejects.toThrow('deadline is required and must be a number or BigInt');
     });
@@ -301,12 +253,20 @@ describe('Wallet Crypto Utilities', () => {
       await expect(
         createAuthProofWalletSignature({
           signer: testSigner,
-          chainId,
-          authenticatorAddr,
-          deadline: pastDeadline,
-          keyVaultAddr
+          ...defaultParams,
+          deadline: pastDeadline
         })
       ).rejects.toThrow('deadline must be in the future');
+    });
+
+    test('should throw if actionHash is missing', async () => {
+      await expect(
+        createAuthProofWalletSignature({
+          signer: testSigner,
+          ...defaultParams,
+          actionHash: undefined
+        })
+      ).rejects.toThrow('actionHash is required and must be a non-empty string');
     });
   });
 
@@ -371,6 +331,7 @@ describe('Wallet Crypto Utilities', () => {
 
   describe('createAuthProofMinuteSignature', () => {
     const passwordHash = keccak256(toUtf8Bytes('minute-test'));
+    const actionHash = keccak256(toUtf8Bytes('minute-test-action-hash'));
 
     function mockProvider(timestampSeconds) {
       return {
@@ -390,7 +351,8 @@ describe('Wallet Crypto Utilities', () => {
         keyVaultAddr: VALID_TEST_ADDRESS,
         authenticatorAddr: VALID_TEST_ADDRESS,
         chainId: '23295',
-        passwordHash
+        passwordHash,
+        actionHash
       });
 
       expect(result.minuteBucket).toBe(minuteBucket);
@@ -406,12 +368,13 @@ describe('Wallet Crypto Utilities', () => {
 
       const payloadHash = keccak256(
         solidityPacked(
-          ['address', 'address', 'uint256', 'uint256'],
+          ['address', 'address', 'uint256', 'uint256', 'bytes32'],
           [
             VALID_TEST_ADDRESS,
             VALID_TEST_ADDRESS,
             BigInt(23295),
-            BigInt(minuteBucket)
+            BigInt(minuteBucket),
+            actionHash
           ]
         )
       );
@@ -428,7 +391,8 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr: VALID_TEST_ADDRESS,
           authenticatorAddr: VALID_TEST_ADDRESS,
           chainId: '23295',
-          passwordHash
+          passwordHash,
+          actionHash
         })
       ).rejects.toThrow('provider must expose getBlock');
 
@@ -438,7 +402,8 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr: VALID_TEST_ADDRESS,
           authenticatorAddr: VALID_TEST_ADDRESS,
           chainId: '23295',
-          passwordHash
+          passwordHash,
+          actionHash
         })
       ).rejects.toThrow('provider must expose getBlock');
     });
@@ -456,7 +421,8 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr: VALID_TEST_ADDRESS,
           authenticatorAddr: VALID_TEST_ADDRESS,
           chainId: '23295',
-          passwordHash
+          passwordHash,
+          actionHash
         })
       ).rejects.toThrow(NetworkError);
     });
@@ -470,7 +436,8 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr: INVALID_ADDRESS,
           authenticatorAddr: VALID_TEST_ADDRESS,
           chainId: '23295',
-          passwordHash
+          passwordHash,
+          actionHash
         })
       ).rejects.toThrow('keyVaultAddr must be a valid Ethereum address');
 
@@ -480,7 +447,8 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr: VALID_TEST_ADDRESS,
           authenticatorAddr: null,
           chainId: '23295',
-          passwordHash
+          passwordHash,
+          actionHash
         })
       ).rejects.toThrow('authenticatorAddr is required and must be a non-empty string');
 
@@ -490,7 +458,8 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr: VALID_TEST_ADDRESS,
           authenticatorAddr: VALID_TEST_ADDRESS,
           chainId: /** @type {any} */ ({}),
-          passwordHash
+          passwordHash,
+          actionHash
         })
       ).rejects.toThrow(
         'chainId must be a finite chain id (number, bigint, decimal string, or hex string)'
@@ -502,14 +471,40 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr: VALID_TEST_ADDRESS,
           authenticatorAddr: VALID_TEST_ADDRESS,
           chainId: '23295',
-          passwordHash: '0x1234'
+          passwordHash: '0x1234',
+          actionHash
         })
       ).rejects.toThrow('passwordHash must be a 32-byte hex string value');
+
+      await expect(
+        createAuthProofMinuteSignature({
+          provider,
+          keyVaultAddr: VALID_TEST_ADDRESS,
+          authenticatorAddr: VALID_TEST_ADDRESS,
+          chainId: '23295',
+          passwordHash
+        })
+      ).rejects.toThrow('actionHash is required and must be a non-empty string');
     });
   });
 
   describe('createAuthProofDualFactor', () => {
     const passwordHash = keccak256(toUtf8Bytes('dual-factor-test'));
+
+    function mockActionHash(defaultParams) {
+      const action = createTestVaultSignAction();
+      return computeParamsHash(
+        ['bytes32', 'uint256', 'address', 'address', 'bytes4', 'bytes32'],
+        [
+          keccak256(toUtf8Bytes('MONSTERA_AUTH_CONTEXT_V1')),
+          BigInt(defaultParams.chainId),
+          defaultParams.keyVaultAddr,
+          defaultParams.keyVaultAddr,
+          action.selector,
+          action.paramsHash
+        ]
+      );
+    }
 
     function mockProvider(timestampSeconds) {
       return {
@@ -524,6 +519,8 @@ describe('Wallet Crypto Utilities', () => {
       const signer = new Wallet(TEST_SIGNER);
       const deadline = defaultParams.deadline;
 
+      const actionHash = mockActionHash(defaultParams);
+
       const encoded = await createAuthProofDualFactor({
         provider: mockProvider(1735689625),
         keyVaultAddr: defaultParams.keyVaultAddr,
@@ -531,7 +528,8 @@ describe('Wallet Crypto Utilities', () => {
         signer,
         authenticatorAddr: defaultParams.authenticatorAddr,
         deadline,
-        chainId: defaultParams.chainId
+        chainId: defaultParams.chainId,
+        actionHash
       });
 
       expect(encoded.startsWith('0x')).toBe(true);
@@ -552,10 +550,15 @@ describe('Wallet Crypto Utilities', () => {
       const types = {
         DualFactorAuth: [
           { name: 'wallet', type: 'address' },
+          { name: 'actionHash', type: 'bytes32' },
           { name: 'deadline', type: 'uint256' }
         ]
       };
-      const value = { wallet: defaultParams.keyVaultAddr, deadline };
+      const value = {
+        wallet: defaultParams.keyVaultAddr,
+        actionHash,
+        deadline
+      };
 
       const expectedGuardianSig = await signer.signTypedData(domain, types, value);
       expect(guardianSignature).toBe(expectedGuardianSig);
@@ -563,6 +566,7 @@ describe('Wallet Crypto Utilities', () => {
 
     test('should throw if deadline is in the past', async () => {
       const past = nowUnixTimestampSeconds() - 3600;
+      const actionHash = mockActionHash(createDefaultAuthProofParams());
 
       await expect(
         createAuthProofDualFactor({
@@ -572,12 +576,15 @@ describe('Wallet Crypto Utilities', () => {
           signer: new Wallet(TEST_SIGNER),
           authenticatorAddr: VALID_TEST_ADDRESS,
           deadline: past,
-          chainId: '23295'
+          chainId: '23295',
+          actionHash
         })
       ).rejects.toThrow('deadline must be in the future');
     });
 
     test('should throw if signer is not a Wallet or HDNodeWallet', async () => {
+      const actionHash = mockActionHash(createDefaultAuthProofParams());
+
       await expect(
         createAuthProofDualFactor({
           provider: mockProvider(1735689625),
@@ -586,7 +593,8 @@ describe('Wallet Crypto Utilities', () => {
           signer: /** @type {any} */ (null),
           authenticatorAddr: VALID_TEST_ADDRESS,
           deadline: createDefaultAuthProofParams().deadline,
-          chainId: '23295'
+          chainId: '23295',
+          actionHash
         })
       ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
     });

@@ -14,6 +14,7 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
+ * @typedef {import('../../types/index.js').AuthContext} AuthContext
  * @typedef {import('../../types/index.js').PasswordMinuteClientVerifyOptions} PasswordMinuteClientVerifyOptions
  * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
  * @typedef {import('../../types/index.js').PasswordMinuteClientConfigureOptions} PasswordMinuteClientConfigureOptions
@@ -24,7 +25,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getPasswordMinuteSignatureAuthenticatorContract } from '../../contracts/authenticators/PasswordMinuteSignatureAuthenticator.js';
 import { PasswordMinuteSignatureAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireNonEmptyBytes, requireBytes32, requireUtf8Bytes } from '../../internal/assert.js';
+import { requireAddress, requireBytes32, requireNonEmptyBytes, requireObject } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -78,13 +79,13 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify a minute-bucket ECDSA signature.
+   * Verify a minute-bucket ECDSA signature bound to an action.
    *
    * @public
    * @async
-   * @param {PasswordMinuteClientVerifyOptions} options - {@code keyVaultAddr} and ABI-encoded {@code authProof}
-   * @returns {Promise<boolean>} {@code true} if the signature is valid for the current minute bucket
-   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authProof} is not non-empty bytes
+   * @param {PasswordMinuteClientVerifyOptions} options - {@code keyVaultAddr}, {@code action}, and ABI-encoded {@code authProof}
+   * @returns {Promise<boolean>} {@code true} if the signature is valid for the current minute bucket and action
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid, {@code action} is missing, or {@code authProof} is not non-empty bytes
    * @throws {NetworkError} If the read call fails over RPC
    * @throws {ContractRevertError} If the underlying call reverts
    * @throws {WalletError} For other unrecognised failures
@@ -92,14 +93,15 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
    * @remarks
    * Contract expects {@code authProof = abi.encode(bytes signature)} where {@code signature} is a
    * 65-byte secp256k1 signature. The contract hashes
-   * {@code keccak256(abi.encodePacked(wallet, address(this), chainId, minuteBucket))}, applies EIP-191,
-   * derives a deterministic signing key from {@code (passwordHash, minuteBucket)} via Sapphire, and checks
-   * {@code recover(digest, signature)} matches that derived address.
+   * {@code keccak256(abi.encodePacked(wallet, address(this), chainId, minuteBucket, actionHash))},
+   * applies EIP-191, derives a deterministic signing key from {@code (passwordHash, minuteBucket)} via
+   * Sapphire, and checks {@code recover(digest, signature)} matches that derived address.
    */
   async verify(options = {}) {
-    const { keyVaultAddr, authProof } = options;
+    const { keyVaultAddr, authProof, action } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
+    requireObject(action, 'action');
     log.info('PasswordMinuteSignatureAuthenticator: verify');
     log.debug('Verifying minute signature for keyVault', sanitizer.forLog(options));
 
@@ -107,7 +109,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
 
     return this.executeRead(
       {
-        operation: () => passwordAuth.verify(keyVaultAddr, authProof),
+        operation: () => passwordAuth.verify(keyVaultAddr, action, authProof),
         methodName: 'verify minute signature',
         ...options
       }
@@ -119,11 +121,11 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Replace the stored password hash. Caller must supply the current UTF-8 password buffer.
+   * Replace the stored password hash. Caller must supply the current action-bound password proof.
    *
    * @public
    * @async
-   * @param {UpdatePasswordOptions} options - {@code keyVaultAddr}, {@code currentPassword} (UTF-8 {@link Uint8Array}), {@code newPasswordHash}
+   * @param {UpdatePasswordOptions} options - {@code keyVaultAddr}, encoded {@code currentPassword}, {@code newPasswordHash}
    * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
    * @throws {ValidationError} If addresses, {@code currentPassword} or {@code newPasswordHash} are missing/invalid
    * @throws {WriteRequiresSignerError} If no write signer is configured
@@ -136,7 +138,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   async updatePassword(options = {}) {
     const { keyVaultAddr, currentPassword, newPasswordHash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireUtf8Bytes(currentPassword, 'currentPassword');
+    requireNonEmptyBytes(currentPassword, 'currentPassword');
     requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('PasswordMinuteSignatureAuthenticator: updatePassword');
     log.debug('Updating password for keyVault', sanitizer.forLog(options));

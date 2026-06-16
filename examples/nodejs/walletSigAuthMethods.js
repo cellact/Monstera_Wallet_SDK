@@ -38,9 +38,9 @@ async function main() {
   console.log("WalletSignatureAuthenticator Client Methods");
   console.log("=".repeat(60));
 
-  if (!ALLOWED_1_KEY) {
-    console.error("ERROR: Set ALLOWED_1_KEY env var");
-    console.error("This should be a private key for a whitelisted address");
+  if (!SIGNER_PRIVATE_KEY || !ALLOWED_1_KEY) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY and ALLOWED_1_KEY env vars");
+    console.error("ALLOWED_1_KEY should be a private key for a whitelisted address");
     process.exit(1);
   }
   

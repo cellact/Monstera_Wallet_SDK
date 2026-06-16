@@ -17,11 +17,12 @@
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { ZeroAddress } from '../../src/adapters/ethers/index.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.PASSWORD;
-const HOOK_ADDRESS = process.env.HOOK_ADDRESS || ""; // your hook contract address; hook Contract implementing IWalletCreationHook (or address(0) to skip)
+const HOOK_ADDRESS = process.env.HOOK_ADDRESS || ZeroAddress;
 
 const sdk = Monstera.connect({
   mainnet: false,
@@ -32,6 +33,11 @@ async function main() {
   console.log("=".repeat(60));
   console.log("Step 1.2: Create HD wallet with hook");
   console.log("=".repeat(60));
+
+  if (!SIGNER_PRIVATE_KEY || !PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY and PASSWORD env vars");
+    process.exit(1);
+  }
 
   // ============ STEP 1: Prepare auth config ============
   console.log("\n" + "=".repeat(60));

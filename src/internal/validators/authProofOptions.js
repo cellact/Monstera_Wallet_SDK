@@ -33,10 +33,11 @@ import { ValidationError } from '../../errors/index.js';
  *   ({@link requireWalletOrHdNode}); {@code chainId} is missing/invalid ({@link requireChainId});
  *   {@code authenticatorAddr} or {@code keyVaultAddr} fail address validation
  *   ({@link requireAddress}); {@code deadline} is not a positive integer
- *   ({@link requirePositiveInteger}); or {@code deadline} is in the past ({@link isInFuture})
+ *   ({@link requirePositiveInteger}); {@code deadline} is in the past ({@link isInFuture}); or
+ *   {@code actionHash} is missing
  */
 export function assertWalletSignatureAuthProofOptions(options) {
-  const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr } = options;
+  const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr, actionHash } = options;
 
   requireWalletOrHdNode(signer, 'signer');
   const normalizedChainId = requireChainId(chainId, 'chainId');
@@ -44,6 +45,7 @@ export function assertWalletSignatureAuthProofOptions(options) {
   requireAddress(keyVaultAddr, 'keyVaultAddr');
   requirePositiveInteger(deadline, 'deadline');
   isInFuture(deadline, 'deadline');
+  requireBytes32(actionHash, 'actionHash');
 
   return { normalizedChainId };
 }
@@ -56,10 +58,11 @@ export function assertWalletSignatureAuthProofOptions(options) {
  * @returns {{ normalizedChainId: ChainId }} Validated chain id
  * @throws {ValidationError} If {@code provider} does not expose {@code getBlock};
  *   {@code keyVaultAddr} or {@code authenticatorAddr} fail address validation;
- *   {@code chainId} is missing/invalid; or {@code passwordHash} is not a 32-byte hex string
+ *   {@code chainId} is missing/invalid; {@code passwordHash} is not a 32-byte hex string; or
+ *   {@code actionHash} is missing
  */
 export function assertMinuteSignatureAuthProofOptions(options) {
-  const { provider, keyVaultAddr, authenticatorAddr, chainId, passwordHash } = options;
+  const { provider, keyVaultAddr, authenticatorAddr, chainId, passwordHash, actionHash } = options;
 
   if (!provider || typeof provider.getBlock !== 'function') {
     throw new ValidationError('provider must expose getBlock', 'provider', provider);
@@ -68,6 +71,7 @@ export function assertMinuteSignatureAuthProofOptions(options) {
   requireAddress(authenticatorAddr, 'authenticatorAddr');
   const normalizedChainId = requireChainId(chainId, 'chainId');
   requireBytes32(passwordHash, 'passwordHash');
+  requireBytes32(actionHash, 'actionHash');
 
   return { normalizedChainId };
 }
@@ -82,8 +86,8 @@ export function assertMinuteSignatureAuthProofOptions(options) {
  * @param {CreateAuthProofDualFactorWithProviderOptions} options - Caller options
  * @returns {{ normalizedChainId: ChainId }} Validated chain id
  * @throws {ValidationError} Forwarded from {@link assertMinuteSignatureAuthProofOptions}; plus
- *   thrown if {@code signer} is not a {@code Wallet}/{@code HDNodeWallet}, {@code deadline} is not
- *   a positive integer, or {@code deadline} is in the past
+ *   thrown if {@code signer} is not a {@code Wallet}/{@code HDNodeWallet}, or {@code deadline} is not
+ *   a positive integer or is in the past
  */
 export function assertDualFactorAuthProofOptions(options) {
   const { signer, deadline } = options;

@@ -19,6 +19,7 @@
  * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureResult} CreateAuthProofMinuteSignatureResult
  * @typedef {import('../../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
  * @typedef {import('../../types/index.js').ChainId} ChainId
+ * @typedef {import('../../types/index.js').AuthContext} AuthContext
  *
  * @module internal/crypto/authProof
  */
@@ -26,6 +27,7 @@
 import { Wallet } from '../../adapters/ethers/index.js';
 import { defaultAbiCoder } from '../../adapters/ethers/encoding.js';
 import { getBytes, keccak256, solidityPacked } from '../../adapters/ethers/hashing.js';
+import { requireUtf8Bytes, requireBytes32 } from '../assert.js';
 import {
   assertWalletSignatureAuthProofOptions,
   assertMinuteSignatureAuthProofOptions,
@@ -35,6 +37,68 @@ import { floorTimestampToMinuteBucket } from '../utils/time.js';
 import { NetworkError } from '../../errors/index.js';
 import log from '../logger.js';
 import { sdkErrorPipeline } from '../../errors/pipeline.js';
+
+/** Shared EIP-712 field layout for action-bound authenticator proofs. */
+const ACTION_AUTH_EIP712_FIELDS = [
+  { name: 'wallet', type: 'address' },
+  { name: 'actionHash', type: 'bytes32' },
+  { name: 'deadline', type: 'uint256' }
+];
+
+/**
+ * Sign an EIP-712 action-bound authenticator proof and return encoded output bytes.
+ *
+ * @private
+ * @async
+ * @param {Object} params
+ * @param {import('../../adapters/ethers/index.js').Wallet | import('../../adapters/ethers/index.js').HDNodeWallet} params.signer
+ * @param {string} params.contractName - EIP-712 domain {@code name}
+ * @param {string} params.structName - Primary typed-data struct name
+ * @param {ChainId} params.chainId
+ * @param {import('../../types/index.js').Address} params.verifyingContract
+ * @param {import('../../types/index.js').Address} params.keyVaultAddr
+ * @param {import('../../types/index.js').Bytes32} params.actionHash
+ * @param {number | bigint} params.deadline
+ * @param {string} params.authProofType - Error pipeline label
+ * @param {string} params.functionName - Error pipeline label
+ * @param {(signature: string) => import('../../types/index.js').Bytes} params.encodeOutput
+ * @returns {Promise<import('../../types/index.js').Bytes>}
+ */
+async function signEip712ActionProof({
+  signer,
+  contractName,
+  structName,
+  chainId,
+  verifyingContract,
+  keyVaultAddr,
+  actionHash,
+  deadline,
+  authProofType,
+  functionName,
+  encodeOutput
+}) {
+  const domain = {
+    name: contractName,
+    version: '1',
+    chainId,
+    verifyingContract
+  };
+  const types = {
+    [structName]: ACTION_AUTH_EIP712_FIELDS
+  };
+  const value = { wallet: keyVaultAddr, actionHash, deadline };
+
+  try {
+    const signature = await signer.signTypedData(domain, types, value);
+    return encodeOutput(signature);
+  } catch (error) {
+    sdkErrorPipeline.rethrow(error, {
+      authProofType,
+      functionName,
+      validationExtra: { deadline }
+    });
+  }
+}
 
 /**
  * Encode the minute-bucket signature payload after the input has already been validated.
@@ -55,7 +119,7 @@ import { sdkErrorPipeline } from '../../errors/pipeline.js';
  * @throws {WalletError} Any underlying signer error is left to bubble up to the caller, which
  *   funnels it through {@link sdkErrorPipeline}
  */
-async function encodeMinuteSignatureProofPayload(options, normalizedChainId) {
+async function encodeMinuteSignatureProofPayload(options, normalizedChainId, actionHash) {
   const { provider, keyVaultAddr, authenticatorAddr, passwordHash } = options;
 
   const block = await provider.getBlock('latest');
@@ -72,8 +136,8 @@ async function encodeMinuteSignatureProofPayload(options, normalizedChainId) {
 
   const payloadHash = keccak256(
     solidityPacked(
-      ['address', 'address', 'uint256', 'uint256'],
-      [keyVaultAddr, authenticatorAddr, BigInt(normalizedChainId), BigInt(minuteBucket)]
+      ['address', 'address', 'uint256', 'uint256', 'bytes32'],
+      [keyVaultAddr, authenticatorAddr, BigInt(normalizedChainId), BigInt(minuteBucket), actionHash]
     )
   );
 
@@ -110,37 +174,31 @@ async function encodeMinuteSignatureProofPayload(options, normalizedChainId) {
  *   (e.g. ABI encoding failure, generic signer rejection)
  */
 async function createAuthProofWalletSignature(options = {}) {
-  const { signer, authenticatorAddr, deadline, keyVaultAddr } = options;
+  const { signer, authenticatorAddr, deadline, keyVaultAddr, actionHash } = options;
   const { normalizedChainId } = assertWalletSignatureAuthProofOptions(options);
 
   log.info('Creating wallet signature auth proof');
-  log.debug('createAuthProofWalletSignature', { keyVaultAddr, authenticatorAddr, chainId: normalizedChainId, deadline });
-
-  const domain = {
-    name: 'WalletSignatureAuthenticator',
-    version: '1',
+  log.debug('createAuthProofWalletSignature', {
+    keyVaultAddr,
+    authenticatorAddr,
     chainId: normalizedChainId,
-    verifyingContract: authenticatorAddr
-  };
-  const types = {
-    WalletAuth: [
-      { name: 'wallet', type: 'address' },
-      { name: 'deadline', type: 'uint256' }
-    ]
-  };
+    deadline,
+    actionHash
+  });
 
-  const value = { wallet: keyVaultAddr, deadline };
-
-  try {
-    const signature = await signer.signTypedData(domain, types, value);
-    return defaultAbiCoder.encode(['uint256', 'bytes'], [deadline, signature]);
-  } catch (error) {
-    sdkErrorPipeline.rethrow(error, {
-      authProofType: 'wallet-signature auth proof',
-      functionName: 'createAuthProofWalletSignature',
-      validationExtra: { deadline }
-    });
-  }
+  return signEip712ActionProof({
+    signer,
+    contractName: 'WalletSignatureAuthenticator',
+    structName: 'WalletAuth',
+    chainId: normalizedChainId,
+    verifyingContract: authenticatorAddr,
+    keyVaultAddr,
+    actionHash,
+    deadline,
+    authProofType: 'wallet-signature auth proof',
+    functionName: 'createAuthProofWalletSignature',
+    encodeOutput: (signature) => defaultAbiCoder.encode(['uint256', 'bytes'], [deadline, signature])
+  });
 }
 
 /**
@@ -156,15 +214,15 @@ async function createAuthProofWalletSignature(options = {}) {
  *   vault and authenticator addresses, chain id, password hash
  * @returns {Promise<CreateAuthProofMinuteSignatureResult>} Encoded auth proof bundle
  * @throws {ValidationError} If {@code provider} is missing, addresses fail validation,
- *   {@code chainId} is invalid, or {@code passwordHash} is not a 32-byte hex string (raised by
- *   {@link assertMinuteSignatureAuthProofOptions})
+ *   {@code chainId} is invalid, {@code passwordHash} is not a 32-byte hex string, or
+ *   {@code actionHash} is missing (raised by {@link assertMinuteSignatureAuthProofOptions})
  * @throws {NetworkError} If the latest block cannot be fetched (forwarded from
  *   {@link encodeMinuteSignatureProofPayload})
  */
 async function createAuthProofMinuteSignature(options = {}) {
   const { normalizedChainId } = assertMinuteSignatureAuthProofOptions(options);
   log.info('Creating minute signature auth proof');
-  return encodeMinuteSignatureProofPayload(options, normalizedChainId);
+  return encodeMinuteSignatureProofPayload(options, normalizedChainId, options.actionHash);
 }
 
 /**
@@ -187,44 +245,66 @@ async function createAuthProofMinuteSignature(options = {}) {
  * @throws {WalletError} Any other signer-side error translated by the {@code signingTranslator}
  */
 async function createAuthProofDualFactor(options = {}) {
-  const { signer, keyVaultAddr, authenticatorAddr, deadline } = options;
+  const { signer, keyVaultAddr, authenticatorAddr, deadline, actionHash } = options;
 
   const { normalizedChainId } = assertDualFactorAuthProofOptions(options);
 
   log.info('Creating dual-factor auth proof');
-  log.debug('createAuthProofDualFactor', { keyVaultAddr, authenticatorAddr, chainId: normalizedChainId, deadline });
+  log.debug('createAuthProofDualFactor', {
+    keyVaultAddr,
+    authenticatorAddr,
+    chainId: normalizedChainId,
+    deadline,
+    actionHash
+  });
 
-  const minuteProof = await encodeMinuteSignatureProofPayload(options, normalizedChainId);
+  const minuteProof = await encodeMinuteSignatureProofPayload(
+    options,
+    normalizedChainId,
+    actionHash
+  );
 
   const [minutePasswordSignature] = defaultAbiCoder.decode(['bytes'], minuteProof.authProof);
 
-  const domain = {
-    name: 'DualFactorAuthenticator',
-    version: '1',
+  return signEip712ActionProof({
+    signer,
+    contractName: 'DualFactorAuthenticator',
+    structName: 'DualFactorAuth',
     chainId: normalizedChainId,
-    verifyingContract: authenticatorAddr
-  };
-  const types = {
-    DualFactorAuth: [
-      { name: 'wallet', type: 'address' },
-      { name: 'deadline', type: 'uint256' }
-    ]
-  };
-  const value = { wallet: keyVaultAddr, deadline };
-
-  try {
-    const guardianSignature = await signer.signTypedData(domain, types, value);
-    return defaultAbiCoder.encode(
-      ['bytes', 'uint256', 'bytes'],
-      [minutePasswordSignature, deadline, guardianSignature]
-    );
-  } catch (error) {
-    sdkErrorPipeline.rethrow(error, {
-      authProofType: 'dual-factor auth proof',
-      functionName: 'createAuthProofDualFactor',
-      validationExtra: { deadline }
-    });
-  }
+    verifyingContract: authenticatorAddr,
+    keyVaultAddr,
+    actionHash,
+    deadline,
+    authProofType: 'dual-factor auth proof',
+    functionName: 'createAuthProofDualFactor',
+    encodeOutput: (guardianSignature) =>
+      defaultAbiCoder.encode(
+        ['bytes', 'uint256', 'bytes'],
+        [minutePasswordSignature, deadline, guardianSignature]
+      )
+  });
 }
 
-export { createAuthProofWalletSignature, createAuthProofMinuteSignature, createAuthProofDualFactor };
+/**
+ * Build {@code authProof} bytes for the {@code PasswordAuthenticator}.
+ *
+ * @description Returns {@code abi.encode(bytes password, bytes32 actionHash)}.
+ *
+ * @public
+ * @param {Object} options
+ * @param {Uint8Array} options.password - UTF-8 password bytes
+ * @param {import('../../types/index.js').Bytes32} options.actionHash - Canonical action hash
+ * @returns {import('../../types/index.js').EncodedAuthProofPassword} ABI-encoded password proof bytes
+ */
+function createAuthProofPassword({ password, actionHash }) {
+  requireUtf8Bytes(password, 'password');
+  requireBytes32(actionHash, 'actionHash');
+  return defaultAbiCoder.encode(['bytes', 'bytes32'], [password, actionHash]);
+}
+
+export {
+  createAuthProofWalletSignature,
+  createAuthProofMinuteSignature,
+  createAuthProofDualFactor,
+  createAuthProofPassword
+};

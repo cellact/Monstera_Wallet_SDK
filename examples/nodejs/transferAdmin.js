@@ -37,8 +37,8 @@ async function main() {
   console.log("Transfer Admin Ownership");
   console.log("=".repeat(60));
 
-  if (!NEW_ADMIN_ADDRESS) {
-    console.error("ERROR: Set NEW_ADMIN_ADDRESS env var");
+  if (!SIGNER_PRIVATE_KEY || !NEW_ADMIN_ADDRESS) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY and NEW_ADMIN_ADDRESS env vars");
     process.exit(1);
   }
 

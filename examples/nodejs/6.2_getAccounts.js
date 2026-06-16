@@ -27,8 +27,8 @@ async function main() {
   console.log("Step 6.2: Get Account Addresses for Funding");
   console.log("=".repeat(60));
 
-  if (!WALLET_ADDRESS) {
-    console.error("ERROR: Set WALLET_ADDRESS env var");
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY and WALLET_ADDRESS env vars");
     process.exit(1);
   }
 

@@ -450,6 +450,23 @@ function requireObject(value, name = 'object') {
   }
 }
 
+/**
+ * Assert that {@code value} is a 4-byte hex string.
+ *
+ * @public
+ * @param {string} value - Value to validate
+ * @param {string} [name='bytes4'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is not a 4-byte hex string
+ */
+function requireBytes4(value, name = 'bytes4') {
+  requireString(value, name);
+  // if (!/^0x[0-9a-fA-F]{8}$/.test(value)) {
+  if (!ethersIsHexString(value, 4)) {
+    throw new ValidationError(`${name} must be a 4-byte hex string`, name, value);
+  }
+}
+
 export {
   isAddress,
   requireAddress,
@@ -469,5 +486,6 @@ export {
   isInFuture,
   requireBoolean,
   requireUtf8Bytes,
-  requireObject
+  requireObject,
+  requireBytes4
 };

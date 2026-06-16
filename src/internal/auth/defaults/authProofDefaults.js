@@ -9,6 +9,7 @@
  * @typedef {import('../../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
  * @typedef {import('../../../types/index.js').CreateAuthProofMinuteSignatureOptions} CreateAuthProofMinuteSignatureOptions
  * @typedef {import('../../../types/index.js').CreateAuthProofDualFactorOptions} CreateAuthProofDualFactorOptions
+ * @typedef {import('../../../types/index.js').PreparePasswordFlowOptions} PreparePasswordFlowOptions
  *
  * @module internal/auth/defaults/authProofDefaults
  */
@@ -18,10 +19,20 @@ import { nowUnixTimestampSeconds } from '../../utils/time.js';
 /**
  * Default {@code deadline} offset (seconds from "now") for proofs that carry one.
  *
- * @private
+ * @public
  * @readonly
  */
-const DEFAULT_DEADLINE_OFFSET_SEC = 3600;
+const DEFAULT_PROOF_DEADLINE_OFFSET_SEC = 3600;
+
+/**
+ * Compute the default proof {@code deadline} ({@code now + DEFAULT_PROOF_DEADLINE_OFFSET_SEC}).
+ *
+ * @public
+ * @returns {number}
+ */
+function defaultProofDeadline() {
+  return nowUnixTimestampSeconds() + DEFAULT_PROOF_DEADLINE_OFFSET_SEC;
+}
 
 /**
  * Fill defaults for {@code Monstera.createAuthProofWalletSignature}.
@@ -41,7 +52,7 @@ function withWalletSignatureProofDefaults(config, options = {}) {
     signer,
     keyVaultAddr,
     authenticatorAddr: options.authenticatorAddr ?? config.addresses.walletSignatureAuth,
-    deadline: options.deadline ?? nowUnixTimestampSeconds() + DEFAULT_DEADLINE_OFFSET_SEC,
+    deadline: options.deadline ?? defaultProofDeadline(),
     chainId: options.chainId ?? config.chainId
   };
 }
@@ -87,9 +98,39 @@ function withDualFactorProofDefaults(config, options = {}) {
     passwordHash,
     signer,
     authenticatorAddr: options.authenticatorAddr ?? config.addresses.dualFactorAuth,
-    deadline: options.deadline ?? nowUnixTimestampSeconds() + DEFAULT_DEADLINE_OFFSET_SEC,
+    deadline: options.deadline ?? defaultProofDeadline(),
     chainId: options.chainId ?? config.chainId
   };
 }
 
-export { withWalletSignatureProofDefaults, withMinuteSignatureProofDefaults, withDualFactorProofDefaults };
+/**
+ * Fill defaults for password proof flows ({@code isPasswordValid}, {@code updatePassword}, etc.).
+ *
+ * @description Defaults the authenticator address to {@code config.addresses.passwordAuth} and the chain id to
+ * {@code config.chainId}. Pass an explicit {@code authenticatorAddr} when targeting
+ * {@code PasswordMinuteSignatureAuthenticator} (or another password-hash authenticator).
+ *
+ * @public
+ * @param {MonsteraConfigOptions} config - Resolved Monstera config
+ * @param {PreparePasswordFlowOptions} [options={}] - Caller-supplied options
+ * @returns {Required<Pick<PreparePasswordFlowOptions, 'authenticatorAddr' | 'chainId'>> & PreparePasswordFlowOptions}
+ *   Options with defaults filled
+ */
+function withPasswordProofDefaults(config, options = {}) {
+  const { keyVaultAddr, password } = options;
+  return {
+    keyVaultAddr,
+    password,
+    chainId: options.chainId ?? config.chainId,
+    authenticatorAddr: options.authenticatorAddr ?? config.addresses.passwordAuth
+  };
+}
+
+export {
+  DEFAULT_PROOF_DEADLINE_OFFSET_SEC,
+  defaultProofDeadline,
+  withWalletSignatureProofDefaults,
+  withMinuteSignatureProofDefaults,
+  withDualFactorProofDefaults,
+  withPasswordProofDefaults
+};

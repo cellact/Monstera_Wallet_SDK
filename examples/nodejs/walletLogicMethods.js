@@ -36,6 +36,11 @@ async function main() {
   console.log("WalletLogic Client Methods");
   console.log("=".repeat(60));
 
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS || !NEW_KEYVAULT_ADDRESS) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, WALLET_ADDRESS, and NEW_KEYVAULT_ADDRESS env vars");
+    process.exit(1);
+  }
+
   console.log("\n📋 Configuration:");
   console.log(`   Network: ${monstera.network}`);
 
@@ -66,11 +71,6 @@ async function main() {
   console.log("=".repeat(60));
   console.log("\n   This is the main WalletLogic write method.");
   console.log("   It connects a wallet proxy to a new KeyVault contract.\n");
-
-  if (!NEW_KEYVAULT_ADDRESS) {
-    console.error("   ❌ Error: NEW_KEYVAULT_ADDRESS env var is required");
-    process.exit(1);
-  }
 
   try {
     const result = await monstera.initializeWalletLogic({

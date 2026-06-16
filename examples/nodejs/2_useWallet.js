@@ -43,9 +43,9 @@ async function main() {
   console.log("Step 2: Use the Wallet");
   console.log("=".repeat(60));
 
-  if (!WALLET_ADDRESS || !PASSWORD) {
-    console.error("ERROR: Set WALLET_ADDRESS and PASSWORD env vars");
-    console.error("Run step 2 first to create a wallet");
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS || !PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, WALLET_ADDRESS, and PASSWORD env vars");
+    console.error("Run step 1 first to create a wallet (1_createHDWallet.js)");
     process.exit(1);
   }
 
@@ -174,7 +174,6 @@ async function main() {
     });
     console.log("   ❌ Should have failed!");
   } catch (error) {
-    console.log('error', error);
     console.log(`   ✅ Correctly rejected: ${error.message}`);
   }
 

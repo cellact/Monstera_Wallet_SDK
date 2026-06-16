@@ -31,6 +31,11 @@ async function main() {
   console.log("Step 1: Create a HD Wallet");
   console.log("=".repeat(60));
 
+  if (!SIGNER_PRIVATE_KEY || !PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY and PASSWORD env vars");
+    process.exit(1);
+  }
+
   // ============ STEP 1: Verify SDK and get signer ============
   console.log("\n" + "=".repeat(60));
   console.log("STEP 1: Verify SDK and get signer");

@@ -7,7 +7,7 @@ import { describe, test, expect, beforeAll, afterAll } from '@jest/globals';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { registerSdkTeardown } from '../../utils/teardown.js';
 import { loadAuthenticationFixtures } from './shared.js';
-import { createPasswordAuthProof } from '../../utils/fixtures.js';
+import { createPasswordAuthProof, createTestVaultSignAction } from '../../utils/fixtures.js';
 import { expectTransactionResult, expectValidHex } from '../../utils/assertions.js';
 
 describe('Authentication — password minute signature', () => {
@@ -86,7 +86,8 @@ describe('Authentication — password minute signature', () => {
 
       const ok = await sdk.isPasswordMinuteSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        passwordHash
+        passwordHash,
+        action: createTestVaultSignAction()
       });
       expect(ok).toBe(true);
     }, 30000);
@@ -101,7 +102,8 @@ describe('Authentication — password minute signature', () => {
 
       const ok = await sdk.isPasswordMinuteSignatureValid({
         keyVaultAddr: newWallet.keyVault,
-        passwordHash: wrongHash
+        passwordHash: wrongHash,
+        action: createTestVaultSignAction()
       });
       expect(ok).toBe(false);
     }, 30000);
@@ -128,14 +130,16 @@ describe('Authentication — password minute signature', () => {
       expect(
         await sdk.isPasswordMinuteSignatureValid({
           keyVaultAddr: newWallet.keyVault,
-          passwordHash: nextHash
+          passwordHash: nextHash,
+          action: createTestVaultSignAction()
         })
       ).toBe(true);
 
       expect(
         await sdk.isPasswordMinuteSignatureValid({
           keyVaultAddr: newWallet.keyVault,
-          passwordHash
+          passwordHash,
+          action: createTestVaultSignAction()
         })
       ).toBe(false);
 
@@ -154,18 +158,32 @@ describe('Authentication — password minute signature', () => {
         authConfig: { passwordHash }
       });
 
+      const action = createTestVaultSignAction();
       const proofData = await sdk.createAuthProofMinuteSignature({
         keyVaultAddr: newWallet.keyVault,
-        passwordHash
+        passwordHash,
+        action
       });
 
       expectValidHex(proofData.authProof);
       expect(typeof proofData.minuteBucket).toBe('number');
       expect(proofData.derivedAddress).toMatch(/^0x[a-fA-F0-9]{40}$/);
 
+      const actionHash = await sdk.keyVault.computeActionHash({
+        keyVaultAddr: newWallet.keyVault,
+        selector: action.selector,
+        paramsHash: action.paramsHash
+      });
+
       const ok = await sdk.auth.passwordMinuteSignature.verify({
         keyVaultAddr: newWallet.keyVault,
-        authProof: proofData.authProof
+        authProof: proofData.authProof,
+        action: {
+          target: newWallet.keyVault,
+          selector: action.selector,
+          paramsHash: action.paramsHash,
+          actionHash
+        }
       });
       expect(ok).toBe(true);
     }, 30000);

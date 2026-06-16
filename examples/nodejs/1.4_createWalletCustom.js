@@ -20,7 +20,7 @@ import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.PASSWORD;
-const CUSTOM_LOGIC_IMPL = process.env.CUSTOM_LOGIC_IMPL || ""; // your custom wallet logic implementationcontract address; (must implement IWalletLogic)
+const CUSTOM_LOGIC_IMPL = process.env.CUSTOM_LOGIC_IMPL;
 
 const sdk = Monstera.connect({
   mainnet: false,
@@ -31,6 +31,11 @@ async function main() {
   console.log("=".repeat(60));
   console.log("Step 1.4: Create HD wallet with custom logic");
   console.log("=".repeat(60));
+
+  if (!SIGNER_PRIVATE_KEY || !PASSWORD || !CUSTOM_LOGIC_IMPL) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, PASSWORD, and CUSTOM_LOGIC_IMPL env vars");
+    process.exit(1);
+  }
 
   // ============ STEP 1: Prepare auth config ============
   console.log("\n" + "=".repeat(60));
@@ -72,7 +77,7 @@ async function main() {
   console.log("\n" + "=".repeat(60));
   console.log("Architecture created:");
   console.log(`
-  Wallet (BeaconProxy) ──► WalletLogic (orchestration)
+  Wallet (CustomLogic clone)
   ${result.wallet}
       │
       └──► KeyVault (auth + signing, YOU control updates)

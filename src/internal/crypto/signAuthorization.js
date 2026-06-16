@@ -6,13 +6,15 @@
  * 1. Validate caller options and apply defaults
  * 2. Resolve any missing {@code chainId} / authority {@code nonce} via the read provider
  * 3. Encode the {@code implCall} bytes for KeyVault
- * 4. Call {@code KeyVaultClient.executeWithAuth} with the encoded auth proof
- * 5. Decode the {@code (r, s, yParity)} return blob and assemble the public result
+ * 4. Encode an action-bound {@code authProof} for {@code executeWithAuth}
+ * 5. Call {@code KeyVaultClient.executeWithAuth} with the encoded auth proof
+ * 6. Decode the {@code (r, s, yParity)} return blob and assemble the public result
  *
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
  * @typedef {import('../../types/index.js').SignAuthorizationOptions} SignAuthorizationOptions
  * @typedef {import('../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
+ * @typedef {import('../../types/index.js').AuthActionInput} AuthActionInput
  * @typedef {import('../../clients/keyVault/KeyVaultClient.js').default} KeyVaultClient
  * @typedef {import('../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
  * @typedef {import('../../types/index.js').ResolvedSignAuthorizationInputs} ResolvedSignAuthorizationInputs
@@ -41,6 +43,10 @@ import { log } from '../logger.js';
  * @typedef {{
  *   keyVault: KeyVaultClient;
  *   fallbackProvider: EthersAbstractProvider | null;
+ *   encodeVaultAuthProof: (
+ *     options: SignAuthorizationOptions & { implCall: Bytes },
+ *     buildAction: (options: SignAuthorizationOptions & { implCall: Bytes }) => AuthActionInput
+ *   ) => Promise<EncodeAuthProofOptionsResult>;
  * }} SignAuthorizationDeps
  */
 
@@ -55,8 +61,6 @@ import { log } from '../logger.js';
  * @private
  * @async
  * @param {SignAuthorizationDeps} deps - Injected dependencies
- * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Result of running the auth proof
- *   builder over the caller's auth-proof input
  * @param {SignAuthorizationOptions} [options={}] - Caller options ({@code keyVaultAddr},
  *   {@code delegateAddr}, optional {@code index}, {@code chainId}, {@code nonce}, {@code provider})
  * @returns {Promise<ResolvedSignAuthorizationInputs>} Fully resolved inputs ready to feed into
@@ -68,7 +72,7 @@ import { log } from '../logger.js';
  *   {@link fetchAuthorizationNonce}, or {@code keyVault.getAccountAddr} (e.g.
  *   {@link NetworkError}, {@link ContractRevertError})
  */
-async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, options = {}) {
+async function resolveSignAuthorizationInputs(deps, options = {}) {
   const { keyVault, fallbackProvider } = deps;
   const { keyVaultAddr, delegateAddr, provider } = options;
 
@@ -76,7 +80,6 @@ async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, opti
   requireAddress(delegateAddr, 'delegateAddr');
   const checksummedDelegateAddr = toChecksumAddress(delegateAddr);
 
-  // set index default to 0 if not provided
   const index = options.index !== undefined && options.index !== null ? options.index : 0;
   requireNonNegativeInteger(index, 'index');
 
@@ -84,7 +87,6 @@ async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, opti
   const needsNonce = options.nonce === undefined || options.nonce === null;
   const targetProvider = provider ?? fallbackProvider ?? null;
 
-  // if chainId or nonce is not provided, provider is required
   if ((needsChainId || needsNonce) && !targetProvider) {
     throw new ValidationError(
       'provider is required to resolve chainId and/or nonce (pass options.provider, or construct Monstera with rpcUrl/readProvider / signer.provider)',
@@ -93,20 +95,16 @@ async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, opti
     );
   }
 
-  // set chainId default if not provided
   const chainId = needsChainId
     ? await fetchAuthorizationChainId(targetProvider)
     : BigInt(requireChainId(options.chainId, 'chainId'));
 
-  // get authority address at index
   const authorityAddr = await keyVault.getAccountAddr({ keyVaultAddr, index });
 
-  // set nonce default if not provided
   const nonce = needsNonce
     ? await fetchAuthorizationNonce(targetProvider, authorityAddr)
     : requireBigInt(options.nonce, 'nonce', { allowNegative: false });
 
-  // build implementation call - encode the implementation call
   const implCall = createImplCall({
     index,
     delegateAddr: checksummedDelegateAddr,
@@ -116,7 +114,6 @@ async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, opti
 
   return {
     keyVaultAddr,
-    authProof: encodedAuthProofObject.authProof,
     implCall,
     delegateAddr: checksummedDelegateAddr,
     nonce,
@@ -127,30 +124,35 @@ async function resolveSignAuthorizationInputs(deps, encodedAuthProofObject, opti
 /**
  * End-to-end orchestration for {@code Monstera.signAuthorization}.
  *
- * @description Resolves all inputs via {@link resolveSignAuthorizationInputs}, calls
- * {@code KeyVaultClient.executeWithAuth} with the encoded auth proof + impl call, and assembles
- * the public {@link SignedAuthorizationResult} from the raw return blob.
+ * @description Resolves {@code implCall} first, encodes an action-bound auth proof for
+ * {@code executeWithAuth}, calls {@code KeyVaultClient.executeWithAuth}, and assembles the public
+ * {@link SignedAuthorizationResult} from the raw return blob.
  *
  * @public
  * @async
- * @param {SignAuthorizationDeps} deps - Injected dependencies (KeyVault client, fallback provider)
- * @param {EncodeAuthProofOptionsResult} encodedAuthProofObject - Result of running the auth proof
- *   builder over the caller's auth-proof input
+ * @param {SignAuthorizationDeps} deps - Injected dependencies (KeyVault client, fallback provider, encode helper)
  * @param {SignAuthorizationOptions} [options={}] - Caller options
+ * @param {(options: SignAuthorizationOptions & { implCall: Bytes }) => import('../../types/index.js').AuthActionInput} buildExecuteWithAuthAction -
+ *   Builds the vault action for {@code executeWithAuth}
  * @returns {Promise<SignedAuthorizationResult>} Authorization tuple + decoded split signature
  * @throws {ValidationError} Forwarded from {@link resolveSignAuthorizationInputs}
  * @throws {WalletError} Forwarded from any underlying read / write call (e.g.
  *   {@link NetworkError}, {@link ContractRevertError}, {@link WriteRequiresSignerError})
  */
-async function executeSignAuthorization(deps, encodedAuthProofObject, options = {}) {
-  const { keyVault } = deps;
-  const resolved = await resolveSignAuthorizationInputs(deps, encodedAuthProofObject, options);
+async function executeSignAuthorization(deps, options = {}, buildExecuteWithAuthAction) {
+  const { keyVault, encodeVaultAuthProof } = deps;
+  const resolved = await resolveSignAuthorizationInputs(deps, options);
 
-  log.debug('Build implementation call, about to execute with auth');
+  log.debug('Build implementation call, about to encode auth proof and execute with auth');
+
+  const encoded = await encodeVaultAuthProof(
+    { ...options, implCall: resolved.implCall },
+    buildExecuteWithAuthAction
+  );
 
   const raw = await keyVault.executeWithAuth({
     keyVaultAddr: resolved.keyVaultAddr,
-    authProof: resolved.authProof,
+    authProof: encoded.authProof,
     implCall: resolved.implCall
   });
 

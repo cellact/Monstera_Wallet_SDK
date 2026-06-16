@@ -32,8 +32,8 @@ async function main() {
   console.log("Update password");
   console.log("=".repeat(60));
 
-  if (!WALLET_ADDRESS) {
-    console.error("ERROR: Set WALLET_ADDRESS env var");
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS || !PASSWORD || !NEW_PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, WALLET_ADDRESS, PASSWORD, and NEW_PASSWORD env vars");
     process.exit(1);
   }
   console.log("Updating password for wallet:", WALLET_ADDRESS);

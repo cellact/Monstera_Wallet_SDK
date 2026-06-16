@@ -1,8 +1,9 @@
 /**
  * Low-level client for the {@code PasswordAuthenticator} contract.
  *
- * Stores a {@code keccak256(utf8(password))} hash on-chain and verifies raw UTF-8 password
- * buffers against it. {@code Monstera} talks to this client via {@code monstera.auth.password}.
+ * Stores a {@code keccak256(utf8(password))} hash on-chain and verifies action-bound proofs of the
+ * form {@code abi.encode(bytes password, bytes32 actionHash)}. {@link Monstera} talks to this
+ * client via {@code monstera.auth.password}.
  *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
  * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
@@ -13,6 +14,7 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
+ * @typedef {import('../../types/index.js').AuthContext} AuthContext
  * @typedef {import('../../types/index.js').PasswordClientVerifyOptions} PasswordClientVerifyOptions
  * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
  * @typedef {import('../../types/index.js').PasswordClientConfigureOptions} PasswordClientConfigureOptions
@@ -23,7 +25,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getPasswordAuthenticatorContract } from '../../contracts/authenticators/PasswordAuthenticator.js';
 import { PasswordAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes, requireBytes32, requireUtf8Bytes } from '../../internal/assert.js';
+import { requireAddress, requireBytes32, requireNonEmptyBytes, requireObject } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -77,21 +79,25 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   }
 
   /**
-   * Verify a raw UTF-8 password buffer against the stored hash.
+   * Verify an action-bound password proof ({@code IAuthenticator.verify}).
    *
    * @public
    * @async
-   * @param {PasswordClientVerifyOptions} options - {@code keyVaultAddr} and {@code authProof} (UTF-8 password bytes)
-   * @returns {Promise<boolean>} {@code true} if the password matches
-   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authProof} is not a non-empty Uint8Array
+   * @param {PasswordClientVerifyOptions} options - {@code keyVaultAddr}, {@code action}, and ABI-encoded {@code authProof}
+   * @returns {Promise<boolean>} {@code true} if the password matches and {@code actionHash} binds
+   * @throws {ValidationError} If inputs are missing or invalid
    * @throws {NetworkError} If the read call fails over RPC
    * @throws {ContractRevertError} If the underlying call reverts
    * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks
+   * {@code authProof = abi.encode(bytes password, bytes32 actionHash)}.
    */
   async verify(options = {}) {
-    const { keyVaultAddr, authProof } = options;
+    const { keyVaultAddr, authProof, action } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireUtf8Bytes(authProof, 'authProof');
+    requireNonEmptyBytes(authProof, 'authProof');
+    requireObject(action, 'action');
     log.info('PasswordAuthenticator: verify');
     log.debug('Verifying password for keyVault', sanitizer.forLog(options));
 
@@ -99,7 +105,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
 
     return this.executeRead(
       {
-        operation: () => passwordAuth.verify(keyVaultAddr, authProof),
+        operation: () => passwordAuth.verify(keyVaultAddr, action, authProof),
         methodName: 'verify password',
         ...options
       }
@@ -111,11 +117,11 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Replace the stored password hash. Caller must supply the current UTF-8 password buffer.
+   * Replace the stored password hash. Caller must supply the current action-bound password proof.
    *
    * @public
    * @async
-   * @param {UpdatePasswordOptions} options - {@code keyVaultAddr}, {@code currentPassword} (UTF-8 {@link Uint8Array}), {@code newPasswordHash}
+   * @param {UpdatePasswordOptions} options - {@code keyVaultAddr}, encoded {@code currentPassword}, {@code newPasswordHash}
    * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
    * @throws {ValidationError} If addresses, {@code currentPassword} or {@code newPasswordHash} are missing/invalid
    * @throws {WriteRequiresSignerError} If no write signer is configured
@@ -128,7 +134,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   async updatePassword(options = {}) {
     const { keyVaultAddr, currentPassword, newPasswordHash } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireUtf8Bytes(currentPassword, 'currentPassword');
+    requireNonEmptyBytes(currentPassword, 'currentPassword');
     requireBytes32(newPasswordHash, 'newPasswordHash');
     log.info('PasswordAuthenticator: updatePassword');
     log.debug('Updating password for keyVault', sanitizer.forLog(options));
@@ -175,7 +181,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     log.debug('Configuring password for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getWriteContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
-    
+
     return this.executeWrite(
       {
         operation: () => passwordAuth.configure(keyVaultAddr, authConfig),
@@ -183,7 +189,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
         parseEvents: [{
           eventDef: PasswordAuthenticatorEvents.PasswordConfigured,
           contract: passwordAuth
-        }],  
+        }],
         extraData: { authenticatorAddress: this.config.addresses.passwordAuth },
         ...options
       }

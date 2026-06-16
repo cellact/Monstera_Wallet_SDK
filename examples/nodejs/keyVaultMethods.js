@@ -11,7 +11,8 @@
  * Optional env vars:
  *   AMOY_RPC_URL=https://rpc-amoy.polygon.technology (default)
  *   COUNTER_BYTECODE=0x... (default)
- * 
+ *   DELEGATE_CONTRACT=0x... (default: zero address; used in steps 10–11)
+ *
  * Steps:
  * 1. Get storage contract address holding the keys
  * 2. Get authenticator contract address
@@ -22,15 +23,21 @@
  * 7. Sign a transaction
  * 8. Sign a 32-byte hash
  * 9. Sign an EIP-191 message
- * 10. Execute a function with an auth proof
- * 
+ * 10. Sign an EIP-7702 authorization via signAuthorization (recommended)
+ * 11. Same authorization via executeWithAuth + manual implCall (advanced)
+ *
  */
 import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
-import { Contract, ContractFactory, formatUnits, parseUnits, ZeroAddress, ZeroHash } from '../../src/adapters/ethers/index.js';
-import { defaultAbiCoder } from '../../src/adapters/ethers/encoding.js';
+import { Contract, ContractFactory, formatUnits, parseUnits, ZeroAddress } from '../../src/adapters/ethers/index.js';
 import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
 import { JsonRpcProvider } from '../../src/adapters/ethers/provider.js';
+import {
+  createImplCall,
+  decodeSignAuthorizationResult,
+  fetchAuthorizationChainId,
+  fetchAuthorizationNonce
+} from '../../src/internal/crypto/authorization.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -39,7 +46,7 @@ const PASSWORD = process.env.PASSWORD;
 const ACCOUNT_INDEX = 0;
 const AMOY_RPC_URL = process.env.AMOY_RPC_URL || "https://rpc-amoy.polygon.technology";
 const AMOY_CHAIN_ID = 80002;
-const SEPOLIA_CHAIN_ID = 11155111n;
+const DELEGATE_CONTRACT = process.env.DELEGATE_CONTRACT || ZeroAddress;
 const COUNTER_BYTECODE = process.env.COUNTER_BYTECODE || "0x6080806040523461001657610163908161001c8239f35b600080fdfe608080604052600436101561001357600080fd5b600090813560e01c90816303df179c146100c65750806306661abd146100a95763d09de08a1461004257600080fd5b346100a657806003193601126100a65780546000198114610092576001018082556040519081527f38ac789ed44572701765277c4d0970f2db1c1a571ed39e84358095ae4eaa542060203392a280f35b634e487b7160e01b82526011600452602482fd5b80fd5b50346100a657806003193601126100a65760209054604051908152f35b90503461012957602036600319011261012957815460043581018091116101155780835581527f38ac789ed44572701765277c4d0970f2db1c1a571ed39e84358095ae4eaa542060203392a280f35b634e487b7160e01b83526011600452602483fd5b5080fdfea264697066735822122027ffb7296a96af125559a72a946250ff78075f9534148f0c7f37996c4dc8f68e64736f6c63430008180033";
 
 const sdk = Monstera.connect({
@@ -52,6 +59,11 @@ async function main() {
   console.log("=".repeat(60));
   console.log("KeyVault methods");
   console.log("=".repeat(60));
+
+  if (!SIGNER_PRIVATE_KEY || !WALLET_ADDRESS || !PASSWORD) {
+    console.error("ERROR: Set SIGNER_PRIVATE_KEY, WALLET_ADDRESS, and PASSWORD env vars");
+    process.exit(1);
+  }
 
   // Prepare auth proof (raw password bytes)
   const authProof = toUtf8Bytes(PASSWORD);
@@ -149,13 +161,12 @@ async function main() {
     fromIndex: 0,
     count: 5
   });
-  // log each account address with index
-  for (let i = 0; i < accountAddresses.length; i++) {
-    console.log(`   Account Address (index ${i}): ${accountAddresses[i]}`);
-  }
-  if (!accountAddresses) {
+  if (!accountAddresses || accountAddresses.length === 0) {
     console.error("❌ ERROR: Failed to get account addresses");
     process.exit(1);
+  }
+  for (let i = 0; i < accountAddresses.length; i++) {
+    console.log(`   Account Address (index ${i}): ${accountAddresses[i]}`);
   }
 
   // ============ STEP 7: Sign a transaction with the keyVault contract ============
@@ -324,369 +335,71 @@ async function main() {
     process.exit(1);
   }
 
-  // ============ STEP 10: Execute a function with an auth proof with the keyVault contract ============
+  // ============ STEP 10: Sign authorization (EIP-7702) — high-level API ============
   console.log("\n" + "=".repeat(60));
-  console.log("STEP 10: Execute a function with an auth proof");
+  console.log("STEP 10: Sign authorization via signAuthorization (recommended)");
   console.log("=".repeat(60));
+  console.log("   Monstera.signAuthorization builds the implCall, action-bound auth proof,");
+  console.log("   and executeWithAuth call for you.\n");
 
-  // Example delegate contract (we'd deploy one, but for testing use a placeholder)
-  const delegateContract = "0x1234567890123456789012345678901234567890";
-  const authNonce = 0n;
-  const chainId = SEPOLIA_CHAIN_ID;
-  const accountIndex = 0;
+  console.log(`   Delegate: ${DELEGATE_CONTRACT}`);
 
-  const KEYVAULT_IMPLEMENTATION_ABI = [
-    {
-      "inputs": [],
-      "name": "DER_Split_Error",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "expmod_Error",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "k256Decompress_Invalid_Length_Error",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "k256DeriveY_Invalid_Prefix_Error",
-      "type": "error"
-    },
-    {
-      "inputs": [],
-      "name": "recoverV_Error",
-      "type": "error"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "baseKey",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "baseChain",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint32",
-          "name": "index",
-          "type": "uint32"
-        }
-      ],
-      "name": "getAccountAddressImpl",
-      "outputs": [
-        {
-          "internalType": "address",
-          "name": "",
-          "type": "address"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "baseKey",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "baseChain",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint32",
-          "name": "fromIndex",
-          "type": "uint32"
-        },
-        {
-          "internalType": "uint32",
-          "name": "count",
-          "type": "uint32"
-        }
-      ],
-      "name": "getAccountAddressesImpl",
-      "outputs": [
-        {
-          "internalType": "address[]",
-          "name": "",
-          "type": "address[]"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "delegate",
-          "type": "address"
-        },
-        {
-          "internalType": "uint64",
-          "name": "authNonce",
-          "type": "uint64"
-        },
-        {
-          "internalType": "uint256",
-          "name": "chainId",
-          "type": "uint256"
-        }
-      ],
-      "name": "getAuthorizationHashImpl",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "authHash",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "authRlp",
-          "type": "bytes"
-        }
-      ],
-      "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "baseKey",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "baseChain",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint32",
-          "name": "index",
-          "type": "uint32"
-        },
-        {
-          "internalType": "address",
-          "name": "delegate",
-          "type": "address"
-        },
-        {
-          "internalType": "uint64",
-          "name": "authNonce",
-          "type": "uint64"
-        },
-        {
-          "internalType": "uint256",
-          "name": "chainId",
-          "type": "uint256"
-        }
-      ],
-      "name": "signAuthorizationImpl",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "r",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "s",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint8",
-          "name": "yParity",
-          "type": "uint8"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "baseKey",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "baseChain",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint32",
-          "name": "index",
-          "type": "uint32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "digest",
-          "type": "bytes32"
-        }
-      ],
-      "name": "signImpl",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "baseKey",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "baseChain",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint32",
-          "name": "index",
-          "type": "uint32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "message",
-          "type": "bytes"
-        }
-      ],
-      "name": "signMessageImpl",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "baseKey",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "baseChain",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint32",
-          "name": "index",
-          "type": "uint32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "nonce",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "gasPrice",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "gasLimit",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "to",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "value",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes",
-          "name": "data",
-          "type": "bytes"
-        },
-        {
-          "internalType": "uint256",
-          "name": "chainId",
-          "type": "uint256"
-        }
-      ],
-      "name": "signTransactionImpl",
-      "outputs": [
-        {
-          "internalType": "bytes",
-          "name": "signedTx",
-          "type": "bytes"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    }
-  ];
-
-  // Build the implementation call with placeholder keys
-  // signAuthorizationImpl(bytes32 baseKey, bytes32 baseChain, uint32 index, address delegate, uint64 authNonce, uint256 chainId)
-  const KeyVaultImpl = new Contract(keyVaultImplAddr, KEYVAULT_IMPLEMENTATION_ABI, sdk.writeSigner);
-  const implInterface = KeyVaultImpl.interface;
-
-  // Prepare implementation call
-  const implCall = implInterface.encodeFunctionData(
-    "signAuthorizationImpl",
-    [
-      ZeroHash,  // placeholder baseKey - KeyVault replaces this
-      ZeroHash,  // placeholder baseChain - KeyVault replaces this
-      accountIndex,
-      delegateContract,
-      authNonce,
-      chainId
-    ]
-  );
-
-  console.log(`Delegate: ${delegateContract}`);
-  console.log(`Auth nonce: ${authNonce}`);
-  console.log(`Chain ID: ${chainId}`);
-  console.log(`Impl call length: ${implCall.length} chars`);
-
-  const result = await sdk.executeWithAuth({
+  const signedAuthorization = await sdk.signAuthorization({
     keyVaultAddr: keyVaultAddr,
     authProof: { password: authProof },
-    implCall: implCall
+    delegateAddr: DELEGATE_CONTRACT,
+    index: ACCOUNT_INDEX
   });
 
-  // Decode result: (bytes32 r, bytes32 s, uint8 yParity)
-  const decoded = defaultAbiCoder.decode(
-    ["bytes32", "bytes32", "uint8"],
-    result
-  );
-  
-  const [r, s, yParity] = decoded;
-  
   console.log(`\n✅ Authorization Signed!`);
-  console.log(`r: ${r}`);
-  console.log(`s: ${s}`);
-  console.log(`yParity: ${yParity}`);
+  console.log(`   Delegate: ${signedAuthorization.address}`);
+  console.log(`   Nonce: ${signedAuthorization.nonce}`);
+  console.log(`   Chain ID: ${signedAuthorization.chainId}`);
+  console.log(`   r: ${signedAuthorization.signature.r}`);
+  console.log(`   s: ${signedAuthorization.signature.s}`);
+  console.log(`   yParity: ${signedAuthorization.signature.yParity}`);
+
+  // ============ STEP 11: Same flow via executeWithAuth — low-level API ============
+  console.log("\n" + "=".repeat(60));
+  console.log("STEP 11: Sign authorization via executeWithAuth (advanced)");
+  console.log("=".repeat(60));
+  console.log("   For custom KeyVault implementation calls, you build implCall yourself.");
+  console.log("   For signAuthorizationImpl, use createImplCall (same helper the SDK uses).\n");
+
+  const chainId = await fetchAuthorizationChainId(sdk.readProvider);
+  const authNonce = await fetchAuthorizationNonce(sdk.readProvider, accountAddress);
+
+  const implCall = createImplCall({
+    index: ACCOUNT_INDEX,
+    delegateAddr: DELEGATE_CONTRACT,
+    nonce: authNonce,
+    chainId
+  });
+
+  console.log(`   Delegate: ${DELEGATE_CONTRACT}`);
+  console.log(`   Authority (account ${ACCOUNT_INDEX}): ${accountAddress}`);
+  console.log(`   Auth nonce: ${authNonce}`);
+  console.log(`   Chain ID: ${chainId}`);
+  console.log(`   implCall length: ${implCall.length} chars`);
+
+  const rawResult = await sdk.executeWithAuth({
+    keyVaultAddr: keyVaultAddr,
+    authProof: { password: authProof },
+    implCall
+  });
+
+  const lowLevelSig = decodeSignAuthorizationResult(rawResult);
+
+  console.log(`\n✅ Authorization Signed (low-level)!`);
+  console.log(`   r: ${lowLevelSig.r}`);
+  console.log(`   s: ${lowLevelSig.s}`);
+  console.log(`   yParity: ${lowLevelSig.yParity}`);
+
+  const signaturesMatch =
+    lowLevelSig.r === signedAuthorization.signature.r &&
+    lowLevelSig.s === signedAuthorization.signature.s &&
+    lowLevelSig.yParity === signedAuthorization.signature.yParity;
+  console.log(`   Matches step 10: ${signaturesMatch ? "✅ Yes" : "❌ No"}`);
 
   // ============ SUMMARY ============
   console.log("\n" + "=".repeat(60));

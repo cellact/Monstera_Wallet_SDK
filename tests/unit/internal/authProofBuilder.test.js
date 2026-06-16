@@ -5,6 +5,7 @@
 import { describe, test, expect } from '@jest/globals';
 import { Wallet } from '../../../src/adapters/ethers/index.js';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
+import { createTestVaultSignAction } from '../../utils/fixtures.js';
 import { AuthProofBuilder } from '../../../src/internal/auth/proof/AuthProofBuilder.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
@@ -61,13 +62,19 @@ describe('AuthProofBuilder.encode', () => {
   });
 
   test('encodes structured password authProof via registry', async () => {
-    const builder = new AuthProofBuilder(
-      makeCtx(async () => network.addresses.passwordAuth)
-    );
+    const actionHash = keccak256(toUtf8Bytes('password-unit-action-hash'));
+    const builder = new AuthProofBuilder({
+      addresses: network.addresses,
+      chainId: network.chainId,
+      readProvider: {
+        call: async () => actionHash
+      },
+      getAuthenticatorAddr: async () => network.addresses.passwordAuth
+    });
     const password = toUtf8Bytes('unit-test-password');
     const out = await builder.encode({
       keyVaultAddr: VALID_TEST_ADDRESS,
-      authProof: { password }
+      authProof: { password, action: createTestVaultSignAction() }
     });
     expect(typeof out.authProof).toBe('string');
     expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
@@ -100,14 +107,20 @@ describe('AuthProofBuilder.encode', () => {
   });
 
   test('encodes structured WalletSignature authProof via walletSignature encoder', async () => {
+    const actionHash = keccak256(toUtf8Bytes('wallet-signature-unit-action-hash'));
     const signer = Wallet.createRandom();
     const deadline = nowUnixTimestampSeconds() + 7200;
-    const builder = new AuthProofBuilder(
-      makeCtx(async () => network.addresses.walletSignatureAuth)
-    );
+    const builder = new AuthProofBuilder({
+      addresses: network.addresses,
+      chainId: network.chainId,
+      readProvider: {
+        call: async () => actionHash
+      },
+      getAuthenticatorAddr: async () => network.addresses.walletSignatureAuth
+    });
     const out = await builder.encode({
       keyVaultAddr: VALID_TEST_ADDRESS,
-      authProof: { signer, deadline }
+      authProof: { signer, deadline, action: createTestVaultSignAction() }
     });
     expect(typeof out.authProof).toBe('string');
     expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
@@ -117,8 +130,10 @@ describe('AuthProofBuilder.encode', () => {
     const passwordHash = keccak256(toUtf8Bytes('dual-factor-unit'));
     const guardian = Wallet.createRandom();
     const deadline = nowUnixTimestampSeconds() + 7200;
+    const actionHash = keccak256(toUtf8Bytes('dual-factor-unit-action-hash'));
     const readProvider = {
-      getBlock: async () => ({ timestamp: Math.floor(Date.now() / 1000) })
+      getBlock: async () => ({ timestamp: Math.floor(Date.now() / 1000) }),
+      call: async () => actionHash
     };
     const builder = new AuthProofBuilder({
       addresses: network.addresses,
@@ -128,7 +143,12 @@ describe('AuthProofBuilder.encode', () => {
     });
     const out = await builder.encode({
       keyVaultAddr: VALID_TEST_ADDRESS,
-      authProof: { passwordHash, signer: guardian, deadline }
+      authProof: {
+        passwordHash,
+        signer: guardian,
+        deadline,
+        action: createTestVaultSignAction()
+      }
     });
     expect(typeof out.authProof).toBe('string');
     expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);

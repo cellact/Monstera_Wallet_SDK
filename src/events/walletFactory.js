@@ -31,5 +31,43 @@ export default {
       newImpl: 'newImpl'
     },
     description: 'Emitted when the factory beacon is upgraded'
+  },
+
+  AuthenticatorAllowed: {
+    eventName: 'AuthenticatorAllowed',
+    fieldMapping: {
+      authenticator: 'authenticator',
+      allowed: 'allowed'
+    },
+    description: 'Emitted when an authenticator is allowed'
+  },
+
+  KeyVaultImplementationAllowed: {
+    eventName: 'KeyVaultImplementationAllowed',
+    fieldMapping: {
+      implementation: 'implementation_',
+      allowed: 'allowed'
+    },
+    description: 'Emitted when a key vault implementation is allowed'
+  },
+
+  WalletImplementationAllowed: {
+    eventName: 'WalletImplementationAllowed',
+    fieldMapping: {
+      keyVault: 'keyVault',
+      implementation: 'implementation',
+      allowed: 'allowed'
+    },
+    description: 'Emitted when a wallet implementation is allowed'
+  },
+
+  WalletAuthenticatorAllowed: {
+    eventName: 'WalletAuthenticatorAllowed',
+    fieldMapping: {
+      keyVault: 'keyVault',
+      authenticator: 'authenticator',
+      allowed: 'allowed'
+    },
+    description: 'Emitted when a wallet authenticator is allowed'
   }
 };

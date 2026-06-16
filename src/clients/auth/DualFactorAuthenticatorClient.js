@@ -2,7 +2,7 @@
  * Low-level client for the {@code DualFactorAuthenticator} contract.
  *
  * Combines a minute-bucket ECDSA proof (derived from the password hash via Sapphire) with a
- * guardian EIP-712 signature over {@code DualFactorAuth(wallet, deadline)}. {@link Monstera} talks
+ * guardian EIP-712 signature over {@code DualFactorAuth(wallet, actionHash, deadline)}. {@link Monstera} talks
  * to this client via {@code monstera.auth.dualFactor}.
  *
  * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
@@ -15,6 +15,7 @@
  * @typedef {import('../../types/index.js').Bytes} Bytes
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
  * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
+ * @typedef {import('../../types/index.js').AuthContext} AuthContext
  * @typedef {import('../../types/index.js').DualFactorClientVerifyOptions} DualFactorClientVerifyOptions
  * @typedef {import('../../types/index.js').DualFactorClientUpdatePasswordOptions} DualFactorClientUpdatePasswordOptions
  * @typedef {import('../../types/index.js').DualFactorClientConfigureOptions} DualFactorClientConfigureOptions
@@ -26,7 +27,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getDualFactorAuthenticatorContract } from '../../contracts/authenticators/DualFactorAuthenticator.js';
 import { DualFactorAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireNonEmptyBytes, requireBytes32 } from '../../internal/assert.js';
+import { requireAddress, requireNonEmptyBytes, requireBytes32, requireObject } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -84,9 +85,9 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
    *
    * @public
    * @async
-   * @param {DualFactorClientVerifyOptions} options - {@code keyVaultAddr} and ABI-encoded {@code authProof}
+   * @param {DualFactorClientVerifyOptions} options - {@code keyVaultAddr}, {@code action}, and ABI-encoded {@code authProof}
    * @returns {Promise<boolean>} {@code true} if both the minute-bucket signature and guardian EIP-712 signature verify
-   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code authProof} is not non-empty bytes
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid, {@code action} is missing or invalid, or {@code authProof} is not non-empty bytes
    * @throws {NetworkError} If the read call fails over RPC
    * @throws {ContractRevertError} If the underlying call reverts
    * @throws {WalletError} For other unrecognised failures
@@ -94,13 +95,15 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
    * @remarks
    * {@code authProof = abi.encode(bytes minutePasswordSignature, uint256 deadline, bytes guardianSignature)}.
    * {@code minutePasswordSignature} is a 65-byte ECDSA signature over the EIP-191 digest for the current minute bucket;
-   * the guardian signs EIP-712 typed data with struct hash {@code keccak256(abi.encode(AUTH_TYPEHASH, wallet, deadline))}
+   * the guardian signs EIP-712 typed data with struct hash
+   * {@code keccak256(abi.encode(AUTH_TYPEHASH, wallet, actionHash, deadline))}
    * and {@code deadline} must not be expired.
    */
   async verify(options = {}) {
-    const { keyVaultAddr, authProof } = options;
+    const { keyVaultAddr, authProof, action } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
+    requireObject(action, 'action');
     log.info('DualFactorAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
@@ -108,7 +111,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
 
     return this.executeRead(
       {
-        operation: () => dualFactorAuth.verify(keyVaultAddr, authProof),
+        operation: () => dualFactorAuth.verify(keyVaultAddr, action, authProof),
         methodName: 'verify auth proof',
         ...options
       }
