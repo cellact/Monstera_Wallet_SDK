@@ -69,5 +69,15 @@ export default {
       allowed: 'allowed'
     },
     description: 'Emitted when a wallet authenticator is allowed'
+  },
+
+  UsernameRegistered: {
+    eventName: 'UsernameRegistered',
+    fieldMapping: {
+      usernameHash: 'usernameHash',
+      wallet: 'wallet',
+      keyVault: 'keyVault'
+    },
+    description: 'Emitted when a wallet is registered to a normalized username hash'
   }
 };

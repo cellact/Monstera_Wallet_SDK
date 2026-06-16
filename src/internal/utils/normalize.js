@@ -93,4 +93,24 @@ function normalizeBigInt(value) {
   return undefined;
 }
 
-export { normalizeChainId, normalizeBigInt };
+/**
+ * Normalise a username for factory registration (trim + lowercase).
+ *
+ * @description Matches the convention documented on {@code WalletFactory.createWalletForUsername}:
+ * the factory stores only {@code keccak256(bytes(normalizedUsername))}, so callers must apply the
+ * same normalisation before hashing or sending plaintext usernames.
+ *
+ * @public
+ * @param {unknown} value - Candidate username
+ * @returns {string | undefined} Normalised username, or {@code undefined} when missing/empty after trim
+ */
+function normalizeUsername(value) {
+  if (value === undefined || value === null || typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized === '' ? undefined : normalized;
+}
+
+export { normalizeChainId, normalizeBigInt, normalizeUsername };

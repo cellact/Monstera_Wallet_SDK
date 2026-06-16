@@ -55,14 +55,14 @@ const NETWORKS = {
  */
 const DEFAULT_ADDRESSES = {
   testnet: {
-    factory: '0x9616f999De47f3aBdeb34d0094828C6311C44099',
+    factory: '0x8B7e2310c4582eF9A492035FE867a9f58BcfB696',
     passwordAuth: '0x34d2426BA65b6d782fE570F08658038974F840b8',
     walletSignatureAuth: '0xF283b3A7FE88932968D9278e72A27A35CEBBf5eD',
     dualFactorAuth: '0xBfd22Afcbcf514e3e352372dDDF1526b0c3464D3',
     passwordMinuteSignatureAuth: '0xBb8b2343e34A26432F59ea8A7c857F003b5e3ccc',
   },
   mainnet: {
-    factory: '0x5F1332440C29DEEe1c9a8A251331371e403921d8',
+    factory: '0x19b90486eDbfdD765a2CBcd97aFCd4876A28C220',
     passwordAuth: '0x93c675336372EBb64dA38018bE28d5EA1a8cC26A',
     walletSignatureAuth: '0xC5AAFBC2e3D7D7674cE317AE0A02bF43f2eD2AA9',
     dualFactorAuth: '0xB82D5511e43723A377d6e1d9B52Ec31979e56c97',

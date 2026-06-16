@@ -37,6 +37,22 @@ export const WALLET_FACTORY_ABI = [
 		"type": "error"
 	},
 	{
+		"inputs": [],
+		"name": "InvalidUsername",
+		"type": "error"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "usernameHash",
+				"type": "bytes32"
+			}
+		],
+		"name": "UsernameAlreadyRegistered",
+		"type": "error"
+	},
+	{
 		"anonymous": false,
 		"inputs": [
 			{
@@ -91,6 +107,31 @@ export const WALLET_FACTORY_ABI = [
 			}
 		],
 		"name": "KeyVaultImplementationAllowed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "bytes32",
+				"name": "usernameHash",
+				"type": "bytes32"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "wallet",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "keyVault",
+				"type": "address"
+			}
+		],
+		"name": "UsernameRegistered",
 		"type": "event"
 	},
 	{
@@ -304,6 +345,74 @@ export const WALLET_FACTORY_ABI = [
 	{
 		"inputs": [
 			{
+				"internalType": "string",
+				"name": "username",
+				"type": "string"
+			},
+			{
+				"internalType": "bytes",
+				"name": "seed",
+				"type": "bytes"
+			},
+			{
+				"internalType": "address",
+				"name": "authenticator",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes",
+				"name": "authConfig",
+				"type": "bytes"
+			}
+		],
+		"name": "createWalletForUsername",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "wallet",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "usernameHash",
+				"type": "bytes32"
+			},
+			{
+				"internalType": "bytes",
+				"name": "seed",
+				"type": "bytes"
+			},
+			{
+				"internalType": "address",
+				"name": "authenticator",
+				"type": "address"
+			},
+			{
+				"internalType": "bytes",
+				"name": "authConfig",
+				"type": "bytes"
+			}
+		],
+		"name": "createWalletForUsernameHash",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "wallet",
+				"type": "address"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "bytes",
 				"name": "seed",
 				"type": "bytes"
@@ -382,6 +491,25 @@ export const WALLET_FACTORY_ABI = [
 			}
 		],
 		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "string",
+				"name": "username",
+				"type": "string"
+			}
+		],
+		"name": "hashUsername",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"stateMutability": "pure",
 		"type": "function"
 	},
 	{
@@ -588,12 +716,50 @@ export const WALLET_FACTORY_ABI = [
 	{
 		"inputs": [
 			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
+			}
+		],
+		"name": "usernameWallet",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
 				"internalType": "address",
 				"name": "",
 				"type": "address"
 			}
 		],
 		"name": "walletKeyVault",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "bytes32",
+				"name": "usernameHash",
+				"type": "bytes32"
+			}
+		],
+		"name": "walletOfUsername",
 		"outputs": [
 			{
 				"internalType": "address",
@@ -637,6 +803,25 @@ export const WALLET_FACTORY_ABI = [
 				"internalType": "address",
 				"name": "",
 				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "walletUsernameHash",
+		"outputs": [
+			{
+				"internalType": "bytes32",
+				"name": "",
+				"type": "bytes32"
 			}
 		],
 		"stateMutability": "view",

@@ -199,6 +199,13 @@
  * @typedef {BaseTransactionResult & { wallet: Address; keyVault: Address; storage: Address; authenticator: Address; mnemonic: Mnemonic }} WalletCreationResult
  */
 
+/**
+ * Result of factory username {@code createWallet*} methods. Extends {@link WalletCreationResult} with
+ * {@code usernameHash} from the {@code UsernameRegistered} event.
+ *
+ * @typedef {WalletCreationResult & { usernameHash: Bytes32 }} UsernameWalletCreationResult
+ */
+
 /** @typedef {BaseTransactionResult & { wallet: Address }} ConfigurePasswordResult */
 
 /** @typedef {BaseTransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigureWalletSignatureResult */
@@ -422,6 +429,22 @@
  */
 
 /**
+ * @typedef {CreateWalletBaseOptions & { username: string }} CreateWalletForUsernameOptions
+ */
+
+/**
+ * @typedef {CreateWalletForUsernameOptions & { mnemonic: Mnemonic }} CreateWalletForUsernameFromMnemonicOptions
+ */
+
+/**
+ * @typedef {CreateWalletBaseOptions & { usernameHash: Bytes32 }} CreateWalletForUsernameHashOptions
+ */
+
+/**
+ * @typedef {CreateWalletForUsernameHashOptions & { mnemonic: Mnemonic }} CreateWalletForUsernameHashFromMnemonicOptions
+ */
+
+/**
  * Base options for WalletFactoryClient: {@code authConfig} is already encoded for the factory (never a structured object).
  * @typedef {Object} FactoryClientCreateWalletBaseOptions
  * @property {EncodedAuthConfigOptions} authConfig - Hex-encoded authenticator configuration
@@ -440,6 +463,34 @@
  * @typedef {FactoryClientCreateWalletBaseOptions & { customLogicImplAddr: Address; logicData: Bytes }} FactoryClientCreateWalletWithCustomLogicOptions
  */
 
+/**
+ * @typedef {FactoryClientCreateWalletBaseOptions & { username: string }} FactoryClientCreateWalletForUsernameOptions
+ */
+
+/**
+ * @typedef {FactoryClientCreateWalletForUsernameOptions & { mnemonic: Mnemonic }} FactoryClientCreateWalletForUsernameFromMnemonicOptions
+ */
+
+/**
+ * @typedef {FactoryClientCreateWalletBaseOptions & { usernameHash: Bytes32 }} FactoryClientCreateWalletForUsernameHashOptions
+ */
+
+/**
+ * @typedef {FactoryClientCreateWalletForUsernameHashOptions & { mnemonic: Mnemonic }} FactoryClientCreateWalletForUsernameHashFromMnemonicOptions
+ */
+
+/**
+ * @typedef {{ username: string }} FactoryHashUsernameOptions
+ */
+
+/**
+ * @typedef {{ usernameHash: Bytes32 }} FactoryWalletOfUsernameOptions
+ */
+
+/**
+ * @typedef {{ walletAddr: Address }} FactoryWalletUsernameHashOptions
+ */
+
 // ============================================================================
 // Encode Auth Config Options
 // ============================================================================
@@ -451,6 +502,10 @@
  *   | CreateWalletFromMnemonicOptions
  *   | CreateWalletWithHookOptions
  *   | CreateWalletWithCustomLogicOptions
+ *   | CreateWalletForUsernameOptions
+ *   | CreateWalletForUsernameFromMnemonicOptions
+ *   | CreateWalletForUsernameHashOptions
+ *   | CreateWalletForUsernameHashFromMnemonicOptions
  * )} EncodeAuthConfigInputOptions
  */
 

@@ -22,6 +22,14 @@
  * @typedef {import('../types/index.js').WalletCreationResult} WalletCreationResult
  * @typedef {import('../types/index.js').CreateWalletWithHookOptions} CreateWalletWithHookOptions
  * @typedef {import('../types/index.js').CreateWalletWithCustomLogicOptions} CreateWalletWithCustomLogicOptions
+ * @typedef {import('../types/index.js').CreateWalletForUsernameOptions} CreateWalletForUsernameOptions
+ * @typedef {import('../types/index.js').CreateWalletForUsernameFromMnemonicOptions} CreateWalletForUsernameFromMnemonicOptions
+ * @typedef {import('../types/index.js').CreateWalletForUsernameHashOptions} CreateWalletForUsernameHashOptions
+ * @typedef {import('../types/index.js').CreateWalletForUsernameHashFromMnemonicOptions} CreateWalletForUsernameHashFromMnemonicOptions
+ * @typedef {import('../types/index.js').FactoryHashUsernameOptions} FactoryHashUsernameOptions
+ * @typedef {import('../types/index.js').FactoryWalletOfUsernameOptions} FactoryWalletOfUsernameOptions
+ * @typedef {import('../types/index.js').FactoryWalletUsernameHashOptions} FactoryWalletUsernameHashOptions
+ * @typedef {import('../types/index.js').UsernameWalletCreationResult} UsernameWalletCreationResult
  * @typedef {import('../types/index.js').SignTransactionOptions} SignTransactionOptions
  * @typedef {import('../types/index.js').SignMessageOptions} SignMessageOptions
  * @typedef {import('../types/index.js').SignHashOptions} SignHashOptions
@@ -839,6 +847,92 @@ class Monstera {
     );
   }
 
+  /**
+   * Create a new HD wallet (full stack) and register it to a normalised username.
+   *
+   * @public
+   * @async
+   * @param {CreateWalletForUsernameOptions} options - {@code authConfig}, {@code username}, optional {@code authenticatorAddr}
+   * @returns {Promise<UsernameWalletCreationResult>} Write result plus addresses, generated {@code mnemonic}, and {@code usernameHash}
+   * @throws {ValidationError} If {@code authConfig} or {@code username} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If a required event is missing from the receipt
+   * @throws {EventParseError} If an event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks Usernames are normalised (trim + lowercase) before hashing. The factory stores only the hash.
+   */
+  async createWalletForUsername(options = {}) {
+    return this.factory.createWalletForUsername(
+      this._authConfigBuilder.encode(options)
+    );
+  }
+
+  /**
+   * Create a new HD wallet (full stack) for a normalised username from a caller-supplied mnemonic.
+   *
+   * @public
+   * @async
+   * @param {CreateWalletForUsernameFromMnemonicOptions} options - {@code authConfig}, {@code username}, {@code mnemonic}, optional {@code authenticatorAddr}
+   * @returns {Promise<UsernameWalletCreationResult>} Write result plus addresses, supplied {@code mnemonic}, and {@code usernameHash}
+   * @throws {ValidationError} If required fields are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If a required event is missing from the receipt
+   * @throws {EventParseError} If an event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async createWalletForUsernameFromMnemonic(options = {}) {
+    return this.factory.createWalletForUsernameFromMnemonic(
+      this._authConfigBuilder.encode(options)
+    );
+  }
+
+  /**
+   * Create a new HD wallet (full stack) and register it to a precomputed username hash.
+   *
+   * @public
+   * @async
+   * @param {CreateWalletForUsernameHashOptions} options - {@code authConfig}, {@code usernameHash}, optional {@code authenticatorAddr}
+   * @returns {Promise<UsernameWalletCreationResult>} Write result plus addresses, generated {@code mnemonic}, and {@code usernameHash}
+   * @throws {ValidationError} If required fields are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If a required event is missing from the receipt
+   * @throws {EventParseError} If an event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async createWalletForUsernameHash(options = {}) {
+    return this.factory.createWalletForUsernameHash(
+      this._authConfigBuilder.encode(options)
+    );
+  }
+
+  /**
+   * Create a new HD wallet (full stack) for a username hash from a caller-supplied mnemonic.
+   *
+   * @public
+   * @async
+   * @param {CreateWalletForUsernameHashFromMnemonicOptions} options - {@code authConfig}, {@code usernameHash}, {@code mnemonic}, optional {@code authenticatorAddr}
+   * @returns {Promise<UsernameWalletCreationResult>} Write result plus addresses, supplied {@code mnemonic}, and {@code usernameHash}
+   * @throws {ValidationError} If required fields are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If a required event is missing from the receipt
+   * @throws {EventParseError} If an event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async createWalletForUsernameHashFromMnemonic(options = {}) {
+    return this.factory.createWalletForUsernameHashFromMnemonic(
+      this._authConfigBuilder.encode(options)
+    );
+  }
+
   // ============================================================================
   // Read Methods
   // ============================================================================
@@ -1037,6 +1131,54 @@ class Monstera {
    */
   async isFactoryAuthenticatorApproved(options = {}) {
     return this.factory.isAuthenticatorApproved(options);
+  }
+
+  /**
+   * Hash a normalised username the same way the factory does.
+   *
+   * @public
+   * @async
+   * @param {FactoryHashUsernameOptions} options - {@code username}
+   * @returns {Promise<Bytes32>} {@code keccak256(bytes(normalizedUsername))}
+   * @throws {ValidationError} If {@code username} is missing or empty after normalisation
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async hashUsername(options = {}) {
+    return this.factory.hashUsername(options);
+  }
+
+  /**
+   * Resolve a username hash to its registered wallet proxy address.
+   *
+   * @public
+   * @async
+   * @param {FactoryWalletOfUsernameOptions} options - {@code usernameHash}
+   * @returns {Promise<Address>} Wallet proxy address, or the zero address if unregistered
+   * @throws {ValidationError} If {@code usernameHash} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async walletOfUsername(options = {}) {
+    return this.factory.walletOfUsername(options);
+  }
+
+  /**
+   * Resolve the username hash registered for a wallet proxy.
+   *
+   * @public
+   * @async
+   * @param {FactoryWalletUsernameHashOptions} options - {@code walletAddr}
+   * @returns {Promise<Bytes32>} Username hash, or zero bytes32 if none
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async getWalletUsernameHash(options = {}) {
+    return this.factory.getWalletUsernameHash(options);
   }
 
   // --- KeyVault Reads ---

@@ -33,7 +33,14 @@
  * @typedef {import('../../types/index.js').SetAuthenticatorAllowedResult} SetAuthenticatorAllowedResult
  * @typedef {import('../../types/index.js').SetKeyVaultImplementationAllowedResult} SetKeyVaultImplementationAllowedResult
  * @typedef {import('../../types/index.js').SetWalletAuthenticatorAllowedResult} SetWalletAuthenticatorAllowedResult
- * @typedef {import('../../types/index.js').SetWalletImplementationAllowedResult} SetWalletImplementationAllowedResult
+ * @typedef {import('../../types/index.js').FactoryClientCreateWalletForUsernameOptions} FactoryClientCreateWalletForUsernameOptions
+ * @typedef {import('../../types/index.js').FactoryClientCreateWalletForUsernameFromMnemonicOptions} FactoryClientCreateWalletForUsernameFromMnemonicOptions
+ * @typedef {import('../../types/index.js').FactoryClientCreateWalletForUsernameHashOptions} FactoryClientCreateWalletForUsernameHashOptions
+ * @typedef {import('../../types/index.js').FactoryClientCreateWalletForUsernameHashFromMnemonicOptions} FactoryClientCreateWalletForUsernameHashFromMnemonicOptions
+ * @typedef {import('../../types/index.js').FactoryHashUsernameOptions} FactoryHashUsernameOptions
+ * @typedef {import('../../types/index.js').FactoryWalletOfUsernameOptions} FactoryWalletOfUsernameOptions
+ * @typedef {import('../../types/index.js').FactoryWalletUsernameHashOptions} FactoryWalletUsernameHashOptions
+ * @typedef {import('../../types/index.js').UsernameWalletCreationResult} UsernameWalletCreationResult
  *
  * @module clients/factory/WalletFactoryClient
  */
@@ -42,9 +49,11 @@ import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletFactoryContract } from '../../contracts/core/walletFactory.js';
 import { WalletFactoryEvents } from '../../events/index.js';
 import { generateMnemonic, deriveSeed } from '../../internal/crypto/index.js';
-import { requireAddress, requireBoolean, requireBytes, requireMnemonic, requireNonEmptyBytes } from '../../internal/assert.js';
+import { requireAddress, requireBoolean, requireBytes, requireBytes32, requireMnemonic, requireNonEmptyBytes, requireString } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
+import { normalizeUsername } from '../../internal/utils/normalize.js';
+import { ValidationError } from '../../errors/index.js';
 
 /**
  * @public
@@ -82,6 +91,43 @@ class WalletFactoryClient extends BaseContractClient {
     const mnemonic = generateMnemonic();
     const seed = deriveSeed(mnemonic);
     return { mnemonic, seed };
+  }
+
+  /**
+   * Normalise a username the same way create-wallet helpers do before hashing or sending on-chain.
+   *
+   * @private
+   * @param {string} username - Raw username input
+   * @returns {string} Trimmed, lowercased username
+   * @throws {ValidationError} If the username is missing or empty after normalisation
+   */
+  _requireNormalizedUsername(username) {
+    requireString(username, 'username');
+    const normalized = normalizeUsername(username);
+    if (!normalized) {
+      throw new ValidationError('username is required and must be a non-empty string', 'username', username);
+    }
+    return normalized;
+  }
+
+  /**
+   * Event parsers used by username wallet creation flows.
+   *
+   * @private
+   * @param {import('ethers').Contract} factory - Factory write contract
+   * @returns {Array<{ eventDef: object; contract: import('ethers').Contract }>}
+   */
+  _usernameWalletCreateEvents(factory) {
+    return [
+      {
+        eventDef: WalletFactoryEvents.WalletCreated,
+        contract: factory
+      },
+      {
+        eventDef: WalletFactoryEvents.UsernameRegistered,
+        contract: factory
+      }
+    ];
   }
 
   // ============================================================================
@@ -422,6 +468,93 @@ class WalletFactoryClient extends BaseContractClient {
     );
   }
 
+  /**
+   * Hash a normalised username the same way the factory does.
+   *
+   * @public
+   * @async
+   * @param {FactoryHashUsernameOptions} options - {@code username} (normalised via trim + lowercase before hashing)
+   * @returns {Promise<import('../../types/index.js').Bytes32>} {@code keccak256(bytes(normalizedUsername))}
+   * @throws {ValidationError} If {@code username} is missing or empty after normalisation
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts (e.g. empty username)
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async hashUsername(options = {}) {
+    const { username } = options;
+    const normalized = this._requireNormalizedUsername(username);
+    log.info('WalletFactory: hashUsername');
+    log.debug('Hashing normalized username', sanitizer.forLog({ username: normalized }));
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.hashUsername(normalized),
+        methodName: 'hash username',
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Resolve a username hash to its registered wallet proxy address.
+   *
+   * @public
+   * @async
+   * @param {FactoryWalletOfUsernameOptions} options - {@code usernameHash}
+   * @returns {Promise<Address>} Wallet proxy address, or the zero address if unregistered
+   * @throws {ValidationError} If {@code usernameHash} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async walletOfUsername(options = {}) {
+    const { usernameHash } = options;
+    requireBytes32(usernameHash, 'usernameHash');
+    log.info('WalletFactory: walletOfUsername');
+    log.debug('Resolving wallet for username hash', sanitizer.forLog(options));
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.walletOfUsername(usernameHash),
+        methodName: 'resolve wallet for username hash',
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Resolve the username hash registered for a wallet proxy.
+   *
+   * @public
+   * @async
+   * @param {FactoryWalletUsernameHashOptions} options - {@code walletAddr}
+   * @returns {Promise<import('../../types/index.js').Bytes32>} Username hash, or zero bytes32 if none
+   * @throws {ValidationError} If {@code walletAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async getWalletUsernameHash(options = {}) {
+    const { walletAddr } = options;
+    requireAddress(walletAddr, 'walletAddr');
+    log.info('WalletFactory: getWalletUsernameHash');
+    log.debug('Getting username hash for wallet', sanitizer.forLog(options));
+
+    const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeRead(
+      {
+        operation: () => factory.walletUsernameHash(walletAddr),
+        methodName: 'get wallet username hash',
+        ...options
+      }
+    );
+  }
+
   // ============================================================================
   // Write Methods
   // ============================================================================
@@ -654,6 +787,170 @@ class WalletFactoryClient extends BaseContractClient {
           contract: factory
         }],
         extraData: { 
+          mnemonic
+        },
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Create a new HD wallet (full stack) and register it to a normalised username.
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletForUsernameOptions} options - {@code authConfig} (encoded), {@code username}, optional {@code authenticatorAddr}
+   * @returns {Promise<UsernameWalletCreationResult>} Standard write result plus addresses, generated {@code mnemonic}, and {@code usernameHash}
+   * @throws {ValidationError} If {@code authConfig} or {@code username} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain (e.g. username already registered)
+   * @throws {EventNotFoundError} If a required event is missing from the receipt
+   * @throws {EventParseError} If an event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   *
+   * @remarks
+   * Usernames are normalised (trim + lowercase) before being sent on-chain. The factory stores only
+   * the hash, not the plaintext username.
+   */
+  async createWalletForUsername(options = {}) {
+    const { authConfig, username } = options;
+    requireNonEmptyBytes(authConfig, 'authConfig');
+    const normalized = this._requireNormalizedUsername(username);
+    log.info('WalletFactory: createWalletForUsername');
+    log.debug('Creating wallet for username', sanitizer.forLog({ ...options, username: normalized }));
+
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
+    const { mnemonic, seed } = this._prepareWalletCreation();
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeWrite(
+      {
+        operation: () => factory.createWalletForUsername(normalized, seed, authenticatorAddr, authConfig),
+        methodName: 'create wallet for username',
+        parseEvents: this._usernameWalletCreateEvents(factory),
+        extraData: {
+          mnemonic
+        },
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Create a new HD wallet (full stack) for a normalised username from a caller-supplied mnemonic.
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletForUsernameFromMnemonicOptions} options - {@code authConfig}, {@code username}, {@code mnemonic}, optional {@code authenticatorAddr}
+   * @returns {Promise<UsernameWalletCreationResult>} Standard write result plus addresses, supplied {@code mnemonic}, and {@code usernameHash}
+   * @throws {ValidationError} If {@code authConfig}, {@code username}, or {@code mnemonic} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If a required event is missing from the receipt
+   * @throws {EventParseError} If an event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async createWalletForUsernameFromMnemonic(options = {}) {
+    const { authConfig, username, mnemonic } = options;
+    requireNonEmptyBytes(authConfig, 'authConfig');
+    const normalized = this._requireNormalizedUsername(username);
+    requireMnemonic(mnemonic, 'mnemonic');
+    log.info('WalletFactory: createWalletForUsernameFromMnemonic');
+    log.debug('Creating wallet for username from mnemonic', sanitizer.forLog({ ...options, username: normalized }));
+
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
+    const seed = deriveSeed(mnemonic);
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeWrite(
+      {
+        operation: () => factory.createWalletForUsername(normalized, seed, authenticatorAddr, authConfig),
+        methodName: 'create wallet for username',
+        parseEvents: this._usernameWalletCreateEvents(factory),
+        extraData: {
+          mnemonic
+        },
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Create a new HD wallet (full stack) and register it to a precomputed username hash.
+   *
+   * Prefer this when the SDK should avoid sending plaintext usernames on-chain.
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletForUsernameHashOptions} options - {@code authConfig} (encoded), {@code usernameHash}, optional {@code authenticatorAddr}
+   * @returns {Promise<UsernameWalletCreationResult>} Standard write result plus addresses, generated {@code mnemonic}, and {@code usernameHash}
+   * @throws {ValidationError} If {@code authConfig} or {@code usernameHash} is missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If a required event is missing from the receipt
+   * @throws {EventParseError} If an event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async createWalletForUsernameHash(options = {}) {
+    const { authConfig, usernameHash } = options;
+    requireNonEmptyBytes(authConfig, 'authConfig');
+    requireBytes32(usernameHash, 'usernameHash');
+    log.info('WalletFactory: createWalletForUsernameHash');
+    log.debug('Creating wallet for username hash', sanitizer.forLog(options));
+
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
+    const { mnemonic, seed } = this._prepareWalletCreation();
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeWrite(
+      {
+        operation: () => factory.createWalletForUsernameHash(usernameHash, seed, authenticatorAddr, authConfig),
+        methodName: 'create wallet for username hash',
+        parseEvents: this._usernameWalletCreateEvents(factory),
+        extraData: {
+          mnemonic
+        },
+        ...options
+      }
+    );
+  }
+
+  /**
+   * Create a new HD wallet (full stack) for a username hash from a caller-supplied mnemonic.
+   *
+   * @public
+   * @async
+   * @param {FactoryClientCreateWalletForUsernameHashFromMnemonicOptions} options - {@code authConfig}, {@code usernameHash}, {@code mnemonic}, optional {@code authenticatorAddr}
+   * @returns {Promise<UsernameWalletCreationResult>} Standard write result plus addresses, supplied {@code mnemonic}, and {@code usernameHash}
+   * @throws {ValidationError} If required fields are missing/invalid
+   * @throws {WriteRequiresSignerError} If no write signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If a required event is missing from the receipt
+   * @throws {EventParseError} If an event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async createWalletForUsernameHashFromMnemonic(options = {}) {
+    const { authConfig, usernameHash, mnemonic } = options;
+    requireNonEmptyBytes(authConfig, 'authConfig');
+    requireBytes32(usernameHash, 'usernameHash');
+    requireMnemonic(mnemonic, 'mnemonic');
+    log.info('WalletFactory: createWalletForUsernameHashFromMnemonic');
+    log.debug('Creating wallet for username hash from mnemonic', sanitizer.forLog(options));
+
+    const authenticatorAddr = options.authenticatorAddr ?? this.config.addresses.passwordAuth;
+    const seed = deriveSeed(mnemonic);
+    const factory = this.getWriteContract(getWalletFactoryContract, this.config.addresses.factory);
+
+    return this.executeWrite(
+      {
+        operation: () => factory.createWalletForUsernameHash(usernameHash, seed, authenticatorAddr, authConfig),
+        methodName: 'create wallet for username hash',
+        parseEvents: this._usernameWalletCreateEvents(factory),
+        extraData: {
           mnemonic
         },
         ...options
