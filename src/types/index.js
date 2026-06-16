@@ -154,9 +154,24 @@
  */
 
 /**
- * @typedef {BaseConnectOptions & { signer?: EthersSigner | string; provider?: EthersProvider }} ConnectOptions
+ * Username/password pair for {@link Monstera.connect}. When provided, the SDK resolves and caches
+ * the registered wallet's KeyVault address and can default {@code authProof} / {@code currentPassword}
+ * on vault-scoped calls so callers omit {@code keyVaultAddr}.
+ *
+ * @typedef {Object} ConnectCredentials
+ * @property {string} username - Registered username (factory-normalised before hashing)
+ * @property {string} password - UTF-8 password for PasswordAuthenticator proofs
+ */
+
+/**
+ * @typedef {BaseConnectOptions & {
+ *   signer?: EthersSigner | string;
+ *   provider?: EthersProvider;
+ *   credentials?: ConnectCredentials;
+ * }} ConnectOptions
  * @property {EthersSigner | string} [signer] - Ethers Signer instance or private key string (0x-prefixed hex); optional for read-only connections
  * @property {EthersProvider} [provider] - Optional ethers Provider instance
+ * @property {ConnectCredentials} [credentials] - Optional username/password session; resolves and caches KeyVault for subsequent calls
  */
 
 // ============================================================================
@@ -164,8 +179,12 @@
 // ============================================================================
 
 /**
- * Optional signer, provider, and logging/version overrides when constructing Monstera with a resolved NetworkConfig.
- * @typedef {SdkLoggingAndVersionOptions & { signer?: EthersSigner | string; provider?: EthersProvider }} MonsteraConfigExtension
+ * Optional signer, provider, credentials, and logging/version overrides when constructing Monstera with a resolved NetworkConfig.
+ * @typedef {SdkLoggingAndVersionOptions & {
+ *   signer?: EthersSigner | string;
+ *   provider?: EthersProvider;
+ *   credentials?: ConnectCredentials;
+ * }} MonsteraConfigExtension
  */
 
 /**
@@ -713,8 +732,8 @@
  * KeyVault address plus {@link AuthProofInputOptions} (Monstera / SDK encoding path).
  *
  * @typedef {Object} KeyVaultAuthBaseOptions
- * @property {Address} keyVaultAddr - KeyVault contract address
- * @property {AuthProofInputOptions} authProof - Authentication proof (bytes or structured object)
+ * @property {Address} [keyVaultAddr] - KeyVault contract address; optional when connect {@code credentials} are set
+ * @property {AuthProofInputOptions} [authProof] - Authentication proof (bytes or structured object); defaults to session password when omitted
  */
 
 /**
@@ -1106,7 +1125,8 @@
 // --- Configure authenticators & account slices ---
 
 /**
- * @typedef {{ keyVaultAddr: Address }} KeyVaultAddrOptions
+ * @typedef {{ keyVaultAddr?: Address }} KeyVaultAddrOptions
+ * @property {Address} [keyVaultAddr] - KeyVault contract address; optional when {@link Monstera.connect} was given {@code credentials}
  */
 
 /**
