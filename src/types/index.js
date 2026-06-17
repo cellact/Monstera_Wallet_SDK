@@ -163,44 +163,13 @@
 
 /**
  * @typedef {BaseConnectOptions & {
- *   signer: EthersSigner | string;
- *   provider?: EthersProvider;
- * }} ConnectAdminOptions
- * @property {EthersSigner | string} signer - Required admin private key or ethers Signer for on-chain writes
- */
-
-/**
- * @typedef {BaseConnectOptions & {
- *   credentials: ConnectCredentials;
- *   provider?: EthersProvider;
- * }} ConnectUserOptions
- * @property {ConnectCredentials} credentials - Required username/password for the end-user's registered wallet
- */
-
-/**
- * @typedef {BaseConnectOptions & {
- *   signer: EthersSigner | string;
- *   credentials: ConnectCredentials;
- *   provider?: EthersProvider;
- * }} ConnectFullOptions
- * @property {EthersSigner | string} signer - Admin signer for on-chain writes
- * @property {ConnectCredentials} credentials - End-user credentials for vault-authenticated operations
- */
-
-/**
- * @typedef {BaseConnectOptions & {
  *   signer?: EthersSigner | string;
  *   provider?: EthersProvider;
  *   credentials?: ConnectCredentials;
  * }} ConnectOptions
- * @property {EthersSigner | string} [signer] - Admin signer; with {@code credentials} selects full-access mode
+ * @property {EthersSigner | string} [signer] - Optional admin private key or ethers Signer for on-chain writes
  * @property {EthersProvider} [provider] - Optional ethers Provider instance
- * @property {ConnectCredentials} [credentials] - End-user credentials; without {@code signer} selects user-only mode
- */
-
-/**
- * Connect profile stored on a {@link Monstera} instance after connect.
- * @typedef {'admin' | 'user' | 'full' | 'readonly'} ConnectProfile
+ * @property {ConnectCredentials} [credentials] - Optional username/password; resolves vault from factory username
  */
 
 // ============================================================================
@@ -213,7 +182,6 @@
  *   signer?: EthersSigner | string;
  *   provider?: EthersProvider;
  *   credentials?: ConnectCredentials;
- *   connectProfile?: ConnectProfile;
  * }} MonsteraConfigExtension
  */
 

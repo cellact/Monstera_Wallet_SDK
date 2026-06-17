@@ -59,8 +59,9 @@ export function parseConnectCredentials(credentials) {
  * @returns {{ signer: unknown; credentials: ConnectCredentialsInput | null }}
  */
 export function parseConnectInputs(options) {
+  const signer = options.signer;
   return {
-    signer: options.signer ?? null,
+    signer: signer != null && signer !== '' ? signer : null,
     credentials: parseConnectCredentials(options.credentials)
   };
 }

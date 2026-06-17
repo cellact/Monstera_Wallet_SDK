@@ -16,6 +16,8 @@
  * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
  * @typedef {import('../types/index.js').BaseConnectNetworkOptions} BaseConnectNetworkOptions
+ * @typedef {import('../types/index.js').ConnectOptions} ConnectOptions
+ * @typedef {import('../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
  * @typedef {import('../types/index.js').RequiredContractAddressKeys} RequiredContractAddressKeys
  *
  * @module config/monstera
@@ -29,9 +31,25 @@ import {
   REQUIRED_CONTRACT_ADDRESS_KEYS,
   validateContractAddresses,
 } from '../internal/validators/networkConfig.js';
+import { parseConnectInputs } from '../internal/validators/connectOptions.js';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
+
+/**
+ * @param {Record<string, unknown>} [options]
+ * @returns {{ logLevel: string; provider: import('../types/index.js').EthersProvider | null; checkVersion: boolean | undefined }}
+ */
+function resolveConnectExtension(options = {}) {
+  const logLevel = options.logLevel ?? (options.debug === true ? 'debug' : 'error');
+  log.setLevel(logLevel);
+
+  return {
+    logLevel,
+    provider: options.provider ?? null,
+    checkVersion: options.checkVersion
+  };
+}
 
 /**
  * Static accessor for SDK configuration constants and the connect-time config resolver.
@@ -145,6 +163,32 @@ class MonsteraConfig {
     validateContractAddresses(networkConfig.addresses, REQUIRED_CONTRACT_ADDRESS_KEYS);
 
     return networkConfig;
+  }
+
+  /**
+   * Resolve connect options into a full {@link MonsteraConfigOptions} object.
+   *
+   * @description Merges {@link MonsteraConfig.resolveBaseConfig} with optional {@code signer},
+   * {@code credentials}, logging, provider, and version-check settings.
+   *
+   * @public
+   * @static
+   * @param {ConnectOptions} [options]
+   * @returns {MonsteraConfigOptions}
+   * @throws {ValidationError} If {@code mainnet}, {@code credentials}, or network addresses are invalid
+   * @throws {ConfigError} If required contract addresses are missing
+   */
+  static resolveConnectConfig(options = {}) {
+    const extension = resolveConnectExtension(options);
+    const base = MonsteraConfig.resolveBaseConfig(options);
+    const { signer, credentials } = parseConnectInputs(options);
+
+    return {
+      ...base,
+      ...(signer ? { signer } : {}),
+      ...(credentials ? { credentials } : {}),
+      ...extension
+    };
   }
 
   /**

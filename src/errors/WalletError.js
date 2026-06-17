@@ -291,7 +291,7 @@ class WriteRequiresSignerError extends WalletError {
    */
   constructor(operation = 'operation') {
     super(
-      `Signer is required for ${operation}. Use Monstera.connectAdmin({ signer, ... }) or Monstera.connect({ signer, credentials, ... })`,
+      `Signer is required for ${operation}. Pass signer to Monstera.connect({ signer, ... })`,
       'WRITE_REQUIRES_SIGNER',
       {
         operation,
@@ -306,8 +306,7 @@ class WriteRequiresSignerError extends WalletError {
  * Thrown when an end-user vault operation is invoked without a credentials session.
  *
  * @description Code: {@code "CREDENTIALS_REQUIRED"}. Hint message instructs the caller to pass
- * {@code credentials} into {@code Monstera.connectUser} or use {@code Monstera.connect} with both
- * {@code signer} and {@code credentials}.
+ * {@code credentials} or an explicit {@code keyVaultAddr} on vault-scoped calls.
  *
  * @public
  */
@@ -318,7 +317,7 @@ class CredentialsRequiredError extends WalletError {
    */
   constructor(operation = 'operation') {
     super(
-      `End-user credentials are required for ${operation}. Use Monstera.connectUser({ credentials, ... }) or Monstera.connect({ signer, credentials, ... })`,
+      `Vault access requires credentials or keyVaultAddr for ${operation}. Pass credentials to Monstera.connect({ credentials, ... }) or keyVaultAddr on the call`,
       'CREDENTIALS_REQUIRED',
       {
         operation,

@@ -7,7 +7,7 @@ Two guided tracks. Pick the one that matches how your app identifies wallets.
 | **Best for** | Backend/admin-operated wallets | Product login (username + password) |
 | **Create** | `createWallet()` | `createWalletForUsername()` |
 | **Factory username map** | No | Yes (`usernameHash → wallet`) |
-| **Connect (vault ops)** | `connectAdmin` + explicit `keyVaultAddr` | `connectUser` + `credentials` |
+| **Connect (vault ops)** | `connect({ signer })` + explicit `keyVaultAddr` | `connect({ credentials })` |
 | **Pass `keyVaultAddr`?** | Yes, on vault-scoped calls | No — resolved from username |
 | **Env vars (use step)** | `SIGNER_PRIVATE_KEY`, `WALLET_ADDRESS`, `PASSWORD` | `USERNAME`, `USER_PASSWORD` |
 

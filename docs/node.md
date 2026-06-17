@@ -18,19 +18,19 @@ npm install ethers
 
 ## Basic Usage
 
-The SDK has two primary roles: **admin** (factory writes with a private key) and **end user** (vault signing/reads with username + password). Use the dedicated connect method for each role, or `connect` with both for full access.
+Pass optional `signer` and/or `credentials` to `Monstera.connect()` depending on what you need.
 
 ```javascript
 import { Monstera } from '@monstera_protocol/sdk';
 
-// Admin — create wallets, configure authenticators, factory writes
-const adminSdk = Monstera.connectAdmin({
+// Admin writes — create wallets, configure authenticators, factory writes
+const adminSdk = Monstera.connect({
   mainnet: false,
   signer: process.env.SIGNER_PRIVATE_KEY
 });
 
 // End user — sign messages, authenticated vault reads (no keyVaultAddr needed)
-const userSdk = Monstera.connectUser({
+const userSdk = Monstera.connect({
   mainnet: false,
   credentials: {
     username: process.env.USERNAME,
@@ -38,7 +38,7 @@ const userSdk = Monstera.connectUser({
   }
 });
 
-// Full access — both roles on one instance
+// Both — admin writes and vault ops on one instance
 const fullSdk = Monstera.connect({
   mainnet: false,
   signer: process.env.SIGNER_PRIVATE_KEY,
@@ -53,7 +53,7 @@ const fullSdk = Monstera.connect({
 
 ### Action-bound auth proofs (2.0+)
 
-KeyVaultV3 requires proofs bound to the operation being performed. With **`connectUser`**, you can omit `keyVaultAddr` and often omit `authProof` — the SDK resolves the vault from `credentials` and defaults the password proof:
+KeyVaultV3 requires proofs bound to the operation being performed. With **`credentials`**, you can omit `keyVaultAddr` and often omit `authProof` — the SDK resolves the vault from `credentials` and defaults the password proof:
 
 ```javascript
 import { toUtf8Bytes } from 'ethers';
@@ -68,7 +68,7 @@ Low-level `createAuthProof*` helpers require an explicit `action` or `actionHash
 
 ### Upgrading from 2.0.x / 1.x
 
-- **2.1+**: Use **`connectAdmin`** for signer-only admin flows and **`connectUser`** for end-user vault operations. Signer-only `connect({ signer })` no longer supports `signMessage` and similar vault calls without credentials.
+- **2.1+**: Use `Monstera.connect({ signer })` for admin writes and `Monstera.connect({ credentials })` for username-registered vault ops. Signer-only connect supports vault calls when you pass explicit `keyVaultAddr` and `authProof`.
 - Update `authProof` usage to structured objects on KeyVault calls (see examples in `examples/nodejs/`).
 - Confirm network preset addresses match your deployments, or override via `addresses` in `Monstera.connect()`.
 - New wallets use **KeyVaultV3**; factory creation requires authenticators on the factory allowlist (`allowedAuthenticators`).
@@ -78,20 +78,20 @@ Low-level `createAuthProof*` helpers require an explicit `action` or `actionHash
 ```javascript
 import { Monstera } from '@monstera_protocol/sdk';
 
-// Admin testnet (factory writes)
-const testnetSdk = Monstera.connectAdmin({
+// Testnet admin writes
+const testnetSdk = Monstera.connect({
   mainnet: false,
   signer: 'your_private_key'
 });
 
-// End-user testnet (vault signing/reads)
-const userSdk = Monstera.connectUser({
+// Testnet vault signing/reads
+const userSdk = Monstera.connect({
   mainnet: false,
   credentials: { username: 'alice', password: 'secret' }
 });
 
 // Mainnet admin
-const mainnetSdk = Monstera.connectAdmin({
+const mainnetSdk = Monstera.connect({
   mainnet: true,
   signer: 'your_private_key'
 });
@@ -214,8 +214,8 @@ Examples are organized by task under `examples/nodejs/`. See **[examples/README.
 
 **Start here (flows):** see [examples/nodejs/getting-started/README.md](../examples/nodejs/getting-started/README.md)
 
-- `getting-started/password-only/` — `createWallet()` + `connectAdmin` + explicit `keyVaultAddr`
-- `getting-started/username-and-password/` — `createWalletForUsername()` + `connectUser`
+- `getting-started/password-only/` — `createWallet()` + `connect({ signer })` + explicit `keyVaultAddr`
+- `getting-started/username-and-password/` — `createWalletForUsername()` + `connect({ credentials })`
 
 **Common recipes:**
 - `signing/sign-transaction.js` — Sign and broadcast a transaction

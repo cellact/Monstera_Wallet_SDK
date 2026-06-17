@@ -1,62 +1,35 @@
 /**
- * Unit tests for monsteraConnect builder helpers.
+ * Unit tests for MonsteraConfig.resolveConnectConfig.
  */
 
 import { describe, test, expect } from '@jest/globals';
 import { Wallet } from '../../../src/adapters/ethers/index.js';
+import MonsteraConfig from '../../../src/config/monstera.js';
 import Monstera from '../../../src/sdk/Monstera.js';
-import {
-  connectAdmin,
-  connectUser,
-  connectFull,
-  connectLegacy
-} from '../../../src/sdk/connect/index.js';
-import { ValidationError } from '../../../src/errors/index.js';
 
 const TEST_SIGNER = Wallet.createRandom().privateKey;
 
-describe('monsteraConnect', () => {
-  test('connectAdmin builds admin profile config', () => {
-    const sdk = connectAdmin(
-      { mainnet: false, signer: TEST_SIGNER, checkVersion: false },
-      Monstera
-    );
-    expect(sdk.getConnectProfile()).toBe('admin');
+describe('MonsteraConfig.resolveConnectConfig', () => {
+  test('omits signer and credentials when not provided', () => {
+    const config = MonsteraConfig.resolveConnectConfig({ mainnet: false, checkVersion: false });
+    expect(config.signer).toBeUndefined();
+    expect(config.credentials).toBeUndefined();
   });
 
-  test('connectUser builds user profile config', () => {
-    const sdk = connectUser(
-      {
-        mainnet: false,
-        checkVersion: false,
-        credentials: { username: 'bob', password: 'pw' }
-      },
-      Monstera
-    );
-    expect(sdk.getConnectProfile()).toBe('user');
+  test('Monstera.connect builds instance with optional signer and credentials', () => {
+    const sdk = Monstera.connect({
+      mainnet: false,
+      checkVersion: false,
+      signer: TEST_SIGNER,
+      credentials: { username: 'bob', password: 'pw' }
+    });
+    expect(sdk.hasWriteAccess()).toBe(true);
+    expect(sdk.hasCredentials()).toBe(true);
   });
 
-  test('connectFull builds full profile config', () => {
-    const sdk = connectFull(
-      {
-        mainnet: false,
-        checkVersion: false,
-        signer: TEST_SIGNER,
-        credentials: { username: 'bob', password: 'pw' }
-      },
-      Monstera
-    );
-    expect(sdk.getConnectProfile()).toBe('full');
-  });
-
-  test('connectLegacy readonly rejects signer and credentials together with neither', () => {
-    const sdk = connectLegacy({ mainnet: false, checkVersion: false }, Monstera);
-    expect(sdk.getConnectProfile()).toBe('readonly');
-  });
-
-  test('connectLegacy throws when mixing invalid full connect inputs', () => {
-    expect(() =>
-      connectFull({ mainnet: false, signer: TEST_SIGNER, checkVersion: false }, Monstera)
-    ).toThrow(ValidationError);
+  test('Monstera.connect readonly without signer or credentials', () => {
+    const sdk = Monstera.connect({ mainnet: false, checkVersion: false });
+    expect(sdk.hasWriteAccess()).toBe(false);
+    expect(sdk.hasCredentials()).toBe(false);
   });
 });

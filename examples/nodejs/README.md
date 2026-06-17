@@ -31,8 +31,8 @@ Two parallel tracks. Run `01` then `02` within the track you chose.
 
 | Track | Step 01 | Step 02 |
 |-------|---------|---------|
-| [password-only](getting-started/password-only/) | [`01-create-wallet.js`](getting-started/password-only/01-create-wallet.js) — `createWallet()` | [`02-use-wallet.js`](getting-started/password-only/02-use-wallet.js) — `connectAdmin` + `keyVaultAddr` |
-| [username-and-password](getting-started/username-and-password/) | [`01-create-wallet.js`](getting-started/username-and-password/01-create-wallet.js) — `createWalletForUsername()` | [`02-use-wallet.js`](getting-started/username-and-password/02-use-wallet.js) — `connectUser` |
+| [password-only](getting-started/password-only/) | [`01-create-wallet.js`](getting-started/password-only/01-create-wallet.js) — `createWallet()` | [`02-use-wallet.js`](getting-started/password-only/02-use-wallet.js) — `connect({ signer })` + `keyVaultAddr` |
+| [username-and-password](getting-started/username-and-password/) | [`01-create-wallet.js`](getting-started/username-and-password/01-create-wallet.js) — `createWalletForUsername()` | [`02-use-wallet.js`](getting-started/username-and-password/02-use-wallet.js) — `connect({ credentials })` |
 
 Wallet-signature auth flow → [`authentication/wallet-signature/whitelist-flow.js`](authentication/wallet-signature/whitelist-flow.js)
 

@@ -1,7 +1,7 @@
 /**
  * Track: username-and-password
  * Step: 01-create
- * Connect: connectAdmin
+ * Connect: Monstera.connect({ signer })
  * Prerequisites: none
  *
  * Run: node examples/nodejs/getting-started/username-and-password/01-create-wallet.js
@@ -25,7 +25,7 @@ const PASSWORD = process.env.USER_PASSWORD;
 const USERNAME = process.env.USERNAME;
 const MNEMONIC = process.env.MNEMONIC;
 
-const sdk = Monstera.connectAdmin({
+const sdk = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY,
   logLevel: 'debug'
@@ -90,7 +90,7 @@ async function main() {
   console.log('Next: username-and-password/02-use-wallet.js');
   console.log('='.repeat(60));
   console.log(`
-const userSdk = Monstera.connectUser({
+const userSdk = Monstera.connect({
   mainnet: false,
   credentials: { username: '${USERNAME}', password: '${PASSWORD}' }
 });

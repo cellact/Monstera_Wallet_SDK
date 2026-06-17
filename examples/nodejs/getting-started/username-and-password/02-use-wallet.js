@@ -1,7 +1,7 @@
 /**
  * Track: username-and-password
  * Step: 02-use
- * Connect: connectUser
+ * Connect: Monstera.connect({ credentials })
  * Prerequisites: run username-and-password/01-create-wallet.js; set USERNAME and USER_PASSWORD in .env
  *
  * Run: node examples/nodejs/getting-started/username-and-password/02-use-wallet.js
@@ -25,7 +25,7 @@ const MNEMONIC = process.env.MNEMONIC;
 const USERNAME = process.env.USERNAME;
 const USER_PASSWORD = process.env.USER_PASSWORD;
 
-const sdk = Monstera.connectUser({
+const sdk = Monstera.connect({
   mainnet: false,
   credentials: {
     username: USERNAME,
@@ -139,7 +139,7 @@ async function main() {
   console.log('STEP 7: What to notice');
   console.log('='.repeat(60));
   console.log(`
-  • connectUser — credentials resolve wallet + KeyVault (no signer required)
+  • Monstera.connect({ credentials }) — resolves wallet + KeyVault (no signer required)
   • Vault calls omit keyVaultAddr — session supplies it from USERNAME
   • authProof is optional on sign calls — password comes from connect-time credentials
   `);

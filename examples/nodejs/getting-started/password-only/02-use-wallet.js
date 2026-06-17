@@ -1,7 +1,7 @@
 /**
  * Track: password-only
  * Step: 02-use
- * Connect: connectAdmin
+ * Connect: Monstera.connect({ signer })
  * Prerequisites: run password-only/01-create-wallet.js; set WALLET_ADDRESS and PASSWORD in .env
  *
  * Run: node examples/nodejs/getting-started/password-only/02-use-wallet.js
@@ -27,7 +27,7 @@ const WALLET_ADDRESS = process.env.WALLET_ADDRESS;
 const PASSWORD = process.env.PASSWORD;
 const MNEMONIC = process.env.MNEMONIC;
 
-const sdk = Monstera.connectAdmin({
+const sdk = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY,
 });
@@ -145,7 +145,7 @@ async function main() {
   console.log('STEP 7: What to notice');
   console.log('='.repeat(60));
   console.log(`
-  • connectAdmin — no username credentials at connect time
+  • Monstera.connect({ signer }) — no username credentials at connect time
   • Every vault call includes keyVaultAddr (resolved from WALLET_ADDRESS above)
   • Every signing call includes authProof.password (admin/backend must know the password)
   `);

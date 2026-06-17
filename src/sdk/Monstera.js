@@ -113,10 +113,6 @@
  * @typedef {import('../types/index.js').SignAuthorizationOptions} SignAuthorizationOptions
  * @typedef {import('../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
  * @typedef {import('../types/index.js').ConnectOptions} ConnectOptions
- * @typedef {import('../types/index.js').ConnectAdminOptions} ConnectAdminOptions
- * @typedef {import('../types/index.js').ConnectUserOptions} ConnectUserOptions
- * @typedef {import('../types/index.js').ConnectFullOptions} ConnectFullOptions
- * @typedef {import('../types/index.js').ConnectProfile} ConnectProfile
  * @typedef {import('../types/index.js').AuthContext} AuthContext
  * @typedef {import('../types/index.js').AuthActionInput} AuthActionInput
  * @typedef {import('../types/index.js').EncodedAuthProofPassword} EncodedAuthProofPassword
@@ -163,18 +159,12 @@ import { AuthenticatorManagementOps } from '../internal/auth/management/Authenti
 import { CredentialsSession } from '../internal/auth/session/CredentialsSession.js';
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
 import { VaultCallPipeline } from '../internal/auth/session/VaultCallPipeline.js';
-import {
-  connectAdmin as buildConnectAdmin,
-  connectUser as buildConnectUser,
-  connectFull as buildConnectFull,
-  connectLegacy
-} from './connect/index.js';
 
 /**
  * Main entry point for Monstera wallet operations on Oasis Sapphire.
  *
- * Construct via {@link Monstera.connectAdmin}, {@link Monstera.connectUser}, or {@link Monstera.connect}
- * for the typical case, or pass a fully resolved {@link MonsteraConfigOptions} to the constructor for advanced wiring.
+ * Construct via {@link Monstera.connect} for the typical case, or pass a fully resolved
+ * {@link MonsteraConfigOptions} to the constructor for advanced wiring.
  *
  * @remarks
  * Top-level methods prefer {@link KeyVaultClient} (`keyVaultAddr`): signing, account queries, upgrades, and imports
@@ -206,16 +196,11 @@ class Monstera {
    */
   constructor(config) {
     const parsedCredentials = parseConnectCredentials(config?.credentials);
-    const { credentials: _credentials, connectProfile, ...resolvedConfig } = config ?? {};
+    const { credentials: _credentials, ...resolvedConfig } = config ?? {};
 
     assertValidResolvedConfig(resolvedConfig);
     this.config = resolvedConfig;
     this.version = MonsteraConfig.version;
-    this.connectProfile = connectProfile ?? (
-      parsedCredentials
-        ? (resolvedConfig.signer ? 'full' : 'user')
-        : (resolvedConfig.signer ? 'admin' : 'readonly')
-    );
 
     // Initialize read provider (for read operations)
     this.readProvider = resolvedConfig.provider ?? createProvider(resolvedConfig.rpcUrl, 'read');
@@ -270,51 +255,13 @@ class Monstera {
   // ============================================================================
 
   /**
-   * Connect as an **admin**: Sapphire-wrapped {@code signer} for factory and on-chain writes.
-   * Vault operations with an explicit {@code keyVaultAddr} and {@code authProof} are supported.
-   * For username-registered wallets, use {@link Monstera.connectUser} so {@code keyVaultAddr} is resolved automatically.
+   * Connect to Monstera.
    *
-   * @public
-   * @static
-   * @param {ConnectAdminOptions} options - {@code mainnet} and required {@code signer}
-   * @returns {Monstera}
-   */
-  static connectAdmin(options) {
-    return buildConnectAdmin(options, Monstera);
-  }
-
-  /**
-   * Connect as an **end user**: {@code credentials} resolve the registered wallet KeyVault;
-   * vault signing and authenticated reads work without passing {@code keyVaultAddr}.
-   * On-chain admin writes are blocked (no {@code signer}).
+   * Pass an optional {@code signer} for on-chain writes and optional {@code credentials} for
+   * vault-authenticated operations. Omit both for read-only factory/network queries.
    *
-   * @public
-   * @static
-   * @param {ConnectUserOptions} options - {@code mainnet} and required {@code credentials}
-   * @returns {Monstera}
-   */
-  static connectUser(options) {
-    return buildConnectUser(options, Monstera);
-  }
-
-  /**
-   * Connect with **full access**: both admin {@code signer} and end-user {@code credentials}.
-   *
-   * @public
-   * @static
-   * @param {ConnectFullOptions} options - {@code mainnet}, {@code signer}, and {@code credentials}
-   * @returns {Monstera}
-   */
-  static connectFull(options) {
-    return buildConnectFull(options, Monstera);
-  }
-
-  /**
-   * Connect to Monstera — routes by supplied options:
-   * - {@code signer} + {@code credentials} → full access ({@link Monstera.connectFull})
-   * - {@code signer} only → admin ({@link Monstera.connectAdmin})
-   * - {@code credentials} only → end user ({@link Monstera.connectUser})
-   * - neither → read-only factory/network queries
+   * Vault operations require {@code credentials} or an explicit {@code keyVaultAddr} on each call.
+   * Write operations require a {@code signer}.
    *
    * @public
    * @static
@@ -322,7 +269,7 @@ class Monstera {
    * @returns {Monstera}
    */
   static connect(options) {
-    return connectLegacy(options, Monstera);
+    return new Monstera(MonsteraConfig.resolveConnectConfig(options));
   }
 
   /**
@@ -473,24 +420,6 @@ class Monstera {
    */
   hasCredentials() {
     return this._vaultPipeline.hasCredentials();
-  }
-
-  /**
-   * Whether this instance has an admin signer for on-chain writes.
-   *
-   * @public
-   * @returns {boolean} Alias for {@link Monstera#hasWriteAccess}
-   */
-  hasAdminAccess() {
-    return this.hasWriteAccess();
-  }
-
-  /**
-   * @public
-   * @returns {ConnectProfile}
-   */
-  getConnectProfile() {
-    return this.connectProfile;
   }
 
   async getSessionWalletAddr() {

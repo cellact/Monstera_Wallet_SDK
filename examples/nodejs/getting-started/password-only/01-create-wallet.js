@@ -1,7 +1,7 @@
 /**
  * Track: password-only
  * Step: 01-create
- * Connect: connectAdmin
+ * Connect: Monstera.connect({ signer })
  * Prerequisites: none
  *
  * Run: node examples/nodejs/getting-started/password-only/01-create-wallet.js
@@ -19,7 +19,7 @@ import { keccak256, toUtf8Bytes } from '../../../../src/adapters/ethers/hashing.
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.PASSWORD;
 
-const sdk = Monstera.connectAdmin({
+const sdk = Monstera.connect({
   mainnet: false,
   signer: SIGNER_PRIVATE_KEY,
   logLevel: 'debug'

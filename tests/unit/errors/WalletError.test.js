@@ -296,7 +296,7 @@ describe('WalletError', () => {
     test('should create WriteRequiresSignerError with default operation', () => {
       const error = new WriteRequiresSignerError();
       expect(error.message).toBe(
-        'Signer is required for operation. Use Monstera.connectAdmin({ signer, ... }) or Monstera.connect({ signer, credentials, ... })'
+        'Signer is required for operation. Pass signer to Monstera.connect({ signer, ... })'
       );
       expect(error.name).toBe('WriteRequiresSignerError');
       expect(error.code).toBe('WRITE_REQUIRES_SIGNER');
@@ -306,7 +306,7 @@ describe('WalletError', () => {
     test('should create WriteRequiresSignerError with custom operation', () => {
       const error = new WriteRequiresSignerError('createWallet');
       expect(error.message).toBe(
-        'Signer is required for createWallet. Use Monstera.connectAdmin({ signer, ... }) or Monstera.connect({ signer, credentials, ... })'
+        'Signer is required for createWallet. Pass signer to Monstera.connect({ signer, ... })'
       );
       expect(error.context.operation).toBe('createWallet');
     });

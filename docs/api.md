@@ -6,51 +6,21 @@ Complete API documentation for the Monstera SDK.
 
 Main SDK class for wallet operations.
 
-### `Monstera.connectAdmin(options)`
-
-Connect as an **admin** — Sapphire-wrapped `signer` for factory and on-chain writes. Vault signing and authenticated reads require a separate end-user session; use `connectUser` or `connect` with both `signer` and `credentials` for those operations.
-
-**Parameters:**
-- `mainnet` (required): `true` for mainnet, `false` for testnet
-- `signer` (required): Private key string (0x-prefixed hex) or ethers `Signer` instance
-- `provider`, `rpcUrl`, `addresses`, `logLevel`, `debug`, `checkVersion` — same as below
-
-**Returns:** `Monstera` instance with `getConnectProfile() === 'admin'`.
-
-### `Monstera.connectUser(options)`
-
-Connect as an **end user** — `credentials` resolve the registered wallet KeyVault; vault signing and authenticated reads work without passing `keyVaultAddr`. On-chain admin writes are blocked (no `signer`).
-
-**Parameters:**
-- `mainnet` (required): `true` for mainnet, `false` for testnet
-- `credentials` (required): `{ username, password }` — factory username and UTF-8 password
-- `provider`, `rpcUrl`, `addresses`, `logLevel`, `debug`, `checkVersion` — same as below
-
-**Returns:** `Monstera` instance with `getConnectProfile() === 'user'`.
-
-### `Monstera.connectFull(options)`
-
-Connect with **full access** — both admin `signer` and end-user `credentials`.
-
-**Parameters:** `mainnet`, `signer`, `credentials`, plus optional `provider`, `rpcUrl`, `addresses`, `logLevel`, `debug`, `checkVersion`.
-
-**Returns:** `Monstera` instance with `getConnectProfile() === 'full'`.
-
 ### `Monstera.connect(options)`
 
-Backward-compatible router:
+Connect to Monstera. Pass optional `signer` and/or `credentials` as needed.
 
-| Options | Profile | Capabilities |
-|---------|---------|--------------|
-| `signer` + `credentials` | `full` | Admin writes + vault signing/reads |
-| `signer` only | `admin` | Factory/admin writes only |
-| `credentials` only | `user` | Vault signing/reads only |
-| neither | `readonly` | Factory/network reads only |
+| Options | Capabilities |
+|---------|--------------|
+| `signer` + `credentials` | On-chain writes + vault signing/reads (credentials resolve KeyVault) |
+| `signer` only | On-chain writes; vault ops require explicit `keyVaultAddr` + `authProof` |
+| `credentials` only | Vault signing/reads; no on-chain writes |
+| neither | Read-only factory/network queries |
 
 **Parameters:**
 - `mainnet` (required): `true` for mainnet, `false` for testnet
 - `signer` (optional): Private key string (0x-prefixed hex) or ethers `Signer` instance
-- `credentials` (optional): `{ username, password }` for end-user vault access
+- `credentials` (optional): `{ username, password }` for username-registered wallets
 - `provider` (optional): You may pass an ethers `Provider` for reads; otherwise the SDK uses the default RPC for the selected network.
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
 - `addresses` (optional): Object with contract addresses to override defaults (`factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`)
@@ -58,9 +28,9 @@ Backward-compatible router:
 - `debug` (optional): If `true`, sets log level to `'debug'`
 - `checkVersion` (optional): If **`true`**, runs the npm registry version check once on connect (Node.js). If omitted or `false`, the check is skipped.
 
-**Returns:** `Monstera` instance. Use `sdk.getConnectProfile()`, `sdk.hasWriteAccess()` (admin signer), and `sdk.hasCredentials()` to inspect capabilities.
+**Returns:** `Monstera` instance. Use `sdk.hasWriteAccess()` and `sdk.hasCredentials()` to inspect capabilities.
 
-**Session defaults (end-user):** When `credentials` are set, `keyVaultAddr` is resolved from the factory; `authProof` defaults to the session password for PasswordAuthenticator wallets; HD `index` defaults to `0`.
+**Session defaults (credentials):** When `credentials` are set, `keyVaultAddr` is resolved from the factory; `authProof` defaults to the session password for PasswordAuthenticator wallets; HD `index` defaults to `0`.
 
 ## Wallet Creation Methods
 

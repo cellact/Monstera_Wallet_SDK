@@ -27,7 +27,7 @@ export function createTestSDK(options = {}) {
   }
 
   if (user) {
-    return Monstera.connectUser({
+    return Monstera.connect({
       mainnet: false,
       checkVersion: false,
       credentials: { username, password }
@@ -43,7 +43,7 @@ export function createTestSDK(options = {}) {
     });
   }
 
-  const sdk = Monstera.connectAdmin({
+  const sdk = Monstera.connect({
     mainnet: false,
     signer: signerPrivateKey,
     checkVersion: false
