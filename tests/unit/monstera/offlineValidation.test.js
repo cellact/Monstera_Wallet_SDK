@@ -18,11 +18,14 @@ import { registerSdkTeardown } from '../../utils/teardown.js';
 import {
   VALID_TEST_ADDRESS,
   ZERO_ADDRESS,
+  INVALID_ADDRESS,
   createPasswordAuthProof,
   calculateDeadline,
   randomAddress,
   createTestVaultSignAction
 } from '../../utils/fixtures.js';
+import { CredentialsRequiredError, WriteRequiresSignerError } from '../../../src/errors/index.js';
+import { attachTestCredentialsSession } from '../../utils/credentials.js';
 import {
   testMissingParam,
   testInvalidAddress,
@@ -30,7 +33,10 @@ import {
 } from '../../utils/validation-helpers.js';
 
 describe('Monstera offline validation', () => {
-  let sdk;
+  let adminSdk;
+  let readonlySdk;
+  let userSdk;
+  let fullSdk;
   let passwordHash;
   let keyVaultAddr;
   let walletAddr;
@@ -43,35 +49,43 @@ describe('Monstera offline validation', () => {
   const accountIndex = 0;
 
   beforeAll(async () => {
-    sdk = createTestSDK({ readonly: true });
+    adminSdk = createTestSDK();
+    readonlySdk = createTestSDK({ readonly: true });
+    userSdk = createTestSDK({ readonly: true });
+    attachTestCredentialsSession(userSdk);
+    fullSdk = createTestSDK();
+    attachTestCredentialsSession(fullSdk);
     passwordHash = keccak256(toUtf8Bytes('offline-validation-suite'));
     keyVaultAddr = VALID_TEST_ADDRESS;
     walletAddr = VALID_TEST_ADDRESS;
     storageAddr = VALID_TEST_ADDRESS;
-    authenticatorAddr = sdk.addresses.passwordAuth;
+    authenticatorAddr = adminSdk.addresses.passwordAuth;
     testWalletAddr = createTestWallet().address;
   });
 
-  registerSdkTeardown(afterAll, () => sdk);
+  registerSdkTeardown(afterAll, () => adminSdk);
+  registerSdkTeardown(afterAll, () => readonlySdk);
+  registerSdkTeardown(afterAll, () => userSdk);
+  registerSdkTeardown(afterAll, () => fullSdk);
 
   describe('password authenticator', () => {
     test('configurePassword validation', async () => {
       await testMissingParam(
-        sdk.configurePassword.bind(sdk),
+        adminSdk.configurePassword.bind(adminSdk),
         { passwordHash },
         'keyVaultAddr'
       );
       await testMissingParam(
-        sdk.configurePassword.bind(sdk),
+        adminSdk.configurePassword.bind(adminSdk),
         { keyVaultAddr },
         'passwordHash'
       );
       await testInvalidAddress(
-        sdk.configurePassword.bind(sdk),
+        adminSdk.configurePassword.bind(adminSdk),
         { keyVaultAddr, passwordHash },
         'keyVaultAddr'
       );
-      await testReadonlySDK(sdk.configurePassword, {
+      await testReadonlySDK(readonlySdk.configurePassword, {
         keyVaultAddr,
         passwordHash
       });
@@ -81,65 +95,52 @@ describe('Monstera offline validation', () => {
       const currentPasswordBytes = createPasswordAuthProof('offline-password');
       const newPasswordHash = keccak256(toUtf8Bytes('new-offline'));
       await testMissingParam(
-        sdk.updatePassword.bind(sdk),
-        { currentPassword: currentPasswordBytes, newPasswordHash },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.updatePassword.bind(sdk),
-        { keyVaultAddr, newPasswordHash },
-        'currentPassword'
-      );
-      await testMissingParam(
-        sdk.updatePassword.bind(sdk),
+        fullSdk.updatePassword.bind(fullSdk),
         { keyVaultAddr, currentPassword: currentPasswordBytes },
         'newPasswordHash'
       );
     });
 
     test('isPasswordConfigured / isPasswordValid validation', async () => {
-      await testMissingParam(sdk.isPasswordConfigured.bind(sdk), {}, 'keyVaultAddr');
       await testInvalidAddress(
-        sdk.isPasswordConfigured.bind(sdk),
+        userSdk.isPasswordConfigured.bind(userSdk),
         { keyVaultAddr },
         'keyVaultAddr'
       );
-      await testMissingParam(
-        sdk.isPasswordValid.bind(sdk),
-        { currentPassword: createPasswordAuthProof('x') },
-        'keyVaultAddr'
-      );
       await testInvalidAddress(
-        sdk.isPasswordValid.bind(sdk),
+        userSdk.isPasswordValid.bind(userSdk),
         {
           keyVaultAddr,
           currentPassword: createPasswordAuthProof('x')
         },
         'keyVaultAddr'
       );
+      await expect(readonlySdk.isPasswordConfigured({ keyVaultAddr })).rejects.toThrow(
+        CredentialsRequiredError
+      );
     });
   });
 
   describe('wallet creation', () => {
     test('createWallet / createWalletFromMnemonic / core / hook / customLogic validation', async () => {
-      await testMissingParam(sdk.createWallet.bind(sdk), {}, 'authConfig');
-      await testReadonlySDK(sdk.createWallet, { authConfig: { passwordHash } });
+      await testMissingParam(adminSdk.createWallet.bind(adminSdk), {}, 'authConfig');
+      await testReadonlySDK(readonlySdk.createWallet, { authConfig: { passwordHash } });
 
       await testMissingParam(
-        sdk.createWalletFromMnemonic.bind(sdk),
+        adminSdk.createWalletFromMnemonic.bind(adminSdk),
         { authConfig: { passwordHash } },
         'mnemonic'
       );
       await testMissingParam(
-        sdk.createWalletFromMnemonic.bind(sdk),
+        adminSdk.createWalletFromMnemonic.bind(adminSdk),
         { mnemonic: testMnemonic },
         'authConfig'
       );
 
-      await testMissingParam(sdk.createWalletCore.bind(sdk), {}, 'authConfig');
+      await testMissingParam(adminSdk.createWalletCore.bind(adminSdk), {}, 'authConfig');
 
       await testMissingParam(
-        sdk.createWalletWithHook.bind(sdk),
+        adminSdk.createWalletWithHook.bind(adminSdk),
         {
           authConfig: { passwordHash },
           hookData: toUtf8Bytes('test')
@@ -147,7 +148,7 @@ describe('Monstera offline validation', () => {
         'hookAddr'
       );
       await testMissingParam(
-        sdk.createWalletWithHook.bind(sdk),
+        adminSdk.createWalletWithHook.bind(adminSdk),
         {
           authConfig: { passwordHash },
           hookAddr: ZERO_ADDRESS
@@ -155,7 +156,7 @@ describe('Monstera offline validation', () => {
         'hookData'
       );
       await testInvalidAddress(
-        sdk.createWalletWithHook.bind(sdk),
+        adminSdk.createWalletWithHook.bind(adminSdk),
         {
           authConfig: { passwordHash },
           hookAddr: ZERO_ADDRESS,
@@ -164,7 +165,7 @@ describe('Monstera offline validation', () => {
         'hookAddr'
       );
       await testMissingParam(
-        sdk.createWalletWithHook.bind(sdk),
+        adminSdk.createWalletWithHook.bind(adminSdk),
         {
           hookAddr: ZERO_ADDRESS,
           hookData: toUtf8Bytes('test')
@@ -173,7 +174,7 @@ describe('Monstera offline validation', () => {
       );
 
       await testMissingParam(
-        sdk.createWalletWithCustomLogic.bind(sdk),
+        adminSdk.createWalletWithCustomLogic.bind(adminSdk),
         {
           authConfig: { passwordHash },
           logicData: toUtf8Bytes('test')
@@ -181,7 +182,7 @@ describe('Monstera offline validation', () => {
         'customLogicImplAddr'
       );
       await testMissingParam(
-        sdk.createWalletWithCustomLogic.bind(sdk),
+        adminSdk.createWalletWithCustomLogic.bind(adminSdk),
         {
           authConfig: { passwordHash },
           customLogicImplAddr: ZERO_ADDRESS
@@ -189,7 +190,7 @@ describe('Monstera offline validation', () => {
         'logicData'
       );
       await testInvalidAddress(
-        sdk.createWalletWithCustomLogic.bind(sdk),
+        adminSdk.createWalletWithCustomLogic.bind(adminSdk),
         {
           authConfig: { passwordHash },
           customLogicImplAddr: ZERO_ADDRESS,
@@ -198,7 +199,7 @@ describe('Monstera offline validation', () => {
         'customLogicImplAddr'
       );
       await testMissingParam(
-        sdk.createWalletWithCustomLogic.bind(sdk),
+        adminSdk.createWalletWithCustomLogic.bind(adminSdk),
         {
           customLogicImplAddr: ZERO_ADDRESS,
           logicData: toUtf8Bytes('test')
@@ -211,63 +212,45 @@ describe('Monstera offline validation', () => {
   describe('wallet management', () => {
     test('initializeWalletLogic', async () => {
       await testMissingParam(
-        sdk.initializeWalletLogic.bind(sdk),
+        adminSdk.initializeWalletLogic.bind(adminSdk),
         { keyVaultAddr },
         'walletAddr'
       );
       await testMissingParam(
-        sdk.initializeWalletLogic.bind(sdk),
+        adminSdk.initializeWalletLogic.bind(adminSdk),
         { walletAddr },
         'keyVaultAddr'
       );
       await testInvalidAddress(
-        sdk.initializeWalletLogic.bind(sdk),
+        adminSdk.initializeWalletLogic.bind(adminSdk),
         { walletAddr, keyVaultAddr },
         'walletAddr'
       );
-      await testReadonlySDK(sdk.initializeWalletLogic, { walletAddr, keyVaultAddr });
+      await testReadonlySDK(readonlySdk.initializeWalletLogic, { walletAddr, keyVaultAddr });
     });
 
     test('updateAuthenticatorAddr', async () => {
       const newAuthConfig = '0x01';
       await testMissingParam(
-        sdk.updateAuthenticatorAddr.bind(sdk),
-        {
-          authProof: opaqueAuthProof,
-          newAuthenticatorAddr: sdk.addresses.walletSignatureAuth,
-          newAuthConfig
-        },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.updateAuthenticatorAddr.bind(sdk),
-        {
-          keyVaultAddr,
-          newAuthenticatorAddr: sdk.addresses.walletSignatureAuth,
-          newAuthConfig
-        },
-        'authProof'
-      );
-      await testMissingParam(
-        sdk.updateAuthenticatorAddr.bind(sdk),
+        fullSdk.updateAuthenticatorAddr.bind(fullSdk),
         { keyVaultAddr, authProof: opaqueAuthProof, newAuthConfig },
         'newAuthenticatorAddr'
       );
       await testMissingParam(
-        sdk.updateAuthenticatorAddr.bind(sdk),
+        fullSdk.updateAuthenticatorAddr.bind(fullSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
-          newAuthenticatorAddr: sdk.addresses.walletSignatureAuth
+          newAuthenticatorAddr: adminSdk.addresses.walletSignatureAuth
         },
         'newAuthConfig'
       );
       await testInvalidAddress(
-        sdk.updateAuthenticatorAddr.bind(sdk),
+        fullSdk.updateAuthenticatorAddr.bind(fullSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
-          newAuthenticatorAddr: sdk.addresses.walletSignatureAuth,
+          newAuthenticatorAddr: adminSdk.addresses.walletSignatureAuth,
           newAuthConfig
         },
         'newAuthenticatorAddr'
@@ -277,48 +260,40 @@ describe('Monstera offline validation', () => {
     test('updateKeyVaultImplAddr', async () => {
       const newImplAddr = ZERO_ADDRESS;
       await testMissingParam(
-        sdk.updateKeyVaultImplAddr.bind(sdk),
-        { authProof: opaqueAuthProof, newImplAddr },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.updateKeyVaultImplAddr.bind(sdk),
-        { keyVaultAddr, newImplAddr },
-        'authProof'
-      );
-      await testMissingParam(
-        sdk.updateKeyVaultImplAddr.bind(sdk),
+        fullSdk.updateKeyVaultImplAddr.bind(fullSdk),
         { keyVaultAddr, authProof: opaqueAuthProof },
         'newImplAddr'
       );
       await testInvalidAddress(
-        sdk.updateKeyVaultImplAddr.bind(sdk),
+        fullSdk.updateKeyVaultImplAddr.bind(fullSdk),
         { keyVaultAddr, authProof: opaqueAuthProof, newImplAddr: ZERO_ADDRESS },
         'newImplAddr'
       );
-      await testReadonlySDK(sdk.updateKeyVaultImplAddr, {
-        keyVaultAddr,
-        authProof: opaqueAuthProof,
-        newImplAddr
-      });
+      await expect(
+        userSdk.updateKeyVaultImplAddr({
+          keyVaultAddr,
+          authProof: opaqueAuthProof,
+          newImplAddr
+        })
+      ).rejects.toThrow(WriteRequiresSignerError);
     });
 
     test('updateWalletLogicImplAddr / transferAdmin', async () => {
-      await testMissingParam(sdk.updateWalletLogicImplAddr.bind(sdk), {}, 'newLogicAddr');
+      await testMissingParam(adminSdk.updateWalletLogicImplAddr.bind(adminSdk), {}, 'newLogicAddr');
       await testInvalidAddress(
-        sdk.updateWalletLogicImplAddr.bind(sdk),
+        adminSdk.updateWalletLogicImplAddr.bind(adminSdk),
         { newLogicAddr: ZERO_ADDRESS },
         'newLogicAddr'
       );
-      await testReadonlySDK(sdk.updateWalletLogicImplAddr, { newLogicAddr: ZERO_ADDRESS });
+      await testReadonlySDK(readonlySdk.updateWalletLogicImplAddr, { newLogicAddr: ZERO_ADDRESS });
 
-      await testMissingParam(sdk.transferAdmin.bind(sdk), {}, 'newAdminAddr');
+      await testMissingParam(adminSdk.transferAdmin.bind(adminSdk), {}, 'newAdminAddr');
       await testInvalidAddress(
-        sdk.transferAdmin.bind(sdk),
+        adminSdk.transferAdmin.bind(adminSdk),
         { newAdminAddr: randomAddress() },
         'newAdminAddr'
       );
-      await testReadonlySDK(sdk.transferAdmin, { newAdminAddr: randomAddress() });
+      await testReadonlySDK(readonlySdk.transferAdmin, { newAdminAddr: randomAddress() });
     });
 
     test('executeWithAuth', async () => {
@@ -331,23 +306,13 @@ describe('Monstera offline validation', () => {
         0
       ]);
       await testMissingParam(
-        sdk.executeWithAuth.bind(sdk),
-        { authProof: opaqueAuthProof, implCall },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.executeWithAuth.bind(sdk),
-        { keyVaultAddr, implCall },
-        'authProof'
-      );
-      await testMissingParam(
-        sdk.executeWithAuth.bind(sdk),
+        userSdk.executeWithAuth.bind(userSdk),
         { keyVaultAddr, authProof: opaqueAuthProof },
         'implCall'
       );
       await testInvalidAddress(
-        sdk.executeWithAuth.bind(sdk),
-        { keyVaultAddr, authProof: opaqueAuthProof, implCall },
+        userSdk.executeWithAuth.bind(userSdk),
+        { keyVaultAddr: INVALID_ADDRESS, authProof: opaqueAuthProof, implCall },
         'keyVaultAddr'
       );
     });
@@ -356,7 +321,7 @@ describe('Monstera offline validation', () => {
       const accessToken = hexlify(randomBytes(32));
       const authConfig = createPasswordAuthProof('init');
       await testMissingParam(
-        sdk.initialize.bind(sdk),
+        adminSdk.initialize.bind(adminSdk),
         {
           storageAddr,
           authenticatorAddr,
@@ -366,7 +331,7 @@ describe('Monstera offline validation', () => {
         'keyVaultAddr'
       );
       await testMissingParam(
-        sdk.initialize.bind(sdk),
+        adminSdk.initialize.bind(adminSdk),
         {
           keyVaultAddr,
           authenticatorAddr,
@@ -376,7 +341,7 @@ describe('Monstera offline validation', () => {
         'storageAddr'
       );
       await testMissingParam(
-        sdk.initialize.bind(sdk),
+        adminSdk.initialize.bind(adminSdk),
         {
           keyVaultAddr,
           storageAddr,
@@ -386,7 +351,7 @@ describe('Monstera offline validation', () => {
         'authenticatorAddr'
       );
       await testMissingParam(
-        sdk.initialize.bind(sdk),
+        adminSdk.initialize.bind(adminSdk),
         {
           keyVaultAddr,
           storageAddr,
@@ -396,7 +361,7 @@ describe('Monstera offline validation', () => {
         'accessToken'
       );
       await testMissingParam(
-        sdk.initialize.bind(sdk),
+        adminSdk.initialize.bind(adminSdk),
         {
           keyVaultAddr,
           storageAddr,
@@ -406,7 +371,7 @@ describe('Monstera offline validation', () => {
         'authConfig'
       );
       await testInvalidAddress(
-        sdk.initialize.bind(sdk),
+        adminSdk.initialize.bind(adminSdk),
         {
           keyVaultAddr,
           storageAddr,
@@ -416,7 +381,7 @@ describe('Monstera offline validation', () => {
         },
         'keyVaultAddr'
       );
-      await testReadonlySDK(sdk.initialize, {
+      await testReadonlySDK(readonlySdk.initialize, {
         keyVaultAddr,
         storageAddr,
         authenticatorAddr,
@@ -436,39 +401,12 @@ describe('Monstera offline validation', () => {
       to: ZERO_ADDRESS,
       value: 0n,
       txData: '0x',
-      chainId: sdk.chainId
+      chainId: adminSdk.chainId
     });
 
     test('signMessage', async () => {
       await testMissingParam(
-        sdk.signMessage.bind(sdk),
-        {
-          authProof: opaqueAuthProof,
-          index: accountIndex,
-          message: messageBytes()
-        },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.signMessage.bind(sdk),
-        {
-          keyVaultAddr,
-          index: accountIndex,
-          message: messageBytes()
-        },
-        'authProof'
-      );
-      await testMissingParam(
-        sdk.signMessage.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof: opaqueAuthProof,
-          message: messageBytes()
-        },
-        'index'
-      );
-      await testMissingParam(
-        sdk.signMessage.bind(sdk),
+        userSdk.signMessage.bind(userSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
@@ -477,9 +415,9 @@ describe('Monstera offline validation', () => {
         'message'
       );
       await testInvalidAddress(
-        sdk.signMessage.bind(sdk),
+        userSdk.signMessage.bind(userSdk),
         {
-          keyVaultAddr,
+          keyVaultAddr: INVALID_ADDRESS,
           authProof: opaqueAuthProof,
           index: accountIndex,
           message: messageBytes()
@@ -490,7 +428,7 @@ describe('Monstera offline validation', () => {
 
     test('sign (hash)', async () => {
       await testMissingParam(
-        sdk.sign.bind(sdk),
+        userSdk.sign.bind(userSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
@@ -501,25 +439,9 @@ describe('Monstera offline validation', () => {
     });
 
     test('signTransaction', async () => {
-      await testMissingParam(
-        sdk.signTransaction.bind(sdk),
-        {
-          authProof: opaqueAuthProof,
-          ...baseTxParams()
-        },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.signTransaction.bind(sdk),
-        {
-          keyVaultAddr,
-          ...baseTxParams()
-        },
-        'authProof'
-      );
       const baseParams = baseTxParams();
       await testMissingParam(
-        sdk.signTransaction.bind(sdk),
+        userSdk.signTransaction.bind(userSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
@@ -528,7 +450,7 @@ describe('Monstera offline validation', () => {
         'nonce'
       );
       await testMissingParam(
-        sdk.signTransaction.bind(sdk),
+        userSdk.signTransaction.bind(userSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
@@ -537,7 +459,7 @@ describe('Monstera offline validation', () => {
         'to'
       );
       await testInvalidAddress(
-        sdk.signTransaction.bind(sdk),
+        userSdk.signTransaction.bind(userSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
@@ -549,7 +471,7 @@ describe('Monstera offline validation', () => {
 
     test('signSolana', async () => {
       await testMissingParam(
-        sdk.signSolana.bind(sdk),
+        userSdk.signSolana.bind(userSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
@@ -557,22 +479,13 @@ describe('Monstera offline validation', () => {
         },
         'message'
       );
-      await testMissingParam(
-        sdk.signSolana.bind(sdk),
-        {
-          keyVaultAddr,
-          authProof: opaqueAuthProof,
-          message: toUtf8Bytes('x')
-        },
-        'index'
-      );
     });
 
     test('signWithImportedKey', async () => {
       const keyId = keccak256(toUtf8Bytes('offline-imported-key'));
       const digest = keccak256(toUtf8Bytes('digest'));
       await testMissingParam(
-        sdk.signWithImportedKey.bind(sdk),
+        userSdk.signWithImportedKey.bind(userSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
@@ -581,7 +494,7 @@ describe('Monstera offline validation', () => {
         'digest'
       );
       await testMissingParam(
-        sdk.signWithImportedKey.bind(sdk),
+        userSdk.signWithImportedKey.bind(userSdk),
         {
           keyVaultAddr,
           authProof: opaqueAuthProof,
@@ -597,71 +510,49 @@ describe('Monstera offline validation', () => {
 
     test('configure / query whitelist helpers', async () => {
       await testMissingParam(
-        sdk.configureWalletSignature.bind(sdk),
+        adminSdk.configureWalletSignature.bind(adminSdk),
         { initialWhitelist: [testWalletAddr] },
         'keyVaultAddr'
       );
       await testMissingParam(
-        sdk.configureWalletSignature.bind(sdk),
+        adminSdk.configureWalletSignature.bind(adminSdk),
         { keyVaultAddr },
         'initialWhitelist',
         'whitelist'
       );
       await testInvalidAddress(
-        sdk.configureWalletSignature.bind(sdk),
+        adminSdk.configureWalletSignature.bind(adminSdk),
         { keyVaultAddr, initialWhitelist: [testWalletAddr] },
         'keyVaultAddr'
       );
-      await testReadonlySDK(sdk.configureWalletSignature, {
+      await testReadonlySDK(readonlySdk.configureWalletSignature, {
         keyVaultAddr,
         initialWhitelist: [testWalletAddr]
       });
 
-      await testMissingParam(sdk.isWalletSignatureConfigured.bind(sdk), {}, 'keyVaultAddr');
-
       await testMissingParam(
-        sdk.isWalletSignatureValid.bind(sdk),
-        { signer: signer(), action: createTestVaultSignAction() },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.isWalletSignatureValid.bind(sdk),
+        userSdk.isWalletSignatureValid.bind(userSdk),
         { keyVaultAddr, action: createTestVaultSignAction() },
         'signer'
       );
 
       await testMissingParam(
-        sdk.isWhitelisted.bind(sdk),
-        { addressToCheck: testWalletAddr },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.isWhitelisted.bind(sdk),
+        userSdk.isWhitelisted.bind(userSdk),
         { keyVaultAddr },
         'addressToCheck'
       );
       await testInvalidAddress(
-        sdk.isWhitelisted.bind(sdk),
+        userSdk.isWhitelisted.bind(userSdk),
         { keyVaultAddr, addressToCheck: testWalletAddr },
         'keyVaultAddr'
       );
 
-      await testMissingParam(sdk.getWhitelist.bind(sdk), {}, 'keyVaultAddr');
-      await testInvalidAddress(sdk.getWhitelist.bind(sdk), { keyVaultAddr }, 'keyVaultAddr');
+      await testInvalidAddress(userSdk.getWhitelist.bind(userSdk), { keyVaultAddr }, 'keyVaultAddr');
     });
 
     test('addToWhitelist / removeFromWhitelist', async () => {
       await testMissingParam(
-        sdk.addToWhitelist.bind(sdk),
-        {
-          keyVaultAddr,
-          signer: signer(),
-          addressToAdd: testWalletAddr
-        },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.addToWhitelist.bind(sdk),
+        fullSdk.addToWhitelist.bind(fullSdk),
         {
           keyVaultAddr,
           addressToAdd: testWalletAddr
@@ -669,7 +560,7 @@ describe('Monstera offline validation', () => {
         'signer'
       );
       await testMissingParam(
-        sdk.addToWhitelist.bind(sdk),
+        fullSdk.addToWhitelist.bind(fullSdk),
         {
           keyVaultAddr,
           signer: signer()
@@ -678,16 +569,7 @@ describe('Monstera offline validation', () => {
       );
 
       await testMissingParam(
-        sdk.removeFromWhitelist.bind(sdk),
-        {
-          keyVaultAddr,
-          signer: signer(),
-          addressToRemove: testWalletAddr
-        },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        sdk.removeFromWhitelist.bind(sdk),
+        fullSdk.removeFromWhitelist.bind(fullSdk),
         {
           keyVaultAddr,
           addressToRemove: testWalletAddr
@@ -695,7 +577,7 @@ describe('Monstera offline validation', () => {
         'signer'
       );
       await testMissingParam(
-        sdk.removeFromWhitelist.bind(sdk),
+        fullSdk.removeFromWhitelist.bind(fullSdk),
         {
           keyVaultAddr,
           signer: signer()
@@ -708,7 +590,7 @@ describe('Monstera offline validation', () => {
       const action = createTestVaultSignAction();
 
       await testMissingParam(
-        sdk.createAuthProofWalletSignature.bind(sdk),
+        userSdk.createAuthProofWalletSignature.bind(userSdk),
         {
           keyVaultAddr,
           deadline: calculateDeadline(),
@@ -716,17 +598,8 @@ describe('Monstera offline validation', () => {
         },
         'signer'
       );
-      await testMissingParam(
-        sdk.createAuthProofWalletSignature.bind(sdk),
-        {
-          signer: signer(),
-          deadline: calculateDeadline(),
-          action
-        },
-        'keyVaultAddr'
-      );
       await testInvalidAddress(
-        sdk.createAuthProofWalletSignature.bind(sdk),
+        userSdk.createAuthProofWalletSignature.bind(userSdk),
         {
           signer: signer(),
           keyVaultAddr,
@@ -736,11 +609,11 @@ describe('Monstera offline validation', () => {
         'keyVaultAddr'
       );
       await testInvalidAddress(
-        sdk.createAuthProofWalletSignature.bind(sdk),
+        userSdk.createAuthProofWalletSignature.bind(userSdk),
         {
           signer: signer(),
           keyVaultAddr,
-          authenticatorAddr: sdk.addresses.walletSignatureAuth,
+          authenticatorAddr: adminSdk.addresses.walletSignatureAuth,
           deadline: calculateDeadline(),
           actionHash: keccak256(toUtf8Bytes('offline-wallet-signature-action-hash'))
         },

@@ -2,12 +2,12 @@ import { Wallet } from '../../src/adapters/ethers/index.js';
 import { ZeroAddress } from '../../src/adapters/ethers/addresses.js';
 import { defaultAbiCoder } from '../../src/adapters/ethers/encoding.js';
 import { toUtf8Bytes, keccak256 } from '../../src/adapters/ethers/hashing.js';
-import { computeParamsHash } from '../../src/internal/crypto/authContext.js';
+import { computeParamsHash } from '../../src/internal/auth/context/createAuthContext.js';
 import {
   buildSignMessageAction,
   buildChangeAuthenticatorAction
-} from '../../src/internal/crypto/actions/keyVault.js';
-import { getSelector } from '../../src/internal/crypto/getSelector.js';
+} from '../../src/internal/vault/actions/keyVault.js';
+import { getSelector } from '../../src/internal/vault/getSelector.js';
 import { KEYVAULT_ABI } from '../../src/contracts/abi/core/keyVault.js';
 import { nowUnixTimestampSeconds } from '../../src/internal/utils/time.js';
 

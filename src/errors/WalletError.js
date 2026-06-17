@@ -291,7 +291,7 @@ class WriteRequiresSignerError extends WalletError {
    */
   constructor(operation = 'operation') {
     super(
-      `Signer is required for ${operation}. Use Monstera.connect({ signer, ... })`,
+      `Signer is required for ${operation}. Use Monstera.connectAdmin({ signer, ... }) or Monstera.connect({ signer, credentials, ... })`,
       'WRITE_REQUIRES_SIGNER',
       {
         operation,
@@ -299,6 +299,33 @@ class WriteRequiresSignerError extends WalletError {
       }
     );
     this.name = 'WriteRequiresSignerError';
+  }
+}
+
+/**
+ * Thrown when an end-user vault operation is invoked without a credentials session.
+ *
+ * @description Code: {@code "CREDENTIALS_REQUIRED"}. Hint message instructs the caller to pass
+ * {@code credentials} into {@code Monstera.connectUser} or use {@code Monstera.connect} with both
+ * {@code signer} and {@code credentials}.
+ *
+ * @public
+ */
+class CredentialsRequiredError extends WalletError {
+  /**
+   * @public
+   * @param {string} [operation='operation'] - Name of the operation that requires credentials
+   */
+  constructor(operation = 'operation') {
+    super(
+      `End-user credentials are required for ${operation}. Use Monstera.connectUser({ credentials, ... }) or Monstera.connect({ signer, credentials, ... })`,
+      'CREDENTIALS_REQUIRED',
+      {
+        operation,
+        function: 'credentials_check'
+      }
+    );
+    this.name = 'CredentialsRequiredError';
   }
 }
 
@@ -342,5 +369,6 @@ export {
   EventNotFoundError,
   SapphireRequiredError,
   WriteRequiresSignerError,
+  CredentialsRequiredError,
   EventParseError
 };

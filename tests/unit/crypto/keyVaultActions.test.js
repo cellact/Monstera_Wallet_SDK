@@ -1,14 +1,14 @@
 import { describe, test, expect } from '@jest/globals';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { defaultAbiCoder } from '../../../src/adapters/ethers/encoding.js';
-import { computeParamsHash } from '../../../src/internal/crypto/authContext.js';
+import { computeParamsHash } from '../../../src/internal/auth/context/createAuthContext.js';
 import {
   buildSignAction,
   buildSignMessageAction,
   buildChangeAuthenticatorAction,
   buildExecuteWithAuthAction
-} from '../../../src/internal/crypto/actions/keyVault.js';
-import { getSelector } from '../../../src/internal/crypto/getSelector.js';
+} from '../../../src/internal/vault/actions/keyVault.js';
+import { getSelector } from '../../../src/internal/vault/getSelector.js';
 import { KEYVAULT_ABI } from '../../../src/contracts/abi/core/keyVault.js';
 
 describe('keyVault action builders', () => {

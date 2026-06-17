@@ -18,39 +18,57 @@ npm install ethers
 
 ## Basic Usage
 
+The SDK has two primary roles: **admin** (factory writes with a private key) and **end user** (vault signing/reads with username + password). Use the dedicated connect method for each role, or `connect` with both for full access.
+
 ```javascript
 import { Monstera } from '@monstera_protocol/sdk';
-import { ethers } from 'ethers';
 
-// Create SDK instance for testnet (with signer for write operations)
-const sdk = Monstera.connect({
-  mainnet: false,   // or true for mainnet
-  signer: 'your_private_key',  // Private key string or ethers Signer instance
-  debug: true      // optional: enable debug logs; or use logLevel: 'error' | 'warn' | 'info' | 'debug'
+// Admin — create wallets, configure authenticators, factory writes
+const adminSdk = Monstera.connectAdmin({
+  mainnet: false,
+  signer: process.env.SIGNER_PRIVATE_KEY
+});
+
+// End user — sign messages, authenticated vault reads (no keyVaultAddr needed)
+const userSdk = Monstera.connectUser({
+  mainnet: false,
+  credentials: {
+    username: process.env.USERNAME,
+    password: process.env.PASSWORD
+  }
+});
+
+// Full access — both roles on one instance
+const fullSdk = Monstera.connect({
+  mainnet: false,
+  signer: process.env.SIGNER_PRIVATE_KEY,
+  credentials: {
+    username: process.env.USERNAME,
+    password: process.env.PASSWORD
+  }
 });
 ```
 
+`Monstera.connect({ mainnet })` without `signer` or `credentials` is **read-only** (factory/network queries only).
+
 ### Action-bound auth proofs (2.0+)
 
-KeyVaultV3 requires proofs bound to the operation being performed. For high-level calls (`signMessage`, `sign`, `importKey`, etc.), pass a **structured** `authProof` and the SDK resolves the action context for you:
+KeyVaultV3 requires proofs bound to the operation being performed. With **`connectUser`**, you can omit `keyVaultAddr` and often omit `authProof` — the SDK resolves the vault from `credentials` and defaults the password proof:
 
 ```javascript
 import { toUtf8Bytes } from 'ethers';
 
-const authProof = { password: toUtf8Bytes(process.env.PASSWORD) };
-
-await sdk.signMessage({
-  keyVaultAddr,
-  authProof,
-  index: 0,
+await userSdk.signMessage({
+  index: 0, // optional; defaults to 0
   message: toUtf8Bytes('Hello from Monstera')
 });
 ```
 
 Low-level `createAuthProof*` helpers require an explicit `action` or `actionHash`. See [API Reference — Action-bound authentication](api.md#action-bound-authentication-20) and the [2.0.0 changelog](../CHANGELOG.md#200---2026-06-16).
 
-### Upgrading from 1.x
+### Upgrading from 2.0.x / 1.x
 
+- **2.1+**: Use **`connectAdmin`** for signer-only admin flows and **`connectUser`** for end-user vault operations. Signer-only `connect({ signer })` no longer supports `signMessage` and similar vault calls without credentials.
 - Update `authProof` usage to structured objects on KeyVault calls (see examples in `examples/nodejs/`).
 - Confirm network preset addresses match your deployments, or override via `addresses` in `Monstera.connect()`.
 - New wallets use **KeyVaultV3**; factory creation requires authenticators on the factory allowlist (`allowedAuthenticators`).
@@ -60,16 +78,22 @@ Low-level `createAuthProof*` helpers require an explicit `action` or `actionHash
 ```javascript
 import { Monstera } from '@monstera_protocol/sdk';
 
-// Testnet configuration (with signer for write operations)
-const testnetSdk = Monstera.connect({
+// Admin testnet (factory writes)
+const testnetSdk = Monstera.connectAdmin({
   mainnet: false,
-  signer: 'your_private_key' // Private key string or ethers Signer instance
+  signer: 'your_private_key'
 });
 
-// Mainnet configuration
-const mainnetSdk = Monstera.connect({
+// End-user testnet (vault signing/reads)
+const userSdk = Monstera.connectUser({
+  mainnet: false,
+  credentials: { username: 'alice', password: 'secret' }
+});
+
+// Mainnet admin
+const mainnetSdk = Monstera.connectAdmin({
   mainnet: true,
-  signer: 'your_private_key' // Private key string or ethers Signer instance
+  signer: 'your_private_key'
 });
 
 // Read-only instance (omit signer; read operations only)

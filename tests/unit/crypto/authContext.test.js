@@ -3,8 +3,8 @@ import {
   AUTH_CONTEXT_TYPEHASH,
   computeAuthenticatorActionHash,
   computeParamsHash
-} from '../../../src/internal/crypto/authContext.js';
-import { buildDualFactorChangePasswordAction } from '../../../src/internal/crypto/actions/index.js';
+} from '../../../src/internal/auth/context/createAuthContext.js';
+import { buildDualFactorChangePasswordAction } from '../../../src/internal/auth/context/actions/index.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { DEFAULT_TESTNET_CHAIN_ID } from '../../utils/fixtures.js';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';

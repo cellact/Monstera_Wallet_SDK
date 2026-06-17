@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import { getSelector } from '../../../src/internal/crypto/getSelector.js';
+import { getSelector } from '../../../src/internal/vault/getSelector.js';
 import { DUAL_FACTOR_AUTHENTICATOR_ABI } from '../../../src/contracts/abi/authenticators/dualFactorAuthenticator.js';
 
 describe('getSelector', () => {

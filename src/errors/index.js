@@ -5,7 +5,7 @@
  * - the {@link WalletError} hierarchy with stable error codes
  *   ({@link ValidationError}, {@link ConfigError}, {@link NetworkError},
  *   {@link ContractRevertError}, {@link EventNotFoundError}, {@link SapphireRequiredError},
- *   {@link WriteRequiresSignerError}, {@link EventParseError})
+ *   {@link WriteRequiresSignerError}, {@link CredentialsRequiredError}, {@link EventParseError})
  * - the on-chain revert decoding helpers ({@link decodeCustomError},
  *   {@link extractRpcRevertBytes})
  * - the {@link ErrorPipeline} machinery and the canonical {@link sdkErrorPipeline} singleton
@@ -26,6 +26,7 @@ export {
   EventNotFoundError,
   SapphireRequiredError,
   WriteRequiresSignerError,
+  CredentialsRequiredError,
   EventParseError
 } from './WalletError.js';
 

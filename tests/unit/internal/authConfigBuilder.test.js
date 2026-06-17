@@ -1,10 +1,10 @@
 /**
- * Offline unit tests for {@link AuthConfigBuilder#encode}.
+ * Offline unit tests for {@link EncodeAuthConfig#encode}.
  */
 
 import { describe, test, expect } from '@jest/globals';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
-import { AuthConfigBuilder } from '../../../src/internal/auth/config/AuthConfigBuilder.js';
+import { EncodeAuthConfig } from '../../../src/internal/auth/config/EncodeAuthConfig.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { ValidationError } from '../../../src/errors/index.js';
@@ -13,9 +13,9 @@ import {
   createWalletSigAuthConfig
 } from '../../../src/internal/crypto/index.js';
 
-describe('AuthConfigBuilder.encode', () => {
+describe('EncodeAuthConfig.encode', () => {
   const network = buildNetworkConfig({ network: 'testnet' });
-  const builder = new AuthConfigBuilder({ addresses: network.addresses });
+  const builder = new EncodeAuthConfig({ addresses: network.addresses });
   const passwordHash = keccak256(toUtf8Bytes('offline-auth-config'));
 
   test('hex string authConfig passes through unchanged', () => {

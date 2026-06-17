@@ -1,31 +1,45 @@
 /**
- * Internal crypto barrel.
+ * Cryptographic primitives (BIP-39 mnemonics).
  *
- * Re-exports every primitive used by the auth-config / auth-proof encoders and the wallet-creation
- * flows that need EIP-7702 authorisations or BIP-39 mnemonics. NOT a public package export — only
- * other modules under {@code src/} should import from here.
+ * Vault action builders and EIP-7702 helpers live under {@code internal/vault}.
+ * Auth config, proof, and context bytes live under {@code internal/auth}.
+ * This barrel re-exports the legacy surface for callers that still import from {@code internal/crypto}.
  *
  * @module internal/crypto
  */
 
-export { createWalletSigAuthConfig, createDualFactorAuthConfig } from './authConfig.js';
+export { generateMnemonic, deriveSeed } from './mnemonic.js';
+
+export { createWalletSigAuthConfig, createDualFactorAuthConfig } from '../auth/config/createAuthConfig.js';
 export {
   createAuthProofWalletSignature,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor,
   createAuthProofPassword
-} from './authProof.js';
+} from '../auth/proof/createAuthProof.js';
 export {
   AUTH_CONTEXT_TYPEHASH,
   computeParamsHash,
   assertAuthActionInput,
+  buildManagementAction,
   buildAuthContext,
   fetchKeyVaultActionHash,
   computeAuthenticatorActionHash,
   resolveActionHash
-} from './authContext.js';
-export { getSelector } from './getSelector.js';
+} from '../auth/context/createAuthContext.js';
 export {
+  buildChangePasswordAction,
+  buildMinuteSignatureChangePasswordAction,
+  buildDualFactorChangePasswordAction,
+  buildChangeGuardianAction,
+  buildAddToWhitelistAction,
+  buildRemoveFromWhitelistAction,
+  buildAuthenticatorVerifyProbeAction,
+  getVerifySelector,
+  VERIFY_PROBE_PARAMS_HASH
+} from '../auth/context/actions/index.js';
+export {
+  getSelector,
   buildSignAction,
   buildSignMessageAction,
   buildSignTransactionAction,
@@ -39,10 +53,7 @@ export {
   buildActivateKeyAction,
   buildSignWithImportedKeyAction,
   buildSignSolanaAction,
-  buildSetChainBaseKeysAction
-} from './actions/index.js';
-export { generateMnemonic, deriveSeed } from './mnemonic.js';
-export {
+  buildSetChainBaseKeysAction,
   normalizeAuthorizationTuple,
   hashAuthorization,
   verifyAuthorization,
@@ -52,4 +63,4 @@ export {
   toChecksumAddress,
   decodeSignAuthorizationResult,
   finalizeSignedAuthorizationResult
-} from './authorization.js';
+} from '../vault/index.js';

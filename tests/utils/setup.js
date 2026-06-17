@@ -2,29 +2,58 @@ import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 import { Wallet } from '../../src/adapters/ethers/index.js';
 import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
+import { attachTestCredentialsSession } from './credentials.js';
 
 /**
  * Creates a configured SDK instance for testing
  * @param {Object} options - Configuration options
  * @param {boolean} options.readonly - Whether to create a readonly SDK
+ * @param {boolean} options.user - End-user credentials only (no signer)
+ * @param {boolean} options.full - Admin signer + end-user credentials
+ * @param {boolean} options.withCredentials - Attach offline credentials session (admin + mock session)
  * @returns {Monstera} Configured SDK instance
  */
 export function createTestSDK(options = {}) {
-  const { readonly = false } = options;
-  const signerPrivateKey = process.env.SIGNER_PRIVATE_KEY || '';
-  
+  const { readonly = false, user = false, full = false, withCredentials = false } = options;
+  const signerPrivateKey = process.env.SIGNER_PRIVATE_KEY || Wallet.createRandom().privateKey;
+  const password = process.env.PASSWORD || 'test-password';
+  const username = process.env.USERNAME || 'test-user';
+
   if (readonly) {
-    return Monstera.connect({ 
+    return Monstera.connect({
       mainnet: false,
-      checkVersion: false 
+      checkVersion: false
     });
   }
-  
-  return Monstera.connect({
+
+  if (user) {
+    return Monstera.connectUser({
+      mainnet: false,
+      checkVersion: false,
+      credentials: { username, password }
+    });
+  }
+
+  if (full) {
+    return Monstera.connect({
+      mainnet: false,
+      signer: signerPrivateKey,
+      checkVersion: false,
+      credentials: { username, password }
+    });
+  }
+
+  const sdk = Monstera.connectAdmin({
     mainnet: false,
     signer: signerPrivateKey,
     checkVersion: false
   });
+
+  if (withCredentials) {
+    attachTestCredentialsSession(sdk);
+  }
+
+  return sdk;
 }
 
 /**

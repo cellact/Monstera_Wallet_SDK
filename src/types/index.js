@@ -154,9 +154,7 @@
  */
 
 /**
- * Username/password pair for {@link Monstera.connect}. When provided, the SDK resolves and caches
- * the registered wallet's KeyVault address and can default {@code authProof} / {@code currentPassword}
- * on vault-scoped calls so callers omit {@code keyVaultAddr}.
+ * Username/password pair for end-user connect paths.
  *
  * @typedef {Object} ConnectCredentials
  * @property {string} username - Registered username (factory-normalised before hashing)
@@ -165,13 +163,44 @@
 
 /**
  * @typedef {BaseConnectOptions & {
+ *   signer: EthersSigner | string;
+ *   provider?: EthersProvider;
+ * }} ConnectAdminOptions
+ * @property {EthersSigner | string} signer - Required admin private key or ethers Signer for on-chain writes
+ */
+
+/**
+ * @typedef {BaseConnectOptions & {
+ *   credentials: ConnectCredentials;
+ *   provider?: EthersProvider;
+ * }} ConnectUserOptions
+ * @property {ConnectCredentials} credentials - Required username/password for the end-user's registered wallet
+ */
+
+/**
+ * @typedef {BaseConnectOptions & {
+ *   signer: EthersSigner | string;
+ *   credentials: ConnectCredentials;
+ *   provider?: EthersProvider;
+ * }} ConnectFullOptions
+ * @property {EthersSigner | string} signer - Admin signer for on-chain writes
+ * @property {ConnectCredentials} credentials - End-user credentials for vault-authenticated operations
+ */
+
+/**
+ * @typedef {BaseConnectOptions & {
  *   signer?: EthersSigner | string;
  *   provider?: EthersProvider;
  *   credentials?: ConnectCredentials;
  * }} ConnectOptions
- * @property {EthersSigner | string} [signer] - Ethers Signer instance or private key string (0x-prefixed hex); optional for read-only connections
+ * @property {EthersSigner | string} [signer] - Admin signer; with {@code credentials} selects full-access mode
  * @property {EthersProvider} [provider] - Optional ethers Provider instance
- * @property {ConnectCredentials} [credentials] - Optional username/password session; resolves and caches KeyVault for subsequent calls
+ * @property {ConnectCredentials} [credentials] - End-user credentials; without {@code signer} selects user-only mode
+ */
+
+/**
+ * Connect profile stored on a {@link Monstera} instance after connect.
+ * @typedef {'admin' | 'user' | 'full' | 'readonly'} ConnectProfile
  */
 
 // ============================================================================
@@ -184,6 +213,7 @@
  *   signer?: EthersSigner | string;
  *   provider?: EthersProvider;
  *   credentials?: ConnectCredentials;
+ *   connectProfile?: ConnectProfile;
  * }} MonsteraConfigExtension
  */
 
@@ -1170,7 +1200,8 @@
  */
 
 /**
- * @typedef {KeyVaultAddrOptions & { index: number }} KeyVaultAddrIndexOptions
+ * @typedef {KeyVaultAddrOptions & { index?: number }} KeyVaultAddrIndexOptions
+ * @property {number} [index] - HD account index (defaults to {@code 0} on end-user connect paths)
  */
 
 /**

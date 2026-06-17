@@ -7,8 +7,8 @@ import { defaultAbiCoder } from '../../../src/adapters/ethers/encoding.js';
 import {
   executeSignAuthorization,
   resolveSignAuthorizationInputs
-} from '../../../src/internal/crypto/signAuthorization.js';
-import { buildExecuteWithAuthAction } from '../../../src/internal/crypto/actions/keyVault.js';
+} from '../../../src/internal/vault/signAuthorization.js';
+import { buildExecuteWithAuthAction } from '../../../src/internal/vault/actions/keyVault.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 
 describe('signAuthorization resolution', () => {

@@ -1,5 +1,5 @@
 /**
- * Address → encoder lookup used by {@link AuthConfigBuilder}.
+ * Address → encoder lookup used by {@link EncodeAuthConfig}.
  *
  * Wires the four built-in create-wallet authConfig encoders (password, walletSignature,
  * dualFactor, passwordMinuteSignature) into a single
@@ -14,11 +14,11 @@
  * @module internal/auth/config/registry
  */
 
-import { createRegistryByChecksumAddress } from '../registryByChecksumAddress.js';
-import { passwordAuthCreateWalletEncoder } from './encoders/password.js';
-import { walletSignatureAuthCreateWalletEncoder } from './encoders/walletSignature.js';
-import { dualFactorAuthCreateWalletEncoder } from './encoders/dualFactor.js';
-import { passwordMinuteSignatureAuthCreateWalletEncoder } from './encoders/passwordMinuteSignature.js';
+import { createRegistryByChecksumAddress } from '../shared/registryByChecksumAddress.js';
+import { passwordAuthCreateWalletEncoder } from '../encoders/passwordAuthenticator.js';
+import { walletSignatureAuthCreateWalletEncoder } from '../encoders/walletSignatureAuthenticator.js';
+import { dualFactorAuthCreateWalletEncoder } from '../encoders/dualFactorAuthenticator.js';
+import { passwordMinuteSignatureAuthCreateWalletEncoder } from '../encoders/passwordMinuteSignatureAuthenticator.js';
 
 /**
  * Build the address-keyed encoder registry for create-wallet auth configs.

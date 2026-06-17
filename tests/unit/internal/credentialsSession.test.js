@@ -7,9 +7,9 @@ import { ZeroAddress } from '../../../src/adapters/ethers/addresses.js';
 import { toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { ValidationError } from '../../../src/errors/index.js';
 import {
-  CredentialsSession,
-  parseConnectCredentials
-} from '../../../src/internal/auth/CredentialsSession.js';
+  CredentialsSession
+} from '../../../src/internal/auth/session/CredentialsSession.js';
+import { parseConnectCredentials } from '../../../src/internal/validators/connectOptions.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 
 const WALLET_ADDR = VALID_TEST_ADDRESS;

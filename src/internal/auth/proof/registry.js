@@ -1,5 +1,5 @@
 /**
- * Address → authProof encoder lookup used by {@link AuthProofBuilder}.
+ * Address → authProof encoder lookup used by {@link EncodeAuthProof}.
  *
  * Wires the four built-in KeyVault authProof encoders (password, walletSignature, dualFactor,
  * passwordMinuteSignature) into a checksum-keyed registry. Returns {@code undefined} for unknown
@@ -11,11 +11,11 @@
  * @module internal/auth/proof/registry
  */
 
-import { createRegistryByChecksumAddress } from '../registryByChecksumAddress.js';
-import { passwordKeyVaultAuthProofEncoder } from './encoders/password.js';
-import { walletSignatureKeyVaultAuthProofEncoder } from './encoders/walletSignature.js';
-import { dualFactorKeyVaultAuthProofEncoder } from './encoders/dualFactor.js';
-import { passwordMinuteSignatureKeyVaultAuthProofEncoder } from './encoders/passwordMinuteSignature.js';
+import { createRegistryByChecksumAddress } from '../shared/registryByChecksumAddress.js';
+import { passwordKeyVaultAuthProofEncoder } from '../encoders/passwordAuthenticator.js';
+import { walletSignatureKeyVaultAuthProofEncoder } from '../encoders/walletSignatureAuthenticator.js';
+import { dualFactorKeyVaultAuthProofEncoder } from '../encoders/dualFactorAuthenticator.js';
+import { passwordMinuteSignatureKeyVaultAuthProofEncoder } from '../encoders/passwordMinuteSignatureAuthenticator.js';
 
 /**
  * Build the address-keyed encoder registry for KeyVault authProofs.

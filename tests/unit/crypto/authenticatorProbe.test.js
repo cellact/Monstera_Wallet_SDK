@@ -3,8 +3,8 @@ import {
   buildAuthenticatorVerifyProbeAction,
   getVerifySelector,
   VERIFY_PROBE_PARAMS_HASH
-} from '../../../src/internal/crypto/actions/authenticatorProbe.js';
-import { getSelector } from '../../../src/internal/crypto/getSelector.js';
+} from '../../../src/internal/auth/context/actions/authenticator/authenticatorProbe.js';
+import { getSelector } from '../../../src/internal/vault/getSelector.js';
 import { PASSWORD_AUTHENTICATOR_ABI } from '../../../src/contracts/abi/authenticators/passwordAuthenticator.js';
 import { WALLET_SIGNATURE_AUTHENTICATOR_ABI } from '../../../src/contracts/abi/authenticators/walletSignatureAuthenticator.js';
 import { DUAL_FACTOR_AUTHENTICATOR_ABI } from '../../../src/contracts/abi/authenticators/dualFactorAuthenticator.js';

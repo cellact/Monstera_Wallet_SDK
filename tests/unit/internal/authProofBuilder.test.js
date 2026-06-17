@@ -1,18 +1,18 @@
 /**
- * Unit tests for {@link AuthProofBuilder.prototype.encode} branches (pass-through vs structured encoding).
+ * Unit tests for {@link EncodeAuthProof.prototype.encode} branches (pass-through vs structured encoding).
  */
 
 import { describe, test, expect } from '@jest/globals';
 import { Wallet } from '../../../src/adapters/ethers/index.js';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { createTestVaultSignAction } from '../../utils/fixtures.js';
-import { AuthProofBuilder } from '../../../src/internal/auth/proof/AuthProofBuilder.js';
+import { EncodeAuthProof } from '../../../src/internal/auth/proof/EncodeAuthProof.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { ValidationError, NetworkError } from '../../../src/errors/index.js';
 import { nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 
-describe('AuthProofBuilder.encode', () => {
+describe('EncodeAuthProof.encode', () => {
   const network = buildNetworkConfig({ network: 'testnet' });
 
   /** @returns {import('../../../src/types/index.js').AuthProofContext} */
@@ -26,7 +26,7 @@ describe('AuthProofBuilder.encode', () => {
   }
 
   test('returns options unchanged when authProof is a hex string (pass-through)', async () => {
-    const builder = new AuthProofBuilder(
+    const builder = new EncodeAuthProof(
       makeCtx(async () => network.addresses.passwordAuth)
     );
     const hex = '0xabcd';
@@ -37,7 +37,7 @@ describe('AuthProofBuilder.encode', () => {
   });
 
   test('returns options unchanged when authProof is Uint8Array (pass-through)', async () => {
-    const builder = new AuthProofBuilder(makeCtx(async () => network.addresses.passwordAuth));
+    const builder = new EncodeAuthProof(makeCtx(async () => network.addresses.passwordAuth));
     const bytes = new Uint8Array([1, 2, 3]);
     const opts = { keyVaultAddr: VALID_TEST_ADDRESS, authProof: bytes };
     const out = await builder.encode(opts);
@@ -45,14 +45,14 @@ describe('AuthProofBuilder.encode', () => {
   });
 
   test('returns options unchanged when authProof is missing / empty (pass-through)', async () => {
-    const builder = new AuthProofBuilder(makeCtx(async () => network.addresses.passwordAuth));
+    const builder = new EncodeAuthProof(makeCtx(async () => network.addresses.passwordAuth));
     const opts = { keyVaultAddr: VALID_TEST_ADDRESS };
     const out = await builder.encode(opts);
     expect(out).toBe(opts);
   });
 
   test('throws for array authProof', async () => {
-    const builder = new AuthProofBuilder(makeCtx(async () => network.addresses.passwordAuth));
+    const builder = new EncodeAuthProof(makeCtx(async () => network.addresses.passwordAuth));
     await expect(
       builder.encode({
         keyVaultAddr: VALID_TEST_ADDRESS,
@@ -63,7 +63,7 @@ describe('AuthProofBuilder.encode', () => {
 
   test('encodes structured password authProof via registry', async () => {
     const actionHash = keccak256(toUtf8Bytes('password-unit-action-hash'));
-    const builder = new AuthProofBuilder({
+    const builder = new EncodeAuthProof({
       addresses: network.addresses,
       chainId: network.chainId,
       readProvider: {
@@ -83,7 +83,7 @@ describe('AuthProofBuilder.encode', () => {
 
   test('throws when no built-in encoder for authenticator (opaque hex required)', async () => {
     const unknownAuth = '0x1111111111111111111111111111111111111111';
-    const builder = new AuthProofBuilder(makeCtx(async () => unknownAuth));
+    const builder = new EncodeAuthProof(makeCtx(async () => unknownAuth));
     await expect(
       builder.encode({
         keyVaultAddr: VALID_TEST_ADDRESS,
@@ -93,7 +93,7 @@ describe('AuthProofBuilder.encode', () => {
   });
 
   test('forwards error when getAuthenticatorAddr rejects (e.g. network failure)', async () => {
-    const builder = new AuthProofBuilder(
+    const builder = new EncodeAuthProof(
       makeCtx(async () => {
         throw new NetworkError('simulated RPC failure', null, null);
       })
@@ -110,7 +110,7 @@ describe('AuthProofBuilder.encode', () => {
     const actionHash = keccak256(toUtf8Bytes('wallet-signature-unit-action-hash'));
     const signer = Wallet.createRandom();
     const deadline = nowUnixTimestampSeconds() + 7200;
-    const builder = new AuthProofBuilder({
+    const builder = new EncodeAuthProof({
       addresses: network.addresses,
       chainId: network.chainId,
       readProvider: {
@@ -135,7 +135,7 @@ describe('AuthProofBuilder.encode', () => {
       getBlock: async () => ({ timestamp: Math.floor(Date.now() / 1000) }),
       call: async () => actionHash
     };
-    const builder = new AuthProofBuilder({
+    const builder = new EncodeAuthProof({
       addresses: network.addresses,
       chainId: network.chainId,
       readProvider,
