@@ -4,7 +4,7 @@
 
 import { describe, test, expect, jest } from '@jest/globals';
 import { ZeroAddress } from '../../../src/adapters/ethers/addresses.js';
-import { toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
+import { toUtf8Bytes, keccak256 } from '../../../src/adapters/ethers/hashing.js';
 import { ValidationError } from '../../../src/errors/index.js';
 import {
   CredentialsSession
@@ -63,13 +63,19 @@ describe('CredentialsSession', () => {
     expect(deps.getKeyVaultAddr).toHaveBeenCalledWith({ walletAddr: WALLET_ADDR });
   });
 
-  test('applyToOptions injects keyVaultAddr and default authProof', async () => {
+  test('applyToOptions injects keyVaultAddr only', async () => {
     const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
 
-    const resolved = await session.applyToOptions({}, { requireAuthProof: true });
+    const resolved = await session.applyToOptions({});
 
     expect(resolved.keyVaultAddr).toBe(KEY_VAULT_ADDR);
-    expect(resolved.authProof).toEqual({ password: toUtf8Bytes('pw') });
+    expect(resolved.authProof).toBeUndefined();
+  });
+
+  test('getPasswordHash returns keccak256 of session password bytes', () => {
+    const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
+
+    expect(session.getPasswordHash()).toBe(keccak256(toUtf8Bytes('pw')));
   });
 
   test('applyToOptions injects currentPassword when requested', async () => {

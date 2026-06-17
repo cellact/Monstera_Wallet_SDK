@@ -2,7 +2,7 @@
  * Username/password session for Monstera connect.
  *
  * Resolves and caches the wallet proxy and KeyVault addresses for a registered username,
- * and supplies default password auth material for vault-authenticated calls.
+ * and exposes password material for vault-authenticated calls.
  *
  * @typedef {import('../../types/index.js').Address} Address
  * @typedef {import('../../types/index.js').Bytes32} Bytes32
@@ -11,7 +11,7 @@
  */
 
 import { ZeroAddress } from '../../../adapters/ethers/addresses.js';
-import { toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
+import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
 import { ValidationError } from '../../../errors/index.js';
 import { normalizeUsername } from '../../utils/normalize.js';
 
@@ -34,7 +34,6 @@ export { parseConnectCredentials } from '../../validators/connectOptions.js';
 
 /**
  * @typedef {Object} ResolveVaultOptionsFlags
- * @property {boolean} [requireAuthProof=false] - Inject default structured {@code authProof} when absent
  * @property {boolean} [defaultCurrentPassword=false] - Inject {@code currentPassword} from the session password
  */
 
@@ -50,6 +49,7 @@ export class CredentialsSession {
   constructor(credentials, deps) {
     this._username = credentials.username;
     this._passwordBytes = toUtf8Bytes(credentials.password);
+    this._passwordHash = keccak256(this._passwordBytes);
     this._deps = deps;
     /** @type {Address | null} */
     this._walletAddr = null;
@@ -73,6 +73,14 @@ export class CredentialsSession {
    */
   getPasswordBytes() {
     return this._passwordBytes;
+  }
+
+  /**
+   * @public
+   * @returns {Bytes32}
+   */
+  getPasswordHash() {
+    return this._passwordHash;
   }
 
   /**
@@ -117,10 +125,6 @@ export class CredentialsSession {
 
     if (!resolved.keyVaultAddr) {
       resolved.keyVaultAddr = await this.getKeyVaultAddr();
-    }
-
-    if (flags.requireAuthProof && resolved.authProof == null) {
-      resolved.authProof = { password: this._passwordBytes };
     }
 
     if (flags.defaultCurrentPassword && resolved.currentPassword == null) {

@@ -37,6 +37,32 @@ export class EncodeAuthProof {
   }
 
   /**
+   * Resolve the wallet's configured built-in authenticator for a KeyVault address.
+   *
+   * @public
+   * @async
+   * @param {import('../../../types/index.js').Address} keyVaultAddr
+   * @returns {Promise<{ authenticatorAddr: import('../../../types/index.js').Address, encoder: import('../../../types/index.js').KeyVaultAuthProofEncoder }>}
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or the authenticator is not built-in
+   * @throws {WalletError} Forwards errors from {@code ctx.getAuthenticatorAddr}
+   */
+  async resolveBuiltinAuthenticator(keyVaultAddr) {
+    requireAddress(keyVaultAddr, 'keyVaultAddr');
+    const authenticatorAddr = await this._ctx.getAuthenticatorAddr(keyVaultAddr);
+    const encoder = this._registry.getByAuthenticatorAddr(authenticatorAddr);
+
+    if (!encoder) {
+      throw new ValidationError(
+        'No built-in encoder for this authenticator; pass authProof as hex bytes',
+        'authenticatorAddr',
+        authenticatorAddr
+      );
+    }
+
+    return { authenticatorAddr, encoder };
+  }
+
+  /**
    * Encode public KeyVault call options into the shape consumed by {@code KeyVaultClient}.
    *
    * @description Three paths:
@@ -75,16 +101,7 @@ export class EncodeAuthProof {
     }
 
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    const authenticatorAddr = await this._ctx.getAuthenticatorAddr(keyVaultAddr);
-    const encoder = this._registry.getByAuthenticatorAddr(authenticatorAddr);
-
-    if (!encoder) {
-      throw new ValidationError(
-        'No built-in encoder for this authenticator; pass authProof as hex bytes',
-        'authenticatorAddr',
-        authenticatorAddr
-      );
-    }
+    const { authenticatorAddr, encoder } = await this.resolveBuiltinAuthenticator(keyVaultAddr);
 
     log.info('encoding auth proof', { encoderId: encoder.id, keyVaultAddr });
 

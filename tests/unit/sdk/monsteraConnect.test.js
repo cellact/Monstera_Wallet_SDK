@@ -98,4 +98,18 @@ describe('Monstera.connect', () => {
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
     expect(resolved.index).toBe(0);
   });
+
+  test('configurePassword resolves keyVaultAddr from credentials session', async () => {
+    const sdk = Monstera.connect({
+      mainnet: false,
+      signer: TEST_SIGNER,
+      checkVersion: false
+    });
+    attachTestCredentialsSession(sdk);
+
+    const resolved = await sdk._vaultPipeline.resolveVaultOptions({
+      passwordHash: '0x' + '11'.repeat(32)
+    });
+    expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
+  });
 });

@@ -422,6 +422,51 @@ class Monstera {
     return this._vaultPipeline.hasCredentials();
   }
 
+  /**
+   * Inject {@code walletAddr} from the credentials session when omitted.
+   *
+   * @private
+   * @async
+   * @param {Record<string, unknown>} options
+   * @returns {Promise<Record<string, unknown>>}
+   */
+  async _resolveWalletProxyOptions(options = {}) {
+    if (options.walletAddr || !this.hasCredentials()) {
+      return options;
+    }
+
+    return {
+      ...options,
+      walletAddr: await this._vaultPipeline.getCredentialsSession().getWalletAddr()
+    };
+  }
+
+  /**
+   * Inject {@code walletOrKeyVaultAddr} from resolved {@code keyVaultAddr} when omitted.
+   *
+   * @private
+   * @async
+   * @param {Record<string, unknown>} options
+   * @returns {Promise<Record<string, unknown>>}
+   */
+  async _resolveWalletOrKeyVaultScope(options = {}) {
+    if (options.walletOrKeyVaultAddr) {
+      return options;
+    }
+
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
+    return { ...options, ...resolved, walletOrKeyVaultAddr: resolved.keyVaultAddr };
+  }
+
+  /**
+   * Get the wallet proxy address for the connect-time username.
+   * 
+   * @returns {Promise<Address>} Wallet proxy address
+   * @throws {CredentialsRequiredError} If no credentials session is configured
+   * @throws {ValidationError} If no wallet is registered for the session username
+   * @throws {NetworkError} If factory lookups fail over RPC
+   * @throws {WalletError} For other unrecognised failures
+   */
   async getSessionWalletAddr() {
     this._vaultPipeline.requireUserAccess('getSessionWalletAddr');
     return this._vaultPipeline.getCredentialsSession().getWalletAddr();
@@ -444,26 +489,6 @@ class Monstera {
   async getSessionKeyVaultAddr() {
     const { keyVaultAddr } = await this._vaultPipeline.resolveVaultOptions({});
     return keyVaultAddr;
-  }
-
-  /**
-   * Get the wallet's HD account address at {@code index} (defaults to {@code 0}).
-   *
-   * Convenience wrapper around {@link Monstera#getAccountAddr} that omits {@code keyVaultAddr}
-   * when a credentials session is active.
-   *
-   * @public
-   * @async
-   * @param {{ index?: number }} [options={}] - Optional HD account index (default {@code 0})
-   * @returns {Promise<Address>} Account address
-   * @throws {ValidationError} If {@code index} is invalid or neither credentials nor {@code keyVaultAddr} is available
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
-   */
-  async getWalletAddress(options = {}) {
-    const index = options.index ?? 0;
-    return this.getAccountAddr({ index });
   }
 
   /**
@@ -569,7 +594,7 @@ class Monstera {
    * @remarks Most callers should use a {@code createWallet*} factory method instead, which wires the KeyVault for you.
    */
   async initialize(options = {}) {
-    return this.keyVault.initialize(options);
+    return this.keyVault.initialize(await this._vaultPipeline.resolveVaultOptions(options));
   }
 
   /**
@@ -588,7 +613,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async initializeExplicit(options = {}) {
-    return this.keyVault.initializeExplicit(options);
+    return this.keyVault.initializeExplicit(await this._vaultPipeline.resolveVaultOptions(options));
   }
 
   /**
@@ -607,7 +632,11 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async initializeWalletLogic(options = {}) {
-    return this.logic.initialize(options);
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
+    if (!resolved.walletAddr) {
+      Object.assign(resolved, await this._resolveWalletProxyOptions(options));
+    }
+    return this.logic.initialize(resolved);
   }
 
   // ============================================================================
@@ -622,9 +651,10 @@ class Monstera {
    *
    * @public
    * @async
-   * @param {ConfigurePasswordOptions} options - {@code keyVaultAddr} and 32-byte {@code passwordHash}
+   * @param {ConfigurePasswordOptions} options - Optional {@code keyVaultAddr} (resolved from credentials when omitted) and 32-byte {@code passwordHash}
    * @returns {Promise<ConfigurePasswordResult>} Standard write result with the parsed {@code wallet} field
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code passwordHash} is not a 32-byte hex string
+   * @throws {CredentialsRequiredError} If neither credentials nor {@code keyVaultAddr} is available
    * @throws {WriteRequiresSignerError} If no signer is configured
    * @throws {NetworkError} If the RPC interaction fails
    * @throws {ContractRevertError} If the transaction reverts on-chain
@@ -633,7 +663,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async configurePassword(options = {}) {
-    const { keyVaultAddr, passwordHash } = options;
+    const { keyVaultAddr, passwordHash } = await this._vaultPipeline.resolveVaultOptions(options);
     const { authConfig } = this._encodeAuthConfig.encode({
       authConfig: { passwordHash },
       authenticatorAddr: this.config.addresses.passwordAuth
@@ -648,7 +678,7 @@ class Monstera {
    *
    * @public
    * @async
-   * @param {ConfigureWalletSignatureOptions} options - {@code keyVaultAddr} and {@code initialWhitelist} (at least one address)
+   * @param {ConfigureWalletSignatureOptions} options - Optional {@code keyVaultAddr} and {@code initialWhitelist} (at least one address)
    * @returns {Promise<ConfigureWalletSignatureResult>} Standard write result with parsed {@code wallet} and {@code initialWhitelist}
    * @throws {ValidationError} If {@code keyVaultAddr} or any whitelist address is invalid, or {@code initialWhitelist} is empty
    * @throws {WriteRequiresSignerError} If no signer is configured
@@ -659,7 +689,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async configureWalletSignature(options = {}) {
-    const { keyVaultAddr, initialWhitelist } = options;
+    const { keyVaultAddr, initialWhitelist } = await this._vaultPipeline.resolveVaultOptions(options);
     const { authConfig } = this._encodeAuthConfig.encode({
       authConfig: { initialWhitelist },
       authenticatorAddr: this.config.addresses.walletSignatureAuth
@@ -674,7 +704,7 @@ class Monstera {
    *
    * @public
    * @async
-   * @param {ConfigureDualFactorOptions} options - {@code keyVaultAddr}, 32-byte {@code passwordHash}, guardian {@code guardianAddr}
+   * @param {ConfigureDualFactorOptions} options - Optional {@code keyVaultAddr}, 32-byte {@code passwordHash}, guardian {@code guardianAddr}
    * @returns {Promise<ConfigurePasswordDualFactorResult>} Standard write result with parsed {@code wallet} and {@code guardian}
    * @throws {ValidationError} If {@code keyVaultAddr}/{@code guardianAddr} are invalid or {@code passwordHash} is not a 32-byte hex string
    * @throws {WriteRequiresSignerError} If no signer is configured
@@ -685,7 +715,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async configureDualFactor(options = {}) {
-    const { keyVaultAddr, passwordHash, guardianAddr } = options;
+    const { keyVaultAddr, passwordHash, guardianAddr } = await this._vaultPipeline.resolveVaultOptions(options);
     const { authConfig } = this._encodeAuthConfig.encode({
       authConfig: { passwordHash, guardianAddr },
       authenticatorAddr: this.config.addresses.dualFactorAuth
@@ -700,9 +730,10 @@ class Monstera {
    *
    * @public
    * @async
-   * @param {ConfigurePasswordMinuteOptions} options - {@code keyVaultAddr} and 32-byte {@code passwordHash}
+   * @param {ConfigurePasswordMinuteOptions} options - Optional {@code keyVaultAddr} and 32-byte {@code passwordHash}
    * @returns {Promise<ConfigurePasswordResult>} Standard write result with the parsed {@code wallet} field
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code passwordHash} is not a 32-byte hex string
+   * @throws {CredentialsRequiredError} If neither credentials nor {@code keyVaultAddr} is available
    * @throws {WriteRequiresSignerError} If no signer is configured
    * @throws {NetworkError} If the RPC interaction fails
    * @throws {ContractRevertError} If the transaction reverts on-chain
@@ -711,7 +742,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async configurePasswordMinuteSignature(options = {}) {
-    const { keyVaultAddr, passwordHash } = options;
+    const { keyVaultAddr, passwordHash } = await this._vaultPipeline.resolveVaultOptions(options);
     const { authConfig } = this._encodeAuthConfig.encode({
       authConfig: { passwordHash },
       authenticatorAddr: this.config.addresses.passwordMinuteSignatureAuth
@@ -959,7 +990,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async isWallet(options = {}) {
-    return this.factory.isWallet(options);
+    return this.factory.isWallet(await this._resolveWalletProxyOptions(options));
   }
 
   /**
@@ -1005,7 +1036,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultAddr(options = {}) {
-    return this.factory.getKeyVaultAddr(options);
+    return this.factory.getKeyVaultAddr(await this._resolveWalletProxyOptions(options));
   }
 
   /**
@@ -1021,7 +1052,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async getStorageAddr(options = {}) {
-    return this.factory.getStorageAddr(options);
+    return this.factory.getStorageAddr(await this._resolveWalletProxyOptions(options));
   }
 
   /**
@@ -1052,7 +1083,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async getSecretVaultAddr(options = {}) {
-    return this.factory.getSecretVaultAddr(options);
+    return this.factory.getSecretVaultAddr(await this._resolveWalletProxyOptions(options));
   }
 
   /**
@@ -1185,7 +1216,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async getWalletUsernameHash(options = {}) {
-    return this.factory.getWalletUsernameHash(options);
+    return this.factory.getWalletUsernameHash(await this._resolveWalletProxyOptions(options));
   }
 
   // --- KeyVault Reads ---
@@ -1984,7 +2015,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async setWalletImplementationAllowed(options = {}) {
-    return this.factory.setWalletImplementationAllowed(options);
+    return this.factory.setWalletImplementationAllowed(await this._resolveWalletOrKeyVaultScope(options));
   }
 
   /**
@@ -2003,7 +2034,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async setWalletAuthenticatorAllowed(options = {}) {
-    return this.factory.setWalletAuthenticatorAllowed(options);
+    return this.factory.setWalletAuthenticatorAllowed(await this._resolveWalletOrKeyVaultScope(options));
   }
 
   // --- KeyVault Writes ---

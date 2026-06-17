@@ -731,7 +731,7 @@
  *
  * @typedef {Object} KeyVaultAuthBaseOptions
  * @property {Address} [keyVaultAddr] - KeyVault contract address; optional when connect {@code credentials} are set
- * @property {AuthProofInputOptions} [authProof] - Authentication proof (bytes or structured object); defaults to session password when omitted
+ * @property {AuthProofInputOptions} [authProof] - Authentication proof (bytes or structured object); password-based fields default from connect credentials when omitted
  */
 
 /**

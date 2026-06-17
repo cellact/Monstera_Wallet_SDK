@@ -11,13 +11,21 @@
  */
 
 import { ValidationError, CredentialsRequiredError } from '../../../errors/index.js';
+import { applySessionAuthProofDefaults } from '../proof/sessionAuthProofDefaults.js';
 
 /**
  * @typedef {Object} ResolveVaultOptionsFlags
- * @property {boolean} [requireAuthProof=false]
  * @property {boolean} [defaultCurrentPassword=false]
  * @property {boolean} [defaultIndex=false]
  */
+
+/**
+ * @param {unknown} authProof
+ * @returns {boolean}
+ */
+function isPreEncodedAuthProof(authProof) {
+  return typeof authProof === 'string' || authProof instanceof Uint8Array;
+}
 
 /**
  * Orchestrates credentials-session defaults and KeyVault auth-proof encoding.
@@ -99,6 +107,35 @@ export class VaultCallPipeline {
   }
 
   /**
+   * @private
+   * @async
+   * @param {Record<string, unknown>} resolved
+   * @returns {Promise<Record<string, unknown>>}
+   */
+  async _resolveStructuredAuthProof(resolved) {
+    const { authProof, keyVaultAddr } = resolved;
+
+    if (isPreEncodedAuthProof(authProof)) {
+      return resolved;
+    }
+
+    const { encoder } = await this._encodeAuthProof.resolveBuiltinAuthenticator(
+      /** @type {import('../../../types/index.js').Address} */ (keyVaultAddr)
+    );
+
+    return {
+      ...resolved,
+      authProof: applySessionAuthProofDefaults({
+        authenticatorId: encoder.id,
+        session: this._credentialsSession,
+        authProof: /** @type {import('../../../types/index.js').AuthProofInputOptions | null | undefined} */ (
+          authProof
+        )
+      })
+    };
+  }
+
+  /**
    * Encode structured {@code authProof} for a KeyVault call, injecting {@code action} when omitted.
    *
    * @public
@@ -108,13 +145,12 @@ export class VaultCallPipeline {
    * @returns {Promise<EncodeAuthProofOptionsResult>}
    */
   async encodeAuthProof(options, buildAction) {
-    const resolved = await this.resolveVaultOptions(options, {
-      requireAuthProof: true,
-      defaultIndex: true
-    });
+    let resolved = await this.resolveVaultOptions(options, { defaultIndex: true });
+    resolved = await this._resolveStructuredAuthProof(resolved);
+
     const { authProof } = resolved;
 
-    if (!authProof || typeof authProof === 'string' || authProof instanceof Uint8Array) {
+    if (!authProof || isPreEncodedAuthProof(authProof)) {
       return this._encodeAuthProof.encode(resolved);
     }
 

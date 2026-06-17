@@ -70,14 +70,12 @@ describe('Monstera offline validation', () => {
 
   describe('password authenticator', () => {
     test('configurePassword validation', async () => {
+      await expect(
+        adminSdk.configurePassword({ passwordHash })
+      ).rejects.toMatchObject({ name: 'CredentialsRequiredError' });
       await testMissingParam(
         adminSdk.configurePassword.bind(adminSdk),
-        { passwordHash },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        adminSdk.configurePassword.bind(adminSdk),
-        { keyVaultAddr },
+        { keyVaultAddr, passwordHash },
         'passwordHash'
       );
       await testInvalidAddress(
@@ -115,7 +113,7 @@ describe('Monstera offline validation', () => {
         },
         'keyVaultAddr'
       );
-      await expect(readonlySdk.isPasswordConfigured({ keyVaultAddr })).rejects.toThrow(
+      await expect(readonlySdk.isPasswordConfigured({})).rejects.toThrow(
         CredentialsRequiredError
       );
     });
@@ -216,11 +214,12 @@ describe('Monstera offline validation', () => {
         { keyVaultAddr },
         'walletAddr'
       );
-      await testMissingParam(
-        adminSdk.initializeWalletLogic.bind(adminSdk),
-        { walletAddr },
-        'keyVaultAddr'
-      );
+      await expect(
+        adminSdk.initializeWalletLogic({ walletAddr })
+      ).rejects.toMatchObject({ name: 'CredentialsRequiredError' });
+      await expect(
+        adminSdk.initializeWalletLogic({})
+      ).rejects.toMatchObject({ name: 'CredentialsRequiredError' });
       await testInvalidAddress(
         adminSdk.initializeWalletLogic.bind(adminSdk),
         { walletAddr, keyVaultAddr },
@@ -320,16 +319,14 @@ describe('Monstera offline validation', () => {
     test('initialize (KeyVault)', async () => {
       const accessToken = hexlify(randomBytes(32));
       const authConfig = createPasswordAuthProof('init');
-      await testMissingParam(
-        adminSdk.initialize.bind(adminSdk),
-        {
+      await expect(
+        adminSdk.initialize({
           storageAddr,
           authenticatorAddr,
           accessToken,
           authConfig
-        },
-        'keyVaultAddr'
-      );
+        })
+      ).rejects.toMatchObject({ name: 'CredentialsRequiredError' });
       await testMissingParam(
         adminSdk.initialize.bind(adminSdk),
         {
@@ -509,14 +506,12 @@ describe('Monstera offline validation', () => {
     const signer = () => Wallet.createRandom();
 
     test('configure / query whitelist helpers', async () => {
+      await expect(
+        adminSdk.configureWalletSignature({ initialWhitelist: [testWalletAddr] })
+      ).rejects.toMatchObject({ name: 'CredentialsRequiredError' });
       await testMissingParam(
         adminSdk.configureWalletSignature.bind(adminSdk),
-        { initialWhitelist: [testWalletAddr] },
-        'keyVaultAddr'
-      );
-      await testMissingParam(
-        adminSdk.configureWalletSignature.bind(adminSdk),
-        { keyVaultAddr },
+        { keyVaultAddr, initialWhitelist: [testWalletAddr] },
         'initialWhitelist',
         'whitelist'
       );
