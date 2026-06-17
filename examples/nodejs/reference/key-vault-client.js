@@ -39,7 +39,7 @@ import {
   decodeSignAuthorizationResult,
   fetchAuthorizationChainId,
   fetchAuthorizationNonce
-} from '../../../src/internal/crypto/authorization.js';
+} from '../../../src/internal/vault/authorization.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;

@@ -82,8 +82,16 @@ export class VaultCallPipeline {
    * @throws {CredentialsRequiredError}
    */
   async resolveVaultOptions(options = {}, flags = {}) {
-    this.requireUserAccess('vault operation');
-    const resolved = await this._credentialsSession.applyToOptions(options, flags);
+    let resolved;
+
+    if (this._credentialsSession) {
+      resolved = await this._credentialsSession.applyToOptions(options, flags);
+    } else if (options.keyVaultAddr) {
+      resolved = { ...options };
+    } else {
+      throw new CredentialsRequiredError('vault operation');
+    }
+
     if (flags.defaultIndex && (resolved.index === undefined || resolved.index === null)) {
       resolved.index = 0;
     }

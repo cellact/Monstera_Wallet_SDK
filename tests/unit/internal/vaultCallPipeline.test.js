@@ -32,4 +32,27 @@ describe('VaultCallPipeline', () => {
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
     expect(resolved.index).toBe(0);
   });
+
+  test('resolveVaultOptions passes through explicit keyVaultAddr without credentials session', async () => {
+    const pipeline = new VaultCallPipeline({
+      credentialsSession: null,
+      encodeAuthProof: { encode: async (o) => o }
+    });
+
+    const resolved = await pipeline.resolveVaultOptions(
+      { keyVaultAddr: VALID_TEST_ADDRESS, index: 2 },
+      { defaultIndex: true }
+    );
+    expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
+    expect(resolved.index).toBe(2);
+  });
+
+  test('resolveVaultOptions throws without credentials or keyVaultAddr', async () => {
+    const pipeline = new VaultCallPipeline({
+      credentialsSession: null,
+      encodeAuthProof: { encode: async (o) => o }
+    });
+
+    await expect(pipeline.resolveVaultOptions({})).rejects.toThrow(CredentialsRequiredError);
+  });
 });

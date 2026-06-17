@@ -14,7 +14,7 @@ Choose the auth type that matches your product. Each folder has focused recipes;
 
 ## Suggested order
 
-1. **Password** — start with [../getting-started/01-create-wallet.js](../getting-started/01-create-wallet.js), then [password/update-password.js](password/update-password.js) if you need rotation.
+1. **Password** — start with [../getting-started/password-only/01-create-wallet.js](../getting-started/password-only/01-create-wallet.js), then [password/update-password.js](password/update-password.js) if you need rotation.
 2. **Wallet signature** — [wallet-signature/whitelist-flow.js](wallet-signature/whitelist-flow.js) (creates its own wallet).
 3. **Password-minute-signature** — [password-minute-signature/create-and-sign.js](password-minute-signature/create-and-sign.js) (requires `KEYVAULT_ADDRESS`).
 

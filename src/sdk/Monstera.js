@@ -271,8 +271,8 @@ class Monstera {
 
   /**
    * Connect as an **admin**: Sapphire-wrapped {@code signer} for factory and on-chain writes.
-   * End-user vault operations (signing, authenticated reads) are blocked until you use
-   * {@link Monstera.connectUser} or {@link Monstera.connect} with credentials.
+   * Vault operations with an explicit {@code keyVaultAddr} and {@code authProof} are supported.
+   * For username-registered wallets, use {@link Monstera.connectUser} so {@code keyVaultAddr} is resolved automatically.
    *
    * @public
    * @static

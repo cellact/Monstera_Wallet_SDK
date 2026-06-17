@@ -1,7 +1,10 @@
 /**
- * Create an HD wallet and register it to a username on the factory.
+ * Track: username-and-password
+ * Step: 01-create
+ * Connect: connectAdmin
+ * Prerequisites: none
  *
- * Run: node examples/nodejs/wallet/create-for-username.js
+ * Run: node examples/nodejs/getting-started/username-and-password/01-create-wallet.js
  *
  * Required env vars:
  *   SIGNER_PRIVATE_KEY=0x...
@@ -9,21 +12,13 @@
  *   USERNAME=alice
  *
  * Optional env vars:
- *   MNEMONIC="word1 word2 ..." — if set, uses createWalletForUsernameFromMnemonic
- *     instead of generating a new mnemonic
+ *   MNEMONIC="word1 word2 ..." — uses createWalletForUsernameFromMnemonic
  *
- * This creates:
- *   - WalletStorage (holds private keys, locked to KeyVault)
- *   - KeyVault (auth + signing, user-updateable)
- *   - Wallet (BeaconProxy to WalletLogic, admin-updateable)
- *   - Factory username mapping (username hash → wallet proxy)
- *
- * End users can later connect with Monstera.connectUser({ credentials: { username, password } })
- * without passing keyVaultAddr on vault calls.
+ * Creates wallet stack + factory username mapping (username hash → wallet).
  */
 import 'dotenv/config';
-import { Monstera } from '../../../src/index.js';
-import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
+import { Monstera } from '../../../../src/index.js';
+import { keccak256, toUtf8Bytes } from '../../../../src/adapters/ethers/hashing.js';
 
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const PASSWORD = process.env.USER_PASSWORD;
@@ -38,11 +33,11 @@ const sdk = Monstera.connectAdmin({
 
 async function main() {
   console.log('='.repeat(60));
-  console.log('Create wallet registered to username');
+  console.log('username-and-password — Step 1: Create wallet');
   console.log('='.repeat(60));
 
   if (!SIGNER_PRIVATE_KEY || !PASSWORD || !USERNAME) {
-    console.error('ERROR: Set SIGNER_PRIVATE_KEY, PASSWORD, and USERNAME env vars');
+    console.error('ERROR: Set SIGNER_PRIVATE_KEY, USER_PASSWORD, and USERNAME env vars');
     process.exit(1);
   }
 
@@ -57,9 +52,8 @@ async function main() {
   console.log('   Username hash (off-chain):', usernameHash);
 
   console.log('\n' + '='.repeat(60));
-  console.log('STEP 2: Create wallet stack + register username');
+  console.log('STEP 2: Create wallet + register username on factory');
   console.log('='.repeat(60));
-  console.log('   This deploys: WalletStorage + KeyVault + WalletProxy');
   console.log('   Usernames are normalised (trim + lowercase) before hashing on-chain');
 
   const createOptions = {
@@ -77,7 +71,7 @@ async function main() {
   console.log('\n' + '='.repeat(60));
   console.log('STEP 3: Verify factory username lookup');
   console.log('='.repeat(60));
-  const walletFromUsername = await sdk.walletOfUsername({ usernameHash: usernameHash });
+  const walletFromUsername = await sdk.walletOfUsername({ usernameHash });
   console.log('   walletOfUsername:', walletFromUsername);
   console.log('   Matches created wallet:', walletFromUsername.toLowerCase() === result.wallet.toLowerCase());
 
@@ -85,16 +79,15 @@ async function main() {
   console.log('WALLET CREATED!');
   console.log('='.repeat(60));
   console.log(`\nUSERNAME="${USERNAME}"`);
-  console.log(`USERNAME_HASH=${result.usernameHash}`);
   console.log(`MNEMONIC="${result.mnemonic}"`);
   console.log(`WALLET_ADDRESS=${result.wallet}`);
   console.log(`KEYVAULT_ADDRESS=${result.keyVault}`);
   console.log(`STORAGE_ADDRESS=${result.storage}`);
   console.log(`AUTHENTICATOR_ADDRESS=${result.authenticator}`);
-  console.log(`PASSWORD="${PASSWORD}"`);
+  console.log(`USER_PASSWORD="${PASSWORD}"`);
 
   console.log('\n' + '='.repeat(60));
-  console.log('Next: end-user connect (no signer, no keyVaultAddr on vault calls)');
+  console.log('Next: username-and-password/02-use-wallet.js');
   console.log('='.repeat(60));
   console.log(`
 const userSdk = Monstera.connectUser({

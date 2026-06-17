@@ -212,9 +212,10 @@ sdk.setLogLevel('error');  // quiet again
 
 Examples are organized by task under `examples/nodejs/`. See **[examples/README.md](../examples/README.md)** for the full index and **[examples/nodejs/README.md](../examples/nodejs/README.md)** for the Node.js catalog.
 
-**Start here (flows):**
-- `getting-started/01-create-wallet.js` — Create an HD wallet
-- `getting-started/02-use-wallet.js` — Get addresses and sign messages
+**Start here (flows):** see [examples/nodejs/getting-started/README.md](../examples/nodejs/getting-started/README.md)
+
+- `getting-started/password-only/` — `createWallet()` + `connectAdmin` + explicit `keyVaultAddr`
+- `getting-started/username-and-password/` — `createWalletForUsername()` + `connectUser`
 
 **Common recipes:**
 - `signing/sign-transaction.js` — Sign and broadcast a transaction
@@ -230,7 +231,7 @@ Examples are organized by task under `examples/nodejs/`. See **[examples/README.
 cp examples/nodejs/.env.example .env
 # Edit .env — at minimum SIGNER_PRIVATE_KEY and PASSWORD
 
-node examples/nodejs/getting-started/01-create-wallet.js
+node examples/nodejs/getting-started/password-only/01-create-wallet.js
 ```
 
 Or use npm scripts: `npm run example:create-wallet`

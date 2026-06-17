@@ -2,27 +2,39 @@
 
 ## Quick start
 
+Pick a getting-started track — see [getting-started/README.md](getting-started/README.md) for the comparison.
+
+**password-only** (wallet + password, no factory username):
+
 ```bash
 cp examples/nodejs/.env.example .env
-# Set SIGNER_PRIVATE_KEY and PASSWORD at minimum
+# Set SIGNER_PRIVATE_KEY and PASSWORD
 
-node examples/nodejs/getting-started/01-create-wallet.js
-node examples/nodejs/getting-started/02-use-wallet.js
+node examples/nodejs/getting-started/password-only/01-create-wallet.js
+node examples/nodejs/getting-started/password-only/02-use-wallet.js
 ```
 
-After `01-create-wallet.js`, copy `WALLET_ADDRESS` and `MNEMONIC` from the output into `.env` for later examples.
+**username-and-password** (factory-registered username):
+
+```bash
+node examples/nodejs/getting-started/username-and-password/01-create-wallet.js
+node examples/nodejs/getting-started/username-and-password/02-use-wallet.js
+```
+
+After step 01, copy output values (`WALLET_ADDRESS`, `MNEMONIC`, or `USERNAME`) into `.env` for step 02 and later examples.
 
 ## Directory index
 
 ### Flows — `getting-started/`
 
-Run in order for a guided introduction.
+Two parallel tracks. Run `01` then `02` within the track you chose.
 
-| File | Description |
-|------|-------------|
-| [`01-create-wallet.js`](getting-started/01-create-wallet.js) | Create an HD wallet with password auth |
-| [`02-use-wallet.js`](getting-started/02-use-wallet.js) | Get addresses, sign messages and hashes |
-| — | Wallet-signature auth flow → [`authentication/wallet-signature/whitelist-flow.js`](authentication/wallet-signature/whitelist-flow.js) |
+| Track | Step 01 | Step 02 |
+|-------|---------|---------|
+| [password-only](getting-started/password-only/) | [`01-create-wallet.js`](getting-started/password-only/01-create-wallet.js) — `createWallet()` | [`02-use-wallet.js`](getting-started/password-only/02-use-wallet.js) — `connectAdmin` + `keyVaultAddr` |
+| [username-and-password](getting-started/username-and-password/) | [`01-create-wallet.js`](getting-started/username-and-password/01-create-wallet.js) — `createWalletForUsername()` | [`02-use-wallet.js`](getting-started/username-and-password/02-use-wallet.js) — `connectUser` |
+
+Wallet-signature auth flow → [`authentication/wallet-signature/whitelist-flow.js`](authentication/wallet-signature/whitelist-flow.js)
 
 ### Wallet creation — `wallet/`
 
@@ -95,8 +107,10 @@ API tours — demonstrate many methods on one client. Use when you need to grep 
 ## npm scripts
 
 ```bash
-npm run example:create-wallet
-npm run example:use-wallet
+npm run example:create-wallet          # password-only/01
+npm run example:use-wallet               # password-only/02
+npm run example:create-wallet-username   # username-and-password/01
+npm run example:use-wallet-username      # username-and-password/02
 npm run example:sign-transaction
 ```
 
@@ -107,5 +121,6 @@ Run `npm run` to see all `example:*` scripts.
 Copy [`.env.example`](.env.example) to the repo root as `.env`. Most examples need:
 
 - `SIGNER_PRIVATE_KEY` — deployer/signer for on-chain writes
-- `PASSWORD` — wallet password (password-auth wallets)
-- `WALLET_ADDRESS` — existing wallet (most post-creation examples)
+- `PASSWORD` — wallet password (password-only track and most post-creation examples)
+- `WALLET_ADDRESS` — existing wallet (password-only track and most post-creation examples)
+- `USERNAME` / `USER_PASSWORD` — username-and-password track

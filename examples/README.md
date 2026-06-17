@@ -4,10 +4,14 @@ Examples are organized by **what you want to do**, not by SDK internals.
 
 ## Start here
 
+See [nodejs/getting-started/README.md](nodejs/getting-started/README.md) for the two tracks.
+
 | I want to… | Example | Needs existing wallet? |
 |------------|---------|------------------------|
-| Create my first wallet | [`nodejs/getting-started/01-create-wallet.js`](nodejs/getting-started/01-create-wallet.js) | No |
-| Use a wallet (addresses, sign message) | [`nodejs/getting-started/02-use-wallet.js`](nodejs/getting-started/02-use-wallet.js) | Yes |
+| Create wallet (password only) | [`nodejs/getting-started/password-only/01-create-wallet.js`](nodejs/getting-started/password-only/01-create-wallet.js) | No |
+| Use wallet (password only) | [`nodejs/getting-started/password-only/02-use-wallet.js`](nodejs/getting-started/password-only/02-use-wallet.js) | Yes |
+| Create wallet (username + password) | [`nodejs/getting-started/username-and-password/01-create-wallet.js`](nodejs/getting-started/username-and-password/01-create-wallet.js) | No |
+| Use wallet (username + password) | [`nodejs/getting-started/username-and-password/02-use-wallet.js`](nodejs/getting-started/username-and-password/02-use-wallet.js) | Yes |
 | Try wallet-signature auth (whitelist) | [`nodejs/authentication/wallet-signature/whitelist-flow.js`](nodejs/authentication/wallet-signature/whitelist-flow.js) | No (creates one) |
 | Sign a transaction | [`nodejs/signing/sign-transaction.js`](nodejs/signing/sign-transaction.js) | Yes |
 | Sign EIP-7702 authorization | [`nodejs/signing/sign-authorization.js`](nodejs/signing/sign-authorization.js) | Yes |
@@ -16,7 +20,7 @@ Examples are organized by **what you want to do**, not by SDK internals.
 
 ## Example types
 
-- **Flows** (`nodejs/getting-started/`) — numbered, sequential tutorials. Run in order.
+- **Flows** (`nodejs/getting-started/`) — two parallel tracks (`password-only/`, `username-and-password/`). Run `01` then `02` in your chosen track.
 - **Recipes** — one focused task per file (wallet creation variants, signing, auth, upgrades).
 - **Reference** (`nodejs/reference/`) — API tours that demonstrate many methods on one client. Not starting points.
 
@@ -31,7 +35,7 @@ Examples are organized by **what you want to do**, not by SDK internals.
 cp examples/nodejs/.env.example .env
 # Edit .env with your testnet signer key and passwords
 
-node examples/nodejs/getting-started/01-create-wallet.js
+node examples/nodejs/getting-started/password-only/01-create-wallet.js
 ```
 
 See [nodejs/README.md](nodejs/README.md) for the full index and environment variables.
