@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.2.0] - 2026-06-18
+
+### Added
+
+- **`AuthProofPipeline`**: Unified entry point for vault-authenticated KeyVault calls (discover authenticator from chain, merge session defaults, bind vault actions) and explicit proof builders (`prepare` / `encode`). Per-authenticator specs live under **`src/internal/auth/authenticators/`** (`password`, `minuteSignature`, `walletSignature`, `dualFactor`) with **`collectProofInput`**, **`applySessionInput`**, and a shared registry.
+- **Getting-started tracks**: Node.js examples split into **`password-only/`** and **`username-and-password/`** under **`examples/nodejs/getting-started/`** (see **[examples/nodejs/getting-started/README.md](examples/nodejs/getting-started/README.md)**).
+- **Tests**: Unit coverage for **`AuthProofPipeline.encodeVaultCall`**, **`collectProofInput`**, and updated **`VaultCallPipeline`** / authenticator session-default tests.
+
+### Changed
+
+- **Auth proof internals**: Replaced **`EncodeAuthProof`**, **`ProofFlowOrchestrator`**, **`sessionAuthProofDefaults`**, **`proofDefaults.js`**, and **`encoders/*`** with **`AuthProofPipeline`** plus **`authenticators/*`** specs. **`VaultCallPipeline`** now delegates encoding to **`AuthProofPipeline.encodeVaultCall`**; **`AuthenticatorManagementOps`** uses **`AuthProofPipeline.prepare`**.
+- **Credentials session defaults**: When **`authProof`** is omitted on vault calls with an active **`credentials`** session, the SDK discovers the wallet’s on-chain authenticator and fills proof input automatically for **PasswordAuthenticator** (`password`) and **PasswordMinuteSignatureAuthenticator** (`passwordHash`). **WalletSignatureAuthenticator** and **DualFactorAuthenticator** still require an explicit **`authProof.signer`** (guardian for dual-factor).
+- **`Monstera.connect()`**: Single connect API with optional **`signer`** and/or **`credentials`** (connect profile helpers removed from **`src/sdk/connect/`**).
+- **Scope resolution**: More **`Monstera`** methods resolve **`keyVaultAddr`** / **`walletAddr`** from the credentials session when omitted (configure, initialize, and factory read paths).
+
+### Removed
+
+- **`src/sdk/connect/`** module (profile-specific connect helpers).
+- Legacy auth modules: **`EncodeAuthProof.js`**, **`ProofFlowOrchestrator.js`**, **`sessionAuthProofDefaults.js`**, **`proofDefaults.js`**, and **`src/internal/auth/encoders/*`**.
+
+### Fixed
+
+- **Omitted `authProof` on vault calls**: Credential-backed **`signMessage`**, **`sign`**, and similar methods no longer pass through without encoding (which caused **`authProof is required`** at the KeyVault client).
+- **Minute-signature encoding**: **`actionHash`** is resolved before **`prepareProofResult`** so minute-signature proofs encode correctly end-to-end.
+- **Explicit `authProof.password`**: For **PasswordMinuteSignatureAuthenticator** and **DualFactorAuthenticator**, **`collectProofInput`** now derives **`passwordHash`** from **`password`** bytes instead of ignoring them and falling back to session defaults (wrong-password overrides work as expected).
+
 ## [2.1.0] - 2026-06-16
 
 ### Added

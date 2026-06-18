@@ -53,7 +53,7 @@ const fullSdk = Monstera.connect({
 
 ### Action-bound auth proofs (2.0+)
 
-KeyVaultV3 requires proofs bound to the operation being performed. With **`credentials`**, you can omit `keyVaultAddr` and often omit `authProof` — the SDK resolves the vault from `credentials` and defaults the password proof:
+KeyVaultV3 requires proofs bound to the operation being performed. With **`credentials`**, you can omit `keyVaultAddr` and often omit `authProof` on password-based vaults — the SDK resolves the vault from `credentials` and encodes the proof from the session (password or password-minute-signature authenticators):
 
 ```javascript
 import { toUtf8Bytes } from 'ethers';
@@ -63,6 +63,8 @@ await userSdk.signMessage({
   message: toUtf8Bytes('Hello from Monstera')
 });
 ```
+
+**Wallet-signature** and **dual-factor** vaults still require an explicit `authProof.signer` on each authenticated call even when `credentials` are set. Pass a partial structured `authProof` to override the session password (e.g. `{ password: toUtf8Bytes('other') }`; minute-signature derives `passwordHash` from `password` automatically).
 
 Low-level `createAuthProof*` helpers require an explicit `action` or `actionHash`. See [API Reference — Action-bound authentication](api.md#action-bound-authentication-20) and the [2.0.0 changelog](../CHANGELOG.md#200---2026-06-16).
 

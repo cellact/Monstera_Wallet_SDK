@@ -30,7 +30,7 @@ Connect to Monstera. Pass optional `signer` and/or `credentials` as needed.
 
 **Returns:** `Monstera` instance. Use `sdk.hasWriteAccess()` and `sdk.hasCredentials()` to inspect capabilities.
 
-**Session defaults (credentials):** When `credentials` are set, `keyVaultAddr` is resolved from the factory; `authProof` defaults to the session password for PasswordAuthenticator wallets; HD `index` defaults to `0`.
+**Session defaults (credentials):** When `credentials` are set, `keyVaultAddr` is resolved from the factory and HD `index` defaults to `0`. On vault calls you may omit `authProof`; the SDK discovers the wallet’s on-chain authenticator and fills proof input from the session for **password** and **password-minute-signature** wallets (`password` or derived `passwordHash`). **Wallet-signature** and **dual-factor** wallets still require an explicit `authProof.signer` (guardian for dual-factor). You can override session defaults with a partial structured `authProof` (e.g. `{ password: Uint8Array }` — for minute-signature, `password` is hashed to `passwordHash` automatically).
 
 ## Wallet Creation Methods
 
@@ -154,22 +154,36 @@ KeyVaultV3 binds every auth proof to the **specific operation** being authorized
 
 ### High-level KeyVault calls (recommended)
 
-For `signMessage`, `sign`, `signTransaction`, `importKey`, upgrades, and similar **`Monstera`** methods, pass a **structured** `authProof` object. The SDK builds the action context automatically:
+For `signMessage`, `sign`, `signTransaction`, `importKey`, upgrades, and similar **`Monstera`** methods, pass a **structured** `authProof` object when you need to override session defaults, or omit it when connected with **`credentials`** and the vault uses password or password-minute-signature auth. The SDK discovers the on-chain authenticator, merges session input, builds the action context, and encodes proof bytes automatically:
 
 ```javascript
 import { toUtf8Bytes } from 'ethers';
 
-const authProof = { password: toUtf8Bytes('your-password') };
+// With credentials session — authProof optional for password / minute-signature vaults
+await sdk.signMessage({
+  index: 0,
+  message: toUtf8Bytes('Hello')
+});
 
+// Explicit override (works for password and minute-signature; password is hashed for minute-signature)
 await sdk.signMessage({
   keyVaultAddr,
-  authProof,
+  authProof: { password: toUtf8Bytes('your-password') },
   index: 0,
   message: toUtf8Bytes('Hello')
 });
 ```
 
-Supported structured shapes depend on the vault’s authenticator (e.g. `{ password: Uint8Array }`, `{ passwordHash, signer, deadline?, action? }` for dual-factor). See `src/types/index.js` for full typedefs.
+Supported structured shapes depend on the vault’s authenticator:
+
+| Authenticator | Session can omit `authProof`? | Typical structured fields |
+|---|---|---|
+| Password | Yes (with `credentials`) | `{ password: Uint8Array }` |
+| Password-minute-signature | Yes (with `credentials`) | `{ password: Uint8Array }` or `{ passwordHash: Bytes32 }` |
+| Wallet signature | No | `{ signer, deadline? }` |
+| Dual factor | No | `{ passwordHash?, password?, signer, deadline? }` |
+
+See `src/types/index.js` for full typedefs. Pre-encoded proof hex strings pass through unchanged.
 
 ### Low-level proof builders
 
@@ -311,8 +325,8 @@ Sign an EIP-7702-style **authorization** for a delegate contract through the Key
 
 **Parameters:**
 
-- `keyVaultAddr` (required): KeyVault contract address
-- `authProof` (required): Structured object for the vault’s authenticator (e.g. `{ password: Uint8Array }`). The SDK binds the proof to the `signAuthorization` action automatically.
+- `keyVaultAddr` (required unless `credentials` session resolves it): KeyVault contract address
+- `authProof` (optional with `credentials` on password / minute-signature vaults; otherwise required): Structured object for the vault’s authenticator (e.g. `{ password: Uint8Array }`). The SDK binds the proof to the `signAuthorization` action automatically.
 - `delegateAddr` (required): Delegate (implementation) contract address for the authorization
 - `index` (optional): HD account index (default `0`)
 - `chainId` (optional): Chain ID; if omitted, fetched from `provider` / SDK read provider / signer provider

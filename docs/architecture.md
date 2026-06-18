@@ -14,7 +14,7 @@ The SDK is organized into modular components:
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Error types, unified **`pipeline.js`** translator chain (`translators/`), and stable codes
-- **`internal/`**: Logger, version check, validation (`assert`), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth encoding (`auth/`: `AuthConfigBuilder` / `AuthProofBuilder`, `AuthProofOrchestrator`, `AuthManagementOps`, `config/` and `proof/` encoders including `createActionBoundProofEncoder`, `defaults/authProofDefaults.js`), checksum registry helper (`auth/registryByChecksumAddress.js`), validators (`validators/`), wallet crypto (`crypto/index.js` barrel: `mnemonic.js`, `authorization.js`, `authConfig.js`, `authProof.js`, `authContext.js`, `actions/` action builders for KeyVault and authenticator calls; **`signAuthorization.js`** is used by `Monstera` but not re-exported from the barrel), username normalisation (`utils/normalize.js`) — **not** a public package export
+- **`internal/`**: Logger, version check, validation (`assert`), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth encoding (`auth/`: **`AuthProofPipeline`**, per-authenticator specs in **`authenticators/`**, **`VaultCallPipeline`** + **`CredentialsSession`**, **`AuthenticatorManagementOps`**, **`EncodeAuthConfig`**, **`createAuthProof.js`**, **`bindProofToAction.js`**, action context in **`context/createAuthContext.js`** and **`context/actions/`**, vault action builders in **`vault/actions/`**), checksum registry helper (`auth/shared/registryByChecksumAddress.js`), validators (`validators/`), wallet crypto helpers (`crypto/` barrel: `mnemonic.js`, `authorization.js`; **`vault/signAuthorization.js`** is used by `Monstera` but not re-exported from the barrel), username normalisation (`utils/normalize.js`) — **not** a public package export
 - **`sdk/`**: Main SDK class (`Monstera`) and `MonsteraUtils` (version-check only)
 - **`types/`**: Shared JSDoc type definitions
 - **`bin/`**: CLI tool (monstera command)
@@ -32,7 +32,7 @@ The SDK is organized into modular components:
 - **Shared primitives** — [`src/internal/assert.js`](../src/internal/assert.js) provides reusable checks (`requireAddress`, `requireBytes`, …). Ethereum addresses are validated with **`isAddress`** from [`src/adapters/ethers/addresses.js`](../src/adapters/ethers/addresses.js) (ethers-compatible, including EIP-55 for mixed-case strings).
 - **Clients** — Contract clients (`src/clients/`) typically re-validate method options per call as defense-in-depth, even when the facade has already validated.
 - **Parsers / decoders** — Event and receipt decoding (`events/`) interpret chain data with structured checks; composed validators handle structured auth options before crypto encoding.
-- **Composed options** — [`src/internal/validators/authProofOptions.js`](../src/internal/validators/authProofOptions.js) centralizes auth-proof parameter checks used by [`authProof.js`](../src/internal/crypto/authProof.js). Action builders in [`src/internal/crypto/actions/`](../src/internal/crypto/actions/) compute `selector` + `paramsHash` pairs aligned with KeyVaultV3 on-chain checks.
+- **Composed options** — [`src/internal/validators/authProofOptions.js`](../src/internal/validators/authProofOptions.js) centralizes auth-proof parameter checks used by [`createAuthProof.js`](../src/internal/auth/proof/createAuthProof.js). Action builders in [`src/internal/vault/actions/`](../src/internal/vault/actions/) and [`src/internal/auth/context/actions/`](../src/internal/auth/context/actions/) compute `selector` + `paramsHash` pairs aligned with KeyVaultV3 on-chain checks.
 - **Internals** — Crypto helpers either validate via shared composed validators (above), rely on types established by callers, or assert only where they receive raw external objects.
 
 ## Project Structure
@@ -47,7 +47,7 @@ src/             # Source code
   clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor, passwordMinuteSignature)
   events/        # Event definitions and receipt parsing
   errors/        # Error types (single source of truth for error exports)
-  internal/      # logger, sanitization/, versionCheck, assert, auth/, validators/, crypto/ (barrel, actions/, authContext.js, signAuthorization.js — internal only), utils/
+  internal/      # logger, sanitization/, versionCheck, assert, auth/ (AuthProofPipeline, authenticators/, session/, proof/, context/, management/), vault/ (actions/, signAuthorization.js), validators/, crypto/, utils/
   sdk/           # Monstera, MonsteraUtils
   types/         # Shared JSDoc types
 bin/             # CLI (monstera command)

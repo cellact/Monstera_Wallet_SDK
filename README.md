@@ -22,7 +22,7 @@ Your backend never sees private keys and never has to handle raw key material.
 - The user authenticates once (password, wallet signature, dual-factor, etc.).  
   Authentication is attached to the wallet, **not** to individual accounts.
 - When you call `sign*` from the SDK (including `signAuthorization` for EIP-7702-style delegations):
-  - You send a structured `authProof` (e.g. `{ password: Uint8Array }`) plus signing params.
+  - You send a structured `authProof` (e.g. `{ password: Uint8Array }`) or omit it when connected with `credentials` on password-based vaults.
   - The SDK binds the proof to that operation (selector + params hash) before the vault verifies it.
   - The wallet’s authenticator checks the proof for that action.
   - If valid, the KeyVault derives the requested account key and signs **inside the enclave**.
@@ -94,7 +94,7 @@ console.log('Save this mnemonic securely:', wallet.mnemonic);
 
 That's it! Contract addresses use network presets; override with `addresses` or `rpcUrl` if needed. Use `monstera.setLogLevel('debug')` at runtime to change log verbosity.
 
-**Upgrading from 1.x?** See the [2.0.0 changelog](CHANGELOG.md#200---2026-06-16) for action-bound `authProof` and network preset changes.
+**Upgrading from 1.x?** See the [2.0.0 changelog](CHANGELOG.md#200---2026-06-16) for action-bound `authProof` and network preset changes. Unreleased auth-pipeline improvements are listed under [Unreleased](CHANGELOG.md#unreleased) in the changelog.
 
 **Need more details?** See [Full wallet creation guide](docs/node.md#basic-usage).
 
