@@ -229,6 +229,35 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
     expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
   });
 
+  test('minute-signature uses explicit authProof.password instead of session passwordHash', async () => {
+    const pipeline = new AuthProofPipeline({
+      config: network,
+      readProvider: {
+        call: async () => actionHash,
+        getBlock: async () => ({ timestamp: Math.floor(Date.now() / 1000) })
+      },
+      getAuthenticatorAddr: async () => network.addresses.passwordMinuteSignatureAuth
+    });
+
+    const fromSession = await pipeline.encodeVaultCall(
+      { keyVaultAddr: VALID_TEST_ADDRESS, index: 0, message: toUtf8Bytes('hello') },
+      mockSession(),
+      () => createTestVaultSignAction()
+    );
+    const fromWrongPassword = await pipeline.encodeVaultCall(
+      {
+        keyVaultAddr: VALID_TEST_ADDRESS,
+        authProof: { password: toUtf8Bytes('wrongpassword') }, // could also use authProof: { passwordHash: keccak256(toUtf8Bytes('wrongpassword')) } as SDK will derive the passwordHash from the password
+        index: 0,
+        message: toUtf8Bytes('hello')
+      },
+      mockSession(),
+      () => createTestVaultSignAction()
+    );
+
+    expect(fromWrongPassword.authProof).not.toBe(fromSession.authProof);
+  });
+
   test('throws when authProof omitted and no session can supply input', async () => {
     const pipeline = makePipeline();
     await expect(

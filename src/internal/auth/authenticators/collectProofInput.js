@@ -4,12 +4,37 @@
  * @module internal/auth/authenticators/collectProofInput
  */
 
+import { keccak256 } from '../../../adapters/ethers/hashing.js';
+
 /**
  * @param {unknown} value
  * @returns {value is Record<string, unknown>}
  */
 function isStructuredAuthProof(value) {
   return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Resolve password hash from explicit hash, UTF-8 password bytes, or top-level options.
+ *
+ * @param {Record<string, unknown>} partial
+ * @param {Record<string, unknown>} options
+ * @returns {import('../../../types/index.js').Bytes32 | undefined}
+ */
+function resolvePasswordHash(partial, options) {
+  if (partial.passwordHash != null) {
+    return /** @type {import('../../../types/index.js').Bytes32} */ (partial.passwordHash);
+  }
+  if (partial.password != null) {
+    return keccak256(/** @type {Uint8Array} */ (partial.password));
+  }
+  if (options.passwordHash != null) {
+    return /** @type {import('../../../types/index.js').Bytes32} */ (options.passwordHash);
+  }
+  if (options.password != null) {
+    return keccak256(/** @type {Uint8Array} */ (options.password));
+  }
+  return undefined;
 }
 
 /**
@@ -25,7 +50,7 @@ export function collectProofInput(spec, options) {
     case 'password':
       return { ...partial, password: partial.password ?? options.password };
     case 'minuteSignature':
-      return { ...partial, passwordHash: partial.passwordHash ?? options.passwordHash };
+      return { ...partial, passwordHash: resolvePasswordHash(partial, options) };
     case 'walletSignature':
       return {
         ...partial,
@@ -35,7 +60,7 @@ export function collectProofInput(spec, options) {
     case 'dualFactor':
       return {
         ...partial,
-        passwordHash: partial.passwordHash ?? options.passwordHash,
+        passwordHash: resolvePasswordHash(partial, options),
         signer: partial.signer ?? options.signer,
         deadline: partial.deadline ?? options.deadline
       };

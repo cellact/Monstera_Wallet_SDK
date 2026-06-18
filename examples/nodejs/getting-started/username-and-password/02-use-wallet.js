@@ -127,7 +127,7 @@ async function main() {
   try {
     await sdk.signMessage({
       authProof: { password: toUtf8Bytes('wrongpassword') }, // when authenticator is passwordAuth
-      // authProof: { passwordHash: keccak256(toUtf8Bytes('wrongpassword')) }, // when authenticator is passwordMinuteSignatureAuth 
+      // authProof: { passwordHash: keccak256(toUtf8Bytes('wrongpassword')) }, // when authenticator is passwordMinuteSignatureAuth; could also use authProof: { password: toUtf8Bytes('wrongpassword') } as SDK will derive the passwordHash from the password
       index: 0,
       message: toUtf8Bytes('test')
     });
