@@ -29,10 +29,23 @@ import { Wallet } from '../../../src/adapters/ethers/index.js';
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
 const ALLOWED_1_KEY = process.env.ALLOWED_1_KEY;
 
-// Initialize SDK
+const USERNAME = process.env.USERNAME;
+const USER_PASSWORD = process.env.USER_PASSWORD;
+
+// // Initialize SDK
+// const monstera = Monstera.connect({
+//   mainnet: false,
+//   signer: SIGNER_PRIVATE_KEY
+// });
+
+
 const monstera = Monstera.connect({
   mainnet: false,
-  signer: SIGNER_PRIVATE_KEY
+  signer: SIGNER_PRIVATE_KEY,
+  credentials: {
+    username: USERNAME,
+    password: USER_PASSWORD
+  }
 });
 
 async function main() {
@@ -62,10 +75,17 @@ async function main() {
   console.log(`   Whitelist: ${whitelist.length} address(es)`);
   
   let result;
+  // try {
+  //   result = await monstera.createWallet({
+  //     authenticatorAddr: monstera.addresses.walletSignatureAuth,
+  //     authConfig: { initialWhitelist: whitelist }
+  //   });
+
   try {
-    result = await monstera.createWallet({
+    result = await monstera.createWalletForUsername({
       authenticatorAddr: monstera.addresses.walletSignatureAuth,
-      authConfig: { initialWhitelist: whitelist }
+      authConfig: { initialWhitelist: whitelist },
+      username: USERNAME
     });
 
     console.log(`   Wallet: ${result.wallet}`);
@@ -83,7 +103,7 @@ async function main() {
   let isConfigured = false;
   try {
     isConfigured = await monstera.isWalletSignatureConfigured({
-      keyVaultAddr: result.keyVault
+      // keyVaultAddr: result.keyVault
     });
     console.log(`   ✅ Is Configured: ${isConfigured ? "Yes" : "No"}`);
     
@@ -121,7 +141,7 @@ async function main() {
   if (!isConfigured) {
     try {
       const configureResult = await monstera.configureWalletSignature({
-        keyVaultAddr: result.keyVault,
+        // keyVaultAddr: result.keyVault,
         initialWhitelist: whitelist
       });
 
@@ -149,7 +169,7 @@ async function main() {
 
     // Verify the signature
     const isValid = await monstera.isWalletSignatureValid({
-      keyVaultAddr: result.keyVault,
+      // keyVaultAddr: result.keyVault,
       signer: allowedSigner,
       deadline: deadline,
     });

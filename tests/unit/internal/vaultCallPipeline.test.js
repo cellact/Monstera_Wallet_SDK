@@ -11,13 +11,19 @@ import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 const PASSWORD_BYTES = toUtf8Bytes('pw');
 const PASSWORD_HASH = keccak256(PASSWORD_BYTES);
 
-function createMockEncodeAuthProof(authenticatorId = 'passwordAuth') {
+function createMockAuthProofPipeline() {
   return {
-    encode: async (options) => options,
-    resolveBuiltinAuthenticator: async () => ({
-      authenticatorAddr: VALID_TEST_ADDRESS,
-      encoder: { id: authenticatorId }
-    })
+    encodeVaultCall: async (resolved, session, buildAction) => {
+      const action = buildAction(resolved);
+      return {
+        ...resolved,
+        authProof: {
+          password: session?.getPasswordBytes(),
+          passwordHash: session?.getPasswordHash(),
+          action
+        }
+      };
+    }
   };
 }
 
@@ -36,7 +42,7 @@ describe('VaultCallPipeline', () => {
   test('requireUserAccess throws without credentials session', () => {
     const pipeline = new VaultCallPipeline({
       credentialsSession: null,
-      encodeAuthProof: { encode: async (o) => o }
+      authProofPipeline: { encodeVaultCall: async (o) => o }
     });
 
     expect(() => pipeline.requireUserAccess('test')).toThrow(CredentialsRequiredError);
@@ -50,7 +56,7 @@ describe('VaultCallPipeline', () => {
           keyVaultAddr: options.keyVaultAddr ?? VALID_TEST_ADDRESS
         })
       },
-      encodeAuthProof: { encode: async (o) => o }
+      authProofPipeline: { encodeVaultCall: async (o) => o }
     });
 
     const resolved = await pipeline.resolveVaultOptions({}, { defaultIndex: true });
@@ -61,7 +67,7 @@ describe('VaultCallPipeline', () => {
   test('resolveVaultOptions passes through explicit keyVaultAddr without credentials session', async () => {
     const pipeline = new VaultCallPipeline({
       credentialsSession: null,
-      encodeAuthProof: { encode: async (o) => o }
+      authProofPipeline: { encodeVaultCall: async (o) => o }
     });
 
     const resolved = await pipeline.resolveVaultOptions(
@@ -75,16 +81,16 @@ describe('VaultCallPipeline', () => {
   test('resolveVaultOptions throws without credentials or keyVaultAddr', async () => {
     const pipeline = new VaultCallPipeline({
       credentialsSession: null,
-      encodeAuthProof: { encode: async (o) => o }
+      authProofPipeline: { encodeVaultCall: async (o) => o }
     });
 
     await expect(pipeline.resolveVaultOptions({})).rejects.toThrow(CredentialsRequiredError);
   });
 
-  test('encodeAuthProof injects password authProof for password authenticator', async () => {
+  test('encodeAuthProof delegates to auth proof pipeline', async () => {
     const pipeline = new VaultCallPipeline({
       credentialsSession: createMockSession(),
-      encodeAuthProof: createMockEncodeAuthProof('passwordAuth')
+      authProofPipeline: createMockAuthProofPipeline()
     });
 
     const encoded = await pipeline.encodeAuthProof({}, () => ({
@@ -94,38 +100,11 @@ describe('VaultCallPipeline', () => {
 
     expect(encoded.authProof).toEqual({
       password: PASSWORD_BYTES,
+      passwordHash: PASSWORD_HASH,
       action: {
         selector: '0x12345678',
         paramsHash: '0x' + '11'.repeat(32)
       }
     });
-  });
-
-  test('encodeAuthProof injects passwordHash for minute-signature authenticator', async () => {
-    const pipeline = new VaultCallPipeline({
-      credentialsSession: createMockSession(),
-      encodeAuthProof: createMockEncodeAuthProof('passwordMinuteSignatureAuth')
-    });
-
-    const encoded = await pipeline.encodeAuthProof({}, () => ({
-      selector: '0x12345678',
-      paramsHash: '0x' + '11'.repeat(32)
-    }));
-
-    expect(encoded.authProof.passwordHash).toBe(PASSWORD_HASH);
-  });
-
-  test('encodeAuthProof requires signer for wallet-signature authenticator', async () => {
-    const pipeline = new VaultCallPipeline({
-      credentialsSession: createMockSession(),
-      encodeAuthProof: createMockEncodeAuthProof('walletSignatureAuth')
-    });
-
-    await expect(
-      pipeline.encodeAuthProof({}, () => ({
-        selector: '0x12345678',
-        paramsHash: '0x' + '11'.repeat(32)
-      }))
-    ).rejects.toThrow(ValidationError);
   });
 });

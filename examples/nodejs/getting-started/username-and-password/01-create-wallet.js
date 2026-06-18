@@ -57,6 +57,7 @@ async function main() {
   console.log('   Usernames are normalised (trim + lowercase) before hashing on-chain');
 
   const createOptions = {
+    // authenticatorAddr: sdk.addresses.passwordMinuteSignatureAuth, // use this for passwordMinuteSignatureAuth instead of passwordAuth
     authenticatorAddr: sdk.addresses.passwordAuth,
     authConfig: { passwordHash },
     username: USERNAME

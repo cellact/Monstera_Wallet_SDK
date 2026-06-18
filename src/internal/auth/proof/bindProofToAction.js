@@ -8,7 +8,7 @@
  */
 
 import { resolveActionHash } from '../context/createAuthContext.js';
-import { defaultProofDeadline } from './proofDefaults.js';
+import { defaultProofDeadline } from '../authenticators/deadline.js';
 
 /**
  * Build a proof encoder strategy that resolves {@code actionHash} then delegates to {@code createProof}.

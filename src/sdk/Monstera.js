@@ -153,8 +153,7 @@ import { executeSignAuthorization } from '../internal/vault/signAuthorization.js
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { assertValidResolvedConfig } from '../internal/validators/networkConfig.js';
 import { EncodeAuthConfig } from '../internal/auth/config/EncodeAuthConfig.js';
-import { EncodeAuthProof } from '../internal/auth/proof/EncodeAuthProof.js';
-import { ProofFlowOrchestrator } from '../internal/auth/proof/ProofFlowOrchestrator.js';
+import { AuthProofPipeline } from '../internal/auth/proof/AuthProofPipeline.js';
 import { AuthenticatorManagementOps } from '../internal/auth/management/AuthenticatorManagementOps.js';
 import { CredentialsSession } from '../internal/auth/session/CredentialsSession.js';
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
@@ -222,25 +221,20 @@ class Monstera {
         })
       : null;
 
-    this._encodeAuthProof = new EncodeAuthProof({
-      addresses: resolvedConfig.addresses,
-      chainId: resolvedConfig.chainId,
+    this._authProofPipeline = new AuthProofPipeline({
+      config: resolvedConfig,
       readProvider: this.readProvider,
       getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
     });
 
     this._vaultPipeline = new VaultCallPipeline({
       credentialsSession: this._credentialsSession,
-      encodeAuthProof: this._encodeAuthProof
+      authProofPipeline: this._authProofPipeline
     });
     this._encodeAuthConfig = new EncodeAuthConfig({ addresses: resolvedConfig.addresses });
-    this._proofFlowOrchestrator = new ProofFlowOrchestrator({
-      config: this.config,
-      readProvider: this.readProvider
-    });
     this._authenticatorManagementOps = new AuthenticatorManagementOps({
       config: this.config,
-      proofFlowOrchestrator: this._proofFlowOrchestrator,
+      authProofPipeline: this._authProofPipeline,
       auth: this.auth
     });
 
@@ -530,7 +524,7 @@ class Monstera {
    */
   async createAuthProofWalletSignature(options = {}) {
     const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof } = await this._proofFlowOrchestrator.prepare('walletSignature', resolved);
+    const { authProof } = await this._authProofPipeline.prepare('walletSignature', resolved);
     return authProof;
   }
 
@@ -551,7 +545,7 @@ class Monstera {
    */
   async createAuthProofMinuteSignature(options = {}) {
     const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof, minuteBucket, derivedAddress } = await this._proofFlowOrchestrator.prepare(
+    const { authProof, minuteBucket, derivedAddress } = await this._authProofPipeline.prepare(
       'minuteSignature',
       resolved
     );
@@ -568,7 +562,7 @@ class Monstera {
    */
   async createAuthProofDualFactor(options = {}) {
     const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof } = await this._proofFlowOrchestrator.prepare('dualFactor', resolved);
+    const { authProof } = await this._authProofPipeline.prepare('dualFactor', resolved);
     return authProof;
   }
 
@@ -1700,7 +1694,7 @@ class Monstera {
    */
   async isPasswordValid(options = {}) {
     const resolved = await this._vaultPipeline.resolveVaultOptions(options, { defaultCurrentPassword: true });
-    const { authProof, action } = await this._proofFlowOrchestrator.prepare(
+    const { authProof, action } = await this._authProofPipeline.prepare(
       'password',
       {
         keyVaultAddr: resolved.keyVaultAddr,
@@ -1790,7 +1784,7 @@ class Monstera {
    */
   async isWalletSignatureValid(options = {}) {
     const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof, action } = await this._proofFlowOrchestrator.prepare('walletSignature', resolved, {
+    const { authProof, action } = await this._authProofPipeline.prepare('walletSignature', resolved, {
       includeAuthContext: true,
       useVerifyProbe: true
     });
@@ -1831,7 +1825,7 @@ class Monstera {
    */
   async isPasswordDualFactorValid(options = {}) {
     const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof, action } = await this._proofFlowOrchestrator.prepare('dualFactor', resolved, {
+    const { authProof, action } = await this._authProofPipeline.prepare('dualFactor', resolved, {
       includeAuthContext: true,
       useVerifyProbe: true
     });
@@ -1904,7 +1898,7 @@ class Monstera {
   async isPasswordMinuteSignatureValid(options = {}) {
     const resolved = await this._vaultPipeline.resolveVaultOptions(options);
     const { keyVaultAddr } = resolved;
-    const { authProof, action } = await this._proofFlowOrchestrator.prepare('minuteSignature', resolved, {
+    const { authProof, action } = await this._authProofPipeline.prepare('minuteSignature', resolved, {
       includeAuthContext: true,
       useVerifyProbe: true
     });
@@ -2334,7 +2328,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordDualFactor(options = {}) {
-    return this._authenticatorManagementOps.updatePasswordDualFactor(await this._vaultPipeline.resolveVaultOptions(options));
+    return this._authenticatorManagementOps.updatePasswordDualFactor(await this._vaultPipeline.resolveVaultOptions(options)); // should i not also get the password  from the credentials session?
   }
 
   /**
@@ -2353,7 +2347,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updateGuardian(options = {}) {
-    return this._authenticatorManagementOps.updateGuardian(await this._vaultPipeline.resolveVaultOptions(options));
+    return this._authenticatorManagementOps.updateGuardian(await this._vaultPipeline.resolveVaultOptions(options)); // should i not also get the password  from the credentials session?
   }
 
   /**

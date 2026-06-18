@@ -1,60 +1,59 @@
 /**
- * Unit tests for {@link EncodeAuthProof.prototype.encode} branches (pass-through vs structured encoding).
+ * Unit tests for {@link AuthProofPipeline.prototype.encode} branches.
  */
 
 import { describe, test, expect } from '@jest/globals';
 import { Wallet } from '../../../src/adapters/ethers/index.js';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { createTestVaultSignAction } from '../../utils/fixtures.js';
-import { EncodeAuthProof } from '../../../src/internal/auth/proof/EncodeAuthProof.js';
+import { AuthProofPipeline } from '../../../src/internal/auth/proof/AuthProofPipeline.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { ValidationError, NetworkError } from '../../../src/errors/index.js';
 import { nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 
-describe('EncodeAuthProof.encode', () => {
+describe('AuthProofPipeline.encode', () => {
   const network = buildNetworkConfig({ network: 'testnet' });
 
-  /** @returns {import('../../../src/types/index.js').AuthProofContext} */
-  function makeCtx(getAuthenticatorAddr) {
-    return {
-      addresses: network.addresses,
-      chainId: network.chainId,
+  /**
+   * @param {(keyVaultAddr: string) => Promise<string>} getAuthenticatorAddr
+   */
+  function makePipeline(getAuthenticatorAddr) {
+    return new AuthProofPipeline({
+      config: network,
       readProvider: /** @type {import('../../../src/types/index.js').EthersAbstractProvider} */ ({}),
       getAuthenticatorAddr
-    };
+    });
   }
 
   test('returns options unchanged when authProof is a hex string (pass-through)', async () => {
-    const builder = new EncodeAuthProof(
-      makeCtx(async () => network.addresses.passwordAuth)
-    );
+    const pipeline = makePipeline(async () => network.addresses.passwordAuth);
     const hex = '0xabcd';
     const opts = { keyVaultAddr: VALID_TEST_ADDRESS, authProof: hex, foo: 1 };
-    const out = await builder.encode(opts);
+    const out = await pipeline.encode(opts);
     expect(out).toBe(opts);
     expect(out.authProof).toBe(hex);
   });
 
   test('returns options unchanged when authProof is Uint8Array (pass-through)', async () => {
-    const builder = new EncodeAuthProof(makeCtx(async () => network.addresses.passwordAuth));
+    const pipeline = makePipeline(async () => network.addresses.passwordAuth);
     const bytes = new Uint8Array([1, 2, 3]);
     const opts = { keyVaultAddr: VALID_TEST_ADDRESS, authProof: bytes };
-    const out = await builder.encode(opts);
+    const out = await pipeline.encode(opts);
     expect(out).toBe(opts);
   });
 
   test('returns options unchanged when authProof is missing / empty (pass-through)', async () => {
-    const builder = new EncodeAuthProof(makeCtx(async () => network.addresses.passwordAuth));
+    const pipeline = makePipeline(async () => network.addresses.passwordAuth);
     const opts = { keyVaultAddr: VALID_TEST_ADDRESS };
-    const out = await builder.encode(opts);
+    const out = await pipeline.encode(opts);
     expect(out).toBe(opts);
   });
 
   test('throws for array authProof', async () => {
-    const builder = new EncodeAuthProof(makeCtx(async () => network.addresses.passwordAuth));
+    const pipeline = makePipeline(async () => network.addresses.passwordAuth);
     await expect(
-      builder.encode({
+      pipeline.encode({
         keyVaultAddr: VALID_TEST_ADDRESS,
         authProof: [{ password: toUtf8Bytes('x') }]
       })
@@ -63,16 +62,15 @@ describe('EncodeAuthProof.encode', () => {
 
   test('encodes structured password authProof via registry', async () => {
     const actionHash = keccak256(toUtf8Bytes('password-unit-action-hash'));
-    const builder = new EncodeAuthProof({
-      addresses: network.addresses,
-      chainId: network.chainId,
+    const pipeline = new AuthProofPipeline({
+      config: network,
       readProvider: {
         call: async () => actionHash
       },
       getAuthenticatorAddr: async () => network.addresses.passwordAuth
     });
     const password = toUtf8Bytes('unit-test-password');
-    const out = await builder.encode({
+    const out = await pipeline.encode({
       keyVaultAddr: VALID_TEST_ADDRESS,
       authProof: { password, action: createTestVaultSignAction() }
     });
@@ -83,9 +81,9 @@ describe('EncodeAuthProof.encode', () => {
 
   test('throws when no built-in encoder for authenticator (opaque hex required)', async () => {
     const unknownAuth = '0x1111111111111111111111111111111111111111';
-    const builder = new EncodeAuthProof(makeCtx(async () => unknownAuth));
+    const pipeline = makePipeline(async () => unknownAuth);
     await expect(
-      builder.encode({
+      pipeline.encode({
         keyVaultAddr: VALID_TEST_ADDRESS,
         authProof: { password: toUtf8Bytes('x') }
       })
@@ -93,13 +91,11 @@ describe('EncodeAuthProof.encode', () => {
   });
 
   test('forwards error when getAuthenticatorAddr rejects (e.g. network failure)', async () => {
-    const builder = new EncodeAuthProof(
-      makeCtx(async () => {
-        throw new NetworkError('simulated RPC failure', null, null);
-      })
-    );
+    const pipeline = makePipeline(async () => {
+      throw new NetworkError('simulated RPC failure', null, null);
+    });
     await expect(
-      builder.encode({
+      pipeline.encode({
         keyVaultAddr: VALID_TEST_ADDRESS,
         authProof: { password: toUtf8Bytes('x') }
       })
@@ -110,15 +106,14 @@ describe('EncodeAuthProof.encode', () => {
     const actionHash = keccak256(toUtf8Bytes('wallet-signature-unit-action-hash'));
     const signer = Wallet.createRandom();
     const deadline = nowUnixTimestampSeconds() + 7200;
-    const builder = new EncodeAuthProof({
-      addresses: network.addresses,
-      chainId: network.chainId,
+    const pipeline = new AuthProofPipeline({
+      config: network,
       readProvider: {
         call: async () => actionHash
       },
       getAuthenticatorAddr: async () => network.addresses.walletSignatureAuth
     });
-    const out = await builder.encode({
+    const out = await pipeline.encode({
       keyVaultAddr: VALID_TEST_ADDRESS,
       authProof: { signer, deadline, action: createTestVaultSignAction() }
     });
@@ -135,13 +130,12 @@ describe('EncodeAuthProof.encode', () => {
       getBlock: async () => ({ timestamp: Math.floor(Date.now() / 1000) }),
       call: async () => actionHash
     };
-    const builder = new EncodeAuthProof({
-      addresses: network.addresses,
-      chainId: network.chainId,
+    const pipeline = new AuthProofPipeline({
+      config: network,
       readProvider,
       getAuthenticatorAddr: async () => network.addresses.dualFactorAuth
     });
-    const out = await builder.encode({
+    const out = await pipeline.encode({
       keyVaultAddr: VALID_TEST_ADDRESS,
       authProof: {
         passwordHash,
@@ -152,5 +146,97 @@ describe('EncodeAuthProof.encode', () => {
     });
     expect(typeof out.authProof).toBe('string');
     expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
+  });
+});
+
+describe('AuthProofPipeline.encodeVaultCall', () => {
+  const network = buildNetworkConfig({ network: 'testnet' });
+  const actionHash = keccak256(toUtf8Bytes('vault-call-session-action-hash'));
+
+  function mockSession() {
+    return {
+      getPasswordBytes: () => toUtf8Bytes('session-password'),
+      getPasswordHash: () => keccak256(toUtf8Bytes('session-password'))
+    };
+  }
+
+  function makePipeline() {
+    return new AuthProofPipeline({
+      config: network,
+      readProvider: {
+        call: async () => actionHash
+      },
+      getAuthenticatorAddr: async () => network.addresses.passwordAuth
+    });
+  }
+
+  test('encodes proof from session when authProof is omitted', async () => {
+    const pipeline = makePipeline();
+    const out = await pipeline.encodeVaultCall(
+      { keyVaultAddr: VALID_TEST_ADDRESS, index: 0, message: toUtf8Bytes('hello') },
+      mockSession(),
+      () => createTestVaultSignAction()
+    );
+
+    expect(typeof out.authProof).toBe('string');
+    expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
+  });
+
+  test('passes through pre-encoded authProof unchanged', async () => {
+    const pipeline = makePipeline();
+    const hex = '0xabcd';
+    const opts = { keyVaultAddr: VALID_TEST_ADDRESS, authProof: hex };
+    const out = await pipeline.encodeVaultCall(opts, mockSession(), () => createTestVaultSignAction());
+    expect(out).toBe(opts);
+    expect(out.authProof).toBe(hex);
+  });
+
+  test('uses explicit authProof fields over session defaults', async () => {
+    const pipeline = makePipeline();
+    const customPassword = toUtf8Bytes('explicit-password');
+    const out = await pipeline.encodeVaultCall(
+      {
+        keyVaultAddr: VALID_TEST_ADDRESS,
+        authProof: { password: customPassword },
+        index: 0,
+        message: toUtf8Bytes('hello')
+      },
+      mockSession(),
+      () => createTestVaultSignAction()
+    );
+
+    expect(typeof out.authProof).toBe('string');
+    expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
+  });
+
+  test('encodes minute-signature proof from session when authProof is omitted', async () => {
+    const pipeline = new AuthProofPipeline({
+      config: network,
+      readProvider: {
+        call: async () => actionHash,
+        getBlock: async () => ({ timestamp: Math.floor(Date.now() / 1000) })
+      },
+      getAuthenticatorAddr: async () => network.addresses.passwordMinuteSignatureAuth
+    });
+
+    const out = await pipeline.encodeVaultCall(
+      { keyVaultAddr: VALID_TEST_ADDRESS, index: 0, message: toUtf8Bytes('hello') },
+      mockSession(),
+      () => createTestVaultSignAction()
+    );
+
+    expect(typeof out.authProof).toBe('string');
+    expect(out.authProof).toMatch(/^0x[0-9a-f]+$/i);
+  });
+
+  test('throws when authProof omitted and no session can supply input', async () => {
+    const pipeline = makePipeline();
+    await expect(
+      pipeline.encodeVaultCall(
+        { keyVaultAddr: VALID_TEST_ADDRESS, index: 0, message: toUtf8Bytes('hello') },
+        null,
+        () => createTestVaultSignAction()
+      )
+    ).rejects.toThrow(/authProof\.password is required/);
   });
 });

@@ -126,7 +126,8 @@ async function main() {
   console.log('='.repeat(60));
   try {
     await sdk.signMessage({
-      authProof: { password: toUtf8Bytes('wrongpassword') },
+      authProof: { password: toUtf8Bytes('wrongpassword') }, // when authenticator is passwordAuth
+      // authProof: { passwordHash: keccak256(toUtf8Bytes('wrongpassword')) }, // when authenticator is passwordMinuteSignatureAuth 
       index: 0,
       message: toUtf8Bytes('test')
     });

@@ -1,9 +1,6 @@
 /**
  * Authenticator management writes: password / guardian / whitelist updates.
  *
- * Builds action-bound proofs via {@link ProofFlowOrchestrator} and delegates to the matching
- * authenticator client.
- *
  * @typedef {import('../../../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
  * @typedef {import('../../../clients/auth/AuthenticatorClient.js').default} AuthenticatorClient
  *
@@ -28,12 +25,12 @@ export class AuthenticatorManagementOps {
    * @public
    * @param {Object} deps
    * @param {MonsteraConfigOptions} deps.config
-   * @param {import('../proof/ProofFlowOrchestrator.js').ProofFlowOrchestrator} deps.proofFlowOrchestrator
+   * @param {import('../proof/AuthProofPipeline.js').AuthProofPipeline} deps.authProofPipeline
    * @param {AuthenticatorClient} deps.auth
    */
-  constructor({ config, proofFlowOrchestrator, auth }) {
+  constructor({ config, authProofPipeline, auth }) {
     this._config = config;
-    this._proofFlowOrchestrator = proofFlowOrchestrator;
+    this._authProofPipeline = authProofPipeline;
     this._auth = auth;
   }
 
@@ -47,7 +44,7 @@ export class AuthenticatorManagementOps {
     requireBytes32(options.newPasswordHash, 'newPasswordHash');
 
     const authenticatorAddr = this._config.addresses.passwordAuth;
-    const { authProof: currentPassword } = await this._proofFlowOrchestrator.prepare('password', {
+    const { authProof: currentPassword } = await this._authProofPipeline.prepare('password', {
       keyVaultAddr: options.keyVaultAddr,
       password: options.currentPassword,
       action: buildChangePasswordAction(authenticatorAddr, options.newPasswordHash)
@@ -70,7 +67,7 @@ export class AuthenticatorManagementOps {
     requireWalletOrHdNode(options.signer, 'signer');
 
     const authenticatorAddr = this._config.addresses.walletSignatureAuth;
-    const { authProof } = await this._proofFlowOrchestrator.prepare('walletSignature', {
+    const { authProof } = await this._authProofPipeline.prepare('walletSignature', {
       ...options,
       action: buildAddToWhitelistAction(authenticatorAddr, options.addressToAdd)
     });
@@ -92,7 +89,7 @@ export class AuthenticatorManagementOps {
     requireWalletOrHdNode(options.signer, 'signer');
 
     const authenticatorAddr = this._config.addresses.walletSignatureAuth;
-    const { authProof } = await this._proofFlowOrchestrator.prepare('walletSignature', {
+    const { authProof } = await this._authProofPipeline.prepare('walletSignature', {
       ...options,
       action: buildRemoveFromWhitelistAction(authenticatorAddr, options.addressToRemove)
     });
@@ -115,7 +112,7 @@ export class AuthenticatorManagementOps {
     requireWalletOrHdNode(options.signer, 'signer');
 
     const authenticatorAddr = this._config.addresses.dualFactorAuth;
-    const { authProof } = await this._proofFlowOrchestrator.prepare('dualFactor', {
+    const { authProof } = await this._authProofPipeline.prepare('dualFactor', {
       ...options,
       action: buildDualFactorChangePasswordAction(authenticatorAddr, options.newPasswordHash)
     });
@@ -138,7 +135,7 @@ export class AuthenticatorManagementOps {
     requireWalletOrHdNode(options.signer, 'signer');
 
     const authenticatorAddr = this._config.addresses.dualFactorAuth;
-    const { authProof } = await this._proofFlowOrchestrator.prepare('dualFactor', {
+    const { authProof } = await this._authProofPipeline.prepare('dualFactor', {
       ...options,
       action: buildChangeGuardianAction(authenticatorAddr, options.newGuardian)
     });
@@ -160,9 +157,10 @@ export class AuthenticatorManagementOps {
     requireBytes32(options.newPasswordHash, 'newPasswordHash');
 
     const authenticatorAddr = this._config.addresses.passwordMinuteSignatureAuth;
-    const { authProof: currentPassword } = await this._proofFlowOrchestrator.prepare('password', {
+    const { authProof: currentPassword } = await this._authProofPipeline.prepare('password', {
       keyVaultAddr: options.keyVaultAddr,
       password: options.currentPassword,
+      authenticatorAddr,
       action: buildMinuteSignatureChangePasswordAction(authenticatorAddr, options.newPasswordHash)
     });
 

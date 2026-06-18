@@ -1,7 +1,7 @@
 /**
  * ABI-encoded {@code authConfig} byte builders for {@code WalletFactory.createWallet*} entry points.
  *
- * Used by per-authenticator encoders in {@code internal/auth/encoders}.
+ * Used by per-authenticator modules in {@code internal/auth/authenticators}.
  *
  * @typedef {import('../../../types/index.js').Address} Address
  * @typedef {import('../../../types/index.js').Bytes32} Bytes32
