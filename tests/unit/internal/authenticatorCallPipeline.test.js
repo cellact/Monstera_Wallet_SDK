@@ -81,6 +81,32 @@ describe('AuthenticatorCallPipeline', () => {
     expect(result.newPasswordHash).toBe(NEW_PASSWORD_HASH);
   });
 
+  test('encodeAuthProof preserves caller-supplied authenticatorAddr', async () => {
+    const callerAddr = '0x' + 'cc'.repeat(20);
+    let prepareOptions;
+
+    const pipeline = new AuthenticatorCallPipeline({
+      credentialsSession: createMockSession(),
+      authProofPipeline: {
+        resolveByFlowId: (flowId) => ({
+          authenticatorAddr: AUTHENTICATOR_ADDR,
+          spec: { flowId }
+        }),
+        prepare: async (_flowId, options) => {
+          prepareOptions = options;
+          return { authProof: 'proof' };
+        }
+      }
+    });
+
+    await pipeline.encodeAuthProof('walletSignature', {
+      authenticatorAddr: callerAddr,
+      signer: {}
+    });
+
+    expect(prepareOptions.authenticatorAddr).toBe(callerAddr);
+  });
+
   test('invokeWithAuthProof honors authenticatorAddr override', async () => {
     const overrideAddr = '0x' + 'bb'.repeat(20);
     let capturedTarget;

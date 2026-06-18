@@ -1516,6 +1516,7 @@ class Monstera {
       {
         keyVault: this.keyVault,
         fallbackProvider: this.readProvider ?? this.writeSigner?.provider ?? null,
+        credentialsSession: this._vaultPipeline.getCredentialsSession(),
         encodeVaultAuthProof: (opts, buildAction) => this._vaultPipeline.encodeAuthProof(opts, buildAction)
       },
       options,

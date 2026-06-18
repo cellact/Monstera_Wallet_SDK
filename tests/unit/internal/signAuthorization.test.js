@@ -24,8 +24,17 @@ describe('signAuthorization resolution', () => {
     };
   }
 
+  function makeDeps(overrides = {}) {
+    return {
+      keyVault: makeKeyVault(),
+      fallbackProvider: null,
+      credentialsSession: null,
+      ...overrides
+    };
+  }
+
   test('resolveSignAuthorizationInputs throws when chainId/nonce must be fetched but provider is missing', async () => {
-    const deps = { keyVault: makeKeyVault(), fallbackProvider: null };
+    const deps = makeDeps();
     await expect(
       resolveSignAuthorizationInputs(deps, {
         keyVaultAddr,
@@ -35,6 +44,23 @@ describe('signAuthorization resolution', () => {
       name: 'ValidationError',
       context: { parameter: 'provider' }
     });
+  });
+
+  test('resolveSignAuthorizationInputs resolves keyVaultAddr from credentials session', async () => {
+    const sessionKeyVault = '0x' + '99'.repeat(20);
+    const credentialsSession = {
+      applyToOptions: async (options) => ({
+        ...options,
+        keyVaultAddr: sessionKeyVault
+      })
+    };
+    const deps = makeDeps({ credentialsSession });
+    const out = await resolveSignAuthorizationInputs(deps, {
+      delegateAddr,
+      chainId: 1n,
+      nonce: 0n
+    });
+    expect(out.keyVaultAddr).toBe(sessionKeyVault);
   });
 
   test('resolveSignAuthorizationInputs prefers options.provider over fallbackProvider for network reads', async () => {
@@ -48,7 +74,7 @@ describe('signAuthorization resolution', () => {
       getNetwork: jest.fn(async () => ({ chainId: 23295n })),
       getTransactionCount: jest.fn(async () => 3)
     };
-    const deps = { keyVault: makeKeyVault(), fallbackProvider: badFallback };
+    const deps = makeDeps({ fallbackProvider: badFallback });
     const out = await resolveSignAuthorizationInputs(deps, {
       keyVaultAddr,
       delegateAddr,
@@ -66,7 +92,7 @@ describe('signAuthorization resolution', () => {
       getNetwork: jest.fn(async () => ({ chainId: 1n })),
       getTransactionCount: jest.fn(async () => 0)
     };
-    const deps = { keyVault: makeKeyVault(), fallbackProvider };
+    const deps = makeDeps({ fallbackProvider });
     await resolveSignAuthorizationInputs(deps, {
       keyVaultAddr,
       delegateAddr,
@@ -81,7 +107,7 @@ describe('signAuthorization resolution', () => {
       getNetwork: jest.fn(async () => ({ chainId: 1n })),
       getTransactionCount: jest.fn(async () => 0)
     };
-    const deps = { keyVault: makeKeyVault(), fallbackProvider };
+    const deps = makeDeps({ fallbackProvider });
     await resolveSignAuthorizationInputs(deps, {
       keyVaultAddr,
       delegateAddr,
@@ -107,7 +133,12 @@ describe('signAuthorization resolution', () => {
       authProof: '0xdeadbeef'
     }));
     const result = await executeSignAuthorization(
-      { keyVault, fallbackProvider, encodeVaultAuthProof },
+      {
+        keyVault,
+        fallbackProvider,
+        credentialsSession: null,
+        encodeVaultAuthProof
+      },
       { keyVaultAddr, delegateAddr },
       buildExecuteWithAuthAction
     );

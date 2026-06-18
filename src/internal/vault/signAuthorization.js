@@ -24,6 +24,7 @@
 
 import { ValidationError } from '../../errors/index.js';
 import { requireAddress, requireBigInt, requireChainId, requireNonNegativeInteger } from '../assert.js';
+import { CredentialsSession } from '../auth/session/CredentialsSession.js';
 import {
   createImplCall,
   fetchAuthorizationChainId,
@@ -44,6 +45,7 @@ import { log } from '../logger.js';
  * @typedef {{
  *   keyVault: KeyVaultClient;
  *   fallbackProvider: EthersAbstractProvider | null;
+ *   credentialsSession: import('../auth/session/CredentialsSession.js').CredentialsSession | null;
  *   encodeVaultAuthProof: (
  *     options: SignAuthorizationOptions & { implCall: Bytes },
  *     buildAction: (options: SignAuthorizationOptions & { implCall: Bytes }) => AuthActionInput
@@ -69,23 +71,25 @@ import { log } from '../logger.js';
  * @throws {ValidationError} If {@code keyVaultAddr} / {@code delegateAddr} are missing/invalid,
  *   {@code index} is not a non-negative integer, {@code chainId} is invalid, {@code nonce} is
  *   negative, or {@code provider} is required (chain id / nonce missing) but not available
+ * @throws {CredentialsRequiredError} If {@code keyVaultAddr} is omitted and no credentials session is active
  * @throws {WalletError} Forwarded from {@link fetchAuthorizationChainId},
  *   {@link fetchAuthorizationNonce}, or {@code keyVault.getAccountAddr} (e.g.
  *   {@link NetworkError}, {@link ContractRevertError})
  */
 async function resolveSignAuthorizationInputs(deps, options = {}) {
-  const { keyVault, fallbackProvider } = deps;
-  const { keyVaultAddr, delegateAddr, provider } = options;
+  const { keyVault, fallbackProvider, credentialsSession } = deps;
+  const resolved = await CredentialsSession.resolveVaultOptions(credentialsSession, options);
+  const { keyVaultAddr, delegateAddr, provider } = resolved;
 
   requireAddress(keyVaultAddr, 'keyVaultAddr');
   requireAddress(delegateAddr, 'delegateAddr');
   const checksummedDelegateAddr = toChecksumAddress(delegateAddr);
 
-  const { index } = withDefaultAccountIndex(options);
+  const { index } = withDefaultAccountIndex(resolved);
   requireNonNegativeInteger(index, 'index');
 
-  const needsChainId = options.chainId === undefined || options.chainId === null;
-  const needsNonce = options.nonce === undefined || options.nonce === null;
+  const needsChainId = resolved.chainId === undefined || resolved.chainId === null;
+  const needsNonce = resolved.nonce === undefined || resolved.nonce === null;
   const targetProvider = provider ?? fallbackProvider ?? null;
 
   if ((needsChainId || needsNonce) && !targetProvider) {
@@ -98,13 +102,13 @@ async function resolveSignAuthorizationInputs(deps, options = {}) {
 
   const chainId = needsChainId
     ? await fetchAuthorizationChainId(targetProvider)
-    : BigInt(requireChainId(options.chainId, 'chainId'));
+    : BigInt(requireChainId(resolved.chainId, 'chainId'));
 
   const authorityAddr = await keyVault.getAccountAddr({ keyVaultAddr, index });
 
   const nonce = needsNonce
     ? await fetchAuthorizationNonce(targetProvider, authorityAddr)
-    : requireBigInt(options.nonce, 'nonce', { allowNegative: false });
+    : requireBigInt(resolved.nonce, 'nonce', { allowNegative: false });
 
   const implCall = createImplCall({
     index,

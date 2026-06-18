@@ -45,6 +45,22 @@ import { CredentialsSession } from './CredentialsSession.js';
  */
 
 /**
+ * @param {Record<string, unknown>} resolved
+ * @param {Address} defaultAddr
+ * @param {Address | undefined} overrideAddr
+ * @returns {Address}
+ */
+function resolveAuthenticatorAddr(resolved, defaultAddr, overrideAddr) {
+  if (resolved.authenticatorAddr != null) {
+    return /** @type {Address} */ (resolved.authenticatorAddr);
+  }
+  if (overrideAddr != null) {
+    return overrideAddr;
+  }
+  return defaultAddr;
+}
+
+/**
  * @param {AuthProofFlowId} flowId
  * @param {Record<string, unknown>} resolved
  * @param {Address} authenticatorAddr
@@ -104,7 +120,11 @@ export class AuthenticatorCallPipeline {
       flags
     );
     const { authenticatorAddr: defaultAddr } = this._authProofPipeline.resolveByFlowId(flowId);
-    const authenticatorAddr = overrides.authenticatorAddr ?? defaultAddr;
+    const authenticatorAddr = resolveAuthenticatorAddr(
+      resolved,
+      defaultAddr,
+      overrides.authenticatorAddr
+    );
     const mappedInput = toPrepareInput(flowId, resolved, authenticatorAddr);
 
     const prepareInput =
