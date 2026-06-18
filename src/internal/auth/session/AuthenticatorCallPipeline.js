@@ -1,0 +1,141 @@
+/**
+ * Authenticator management call pipeline: session merge → prepare(flowId) → client invoke.
+ *
+ * @typedef {import('../../../types/index.js').Address} Address
+ * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
+ * @typedef {import('../../../types/index.js').AuthContext} AuthContext
+ * @typedef {import('../../../types/index.js').Bytes} Bytes
+ * @typedef {import('../../../types/index.js').AuthProofFlowOptions} AuthProofFlowOptions
+ * @typedef {import('./CredentialsSession.js').CredentialsSession} CredentialsSession
+ * @typedef {import('../proof/AuthProofPipeline.js').AuthProofPipeline} AuthProofPipeline
+ * @typedef {import('../authenticators/registry.js').AuthProofFlowId} AuthProofFlowId
+ * @typedef {import('./CredentialsSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
+ *
+ * @module internal/auth/session/AuthenticatorCallPipeline
+ */
+
+import { CredentialsSession } from './CredentialsSession.js';
+
+/**
+ * @typedef {Object} AuthenticatorInvokeOverrides
+ * @property {Address} [authenticatorAddr]
+ */
+
+/**
+ * @typedef {Object} AuthenticatorEncodeConfig
+ * @property {ResolveVaultOptionsFlags} [flags]
+ * @property {(resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput} [buildAction]
+ * @property {AuthProofFlowOptions} [flowOptions]
+ * @property {AuthenticatorInvokeOverrides} [overrides]
+ */
+
+/**
+ * @typedef {Record<string, unknown> & {
+ *   authProof: Bytes;
+ *   authenticatorAddr: Address;
+ *   action?: AuthContext | null;
+ *   actionHash?: import('../../../types/index.js').Bytes32;
+ *   minuteBucket?: bigint;
+ *   derivedAddress?: Address;
+ * }} AuthenticatorEncodeResult
+ */
+
+/**
+ * @typedef {AuthenticatorEncodeResult} AuthenticatorInvokeContext
+ */
+
+/**
+ * @param {AuthProofFlowId} flowId
+ * @param {Record<string, unknown>} resolved
+ * @param {Address} authenticatorAddr
+ * @returns {Record<string, unknown>}
+ */
+function toPrepareInput(flowId, resolved, authenticatorAddr) {
+  const base = { keyVaultAddr: resolved.keyVaultAddr, authenticatorAddr };
+
+  switch (flowId) {
+    case 'password':
+      return { ...base, password: resolved.currentPassword ?? resolved.password };
+    case 'minuteSignature':
+      return { ...base, passwordHash: resolved.passwordHash, chainId: resolved.chainId };
+    case 'walletSignature':
+      return { ...base, signer: resolved.signer, deadline: resolved.deadline, chainId: resolved.chainId };
+    case 'dualFactor':
+      return {
+        ...base,
+        passwordHash: resolved.passwordHash,
+        signer: resolved.signer,
+        deadline: resolved.deadline,
+        chainId: resolved.chainId
+      };
+    default:
+      return base;
+  }
+}
+
+/**
+ * Orchestrates credentials-session defaults and authenticator auth-proof encoding.
+ *
+ * @public
+ */
+export class AuthenticatorCallPipeline {
+  /**
+   * @public
+   * @param {{ credentialsSession: CredentialsSession | null; authProofPipeline: AuthProofPipeline }} deps
+   */
+  constructor({ credentialsSession, authProofPipeline }) {
+    this._credentialsSession = credentialsSession;
+    this._authProofPipeline = authProofPipeline;
+  }
+
+  /**
+   * @public
+   * @async
+   * @param {AuthProofFlowId} flowId
+   * @param {Record<string, unknown>} [options={}]
+   * @param {AuthenticatorEncodeConfig} [config={}]
+   * @returns {Promise<AuthenticatorEncodeResult>}
+   */
+  async encodeAuthProof(flowId, options = {}, config = {}) {
+    const { flags = {}, buildAction, flowOptions = {}, overrides = {} } = config;
+    const resolved = await CredentialsSession.resolveVaultOptions(
+      this._credentialsSession,
+      options,
+      flags
+    );
+    const { authenticatorAddr: defaultAddr } = this._authProofPipeline.resolveByFlowId(flowId);
+    const authenticatorAddr = overrides.authenticatorAddr ?? defaultAddr;
+    const mappedInput = toPrepareInput(flowId, resolved, authenticatorAddr);
+
+    const prepareInput =
+      typeof buildAction === 'function'
+        ? { ...mappedInput, action: buildAction(resolved, authenticatorAddr) }
+        : { ...resolved, ...mappedInput };
+
+    const prepared = await this._authProofPipeline.prepare(flowId, prepareInput, flowOptions);
+
+    return {
+      ...resolved,
+      ...prepared,
+      authProof: prepared.authProof,
+      authenticatorAddr
+    };
+  }
+
+  /**
+   * @public
+   * @async
+   * @template T
+   * @param {AuthProofFlowId} flowId
+   * @param {Record<string, unknown>} options
+   * @param {ResolveVaultOptionsFlags} [flags={}]
+   * @param {(resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput} buildAction
+   * @param {(ctx: AuthenticatorInvokeContext) => Promise<T>} invoke
+   * @param {AuthenticatorInvokeOverrides} [overrides={}]
+   * @returns {Promise<T>}
+   */
+  async invokeWithAuthProof(flowId, options, flags, buildAction, invoke, overrides = {}) {
+    const encoded = await this.encodeAuthProof(flowId, options, { flags, buildAction, overrides });
+    return invoke(encoded);
+  }
+}

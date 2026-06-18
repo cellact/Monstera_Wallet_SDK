@@ -52,12 +52,11 @@ describe('Monstera.connect', () => {
       checkVersion: false
     });
 
-    const resolved = await sdk._vaultPipeline.resolveVaultOptions(
-      { keyVaultAddr: VALID_TEST_ADDRESS },
-      { defaultIndex: true }
-    );
+    const resolved = await sdk._vaultPipeline.resolveVaultOptions({
+      keyVaultAddr: VALID_TEST_ADDRESS
+    });
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
-    expect(resolved.index).toBe(0);
+    expect(resolved.index).toBeUndefined();
   });
 
   test('vault ops without credentials or keyVaultAddr throw', async () => {
@@ -94,9 +93,9 @@ describe('Monstera.connect', () => {
     });
     attachTestCredentialsSession(sdk);
 
-    const resolved = await sdk._vaultPipeline.resolveVaultOptions({}, { defaultIndex: true });
+    const resolved = await sdk._vaultPipeline.resolveVaultOptions({});
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
-    expect(resolved.index).toBe(0);
+    expect(resolved.index).toBeUndefined();
   });
 
   test('configurePassword resolves keyVaultAddr from credentials session', async () => {

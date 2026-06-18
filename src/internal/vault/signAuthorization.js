@@ -31,6 +31,7 @@ import {
   finalizeSignedAuthorizationResult,
   toChecksumAddress
 } from './authorization.js';
+import { withDefaultAccountIndex } from './accountIndex.js';
 import { log } from '../logger.js';
 
 /**
@@ -80,7 +81,7 @@ async function resolveSignAuthorizationInputs(deps, options = {}) {
   requireAddress(delegateAddr, 'delegateAddr');
   const checksummedDelegateAddr = toChecksumAddress(delegateAddr);
 
-  const index = options.index !== undefined && options.index !== null ? options.index : 0;
+  const { index } = withDefaultAccountIndex(options);
   requireNonNegativeInteger(index, 'index');
 
   const needsChainId = options.chainId === undefined || options.chainId === null;

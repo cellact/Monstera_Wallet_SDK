@@ -6,17 +6,14 @@
  * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
  * @typedef {import('./CredentialsSession.js').CredentialsSession} CredentialsSession
  * @typedef {import('../proof/AuthProofPipeline.js').AuthProofPipeline} AuthProofPipeline
+ * @typedef {import('./CredentialsSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
  *
  * @module internal/auth/session/VaultCallPipeline
  */
 
 import { CredentialsRequiredError } from '../../../errors/index.js';
-
-/**
- * @typedef {Object} ResolveVaultOptionsFlags
- * @property {boolean} [defaultCurrentPassword=false]
- * @property {boolean} [defaultIndex=false]
- */
+import { CredentialsSession } from './CredentialsSession.js';
+import { withDefaultAccountIndex } from '../../vault/accountIndex.js';
 
 /**
  * Orchestrates credentials-session defaults and KeyVault auth-proof encoding.
@@ -77,22 +74,7 @@ export class VaultCallPipeline {
    * @throws {CredentialsRequiredError}
    */
   async resolveVaultOptions(options = {}, flags = {}) {
-    let resolved;
-
-    if (this._credentialsSession) {
-      resolved = await this._credentialsSession.applyToOptions(options, flags);
-    } else if (options.keyVaultAddr) {
-      resolved = { ...options };
-    } else {
-      throw new CredentialsRequiredError('vault operation');
-    }
-
-    if (flags.defaultIndex && (resolved.index === undefined || resolved.index === null)) {
-      resolved.index = 0;
-    }
-
-    // console.log('resolved', resolved);
-    return resolved;
+    return CredentialsSession.resolveVaultOptions(this._credentialsSession, options, flags);
   }
 
   /**
@@ -103,7 +85,7 @@ export class VaultCallPipeline {
    * @returns {Promise<EncodeAuthProofOptionsResult>}
    */
   async encodeAuthProof(options, buildAction) {
-    const resolved = await this.resolveVaultOptions(options, { defaultIndex: true });
+    const resolved = withDefaultAccountIndex(await this.resolveVaultOptions(options));
     return this._authProofPipeline.encodeVaultCall(resolved, this._credentialsSession, buildAction);
   }
 

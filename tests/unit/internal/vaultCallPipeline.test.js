@@ -59,9 +59,9 @@ describe('VaultCallPipeline', () => {
       authProofPipeline: { encodeVaultCall: async (o) => o }
     });
 
-    const resolved = await pipeline.resolveVaultOptions({}, { defaultIndex: true });
+    const resolved = await pipeline.resolveVaultOptions({});
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
-    expect(resolved.index).toBe(0);
+    expect(resolved.index).toBeUndefined();
   });
 
   test('resolveVaultOptions passes through explicit keyVaultAddr without credentials session', async () => {
@@ -70,10 +70,10 @@ describe('VaultCallPipeline', () => {
       authProofPipeline: { encodeVaultCall: async (o) => o }
     });
 
-    const resolved = await pipeline.resolveVaultOptions(
-      { keyVaultAddr: VALID_TEST_ADDRESS, index: 2 },
-      { defaultIndex: true }
-    );
+    const resolved = await pipeline.resolveVaultOptions({
+      keyVaultAddr: VALID_TEST_ADDRESS,
+      index: 2
+    });
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
     expect(resolved.index).toBe(2);
   });
@@ -106,5 +106,20 @@ describe('VaultCallPipeline', () => {
         paramsHash: '0x' + '11'.repeat(32)
       }
     });
+    expect(encoded.index).toBe(0);
+  });
+
+  test('encodeAuthProof preserves explicit index', async () => {
+    const pipeline = new VaultCallPipeline({
+      credentialsSession: createMockSession(),
+      authProofPipeline: createMockAuthProofPipeline()
+    });
+
+    const encoded = await pipeline.encodeAuthProof({ index: 3 }, () => ({
+      selector: '0x12345678',
+      paramsHash: '0x' + '11'.repeat(32)
+    }));
+
+    expect(encoded.index).toBe(3);
   });
 });

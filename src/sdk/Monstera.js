@@ -149,15 +149,24 @@ import {
   buildSignSolanaAction,
   buildSetChainBaseKeysAction
 } from '../internal/crypto/index.js';
+import { withDefaultAccountIndex } from '../internal/vault/accountIndex.js';
 import { executeSignAuthorization } from '../internal/vault/signAuthorization.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { assertValidResolvedConfig } from '../internal/validators/networkConfig.js';
 import { EncodeAuthConfig } from '../internal/auth/config/EncodeAuthConfig.js';
 import { AuthProofPipeline } from '../internal/auth/proof/AuthProofPipeline.js';
-import { AuthenticatorManagementOps } from '../internal/auth/management/AuthenticatorManagementOps.js';
+import {
+  buildChangePasswordAction,
+  buildDualFactorChangePasswordAction,
+  buildChangeGuardianAction,
+  buildAddToWhitelistAction,
+  buildRemoveFromWhitelistAction,
+  buildMinuteSignatureChangePasswordAction
+} from '../internal/auth/context/actions/index.js';
 import { CredentialsSession } from '../internal/auth/session/CredentialsSession.js';
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
 import { VaultCallPipeline } from '../internal/auth/session/VaultCallPipeline.js';
+import { AuthenticatorCallPipeline } from '../internal/auth/session/AuthenticatorCallPipeline.js';
 
 /**
  * Main entry point for Monstera wallet operations on Oasis Sapphire.
@@ -231,12 +240,11 @@ class Monstera {
       credentialsSession: this._credentialsSession,
       authProofPipeline: this._authProofPipeline
     });
-    this._encodeAuthConfig = new EncodeAuthConfig({ addresses: resolvedConfig.addresses });
-    this._authenticatorManagementOps = new AuthenticatorManagementOps({
-      config: this.config,
-      authProofPipeline: this._authProofPipeline,
-      auth: this.auth
+    this._authenticatorPipeline = new AuthenticatorCallPipeline({
+      credentialsSession: this._credentialsSession,
+      authProofPipeline: this._authProofPipeline
     });
+    this._encodeAuthConfig = new EncodeAuthConfig({ addresses: resolvedConfig.addresses });
 
     // Check version in background only when explicitly enabled.
     if (resolvedConfig?.checkVersion === true && !MonsteraUtils.versionCheckDone) {
@@ -523,8 +531,7 @@ class Monstera {
    * @throws {WalletError} For other unrecognised signing failures
    */
   async createAuthProofWalletSignature(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof } = await this._authProofPipeline.prepare('walletSignature', resolved);
+    const { authProof } = await this._authenticatorPipeline.encodeAuthProof('walletSignature', options);
     return authProof;
   }
 
@@ -544,10 +551,9 @@ class Monstera {
    * @throws {NetworkError} If the read provider fails to return the latest block
    */
   async createAuthProofMinuteSignature(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof, minuteBucket, derivedAddress } = await this._authProofPipeline.prepare(
+    const { authProof, minuteBucket, derivedAddress } = await this._authenticatorPipeline.encodeAuthProof(
       'minuteSignature',
-      resolved
+      options
     );
     return { authProof, minuteBucket, derivedAddress };
   }
@@ -561,8 +567,7 @@ class Monstera {
    * @returns {Promise<EncodedAuthProofDualFactor>}
    */
   async createAuthProofDualFactor(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof } = await this._authProofPipeline.prepare('dualFactor', resolved);
+    const { authProof } = await this._authenticatorPipeline.encodeAuthProof('dualFactor', options);
     return authProof;
   }
 
@@ -1388,9 +1393,8 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddr(options = {}) {
-    return this.keyVault.getAccountAddr(
-      await this._vaultPipeline.resolveVaultOptions(options, { defaultIndex: true })
-    );
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
+    return this.keyVault.getAccountAddr(withDefaultAccountIndex(resolved));
   }
 
   /**
@@ -1639,7 +1643,8 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async getSolanaAddr(options = {}) {
-    return this.keyVault.getSolanaAddr(await this._vaultPipeline.resolveVaultOptions(options));
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
+    return this.keyVault.getSolanaAddr(withDefaultAccountIndex(resolved));
   }
 
   /**
@@ -1693,16 +1698,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordValid(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options, { defaultCurrentPassword: true });
-    const { authProof, action } = await this._authProofPipeline.prepare(
+    const { keyVaultAddr, authProof, action } = await this._authenticatorPipeline.encodeAuthProof(
       'password',
+      options,
       {
-        keyVaultAddr: resolved.keyVaultAddr,
-        password: resolved.currentPassword
-      },
-      { includeAuthContext: true, useVerifyProbe: true }
+        flags: { defaultCurrentPassword: true },
+        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
+      }
     );
-    return this.auth.password.verify({ keyVaultAddr: resolved.keyVaultAddr, authProof, action });
+    return this.auth.password.verify({ keyVaultAddr, authProof, action });
   }
 
   /**
@@ -1783,13 +1787,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async isWalletSignatureValid(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof, action } = await this._authProofPipeline.prepare('walletSignature', resolved, {
-      includeAuthContext: true,
-      useVerifyProbe: true
-    });
+    const { keyVaultAddr, authProof, action } = await this._authenticatorPipeline.encodeAuthProof(
+      'walletSignature',
+      options,
+      {
+        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
+      }
+    );
     return this.auth.walletSignature.verify({
-      keyVaultAddr: resolved.keyVaultAddr,
+      keyVaultAddr,
       authProof,
       action
     });
@@ -1824,13 +1830,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordDualFactorValid(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { authProof, action } = await this._authProofPipeline.prepare('dualFactor', resolved, {
-      includeAuthContext: true,
-      useVerifyProbe: true
-    });
+    const { keyVaultAddr, authProof, action } = await this._authenticatorPipeline.encodeAuthProof(
+      'dualFactor',
+      options,
+      {
+        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
+      }
+    );
     return this.auth.dualFactor.verify({
-      keyVaultAddr: resolved.keyVaultAddr,
+      keyVaultAddr,
       authProof,
       action
     });
@@ -1896,12 +1904,13 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordMinuteSignatureValid(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
-    const { keyVaultAddr } = resolved;
-    const { authProof, action } = await this._authProofPipeline.prepare('minuteSignature', resolved, {
-      includeAuthContext: true,
-      useVerifyProbe: true
-    });
+    const { keyVaultAddr, authProof, action } = await this._authenticatorPipeline.encodeAuthProof(
+      'minuteSignature',
+      options,
+      {
+        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
+      }
+    );
     return this.auth.passwordMinuteSignature.verify({ keyVaultAddr, authProof, action });
   }
 
@@ -2263,8 +2272,18 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePassword(options = {}) {
-    return this._authenticatorManagementOps.updatePassword(
-      await this._vaultPipeline.resolveVaultOptions(options, { defaultCurrentPassword: true })
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'password',
+      options,
+      { defaultCurrentPassword: true },
+      (resolved, authenticatorAddr) =>
+        buildChangePasswordAction(authenticatorAddr, resolved.newPasswordHash),
+      ({ keyVaultAddr, authProof, newPasswordHash }) =>
+        this.auth.password.updatePassword({
+          keyVaultAddr,
+          currentPassword: authProof,
+          newPasswordHash
+        })
     );
   }
 
@@ -2287,7 +2306,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async addToWhitelist(options = {}) {
-    return this._authenticatorManagementOps.addToWhitelist(await this._vaultPipeline.resolveVaultOptions(options));
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'walletSignature',
+      options,
+      {},
+      (resolved, authenticatorAddr) =>
+        buildAddToWhitelistAction(authenticatorAddr, resolved.addressToAdd),
+      ({ keyVaultAddr, authProof, addressToAdd }) =>
+        this.auth.walletSignature.addToWhitelist({ keyVaultAddr, authProof, addressToAdd })
+    );
   }
 
   /**
@@ -2306,7 +2333,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async removeFromWhitelist(options = {}) {
-    return this._authenticatorManagementOps.removeFromWhitelist(await this._vaultPipeline.resolveVaultOptions(options));
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'walletSignature',
+      options,
+      {},
+      (resolved, authenticatorAddr) =>
+        buildRemoveFromWhitelistAction(authenticatorAddr, resolved.addressToRemove),
+      ({ keyVaultAddr, authProof, addressToRemove }) =>
+        this.auth.walletSignature.removeFromWhitelist({ keyVaultAddr, authProof, addressToRemove })
+    );
   }
 
   /**
@@ -2328,7 +2363,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordDualFactor(options = {}) {
-    return this._authenticatorManagementOps.updatePasswordDualFactor(await this._vaultPipeline.resolveVaultOptions(options)); // should i not also get the password  from the credentials session?
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'dualFactor',
+      options,
+      {},
+      (resolved, authenticatorAddr) =>
+        buildDualFactorChangePasswordAction(authenticatorAddr, resolved.newPasswordHash),
+      ({ keyVaultAddr, authProof, newPasswordHash }) =>
+        this.auth.dualFactor.updatePassword({ keyVaultAddr, authProof, newPasswordHash })
+    );
   }
 
   /**
@@ -2347,7 +2390,15 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updateGuardian(options = {}) {
-    return this._authenticatorManagementOps.updateGuardian(await this._vaultPipeline.resolveVaultOptions(options)); // should i not also get the password  from the credentials session?
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'dualFactor',
+      options,
+      {},
+      (resolved, authenticatorAddr) =>
+        buildChangeGuardianAction(authenticatorAddr, resolved.newGuardian),
+      ({ keyVaultAddr, authProof, newGuardian }) =>
+        this.auth.dualFactor.updateGuardian({ keyVaultAddr, authProof, newGuardian })
+    );
   }
 
   /**
@@ -2367,8 +2418,19 @@ class Monstera {
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordMinuteSignature(options = {}) {
-    return this._authenticatorManagementOps.updatePasswordMinuteSignature(
-      await this._vaultPipeline.resolveVaultOptions(options, { defaultCurrentPassword: true })
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'password',
+      options,
+      { defaultCurrentPassword: true },
+      (resolved, authenticatorAddr) =>
+        buildMinuteSignatureChangePasswordAction(authenticatorAddr, resolved.newPasswordHash),
+      ({ keyVaultAddr, authProof, newPasswordHash }) =>
+        this.auth.passwordMinuteSignature.updatePassword({
+          keyVaultAddr,
+          currentPassword: authProof,
+          newPasswordHash
+        }),
+      { authenticatorAddr: this.config.addresses.passwordMinuteSignatureAuth }
     );
   }
 }

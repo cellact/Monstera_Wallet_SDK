@@ -12,7 +12,7 @@
 
 import { ZeroAddress } from '../../../adapters/ethers/addresses.js';
 import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
-import { ValidationError } from '../../../errors/index.js';
+import { CredentialsRequiredError, ValidationError } from '../../../errors/index.js';
 import { requireNormalizedUsername } from '../../assert.js';
 
 export { parseConnectCredentials } from '../../validators/connectOptions.js';
@@ -129,6 +129,32 @@ export class CredentialsSession {
 
     if (flags.defaultCurrentPassword && resolved.currentPassword == null) {
       resolved.currentPassword = this._passwordBytes;
+    }
+
+    return resolved;
+  }
+
+  /**
+   * Merge session defaults into caller options, or pass through explicit {@code keyVaultAddr}.
+   *
+   * @public
+   * @static
+   * @async
+   * @param {CredentialsSession | null} credentialsSession
+   * @param {Record<string, unknown>} [options={}]
+   * @param {ResolveVaultOptionsFlags} [flags={}]
+   * @returns {Promise<Record<string, unknown>>}
+   * @throws {CredentialsRequiredError}
+   */
+  static async resolveVaultOptions(credentialsSession, options = {}, flags = {}) {
+    let resolved;
+
+    if (credentialsSession) {
+      resolved = await credentialsSession.applyToOptions(options, flags);
+    } else if (options.keyVaultAddr) {
+      resolved = { ...options };
+    } else {
+      throw new CredentialsRequiredError('vault operation');
     }
 
     return resolved;

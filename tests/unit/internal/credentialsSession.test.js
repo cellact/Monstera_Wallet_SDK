@@ -5,7 +5,7 @@
 import { describe, test, expect, jest } from '@jest/globals';
 import { ZeroAddress } from '../../../src/adapters/ethers/addresses.js';
 import { toUtf8Bytes, keccak256 } from '../../../src/adapters/ethers/hashing.js';
-import { ValidationError } from '../../../src/errors/index.js';
+import { ValidationError, CredentialsRequiredError } from '../../../src/errors/index.js';
 import {
   CredentialsSession
 } from '../../../src/internal/auth/session/CredentialsSession.js';
@@ -122,5 +122,32 @@ describe('CredentialsSession', () => {
 
     await expect(session.getKeyVaultAddr()).rejects.toThrow(ValidationError);
     await expect(session.getKeyVaultAddr()).rejects.toThrow(/No wallet is registered/);
+  });
+
+  describe('resolveVaultOptions', () => {
+    test('merges session keyVaultAddr without injecting index', async () => {
+      const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
+
+      const resolved = await CredentialsSession.resolveVaultOptions(session, {});
+
+      expect(resolved.keyVaultAddr).toBe(KEY_VAULT_ADDR);
+      expect(resolved.index).toBeUndefined();
+    });
+
+    test('passes through explicit keyVaultAddr without session', async () => {
+      const resolved = await CredentialsSession.resolveVaultOptions(null, {
+        keyVaultAddr: WALLET_ADDR,
+        index: 2
+      });
+
+      expect(resolved.keyVaultAddr).toBe(WALLET_ADDR);
+      expect(resolved.index).toBe(2);
+    });
+
+    test('throws without session or keyVaultAddr', async () => {
+      await expect(CredentialsSession.resolveVaultOptions(null, {})).rejects.toThrow(
+        CredentialsRequiredError
+      );
+    });
   });
 });
