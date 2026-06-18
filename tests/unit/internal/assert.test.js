@@ -11,6 +11,7 @@ import {
   requireBytes,
   requireNonEmptyBytes,
   requireString,
+  requireNormalizedUsername,
   requireMnemonic,
   requireNumber,
   requireNonNegativeInteger,
@@ -24,7 +25,7 @@ import {
   isInFuture,
   requireObject
 } from '../../../src/internal/assert.js';
-import { normalizeBigInt, normalizeChainId } from '../../../src/internal/utils/normalize.js';
+import { normalizeBigInt, normalizeChainId, normalizeMnemonic } from '../../../src/internal/utils/normalize.js';
 import { HDNodeWallet, Mnemonic, Wallet } from '../../../src/adapters/ethers/index.js';
 import { keccak256, randomBytes, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 
@@ -179,6 +180,28 @@ describe('Assert Utilities', () => {
 
         test('throws error for whitespace-only string', () => {
             expect(() => requireString('   \t')).toThrow('string is required and must be a non-empty string');
+        });
+    });
+
+    describe('requireNormalizedUsername', () => {
+        test('returns trimmed, lowercased username', () => {
+            expect(requireNormalizedUsername('Alice')).toBe('alice');
+            expect(requireNormalizedUsername('  Bob  ')).toBe('bob');
+        });
+
+        test('throws for missing or empty username', () => {
+            expect(() => requireNormalizedUsername(undefined)).toThrow(
+                'username is required and must be a non-empty string'
+            );
+            expect(() => requireNormalizedUsername('   ')).toThrow(
+                'username is required and must be a non-empty string'
+            );
+        });
+
+        test('uses custom parameter name in error', () => {
+            expect(() => requireNormalizedUsername(null, 'credentials.username')).toThrow(
+                'credentials.username is required and must be a non-empty string'
+            );
         });
     });
 
@@ -509,6 +532,24 @@ describe('Assert Utilities', () => {
             expect(normalizeBigInt(NaN)).toBeUndefined();
             expect(normalizeBigInt('')).toBeUndefined();
             expect(normalizeBigInt('   ')).toBeUndefined();
+        });
+    });
+
+    describe('normalizeMnemonic', () => {
+        const phrase = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+
+        test('returns undefined for nullish and non-string', () => {
+            expect(normalizeMnemonic(undefined)).toBeUndefined();
+            expect(normalizeMnemonic(null)).toBeUndefined();
+            expect(normalizeMnemonic({})).toBeUndefined();
+            expect(normalizeMnemonic('')).toBeUndefined();
+            expect(normalizeMnemonic('   ')).toBeUndefined();
+        });
+
+        test('trims, lowercases, and collapses whitespace', () => {
+            expect(normalizeMnemonic(`  ${phrase.toUpperCase()}  `)).toBe(phrase);
+            expect(normalizeMnemonic(phrase.replace(/ /g, '   '))).toBe(phrase);
+            expect(normalizeMnemonic(phrase.replace(/ /g, '\n'))).toBe(phrase);
         });
     });
 

@@ -13,7 +13,7 @@
 import { ZeroAddress } from '../../../adapters/ethers/addresses.js';
 import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
 import { ValidationError } from '../../../errors/index.js';
-import { normalizeUsername } from '../../utils/normalize.js';
+import { requireNormalizedUsername } from '../../assert.js';
 
 export { parseConnectCredentials } from '../../validators/connectOptions.js';
 
@@ -157,14 +157,7 @@ export class CredentialsSession {
    * @returns {Promise<void>}
    */
   async _resolveAddresses() {
-    const normalized = normalizeUsername(this._username);
-    if (!normalized) {
-      throw new ValidationError(
-        'credentials.username must be a non-empty string after normalisation',
-        'credentials.username',
-        this._username
-      );
-    }
+    const normalized = requireNormalizedUsername(this._username, 'credentials.username');
 
     const usernameHash = await this._deps.hashUsername({ username: normalized });
     const walletAddr = await this._deps.walletOfUsername({ usernameHash });

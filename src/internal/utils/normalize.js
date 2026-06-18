@@ -6,6 +6,7 @@
  * structured {@link ValidationError} messages.
  *
  * @typedef {import('../../types/index.js').ChainId} ChainId
+ * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
  *
  * @module internal/utils/normalize
  */
@@ -113,4 +114,23 @@ function normalizeUsername(value) {
   return normalized === '' ? undefined : normalized;
 }
 
-export { normalizeChainId, normalizeBigInt, normalizeUsername };
+/**
+ * Normalise a BIP-39 mnemonic phrase (trim, lowercase, collapse whitespace).
+ *
+ * @description Used before word-count / checksum validation and PBKDF2 seed derivation so callers
+ * accept extra surrounding whitespace, mixed casing, and irregular separators.
+ *
+ * @public
+ * @param {unknown} value - Candidate mnemonic phrase
+ * @returns {Mnemonic | undefined} Normalised phrase, or {@code undefined} when missing/empty after trim
+ */
+function normalizeMnemonic(value) {
+  if (value === undefined || value === null || typeof value !== 'string') {
+    return undefined;
+  }
+
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, ' ');
+  return normalized === '' ? undefined : normalized;
+}
+
+export { normalizeChainId, normalizeBigInt, normalizeUsername, normalizeMnemonic };

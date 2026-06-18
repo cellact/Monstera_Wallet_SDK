@@ -38,6 +38,13 @@ describe('parseConnectCredentials', () => {
     });
   });
 
+  test('normalises username to trim and lowercase', () => {
+    expect(parseConnectCredentials({ username: '  Alice  ', password: 'secret' })).toEqual({
+      username: 'alice',
+      password: 'secret'
+    });
+  });
+
   test('rejects partial credentials', () => {
     expect(() => parseConnectCredentials({ username: 'alice' })).toThrow(ValidationError);
     expect(() => parseConnectCredentials({ password: 'secret' })).toThrow(ValidationError);
@@ -57,10 +64,20 @@ describe('CredentialsSession', () => {
     await expect(session.getKeyVaultAddr()).resolves.toBe(KEY_VAULT_ADDR);
     await expect(session.getWalletAddr()).resolves.toBe(WALLET_ADDR);
 
+    expect(deps.hashUsername).toHaveBeenCalledWith({ username: 'alice' });
     expect(deps.hashUsername).toHaveBeenCalledTimes(1);
     expect(deps.walletOfUsername).toHaveBeenCalledTimes(1);
     expect(deps.getKeyVaultAddr).toHaveBeenCalledTimes(1);
     expect(deps.getKeyVaultAddr).toHaveBeenCalledWith({ walletAddr: WALLET_ADDR });
+  });
+
+  test('normalises mixed-case username before hashing', async () => {
+    const deps = createDeps();
+    const session = new CredentialsSession({ username: '  Alice  ', password: 'pw' }, deps);
+
+    await session.getKeyVaultAddr();
+
+    expect(deps.hashUsername).toHaveBeenCalledWith({ username: 'alice' });
   });
 
   test('applyToOptions injects keyVaultAddr only', async () => {

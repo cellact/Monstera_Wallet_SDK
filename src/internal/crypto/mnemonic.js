@@ -12,6 +12,7 @@
 import crypto from 'crypto';
 import { Wallet } from '../../adapters/ethers/index.js';
 import { requireMnemonic } from '../assert.js';
+import { normalizeMnemonic } from '../utils/normalize.js';
 import { ValidationError } from '../../errors/index.js';
 import log from '../logger.js';
 
@@ -46,7 +47,7 @@ function generateMnemonic() {
  */
 function deriveSeed(mnemonic, password = '') {
   requireMnemonic(mnemonic, 'mnemonic');
-  const normalizedMnemonic = mnemonic.trim().toLowerCase().replace(/\s+/g, ' ');
+  const normalizedMnemonic = normalizeMnemonic(mnemonic);
   log.debug('deriveSeed', { phraseLength: normalizedMnemonic.length });
 
   const seed = crypto.pbkdf2Sync(

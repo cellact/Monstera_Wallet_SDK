@@ -49,11 +49,9 @@ import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletFactoryContract } from '../../contracts/core/walletFactory.js';
 import { WalletFactoryEvents } from '../../events/index.js';
 import { generateMnemonic, deriveSeed } from '../../internal/crypto/index.js';
-import { requireAddress, requireBoolean, requireBytes, requireBytes32, requireMnemonic, requireNonEmptyBytes, requireString } from '../../internal/assert.js';
+import { requireAddress, requireBoolean, requireBytes, requireBytes32, requireMnemonic, requireNonEmptyBytes, requireNormalizedUsername } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
-import { normalizeUsername } from '../../internal/utils/normalize.js';
-import { ValidationError } from '../../errors/index.js';
 
 /**
  * @public
@@ -91,23 +89,6 @@ class WalletFactoryClient extends BaseContractClient {
     const mnemonic = generateMnemonic();
     const seed = deriveSeed(mnemonic);
     return { mnemonic, seed };
-  }
-
-  /**
-   * Normalise a username the same way create-wallet helpers do before hashing or sending on-chain.
-   *
-   * @private
-   * @param {string} username - Raw username input
-   * @returns {string} Trimmed, lowercased username
-   * @throws {ValidationError} If the username is missing or empty after normalisation
-   */
-  _requireNormalizedUsername(username) {
-    requireString(username, 'username');
-    const normalized = normalizeUsername(username);
-    if (!normalized) {
-      throw new ValidationError('username is required and must be a non-empty string', 'username', username);
-    }
-    return normalized;
   }
 
   /**
@@ -482,7 +463,7 @@ class WalletFactoryClient extends BaseContractClient {
    */
   async hashUsername(options = {}) {
     const { username } = options;
-    const normalized = this._requireNormalizedUsername(username);
+    const normalized = requireNormalizedUsername(username, 'username');
     log.info('WalletFactory: hashUsername');
     log.debug('Hashing normalized username', sanitizer.forLog({ username: normalized }));
 
@@ -816,7 +797,7 @@ class WalletFactoryClient extends BaseContractClient {
   async createWalletForUsername(options = {}) {
     const { authConfig, username } = options;
     requireNonEmptyBytes(authConfig, 'authConfig');
-    const normalized = this._requireNormalizedUsername(username);
+    const normalized = requireNormalizedUsername(username, 'username');
     log.info('WalletFactory: createWalletForUsername');
     log.debug('Creating wallet for username', sanitizer.forLog({ ...options, username: normalized }));
 
@@ -855,7 +836,7 @@ class WalletFactoryClient extends BaseContractClient {
   async createWalletForUsernameFromMnemonic(options = {}) {
     const { authConfig, username, mnemonic } = options;
     requireNonEmptyBytes(authConfig, 'authConfig');
-    const normalized = this._requireNormalizedUsername(username);
+    const normalized = requireNormalizedUsername(username, 'username');
     requireMnemonic(mnemonic, 'mnemonic');
     log.info('WalletFactory: createWalletForUsernameFromMnemonic');
     log.debug('Creating wallet for username from mnemonic', sanitizer.forLog({ ...options, username: normalized }));

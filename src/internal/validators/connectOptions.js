@@ -5,6 +5,7 @@
  */
 
 import { ValidationError } from '../../errors/index.js';
+import { requireNormalizedUsername } from '../assert.js';
 
 /**
  * @typedef {Object} ConnectCredentialsInput
@@ -35,13 +36,7 @@ export function parseConnectCredentials(credentials) {
 
   const { username, password } = /** @type {Record<string, unknown>} */ (credentials);
 
-  if (typeof username !== 'string' || !username.trim()) {
-    throw new ValidationError(
-      'credentials.username must be a non-empty string',
-      'credentials.username',
-      username
-    );
-  }
+  const normalizedUsername = requireNormalizedUsername(username, 'credentials.username');
 
   if (typeof password !== 'string' || password.length === 0) {
     throw new ValidationError(
@@ -51,7 +46,7 @@ export function parseConnectCredentials(credentials) {
     );
   }
 
-  return { username, password };
+  return { username: normalizedUsername, password };
 }
 
 /**

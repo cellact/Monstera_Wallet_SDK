@@ -15,7 +15,7 @@
 import { ValidationError } from '../errors/index.js';
 import { HDNodeWallet, Mnemonic, Wallet } from '../adapters/ethers/index.js';
 import { isAddress as ethersIsAddress, isHexString as ethersIsHexString } from '../adapters/ethers/addresses.js';
-import { normalizeBigInt, normalizeChainId } from './utils/normalize.js';
+import { normalizeBigInt, normalizeChainId, normalizeMnemonic, normalizeUsername } from './utils/normalize.js';
 import { nowUnixTimestampSeconds } from './utils/time.js';
 
 /**
@@ -163,6 +163,26 @@ function requireString(value, name = 'string') {
 }
 
 /**
+ * Assert that {@code value} is a non-empty username and return the factory-normalised form.
+ *
+ * @description Applies trim + lowercase via {@link normalizeUsername}, matching
+ * {@code WalletFactory.createWalletForUsername} before hashing or on-chain registration.
+ *
+ * @public
+ * @param {unknown} value - Candidate username
+ * @param {string} [name='username'] - Parameter name
+ * @returns {string} Normalised username
+ * @throws {ValidationError} If {@code value} is missing or empty after normalisation
+ */
+function requireNormalizedUsername(value, name = 'username') {
+  const normalized = normalizeUsername(value);
+  if (normalized === undefined) {
+    throw new ValidationError(`${name} is required and must be a non-empty string`, name, value);
+  }
+  return normalized;
+}
+
+/**
  * Assert that {@code value} is a valid BIP-39 mnemonic phrase.
  *
  * @description Normalises whitespace before counting words, accepts 12-word or 24-word phrases,
@@ -177,12 +197,11 @@ function requireString(value, name = 'string') {
  */
 function requireMnemonic(value, name = 'mnemonic') {
   requireString(value, name);
-  
-  const normalized = value
-    .trim()
-    .replace(/[\s\n\r\t]+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
+
+  const normalized = normalizeMnemonic(value);
+  if (!normalized) {
+    throw new ValidationError(`${name} is required and must be a non-empty string`, name, value);
+  }
 
   const words = normalized.split(' ').filter(word => word.length > 0);
   
@@ -473,6 +492,7 @@ export {
   requireBytes,
   requireNonEmptyBytes,
   requireString,
+  requireNormalizedUsername,
   requireMnemonic,
   requireNumber,
   requireNonNegativeInteger,
