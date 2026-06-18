@@ -13,8 +13,8 @@
  * @module contracts/authenticators/DualFactorAuthenticator
  */
 
-import { ConfigError } from '../../errors/index.js';
 import { Contract } from '../../adapters/ethers/index.js';
+import { requireConfigAddress } from '../../internal/validators/configAssert.js';
 import { DUAL_FACTOR_AUTHENTICATOR_ABI } from '../abi/authenticators/dualFactorAuthenticator.js';
 
 /**
@@ -27,9 +27,11 @@ import { DUAL_FACTOR_AUTHENTICATOR_ABI } from '../abi/authenticators/dualFactorA
  * @throws {ConfigError} If {@code dualFactorAuthenticatorAddress} is empty/missing
  */
 function getDualFactorAuthenticatorContract(signerOrProvider, dualFactorAuthenticatorAddress) {
-  if (!dualFactorAuthenticatorAddress) {
-    throw new ConfigError('Dual factor authenticator address is required', 'dualFactorAuthenticatorAddress');
-  }
+  requireConfigAddress(
+    dualFactorAuthenticatorAddress,
+    'dualFactorAuthenticatorAddress',
+    'Dual factor authenticator address is required'
+  );
 
   return new Contract(dualFactorAuthenticatorAddress, DUAL_FACTOR_AUTHENTICATOR_ABI, signerOrProvider);
 }

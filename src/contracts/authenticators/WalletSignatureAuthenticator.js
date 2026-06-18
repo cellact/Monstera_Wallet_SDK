@@ -13,8 +13,8 @@
  * @module contracts/authenticators/WalletSignatureAuthenticator
  */
 
-import { ConfigError } from '../../errors/index.js';
 import { Contract } from '../../adapters/ethers/index.js';
+import { requireConfigAddress } from '../../internal/validators/configAssert.js';
 import { WALLET_SIGNATURE_AUTHENTICATOR_ABI } from '../abi/authenticators/walletSignatureAuthenticator.js';
 
 /**
@@ -27,9 +27,11 @@ import { WALLET_SIGNATURE_AUTHENTICATOR_ABI } from '../abi/authenticators/wallet
  * @throws {ConfigError} If {@code walletSignatureAuthenticatorAddress} is empty/missing
  */
 function getWalletSignatureAuthenticatorContract(signerOrProvider, walletSignatureAuthenticatorAddress) {
-  if (!walletSignatureAuthenticatorAddress) {
-    throw new ConfigError('Wallet signature authenticator address is required', 'walletSignatureAuthenticatorAddress');
-  }
+  requireConfigAddress(
+    walletSignatureAuthenticatorAddress,
+    'walletSignatureAuthenticatorAddress',
+    'Wallet signature authenticator address is required'
+  );
 
   return new Contract(walletSignatureAuthenticatorAddress, WALLET_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
 }

@@ -13,8 +13,8 @@
  * @module contracts/authenticators/PasswordMinuteSignatureAuthenticator
  */
 
-import { ConfigError } from '../../errors/index.js';
 import { Contract } from '../../adapters/ethers/index.js';
+import { requireConfigAddress } from '../../internal/validators/configAssert.js';
 import { PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI } from '../abi/authenticators/passwordMinuteSignatureAuthenticator.js';
 
 /**
@@ -27,11 +27,17 @@ import { PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI } from '../abi/authenticato
  * @throws {ConfigError} If {@code passwordMinuteSignatureAuthenticatorAddress} is empty/missing
  */
 function getPasswordMinuteSignatureAuthenticatorContract(signerOrProvider, passwordMinuteSignatureAuthenticatorAddress) {
-  if (!passwordMinuteSignatureAuthenticatorAddress) {
-    throw new ConfigError('Password minute signature authenticator address is required', 'passwordMinuteSignatureAuthenticatorAddress');
-  }
+  requireConfigAddress(
+    passwordMinuteSignatureAuthenticatorAddress,
+    'passwordMinuteSignatureAuthenticatorAddress',
+    'Password minute signature authenticator address is required'
+  );
 
-  return new Contract(passwordMinuteSignatureAuthenticatorAddress, PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI, signerOrProvider);
+  return new Contract(
+    passwordMinuteSignatureAuthenticatorAddress,
+    PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI,
+    signerOrProvider
+  );
 }
 
 export {

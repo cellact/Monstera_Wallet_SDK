@@ -13,8 +13,8 @@
  * @module contracts/core/walletFactory
  */
 
-import { ConfigError } from '../../errors/index.js';
 import { Contract } from '../../adapters/ethers/index.js';
+import { requireConfigAddress } from '../../internal/validators/configAssert.js';
 import { WALLET_FACTORY_ABI } from '../abi/core/walletFactory.js';
 
 /**
@@ -27,10 +27,12 @@ import { WALLET_FACTORY_ABI } from '../abi/core/walletFactory.js';
  * @throws {ConfigError} If {@code walletFactoryAddress} is empty/missing
  */
 function getWalletFactoryContract(signerOrProvider, walletFactoryAddress) {
-  if (!walletFactoryAddress) {
-    throw new ConfigError('Wallet factory address is required', 'walletFactoryAddress');
-  }
-  
+  requireConfigAddress(
+    walletFactoryAddress,
+    'walletFactoryAddress',
+    'Wallet factory address is required'
+  );
+
   return new Contract(walletFactoryAddress, WALLET_FACTORY_ABI, signerOrProvider);
 }
 

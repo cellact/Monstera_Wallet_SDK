@@ -13,8 +13,8 @@
  * @module contracts/core/walletLogic
  */
 
-import { ConfigError } from '../../errors/index.js';
 import { Contract } from '../../adapters/ethers/index.js';
+import { requireConfigAddress } from '../../internal/validators/configAssert.js';
 import { WALLET_LOGIC_ABI } from '../abi/core/walletLogic.js';
 
 /**
@@ -27,10 +27,12 @@ import { WALLET_LOGIC_ABI } from '../abi/core/walletLogic.js';
  * @throws {ConfigError} If {@code walletLogicAddress} is empty/missing
  */
 function getWalletLogicContract(signerOrProvider, walletLogicAddress) {
-  if (!walletLogicAddress) {
-    throw new ConfigError('Wallet logic address is required', 'walletLogicAddress');
-  }
-  
+  requireConfigAddress(
+    walletLogicAddress,
+    'walletLogicAddress',
+    'Wallet logic address is required'
+  );
+
   return new Contract(walletLogicAddress, WALLET_LOGIC_ABI, signerOrProvider);
 }
 

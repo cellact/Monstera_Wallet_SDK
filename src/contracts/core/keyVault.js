@@ -13,8 +13,8 @@
  * @module contracts/core/keyVault
  */
 
-import { ConfigError } from '../../errors/index.js';
 import { Contract } from '../../adapters/ethers/index.js';
+import { requireConfigAddress } from '../../internal/validators/configAssert.js';
 import { KEYVAULT_ABI } from '../abi/core/keyVault.js';
 
 /**
@@ -27,10 +27,8 @@ import { KEYVAULT_ABI } from '../abi/core/keyVault.js';
  * @throws {ConfigError} If {@code keyVaultAddr} is empty/missing
  */
 function getKeyVaultContract(signerOrProvider, keyVaultAddr) {
-  if (!keyVaultAddr) {
-    throw new ConfigError('KeyVault address is required', 'keyVaultAddr');
-  }
-  
+  requireConfigAddress(keyVaultAddr, 'keyVaultAddr', 'KeyVault address is required');
+
   return new Contract(keyVaultAddr, KEYVAULT_ABI, signerOrProvider);
 }
 

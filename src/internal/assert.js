@@ -475,6 +475,29 @@ function requireDefined(value, name = 'value') {
 }
 
 /**
+ * Assert that {@code provider} exposes a named method.
+ *
+ * @public
+ * @param {unknown} provider - Candidate provider
+ * @param {string} method - Method name (e.g. {@code 'getBlock'})
+ * @param {string} [name='provider'] - Parameter name for errors
+ * @param {{ message?: string }} [options={}] - Optional custom error message
+ * @returns {void}
+ * @throws {ValidationError} If {@code provider} is missing or does not expose {@code method}
+ */
+function requireProviderMethod(provider, method, name = 'provider', options = {}) {
+  const { message } = options;
+
+  if (!provider || typeof /** @type {Record<string, unknown>} */ (provider)[method] !== 'function') {
+    throw new ValidationError(
+      message ?? `${name} must expose ${method}()`,
+      name,
+      provider
+    );
+  }
+}
+
+/**
  * Assert that {@code value} is a plain object ({@code {}}, not an array).
  *
  * @public
@@ -554,6 +577,7 @@ export {
   requireBoolean,
   requireUtf8Bytes,
   requireDefined,
+  requireProviderMethod,
   requirePlainObject,
   requireNonEmptyObject,
   requireBytes4

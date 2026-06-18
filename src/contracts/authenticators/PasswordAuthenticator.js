@@ -13,8 +13,8 @@
  * @module contracts/authenticators/PasswordAuthenticator
  */
 
-import { ConfigError } from '../../errors/index.js';
 import { Contract } from '../../adapters/ethers/index.js';
+import { requireConfigAddress } from '../../internal/validators/configAssert.js';
 import { PASSWORD_AUTHENTICATOR_ABI } from '../abi/authenticators/passwordAuthenticator.js';
 
 /**
@@ -27,9 +27,11 @@ import { PASSWORD_AUTHENTICATOR_ABI } from '../abi/authenticators/passwordAuthen
  * @throws {ConfigError} If {@code passwordAuthenticatorAddress} is empty/missing
  */
 function getPasswordAuthenticatorContract(signerOrProvider, passwordAuthenticatorAddress) {
-  if (!passwordAuthenticatorAddress) {
-    throw new ConfigError('Password authenticator address is required', 'passwordAuthenticatorAddress');
-  }
+  requireConfigAddress(
+    passwordAuthenticatorAddress,
+    'passwordAuthenticatorAddress',
+    'Password authenticator address is required'
+  );
 
   return new Contract(passwordAuthenticatorAddress, PASSWORD_AUTHENTICATOR_ABI, signerOrProvider);
 }

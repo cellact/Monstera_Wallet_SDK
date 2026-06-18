@@ -11,41 +11,12 @@
  */
 
 import { ConfigError, ValidationError } from '../../errors/index.js';
-import { isAddress, isPlainObject, requireArray, requireString, requireChainId } from '../assert.js';
-
-/**
- * @param {unknown} value
- * @param {string} name
- * @param {string} message
- */
-function requireConfigString(value, name, message) {
-  try {
-    requireString(value, name);
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      throw new ConfigError(message, name);
-    }
-    throw error;
-  }
-}
-
-/**
- * @param {unknown} value
- * @param {string} name
- * @param {{ missing: string, invalid: string }} messages
- */
-function requireConfigChainId(value, name, messages) {
-  try {
-    requireChainId(value, name);
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      const message =
-        value === undefined || value === null ? messages.missing : messages.invalid;
-      throw new ConfigError(message, name);
-    }
-    throw error;
-  }
-}
+import { isAddress, requireArray } from '../assert.js';
+import {
+  requireConfigChainId,
+  requireConfigPlainObject,
+  requireConfigString
+} from './configAssert.js';
 
 /**
  * Ordered list of contract address keys that must resolve before the SDK can be used.
@@ -112,18 +83,14 @@ function validateContractAddresses(addresses, required) {
  * @throws {ValidationError} Forwarded from {@link validateContractAddresses} on bad address format
  */
 function assertValidResolvedConfig(config) {
-  if (!isPlainObject(config)) {
-    throw new ConfigError('SDK configuration is required', 'config');
-  }
+  requireConfigPlainObject(config, 'config', 'SDK configuration is required');
   requireConfigString(config.rpcUrl, 'rpcUrl', 'RPC URL is required');
   requireConfigChainId(config.chainId, 'chainId', {
     missing: 'chainId is required',
     invalid: 'chainId must be a valid chain id'
   });
   requireConfigString(config.network, 'network', 'network is required');
-  if (!isPlainObject(config.addresses)) {
-    throw new ConfigError('contract addresses are required', 'addresses');
-  }
+  requireConfigPlainObject(config.addresses, 'addresses', 'contract addresses are required');
   validateContractAddresses(config.addresses, REQUIRED_CONTRACT_ADDRESS_KEYS);
 }
 

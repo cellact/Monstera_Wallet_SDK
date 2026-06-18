@@ -28,7 +28,7 @@ import {
   hashAuthorization as etherHashAuthorizationTuple,
   verifyAuthorization as etherVerifyAuthorizationTuple
 } from '../../adapters/ethers/signing.js';
-import { requireAddress, requireBigInt, requireNonNegativeInteger, requireNonEmptyBytes, requireNonEmptyObject } from '../assert.js';
+import { requireAddress, requireBigInt, requireNonNegativeInteger, requireNonEmptyBytes, requireNonEmptyObject, requireProviderMethod } from '../assert.js';
 import { ValidationError } from '../../errors/index.js';
 
 /**
@@ -129,9 +129,7 @@ function verifyAuthorization(auth, signature) {
  * @throws {NetworkError} Forwarded from the provider's network read on transport failures
  */
 async function fetchAuthorizationChainId(provider) {
-  if (!provider || typeof provider.getNetwork !== 'function') {
-    throw new ValidationError('provider must expose getNetwork()', 'provider', provider);
-  }
+  requireProviderMethod(provider, 'getNetwork', 'provider');
   const net = await provider.getNetwork();
   return BigInt(net.chainId);
 }
@@ -152,9 +150,7 @@ async function fetchAuthorizationChainId(provider) {
  * @throws {NetworkError} Forwarded from the provider's transaction-count read on transport failures
  */
 async function fetchAuthorizationNonce(provider, authorityAddress) {
-  if (!provider || typeof provider.getTransactionCount !== 'function') {
-    throw new ValidationError('provider must expose getTransactionCount()', 'provider', provider);
-  }
+  requireProviderMethod(provider, 'getTransactionCount', 'provider');
   requireAddress(authorityAddress, 'authorityAddress');
   const count = await provider.getTransactionCount(authorityAddress);
   return BigInt(count);

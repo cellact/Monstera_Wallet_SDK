@@ -19,8 +19,7 @@
 import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
 import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
 import { getKeyVaultContract } from '../../../contracts/core/keyVault.js';
-import { requireAddress, requireBytes32, requireBytes4, requireChainId, requirePlainObject } from '../../assert.js';
-import { ValidationError } from '../../../errors/index.js';
+import { requireAddress, requireBytes32, requireBytes4, requireChainId, requirePlainObject, requireProviderMethod } from '../../assert.js';
 import { getSelector } from '../../vault/getSelector.js';
 
 /** @type {Bytes32} */
@@ -186,13 +185,9 @@ async function computeAuthenticatorActionHash({
 
   let resolvedChainId = chainId;
   if (resolvedChainId == null) {
-    if (!readProvider || typeof readProvider.getNetwork !== 'function') {
-      throw new ValidationError(
-        'chainId or readProvider with getNetwork is required',
-        'chainId',
-        chainId
-      );
-    }
+    requireProviderMethod(readProvider, 'getNetwork', 'chainId', {
+      message: 'chainId or readProvider with getNetwork is required'
+    });
     const network = await readProvider.getNetwork();
     resolvedChainId = network.chainId;
   } else {

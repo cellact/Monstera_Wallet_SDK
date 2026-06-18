@@ -15,7 +15,8 @@
  * @module events/decodeReceipt
  */
 
-import { ValidationError, EventParseError } from '../errors/index.js';
+import { EventParseError } from '../errors/index.js';
+import { requireDefined, requirePlainObject, requireString } from '../internal/assert.js';
 import log from '../internal/logger.js';
 import { sanitizer } from '../internal/sanitization/index.js';
 
@@ -98,13 +99,9 @@ function parseEvent(receipt, contract, eventName, fieldMapping) {
  *   (forwarded from {@link parseEvent})
  */
 function parseEventFromReceipt(eventDef, receipt, contract) {
-  if (!eventDef || !eventDef.eventName || !eventDef.fieldMapping) {
-    throw new ValidationError(
-      'Invalid event definition. Must have eventName and fieldMapping properties.',
-      'eventDef',
-      eventDef
-    );
-  }
+  requireDefined(eventDef, 'eventDef');
+  requireString(eventDef.eventName, 'eventDef.eventName');
+  requirePlainObject(eventDef.fieldMapping, 'eventDef.fieldMapping');
 
   return parseEvent(receipt, contract, eventDef.eventName, eventDef.fieldMapping);
 }

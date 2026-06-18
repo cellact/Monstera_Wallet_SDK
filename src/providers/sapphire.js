@@ -18,9 +18,10 @@
  * @module providers/sapphire
  */
 
-import { ConfigError, SapphireRequiredError, ValidationError } from '../errors/index.js';
+import { SapphireRequiredError, ValidationError } from '../errors/index.js';
 import { Wallet } from '../adapters/ethers/index.js';
 import { createProvider } from '../adapters/ethers/provider.js';
+import { requireConfigString } from '../internal/validators/configAssert.js';
 import { wrapEthersSigner } from '@oasisprotocol/sapphire-ethers-v6';
 import log from '../internal/logger.js';
 
@@ -76,9 +77,11 @@ function createWriteSigner(providedSigner, rpcUrl, role) {
   let signer;
   
   if (typeof providedSigner === 'string') {
-    if (!rpcUrl) {
-      throw new ConfigError('RPC URL is required when providing private key as string', 'rpcUrl');
-    }
+    requireConfigString(
+      rpcUrl,
+      'rpcUrl',
+      'RPC URL is required when providing private key as string'
+    );
     const provider = createProvider(rpcUrl, role);
     signer = new Wallet(providedSigner, provider);
   } 

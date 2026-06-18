@@ -25,6 +25,7 @@ import {
   isInFuture,
   isPlainObject,
   requireDefined,
+  requireProviderMethod,
   requirePlainObject,
   requireNonEmptyObject
 } from '../../../src/internal/assert.js';
@@ -626,6 +627,30 @@ describe('Assert Utilities', () => {
         test('throws for nullish values', () => {
             expect(() => requireDefined(undefined, 'authConfig')).toThrow('authConfig is required');
             expect(() => requireDefined(null, 'authConfig')).toThrow('authConfig is required');
+        });
+    });
+
+    describe('requireProviderMethod', () => {
+        test('does not throw when provider exposes the method', () => {
+            const provider = { getBlock: async () => {} };
+            expect(() => requireProviderMethod(provider, 'getBlock', 'provider')).not.toThrow();
+        });
+
+        test('throws when provider is missing or method is absent', () => {
+            expect(() => requireProviderMethod(null, 'getBlock', 'provider')).toThrow(
+                'provider must expose getBlock()'
+            );
+            expect(() => requireProviderMethod({}, 'getNetwork', 'provider')).toThrow(
+                'provider must expose getNetwork()'
+            );
+        });
+
+        test('supports custom error messages', () => {
+            expect(() =>
+                requireProviderMethod(null, 'getNetwork', 'chainId', {
+                    message: 'chainId or readProvider with getNetwork is required'
+                })
+            ).toThrow('chainId or readProvider with getNetwork is required');
         });
     });
 

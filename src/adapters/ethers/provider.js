@@ -11,8 +11,8 @@
  */
 
 import { JsonRpcProvider } from 'ethers';
-import { ConfigError } from '../../errors/index.js';
 import log from '../../internal/logger.js';
+import { requireConfigString } from '../../internal/validators/configAssert.js';
 
 /**
  * Redact an RPC URL down to {@code protocol://host} for safe logging.
@@ -51,9 +51,7 @@ function redactRpcUrl(url) {
  * @throws {ConfigError} If {@code rpcUrl} is empty/missing
  */
 function createProvider(rpcUrl, role) {
-  if (!rpcUrl) {
-    throw new ConfigError('RPC URL is required', 'rpcUrl');
-  }
+  requireConfigString(rpcUrl, 'rpcUrl', 'RPC URL is required');
 
   log.debug('createProvider', { rpcUrl: redactRpcUrl(rpcUrl), role });
 

@@ -19,9 +19,9 @@ import {
   requireWalletOrHdNode,
   requireChainId,
   requirePositiveInteger,
+  requireProviderMethod,
   isInFuture
 } from '../assert.js';
-import { ValidationError } from '../../errors/index.js';
 
 /**
  * Assert the inputs of {@link createAuthProofWalletSignature}.
@@ -64,9 +64,7 @@ export function assertWalletSignatureAuthProofOptions(options) {
 export function assertMinuteSignatureAuthProofOptions(options) {
   const { provider, keyVaultAddr, authenticatorAddr, chainId, passwordHash, actionHash } = options;
 
-  if (!provider || typeof provider.getBlock !== 'function') {
-    throw new ValidationError('provider must expose getBlock', 'provider', provider);
-  }
+  requireProviderMethod(provider, 'getBlock', 'provider');
   requireAddress(keyVaultAddr, 'keyVaultAddr');
   requireAddress(authenticatorAddr, 'authenticatorAddr');
   const normalizedChainId = requireChainId(chainId, 'chainId');
