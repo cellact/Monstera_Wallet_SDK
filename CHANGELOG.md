@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.3.0] - 2026-06-18
+
+### Added
+
+- **`AuthenticatorCallPipeline`**: Symmetric with **`VaultCallPipeline`** for authenticator management writes (`encodeAuthProof`, `invokeWithAuthProof`); **`Monstera`** auth write methods invoke **`this.auth.*`** through the pipeline.
+- **`withDefaultAccountIndex`** (`src/internal/vault/accountIndex.js`): Shared HD account index default (`0`) for vault auth encoding, **`signAuthorization`**, and account address reads.
+- **`CredentialsSession.resolveVaultOptions`**: Static session-merge helper used by both **`VaultCallPipeline`** and **`AuthenticatorCallPipeline`**.
+- **Assert / normalisation helpers**: **`normalizeMnemonic`**, **`requireNormalizedUsername`**, plain-object helpers (`isPlainObject`, `requirePlainObject`, `requireDefined`, `requireNonEmptyObject`), and **`configAssert`** / **`requireProviderMethod`** for config and provider duck-check sites.
+- **Tests**: Unit coverage for **`AuthenticatorCallPipeline`**, **`accountIndex`**, and extended credentials session / vault pipeline tests.
+
+### Changed
+
+- **Authenticator management orchestration**: Replaced **`AuthenticatorManagementOps`** with **`AuthenticatorCallPipeline`**; all authenticator write paths and explicit proof builders route through **`encodeAuthProof`** / **`invokeWithAuthProof`** on **`Monstera`**.
+- **`resolveVaultOptions`**: Consolidated on **`CredentialsSession`**; **`VaultCallPipeline.resolveVaultOptions`** is a thin delegate.
+- **Account index defaulting**: Centralized via **`withDefaultAccountIndex`** instead of per-method **`defaultIndex`** flags on session resolution.
+- **Validation boundaries**: Connect, auth, and config validators wired through shared assert helpers; factory and credentials session share **`requireNormalizedUsername`** rules.
+
+### Removed
+
+- **`AuthenticatorManagementOps`** and **`src/internal/auth/management/`**.
+
+### Fixed
+
+- **`AuthenticatorCallPipeline`**: Caller-supplied **`authenticatorAddr`** is preserved before config overrides or flow defaults (invalid addresses reach validation instead of being silently replaced).
+- **`signAuthorization`**: Resolves **`keyVaultAddr`** from the credentials session when omitted, matching other vault operations.
+
 ## [2.2.0] - 2026-06-18
 
 ### Added

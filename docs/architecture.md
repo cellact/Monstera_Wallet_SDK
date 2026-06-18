@@ -14,7 +14,7 @@ The SDK is organized into modular components:
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Error types, unified **`pipeline.js`** translator chain (`translators/`), and stable codes
-- **`internal/`**: Logger, version check, validation (`assert`), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth encoding (`auth/`: **`AuthProofPipeline`**, per-authenticator specs in **`authenticators/`**, **`VaultCallPipeline`** + **`AuthenticatorCallPipeline`** + **`CredentialsSession`**, **`EncodeAuthConfig`**, **`createAuthProof.js`**, **`bindProofToAction.js`**, action context in **`context/createAuthContext.js`** and **`context/actions/`**, vault action builders in **`vault/actions/`**), checksum registry helper (`auth/shared/registryByChecksumAddress.js`), validators (`validators/`), wallet crypto helpers (`crypto/` barrel: `mnemonic.js`, `authorization.js`; **`vault/signAuthorization.js`** is used by `Monstera` but not re-exported from the barrel), username normalisation (`utils/normalize.js`) — **not** a public package export
+- **`internal/`**: Logger, version check, validation (`assert`), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth encoding (`auth/`: **`AuthProofPipeline`**, per-authenticator specs in **`authenticators/`**, **`VaultCallPipeline`** + **`AuthenticatorCallPipeline`** + **`CredentialsSession`**, **`EncodeAuthConfig`**, **`createAuthProof.js`**, **`bindProofToAction.js`**, action context in **`context/createAuthContext.js`** and **`context/actions/`**, vault action builders in **`vault/actions/`**, **`vault/accountIndex.js`**, **`vault/signAuthorization.js`**), checksum registry helper (`auth/shared/registryByChecksumAddress.js`), validators (`validators/`), wallet crypto helpers (`crypto/` barrel: `mnemonic.js`, `authorization.js`), username normalisation (`utils/normalize.js`) — **not** a public package export
 - **`sdk/`**: Main SDK class (`Monstera`) and `MonsteraUtils` (version-check only)
 - **`types/`**: Shared JSDoc type definitions
 - **`bin/`**: CLI tool (monstera command)
@@ -47,7 +47,7 @@ src/             # Source code
   clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor, passwordMinuteSignature)
   events/        # Event definitions and receipt parsing
   errors/        # Error types (single source of truth for error exports)
-  internal/      # logger, sanitization/, versionCheck, assert, auth/ (AuthProofPipeline, authenticators/, session/, proof/, context/, management/), vault/ (actions/, signAuthorization.js), validators/, crypto/, utils/
+  internal/      # logger, sanitization/, versionCheck, assert, auth/ (AuthProofPipeline, authenticators/, session/, proof/, context/), vault/ (actions/, accountIndex.js, signAuthorization.js), validators/, crypto/, utils/
   sdk/           # Monstera, MonsteraUtils
   types/         # Shared JSDoc types
 bin/             # CLI (monstera command)

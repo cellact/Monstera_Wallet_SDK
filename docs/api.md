@@ -154,7 +154,7 @@ KeyVaultV3 binds every auth proof to the **specific operation** being authorized
 
 ### High-level KeyVault calls (recommended)
 
-For `signMessage`, `sign`, `signTransaction`, `importKey`, upgrades, and similar **`Monstera`** methods, pass a **structured** `authProof` object when you need to override session defaults, or omit it when connected with **`credentials`** and the vault uses password or password-minute-signature auth. The SDK discovers the on-chain authenticator, merges session input, builds the action context, and encodes proof bytes automatically:
+For `signMessage`, `sign`, `signTransaction`, `signAuthorization`, `importKey`, upgrades, and similar **`Monstera`** methods, pass a **structured** `authProof` object when you need to override session defaults, or omit it when connected with **`credentials`** and the vault uses password or password-minute-signature auth. The SDK discovers the on-chain authenticator, merges session input, builds the action context, and encodes proof bytes automatically:
 
 ```javascript
 import { toUtf8Bytes } from 'ethers';
@@ -290,7 +290,7 @@ await sdk.getAccountAddresses({ keyVaultAddr, fromIndex, count });
 await sdk.signTransaction({ keyVaultAddr, authProof, index, nonce, gasPrice, gasLimit, to, value, txData, chainId });
 await sdk.signMessage({ keyVaultAddr, authProof, index, message });
 await sdk.sign({ keyVaultAddr, authProof, index, hash });
-await sdk.signAuthorization({ keyVaultAddr, authProof, delegateAddr, index, chainId, nonce, provider });
+await sdk.signAuthorization({ delegateAddr, index, chainId, nonce, provider }); // keyVaultAddr + authProof optional with credentials
 await sdk.signSolana({ keyVaultAddr, authProof, index, message });
 await sdk.getSolanaAddr({ keyVaultAddr, index });
 await sdk.importKey({ keyVaultAddr, authProof, keyId, privateKey, curve, chain, label });

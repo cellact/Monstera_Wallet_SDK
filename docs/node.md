@@ -53,7 +53,7 @@ const fullSdk = Monstera.connect({
 
 ### Action-bound auth proofs (2.0+)
 
-KeyVaultV3 requires proofs bound to the operation being performed. With **`credentials`**, you can omit `keyVaultAddr` and often omit `authProof` on password-based vaults — the SDK resolves the vault from `credentials` and encodes the proof from the session (password or password-minute-signature authenticators):
+KeyVaultV3 requires proofs bound to the operation being performed. With **`credentials`**, you can omit `keyVaultAddr` and often omit `authProof` on password-based vaults — the SDK resolves the vault from `credentials` and encodes the proof from the session (password or password-minute-signature authenticators). This applies to signing methods (`signMessage`, `sign`, `signTransaction`, `signAuthorization`, etc.) and other authenticated vault calls:
 
 ```javascript
 import { toUtf8Bytes } from 'ethers';

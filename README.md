@@ -22,6 +22,7 @@ Your backend never sees private keys and never has to handle raw key material.
 - The user authenticates once (password, wallet signature, dual-factor, etc.).  
   Authentication is attached to the wallet, **not** to individual accounts.
 - When you call `sign*` from the SDK (including `signAuthorization` for EIP-7702-style delegations):
+  - With `credentials`, `keyVaultAddr` is resolved from the session; you may omit it on vault calls.
   - You send a structured `authProof` (e.g. `{ password: Uint8Array }`) or omit it when connected with `credentials` on password-based vaults.
   - The SDK binds the proof to that operation (selector + params hash) before the vault verifies it.
   - The wallet’s authenticator checks the proof for that action.
