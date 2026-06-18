@@ -25,7 +25,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getPasswordAuthenticatorContract } from '../../contracts/authenticators/PasswordAuthenticator.js';
 import { PasswordAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes32, requireNonEmptyBytes, requireObject } from '../../internal/assert.js';
+import { requireAddress, requireBytes32, requireNonEmptyBytes, requireNonEmptyObject } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -97,7 +97,7 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, authProof, action } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
-    requireObject(action, 'action');
+    requireNonEmptyObject(action, 'action');
     log.info('PasswordAuthenticator: verify');
     log.debug('Verifying password for keyVault', sanitizer.forLog(options));
 

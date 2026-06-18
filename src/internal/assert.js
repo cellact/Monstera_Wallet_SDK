@@ -449,24 +449,70 @@ function requireBoolean(value, name = 'boolean') {
 }
 
 /**
- * Assert that {@code value} is a non-null object with at least one own enumerable key.
- *
- * @description Plain objects and arrays both count as objects; empty {@code {}} or empty
- * {@code []} throws.
+ * Predicate: is {@code value} a plain object (not {@code null}, not an array)?
  *
  * @public
- * @param {object} value - Value to validate
+ * @param {unknown} value - Candidate value
+ * @returns {boolean}
+ */
+function isPlainObject(value) {
+  return value != null && typeof value === 'object' && !Array.isArray(value);
+}
+
+/**
+ * Assert that {@code value} is defined (not {@code null} or {@code undefined}).
+ *
+ * @public
+ * @param {unknown} value - Value to validate
+ * @param {string} [name='value'] - Parameter name
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is {@code null} or {@code undefined}
+ */
+function requireDefined(value, name = 'value') {
+  if (value === undefined || value === null) {
+    throw new ValidationError(`${name} is required`, name, value);
+  }
+}
+
+/**
+ * Assert that {@code value} is a plain object ({@code {}}, not an array).
+ *
+ * @public
+ * @param {unknown} value - Value to validate
+ * @param {string} [name='object'] - Parameter name
+ * @param {{ requireNonEmpty?: boolean, message?: string }} [options={}] - When
+ *   {@code requireNonEmpty} is {@code true}, empty {@code {}} throws
+ * @returns {void}
+ * @throws {ValidationError} If {@code value} is missing, not a plain object, or empty when
+ *   {@code requireNonEmpty} is set
+ */
+function requirePlainObject(value, name = 'object', options = {}) {
+  const { requireNonEmpty = false, message } = options;
+
+  if (!isPlainObject(value)) {
+    throw new ValidationError(
+      message ?? `${name} is required and must be a plain object`,
+      name,
+      value
+    );
+  }
+
+  if (requireNonEmpty && Object.keys(value).length === 0) {
+    throw new ValidationError(`${name} must be a non-empty plain object`, name, value);
+  }
+}
+
+/**
+ * Assert that {@code value} is a non-empty plain object (at least one own key, not an array).
+ *
+ * @public
+ * @param {unknown} value - Value to validate
  * @param {string} [name='object'] - Parameter name
  * @returns {void}
- * @throws {ValidationError} If {@code value} is missing, not an object, or has no own keys
+ * @throws {ValidationError} Forwarded from {@link requirePlainObject}
  */
-function requireObject(value, name = 'object') {
-  if (!value || typeof value !== 'object') {
-    throw new ValidationError(`${name} is required and must be an object`, name, value);
-  }
-  if (Object.keys(value).length === 0) {
-    throw new ValidationError(`${name} must be a non-empty object`, name, value);
-  }
+function requireNonEmptyObject(value, name = 'object') {
+  requirePlainObject(value, name, { requireNonEmpty: true });
 }
 
 /**
@@ -488,6 +534,7 @@ function requireBytes4(value, name = 'bytes4') {
 
 export {
   isAddress,
+  isPlainObject,
   requireAddress,
   requireBytes,
   requireNonEmptyBytes,
@@ -506,6 +553,8 @@ export {
   isInFuture,
   requireBoolean,
   requireUtf8Bytes,
-  requireObject,
+  requireDefined,
+  requirePlainObject,
+  requireNonEmptyObject,
   requireBytes4
 };

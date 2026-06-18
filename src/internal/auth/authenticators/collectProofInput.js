@@ -5,14 +5,7 @@
  */
 
 import { keccak256 } from '../../../adapters/ethers/hashing.js';
-
-/**
- * @param {unknown} value
- * @returns {value is Record<string, unknown>}
- */
-function isStructuredAuthProof(value) {
-  return value != null && typeof value === 'object' && !Array.isArray(value);
-}
+import { isPlainObject } from '../../assert.js';
 
 /**
  * Resolve password hash from explicit hash, UTF-8 password bytes, or top-level options.
@@ -44,7 +37,7 @@ function resolvePasswordHash(partial, options) {
  * @returns {Record<string, unknown>}
  */
 export function collectProofInput(spec, options) {
-  const partial = isStructuredAuthProof(options.authProof) ? options.authProof : {};
+  const partial = isPlainObject(options.authProof) ? options.authProof : {};
 
   switch (spec.flowId) {
     case 'password':

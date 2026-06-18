@@ -4,8 +4,7 @@
  * @module internal/validators/connectOptions
  */
 
-import { ValidationError } from '../../errors/index.js';
-import { requireNormalizedUsername } from '../assert.js';
+import { requireNormalizedUsername, requirePlainObject, requireString } from '../assert.js';
 
 /**
  * @typedef {Object} ConnectCredentialsInput
@@ -26,25 +25,15 @@ export function parseConnectCredentials(credentials) {
     return null;
   }
 
-  if (typeof credentials !== 'object' || Array.isArray(credentials)) {
-    throw new ValidationError(
-      'credentials must be a plain object with username and password',
-      'credentials',
-      credentials
-    );
-  }
+  requirePlainObject(credentials, 'credentials', {
+    message: 'credentials must be a plain object with username and password'
+  });
 
-  const { username, password } = /** @type {Record<string, unknown>} */ (credentials);
+  const { username, password } = credentials;
 
   const normalizedUsername = requireNormalizedUsername(username, 'credentials.username');
 
-  if (typeof password !== 'string' || password.length === 0) {
-    throw new ValidationError(
-      'credentials.password must be a non-empty string',
-      'credentials.password',
-      undefined
-    );
-  }
+  requireString(password, 'credentials.password');
 
   return { username: normalizedUsername, password };
 }

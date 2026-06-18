@@ -4,7 +4,7 @@
  * @module internal/utils/time
  */
 
-import { ValidationError } from '../../errors/index.js';
+import { requireNonNegativeInteger } from '../assert.js';
 
 /**
  * Current Unix timestamp in whole seconds, taken from the local clock.
@@ -28,18 +28,7 @@ function nowUnixTimestampSeconds() {
  * @throws {ValidationError} If {@code timestampSeconds} is not a finite non-negative integer
  */
 function floorTimestampToMinuteBucket(timestampSeconds) {
-  if (
-    typeof timestampSeconds !== 'number' ||
-    !Number.isFinite(timestampSeconds) ||
-    !Number.isInteger(timestampSeconds) ||
-    timestampSeconds < 0
-  ) {
-    throw new ValidationError(
-      'timestampSeconds must be a finite non-negative integer',
-      'timestampSeconds',
-      timestampSeconds
-    );
-  }
+  requireNonNegativeInteger(timestampSeconds, 'timestampSeconds');
   return Math.floor(timestampSeconds / 60) * 60;
 }
 

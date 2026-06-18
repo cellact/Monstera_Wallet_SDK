@@ -28,7 +28,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletSignatureAuthenticatorContract } from '../../contracts/authenticators/WalletSignatureAuthenticator.js';
 import { WalletSignatureAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireNonEmptyBytes, requireObject } from '../../internal/assert.js';
+import { requireAddress, requireNonEmptyBytes, requireNonEmptyObject } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -181,7 +181,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, authProof, action } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
-    requireObject(action, 'action');
+    requireNonEmptyObject(action, 'action');
     log.info('WalletSignatureAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 

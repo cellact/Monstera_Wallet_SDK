@@ -19,7 +19,7 @@
 import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
 import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
 import { getKeyVaultContract } from '../../../contracts/core/keyVault.js';
-import { requireAddress, requireBytes32, requireBytes4, requireChainId } from '../../assert.js';
+import { requireAddress, requireBytes32, requireBytes4, requireChainId, requirePlainObject } from '../../assert.js';
 import { ValidationError } from '../../../errors/index.js';
 import { getSelector } from '../../vault/getSelector.js';
 
@@ -46,10 +46,7 @@ function computeParamsHash(types, values) {
  * @throws {ValidationError}
  */
 function assertAuthActionInput(action) {
-  if (!action || typeof action !== 'object' || Array.isArray(action)) {
-    throw new ValidationError('action is required', 'action', action);
-  }
-
+  requirePlainObject(action, 'action', { message: 'action is required' });
   requireBytes32(action.paramsHash, 'action.paramsHash');
   requireBytes4(action.selector, 'action.selector');
 

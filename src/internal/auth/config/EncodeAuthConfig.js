@@ -20,7 +20,7 @@
  */
 
 import log from '../../logger.js';
-import { requireAddress } from '../../assert.js';
+import { requireAddress, requireDefined, requirePlainObject } from '../../assert.js';
 import { ValidationError } from '../../../errors/index.js';
 import { createCreateWalletAuthEncoderRegistry } from './registry.js';
 
@@ -65,21 +65,16 @@ export class EncodeAuthConfig {
   encode(options) {
     const { authConfig: authInput, ...rest } = options;
 
-    if (authInput === undefined || authInput === null) {
-      throw new ValidationError('authConfig is required', 'authConfig', authInput);
-    }
+    requireDefined(authInput, 'authConfig');
 
     if (typeof authInput === 'string') {
       return { ...options };
     }
 
-    if (typeof authInput !== 'object' || Array.isArray(authInput)) {
-      throw new ValidationError(
-        'authConfig must be a hex-encoded bytes string or a plain object with per-authenticator fields',
-        'authConfig',
-        authInput
-      );
-    }
+    requirePlainObject(authInput, 'authConfig', {
+      message:
+        'authConfig must be a hex-encoded bytes string or a plain object with per-authenticator fields'
+    });
 
     const authenticatorAddr =
       options.authenticatorAddr ?? this._ctx.addresses.passwordAuth;

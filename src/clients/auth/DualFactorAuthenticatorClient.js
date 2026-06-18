@@ -27,7 +27,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getDualFactorAuthenticatorContract } from '../../contracts/authenticators/DualFactorAuthenticator.js';
 import { DualFactorAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireNonEmptyBytes, requireBytes32, requireObject } from '../../internal/assert.js';
+import { requireAddress, requireNonEmptyBytes, requireBytes32, requireNonEmptyObject } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -103,7 +103,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, authProof, action } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
-    requireObject(action, 'action');
+    requireNonEmptyObject(action, 'action');
     log.info('DualFactorAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 

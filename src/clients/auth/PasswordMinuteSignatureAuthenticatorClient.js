@@ -25,7 +25,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getPasswordMinuteSignatureAuthenticatorContract } from '../../contracts/authenticators/PasswordMinuteSignatureAuthenticator.js';
 import { PasswordMinuteSignatureAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes32, requireNonEmptyBytes, requireObject } from '../../internal/assert.js';
+import { requireAddress, requireBytes32, requireNonEmptyBytes, requireNonEmptyObject } from '../../internal/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 
@@ -101,7 +101,7 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, authProof, action } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
-    requireObject(action, 'action');
+    requireNonEmptyObject(action, 'action');
     log.info('PasswordMinuteSignatureAuthenticator: verify');
     log.debug('Verifying minute signature for keyVault', sanitizer.forLog(options));
 

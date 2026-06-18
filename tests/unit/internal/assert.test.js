@@ -23,7 +23,10 @@ import {
   requireChainId,
   requireBigInt,
   isInFuture,
-  requireObject
+  isPlainObject,
+  requireDefined,
+  requirePlainObject,
+  requireNonEmptyObject
 } from '../../../src/internal/assert.js';
 import { normalizeBigInt, normalizeChainId, normalizeMnemonic } from '../../../src/internal/utils/normalize.js';
 import { HDNodeWallet, Mnemonic, Wallet } from '../../../src/adapters/ethers/index.js';
@@ -601,17 +604,70 @@ describe('Assert Utilities', () => {
         });
     });
 
-    describe('requireObject (non-empty)', () => {
+    describe('isPlainObject', () => {
+        test('returns true for plain objects', () => {
+            expect(isPlainObject({})).toBe(true);
+            expect(isPlainObject({ a: 1 })).toBe(true);
+        });
+
+        test('returns false for null, arrays, and primitives', () => {
+            expect(isPlainObject(null)).toBe(false);
+            expect(isPlainObject([])).toBe(false);
+            expect(isPlainObject('x')).toBe(false);
+        });
+    });
+
+    describe('requireDefined', () => {
+        test('does not throw for defined values', () => {
+            expect(() => requireDefined(0, 'value')).not.toThrow();
+            expect(() => requireDefined('', 'value')).not.toThrow();
+        });
+
+        test('throws for nullish values', () => {
+            expect(() => requireDefined(undefined, 'authConfig')).toThrow('authConfig is required');
+            expect(() => requireDefined(null, 'authConfig')).toThrow('authConfig is required');
+        });
+    });
+
+    describe('requirePlainObject', () => {
+        test('allows empty plain objects by default', () => {
+            expect(() => requirePlainObject({}, 'opts')).not.toThrow();
+        });
+
+        test('throws for null, arrays, and primitives', () => {
+            expect(() => requirePlainObject(null, 'data')).toThrow(
+                'data is required and must be a plain object'
+            );
+            expect(() => requirePlainObject([], 'data')).toThrow(
+                'data is required and must be a plain object'
+            );
+        });
+
+        test('supports custom error messages', () => {
+            expect(() => requirePlainObject([], 'action', { message: 'action is required' })).toThrow(
+                'action is required'
+            );
+        });
+    });
+
+    describe('requireNonEmptyObject', () => {
         test('does not throw for object with keys', () => {
-            expect(() => requireObject({ a: 1 }, 'opts')).not.toThrow();
+            expect(() => requireNonEmptyObject({ a: 1 }, 'opts')).not.toThrow();
         });
 
         test('throws for empty object', () => {
-            expect(() => requireObject({}, 'data')).toThrow('data must be a non-empty object');
+            expect(() => requireNonEmptyObject({}, 'data')).toThrow(
+                'data must be a non-empty plain object'
+            );
         });
 
-        test('throws for null', () => {
-            expect(() => requireObject(null, 'data')).toThrow('data is required and must be an object');
+        test('throws for null and arrays', () => {
+            expect(() => requireNonEmptyObject(null, 'data')).toThrow(
+                'data is required and must be a plain object'
+            );
+            expect(() => requireNonEmptyObject([1], 'data')).toThrow(
+                'data is required and must be a plain object'
+            );
         });
     });
 

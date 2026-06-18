@@ -28,7 +28,7 @@ import {
   hashAuthorization as etherHashAuthorizationTuple,
   verifyAuthorization as etherVerifyAuthorizationTuple
 } from '../../adapters/ethers/signing.js';
-import { requireAddress, requireNonNegativeInteger, requireNonEmptyBytes, requireObject } from '../assert.js';
+import { requireAddress, requireBigInt, requireNonNegativeInteger, requireNonEmptyBytes, requireNonEmptyObject } from '../assert.js';
 import { ValidationError } from '../../errors/index.js';
 
 /**
@@ -75,10 +75,10 @@ const UINT32_MAX = (1n << 32n) - 1n;
  * @returns {AuthorizationTupleInput} Normalised tuple ({@code chainId} / {@code nonce} as
  *   {@code bigint}, {@code address} checksummed)
  * @throws {ValidationError} If {@code auth} is not an object, or the address fails validation
- *   (raised by {@link requireObject} / {@link requireAddress})
+ *   (raised by {@link requireNonEmptyObject} / {@link requireAddress})
  */
 function normalizeAuthorizationTuple(auth) {
-  requireObject(auth, 'auth');
+  requireNonEmptyObject(auth, 'auth');
   const rawAddr = auth.address ?? auth.delegateAddr;
   requireAddress(rawAddr, 'address');
   const address = getAddress(rawAddr);
@@ -191,10 +191,7 @@ function createImplCall(options = {}) {
     throw new ValidationError('nonce must fit uint64', 'nonce', nonce);
   }
 
-  const chainBn = BigInt(chainId);
-  if (chainBn < 0n) {
-    throw new ValidationError('chainId must be non-negative', 'chainId', chainId);
-  }
+  const chainBn = requireBigInt(chainId, 'chainId', { allowNegative: false });
 
   return signAuthorizationImplInterface.encodeFunctionData('signAuthorizationImpl', [
     ZeroHash,

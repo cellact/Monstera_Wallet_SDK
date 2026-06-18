@@ -19,7 +19,7 @@
  * @module internal/auth/proof/AuthProofPipeline
  */
 
-import { requireAddress } from '../../assert.js';
+import { requireAddress, requirePlainObject } from '../../assert.js';
 import { ValidationError } from '../../../errors/index.js';
 import log from '../../logger.js';
 import {
@@ -195,12 +195,11 @@ export class AuthProofPipeline {
       return /** @type {EncodeAuthProofOptionsResult} */ (resolved);
     }
 
-    if (authProof != null && (typeof authProof !== 'object' || Array.isArray(authProof))) {
-      throw new ValidationError(
-        'authProof must be a hex string, Uint8Array, or a plain object for built-in authenticators',
-        'authProof',
-        authProof
-      );
+    if (authProof != null && !isPreEncodedAuthProof(authProof)) {
+      requirePlainObject(authProof, 'authProof', {
+        message:
+          'authProof must be a hex string, Uint8Array, or a plain object for built-in authenticators'
+      });
     }
 
     const { authenticatorAddr, spec } = await this.resolveByKeyVault(
@@ -316,13 +315,10 @@ export class AuthProofPipeline {
       return options;
     }
 
-    if (typeof authProof !== 'object' || Array.isArray(authProof)) {
-      throw new ValidationError(
-        'authProof must be a hex string, Uint8Array, or a plain object for built-in authenticators',
-        'authProof',
-        authProof
-      );
-    }
+    requirePlainObject(authProof, 'authProof', {
+      message:
+        'authProof must be a hex string, Uint8Array, or a plain object for built-in authenticators'
+    });
 
     const { authenticatorAddr, spec } = await this.resolveByKeyVault(keyVaultAddr);
     const encoded = await this._encodeProofInput(

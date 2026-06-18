@@ -32,19 +32,19 @@ describe('internal/utils/time', () => {
 
     test('should throw for non-number and invalid inputs', () => {
       expect(() => floorTimestampToMinuteBucket(/** @type {any} */ ('180'))).toThrow(
-        'timestampSeconds must be a finite non-negative integer'
+        'timestampSeconds is required and must be a number or BigInt'
       );
       expect(() => floorTimestampToMinuteBucket(/** @type {any} */ (NaN))).toThrow(
-        'timestampSeconds must be a finite non-negative integer'
+        'timestampSeconds must be an integer'
       );
       expect(() => floorTimestampToMinuteBucket(/** @type {any} */ (Infinity))).toThrow(
-        'timestampSeconds must be a finite non-negative integer'
+        'timestampSeconds must be an integer'
       );
       expect(() => floorTimestampToMinuteBucket(12.5)).toThrow(
-        'timestampSeconds must be a finite non-negative integer'
+        'timestampSeconds must be an integer'
       );
       expect(() => floorTimestampToMinuteBucket(-1)).toThrow(
-        'timestampSeconds must be a finite non-negative integer'
+        'timestampSeconds must be non-negative'
       );
     });
   });

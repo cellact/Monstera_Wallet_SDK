@@ -417,5 +417,19 @@ describe('MonsteraConfig', () => {
                 assertValidResolvedConfig({ ...config, rpcUrl: '   ' })
             ).toThrow(ConfigError);
         });
+
+        test('throws ConfigError when chainId is missing', () => {
+            const config = MonsteraConfig.resolveBaseConfig({ mainnet: false });
+            expect(() =>
+                assertValidResolvedConfig({ ...config, chainId: undefined })
+            ).toThrow('chainId is required');
+        });
+
+        test('throws ConfigError when chainId is invalid', () => {
+            const config = MonsteraConfig.resolveBaseConfig({ mainnet: false });
+            expect(() =>
+                assertValidResolvedConfig({ ...config, chainId: 'not-a-chain-id' })
+            ).toThrow('chainId must be a valid chain id');
+        });
     });
 });
