@@ -14,6 +14,7 @@
  * @module clients/auth/AuthenticatorClient
  */
 
+import ApiKeySessionAuthenticatorClient from './ApiKeySessionAuthenticatorClient.js';
 import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
 import WalletSignatureAuthenticatorClient from './WalletSignatureAuthenticatorClient.js';
 import DualFactorAuthenticatorClient from './DualFactorAuthenticatorClient.js';
@@ -39,6 +40,7 @@ class AuthenticatorClient {
     this.writeSigner = writeSigner;
     this.config = config;
 
+    this.apiKeySession = new ApiKeySessionAuthenticatorClient(readProvider, writeSigner, config);
     this.walletSignature = new WalletSignatureAuthenticatorClient(readProvider, writeSigner, config);
     this.password = new PasswordAuthenticatorClient(readProvider, writeSigner, config);
     this.dualFactor = new DualFactorAuthenticatorClient(readProvider, writeSigner, config);
@@ -49,7 +51,7 @@ class AuthenticatorClient {
    * Resolve a registered authenticator client by string key.
    *
    * @public
-   * @param {string} type - Authenticator type ({@code 'walletSignature'}, {@code 'password'}, {@code 'dualFactor'}, {@code 'passwordMinuteSignature'})
+   * @param {string} type - Authenticator type ({@code 'walletSignature'}, {@code 'password'}, {@code 'dualFactor'}, {@code 'passwordMinuteSignature'}), etc.
    * @returns {AuthenticatorClientInstance} The matching client instance
    * @throws {ValidationError} If {@code type} is missing, not a string, or not a registered authenticator type
    */

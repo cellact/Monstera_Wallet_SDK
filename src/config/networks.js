@@ -60,6 +60,7 @@ const DEFAULT_ADDRESSES = {
     walletSignatureAuth: '0xF283b3A7FE88932968D9278e72A27A35CEBBf5eD',
     dualFactorAuth: '0xBfd22Afcbcf514e3e352372dDDF1526b0c3464D3',
     passwordMinuteSignatureAuth: '0xBb8b2343e34A26432F59ea8A7c857F003b5e3ccc',
+    apiKeySessionAuth: '0x65124D1C7d11e0D1Ff93828A6ba43D08f09Fd784',
   },
   mainnet: {
     factory: '0x19b90486eDbfdD765a2CBcd97aFCd4876A28C220',
@@ -67,6 +68,7 @@ const DEFAULT_ADDRESSES = {
     walletSignatureAuth: '0xC5AAFBC2e3D7D7674cE317AE0A02bF43f2eD2AA9',
     dualFactorAuth: '0xB82D5511e43723A377d6e1d9B52Ec31979e56c97',
     passwordMinuteSignatureAuth: '0x63B0A8E71a91a2Fc4116FAc57B76beAB82d559d3',
+    apiKeySessionAuth: '0x4cb14250Dbf288dEe12E6Fe0C5F1351E9D211347',
   }
 };
 

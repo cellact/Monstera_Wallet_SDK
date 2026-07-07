@@ -6,6 +6,7 @@
  * {@code { eventName, fieldMapping }} entries — one per ABI event the SDK actually consumes.
  *
  * Public surface:
+ * - {@link ApiKeySessionAuthenticatorEvents}
  * - {@link WalletFactoryEvents}
  * - {@link KeyVaultEvents}
  * - {@link WalletSignatureAuthenticatorEvents}
@@ -17,6 +18,7 @@
  * @module events
  */
 
+import ApiKeySessionAuthenticatorEvents from './apiKeySessionAuthenticator.js';
 import WalletSignatureAuthenticatorEvents from './walletSignatureAuthenticator.js';
 import WalletFactoryEvents from './walletFactory.js';
 import PasswordAuthenticatorEvents from './passwordAuthenticator.js';
@@ -26,6 +28,7 @@ import { parseEventFromReceipt } from './decodeReceipt.js';
 import PasswordMinuteSignatureAuthenticatorEvents from './passwordMinuteSignatureAuthenticator.js';
 
 export {
+  ApiKeySessionAuthenticatorEvents,
   WalletSignatureAuthenticatorEvents,
   WalletFactoryEvents,
   PasswordAuthenticatorEvents,
