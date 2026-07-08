@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`ApiKeySessionAuthenticator`**: Full SDK integration — client (`ApiKeySessionAuthenticatorClient`), contract ABI/wrapper, registry spec (`apiKeySession`), events, and network defaults (`addresses.apiKeySessionAuth` on Sapphire testnet/mainnet).
+- **Credentials session (`apiKey`)**: Connect with `{ username, apiKey }` where `apiKey` is a 32-byte hex string; session stores `apiKeySecret = keccak256(apiKey)` and injects it on vault calls via `applySessionInput` and explicit-flow `defaultApiKeySecret` flags. At least one of `password` or `apiKey` is required on connect.
+- **`Monstera` ApiKeySession API**: `configureApiKeySession`, `isApiKeySessionConfigured`, `isApiKeySessionValid`, `computeTokenMac`, `computeActionMac`, `buildTokenAuthProof`, `buildActionAuthProof`, `rotateApiKey`, `selectorBit`; static scope constants `API_KEY_SESSION_SCOPE_SIGN_ALL` and `API_KEY_SESSION_SCOPE_ALL`.
+- **On-chain proof orchestration**: ApiKeySession MAC computation and ABI encoding delegate to contract pure helpers (`computeTokenMac` / `computeActionMac`, `buildTokenAuthProof` / `buildActionAuthProof`) via `src/internal/auth/apiKeySession/onChainProof.js` — no duplicated off-chain MAC math.
+- **ACTION and TOKEN proof modes**: ACTION mode binds proofs to a vault operation (`action` / `actionHash`); TOKEN mode mints scoped bearer proofs (`expiry`, `scopeMask`) for reuse. Structured `authProof: { mode: 'token', scopeMask }` on vault calls (e.g. `signMessage`) is supported.
+- **Auth pipeline logging** (`pipelineLog.js`): Structured `info` / `debug` logs for vault vs explicit auth paths (encoder, flow, proof mode, proof byte length).
+- **Getting-started track**: `examples/nodejs/getting-started/username-and-apiKey/` (`01-create-wallet.js`, `02-use-wallet.js`) — wallet creation with ApiKeySession auth config, connect with username + API key, ACTION-mode signing without explicit `authProof`, and inline TOKEN-mode `signMessage`.
+- **Types**: `ConnectCredentials.apiKey`, ApiKeySession auth-config / proof / verify / rotate options, and `EncodedAuthProofApiKeySession`.
+- **Tests**: Extended `credentialsSession` coverage for API key session defaults.
+
+### Changed
+
+- **`AuthenticatorCallPipeline`**: Maps `apiKeySession` flow inputs (`mode`, `expiry`, `scopeMask`, `apiKeySecret`); debug logging on explicit encode.
+- **`VaultCallPipeline`**: Debug logging for pre-encoded vs built auth proofs on invoke.
+- **`AuthProofPipeline`**: Vault and explicit paths emit structured pipeline logs after proof encoding.
+- **`ExecutionPipeline`**: `Executing read` demoted from `info` to `debug` to reduce RPC noise during auth flows.
+- **`collectProofInput`**: Collects ApiKeySession structured proof fields (`mode`, `expiry`, `scopeMask`).
+
+
 ## [2.3.0] - 2026-06-18
 
 ### Added
