@@ -14,6 +14,7 @@
 import { CredentialsRequiredError } from '../../../errors/index.js';
 import { CredentialsSession } from './CredentialsSession.js';
 import { withDefaultAccountIndex } from '../../vault/accountIndex.js';
+import log from '../../logger.js';
 
 /**
  * Orchestrates credentials-session defaults and KeyVault auth-proof encoding.
@@ -99,7 +100,19 @@ export class VaultCallPipeline {
    * @returns {Promise<T>}
    */
   async invokeWithAuthProof(options, buildAction, invoke) {
+    const preEncoded =
+      options.authProof != null &&
+      (typeof options.authProof === 'string' || options.authProof instanceof Uint8Array);
+
+    log.debug('vault pipeline: invoke start', { preEncodedAuthProof: preEncoded });
+
     const encoded = await this.encodeAuthProof(options, buildAction);
+
+    log.debug('vault pipeline: invoke ready', {
+      keyVaultAddr: encoded.keyVaultAddr,
+      preEncodedAuthProof: preEncoded
+    });
+
     return invoke(encoded);
   }
 }

@@ -21,7 +21,6 @@
 
 import { requireAddress, requirePlainObject } from '../../assert.js';
 import { ValidationError } from '../../../errors/index.js';
-import log from '../../logger.js';
 import {
   assertAuthActionInput,
   buildAuthContext,
@@ -30,6 +29,12 @@ import {
 import { buildAuthenticatorVerifyProbeAction } from '../context/actions/authenticator/authenticatorProbe.js';
 import { collectProofInput } from '../authenticators/collectProofInput.js';
 import { createBuiltinAuthenticatorRegistry } from '../authenticators/registry.js';
+import {
+  logAuthProofEncoded,
+  logExplicitAuthPrepare,
+  logVaultAuthPreEncoded,
+  logVaultAuthResolved
+} from '../pipelineLog.js';
 
 /**
  * @param {unknown} authProof
@@ -164,13 +169,31 @@ export class AuthProofPipeline {
 
     const input = { ...withConfig, action, actionHash: resolvedActionHash };
 
-    log.info('encoding auth proof', { encoderId: spec.id, keyVaultAddr });
-
     if (spec.prepareProofResult) {
-      return spec.prepareProofResult(encodeCtx, input);
+      const result = await spec.prepareProofResult(encodeCtx, input);
+      logAuthProofEncoded({
+        encoderId: spec.id,
+        flowId: spec.flowId,
+        authenticatorAddr,
+        keyVaultAddr,
+        proofInput: input,
+        action,
+        authProof: typeof result === 'object' && result != null && 'authProof' in result ? result.authProof : result
+      });
+      return result;
     }
 
-    return spec.proofEncoder.encode(encodeCtx, input);
+    const authProof = await spec.proofEncoder.encode(encodeCtx, input);
+    logAuthProofEncoded({
+      encoderId: spec.id,
+      flowId: spec.flowId,
+      authenticatorAddr,
+      keyVaultAddr,
+      proofInput: input,
+      action,
+      authProof
+    });
+    return authProof;
   }
 
   /**
@@ -192,6 +215,7 @@ export class AuthProofPipeline {
     const { authProof, keyVaultAddr } = resolved;
 
     if (authProof != null && isPreEncodedAuthProof(authProof)) {
+      logVaultAuthPreEncoded({ keyVaultAddr: /** @type {Address} */ (keyVaultAddr) });
       return /** @type {EncodeAuthProofOptionsResult} */ (resolved);
     }
 
@@ -218,6 +242,14 @@ export class AuthProofPipeline {
         proofInput
       );
     }
+
+    logVaultAuthResolved({
+      encoderId: spec.id,
+      flowId: spec.flowId,
+      authenticatorAddr,
+      keyVaultAddr: /** @type {Address} */ (keyVaultAddr),
+      proofInput
+    });
 
     const encoded = await this._encodeProofInput(
       spec,
@@ -255,6 +287,14 @@ export class AuthProofPipeline {
   async prepare(flowId, options = {}, flowOptions = {}) {
     const { includeAuthContext = false } = flowOptions;
     const { authenticatorAddr, spec } = this.resolveByFlowId(flowId);
+
+    logExplicitAuthPrepare({
+      flowId,
+      encoderId: spec.id,
+      authenticatorAddr,
+      keyVaultAddr: /** @type {Address | undefined} */ (options.keyVaultAddr),
+      flowOptions
+    });
 
     const proofInput = collectProofInput(spec, options);
     spec.validatePrepareInput({ ...options, ...proofInput });

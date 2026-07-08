@@ -90,7 +90,7 @@ export default class ExecutionPipeline {
     const { methodName, revertInterface, ...rest } = context;
     const sdkContext = this.buildErrorContext({ ...rest, methodName });
 
-    log.info('Executing read', { methodName });
+    log.debug('Executing read', { methodName });
     try {
       return await operation();
     } catch (err) {

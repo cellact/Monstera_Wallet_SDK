@@ -15,6 +15,7 @@
  */
 
 import { CredentialsSession } from './CredentialsSession.js';
+import log from '../../logger.js';
 
 /**
  * @typedef {Object} AuthenticatorInvokeOverrides
@@ -128,12 +129,22 @@ export class AuthenticatorCallPipeline {
       options,
       flags
     );
-    const { authenticatorAddr: defaultAddr } = this._authProofPipeline.resolveByFlowId(flowId);
+    const { authenticatorAddr: defaultAddr, spec } = this._authProofPipeline.resolveByFlowId(flowId);
     const authenticatorAddr = resolveAuthenticatorAddr(
       resolved,
       defaultAddr,
       overrides.authenticatorAddr
     );
+
+    log.debug('auth pipeline: explicit encode', {
+      flowId,
+      encoderId: spec.id,
+      authenticatorAddr,
+      keyVaultAddr: resolved.keyVaultAddr,
+      sessionFlags: flags,
+      hasBuildAction: typeof buildAction === 'function'
+    });
+
     const mappedInput = toPrepareInput(flowId, resolved, authenticatorAddr);
 
     const prepareInput =

@@ -628,29 +628,29 @@ class Monstera {
     return authProof;
   }
 
-  /**
-   * Build the {@code authProof} for {@code ApiKeySessionAuthenticator}.
-   *
-   * MAC computation and ABI encoding delegate to the on-chain pure helpers
-   * ({@code computeTokenMac}/{@code computeActionMac} + {@code buildTokenAuthProof}/{@code buildActionAuthProof}).
-   *
-   * ACTION mode (default): binds the proof to {@code action} or {@code actionHash}.
-   * TOKEN mode: mint a bearer token when {@code mode === 'token'} or {@code expiry}/{@code scopeMask}
-   * are set — {@code expiry} defaults to now + 1 hour, {@code scopeMask} defaults to
-   * {@code SCOPE_SIGN_ALL} (0x1F).
-   *
-   * @public
-   * @async
-   * @param {CreateAuthProofApiKeySessionOptions} options
-   * @returns {Promise<EncodedAuthProofApiKeySession>} ABI-encoded auth proof bytes
-   * @throws {ValidationError} If required parameters are missing or invalid
-   */
-  async createAuthProofApiKeySession(options = {}) {
-    const { authProof } = await this._authenticatorPipeline.encodeAuthProof('apiKeySession', options, {
-      flags: { defaultApiKeySecret: true }
-    });
-    return authProof;
-  }
+  // /**
+  //  * Build the {@code authProof} for {@code ApiKeySessionAuthenticator}.
+  //  *
+  //  * MAC computation and ABI encoding delegate to the on-chain pure helpers
+  //  * ({@code computeTokenMac}/{@code computeActionMac} + {@code buildTokenAuthProof}/{@code buildActionAuthProof}).
+  //  *
+  //  * ACTION mode (default): binds the proof to {@code action} or {@code actionHash}.
+  //  * TOKEN mode: mint a bearer token when {@code mode === 'token'} or {@code expiry}/{@code scopeMask}
+  //  * are set — {@code expiry} defaults to now + 1 hour, {@code scopeMask} defaults to
+  //  * {@code SCOPE_SIGN_ALL} (0x1F).
+  //  *
+  //  * @public
+  //  * @async
+  //  * @param {CreateAuthProofApiKeySessionOptions} options
+  //  * @returns {Promise<EncodedAuthProofApiKeySession>} ABI-encoded auth proof bytes
+  //  * @throws {ValidationError} If required parameters are missing or invalid
+  //  */
+  // async createAuthProofApiKeySession(options = {}) {
+  //   const { authProof } = await this._authenticatorPipeline.encodeAuthProof('apiKeySession', options, {
+  //     flags: { defaultApiKeySecret: true }
+  //   });
+  //   return authProof;
+  // }
 
   // ============================================================================
   // Initialize Methods (Write)

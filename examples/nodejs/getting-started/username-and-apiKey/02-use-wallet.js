@@ -92,7 +92,13 @@ async function main() {
   }
 
   console.log('\n' + '='.repeat(60));
-  console.log('STEP 5: Sign message (ACTION-mode proof from session — no authProof passed)');
+  console.log('STEP 5: Sign message (ACTION-mode proof from session — no authProof passed)'); 
+  // The SDK does:
+  // resolves keyvaultAddr from your session 
+  // injects apiKeySecret from connect credentials
+  // builds the action for this call: I want signMessage at index 0 with this message
+  // builds an ACTION-mode authProof bound to that action 
+  // calls KeyVault.signMessage(authproof, index, message)
   console.log('='.repeat(60));
   const message = 'Hello from TheWallet!';
   try {
@@ -136,15 +142,16 @@ async function main() {
   console.log('STEP 7: TOKEN-mode bearer token (mint once, reuse)');
   console.log('='.repeat(60));
   try {
-    const tokenProof = await sdk.createAuthProofApiKeySession({
-      mode: 'token',
-      scopeMask: Monstera.API_KEY_SESSION_SCOPE_SIGN_ALL
-    });
-    console.log(`   Token proof minted (${tokenProof.length} chars)`);
+    // const tokenProof = await sdk.createAuthProofApiKeySession({
+    //   mode: 'token',
+    //   scopeMask: Monstera.API_KEY_SESSION_SCOPE_SIGN_ALL
+    // });
+    // console.log(`   Token proof minted (${tokenProof.length} chars)`);
 
     const bearerMessage = 'Signed with bearer token';
     const bearerSig = await sdk.signMessage({
-      authProof: tokenProof,
+      // authProof: tokenProof,
+      authProof: { mode: 'token', scopeMask: Monstera.API_KEY_SESSION_SCOPE_SIGN_ALL },
       index: 0,
       message: toUtf8Bytes(bearerMessage)
     });
