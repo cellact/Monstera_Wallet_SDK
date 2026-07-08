@@ -17,6 +17,7 @@ import WalletSignatureAuthenticatorClient from './WalletSignatureAuthenticatorCl
 import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
 import DualFactorAuthenticatorClient from './DualFactorAuthenticatorClient.js';
 import PasswordMinuteSignatureAuthenticatorClient from './PasswordMinuteSignatureAuthenticatorClient.js';
+import MultiAuthenticatorClient from './MultiAuthenticatorClient.js';
 
 export {
   ApiKeySessionAuthenticatorClient,
@@ -25,4 +26,5 @@ export {
   PasswordAuthenticatorClient,
   DualFactorAuthenticatorClient,
   PasswordMinuteSignatureAuthenticatorClient,
+  MultiAuthenticatorClient,
 };

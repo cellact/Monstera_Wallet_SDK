@@ -76,11 +76,12 @@
  * @property {Address} dualFactorAuth - DualFactorAuthenticator contract address
  * @property {Address} passwordMinuteSignatureAuth - PasswordMinuteSignatureAuthenticator contract address
  * @property {Address} apiKeySessionAuth - ApiKeySessionAuthenticator contract address
+ * @property {Address} multiAuthenticator - MultiAuthenticator contract address
  */
 
 /**
  * Keys of {@link ContractAddresses} that must be present after configuration is resolved.
- * @typedef {'factory'|'passwordAuth'|'walletSignatureAuth'|'dualFactorAuth'|'passwordMinuteSignatureAuth'} RequiredContractAddressKey
+ * @typedef {'factory'|'passwordAuth'|'walletSignatureAuth'|'dualFactorAuth'|'passwordMinuteSignatureAuth'|'apiKeySessionAuth'|'multiAuthenticator'} RequiredContractAddressKey
  */
 
 /**
@@ -233,6 +234,10 @@
 
 /** @typedef {BaseTransactionResult & { wallet: Address }} ConfigureApiKeySessionResult */
 
+/** @typedef {BaseTransactionResult & { wallet: Address }} ConfigureMultiAuthenticatorResult */
+/** @typedef {BaseTransactionResult & { wallet: Address; child: Address }} AddMultiAuthenticatorResult */
+/** @typedef {BaseTransactionResult & { wallet: Address; child: Address }} RemoveMultiAuthenticatorResult */
+
 /** @typedef {BaseTransactionResult & { wallet: Address }} RotateApiKeyResult */
 
 /** @typedef {BaseTransactionResult & { newAdmin?: Address; implementation?: Address }} UpdateResult */
@@ -360,6 +365,33 @@
  */
 
 /**
+ * One structured child entry for {@link MultiAuthConfigInputOptions}.
+ *
+ * @typedef {Object} MultiAuthConfigChildEntry
+ * @property {Address} authenticatorAddr - Deployed child authenticator address
+ * @property {AuthConfigInputOptions} authConfig - Structured config for that child
+ */
+
+/**
+ * Structured create-wallet config for {@code MultiAuthenticator}.
+ *
+ * @typedef {Object} MultiAuthConfigStructuredInputOptions
+ * @property {MultiAuthConfigChildEntry[]} children - Child authenticators and structured configs
+ */
+
+/**
+ * Pre-encoded create-wallet config for {@code MultiAuthenticator}.
+ *
+ * @typedef {Object} MultiAuthConfigEncodedInputOptions
+ * @property {Address[]} children - Child authenticator addresses
+ * @property {Bytes[]} childConfigs - ABI-encoded child configs (parallel array)
+ */
+
+/**
+ * @typedef {MultiAuthConfigStructuredInputOptions | MultiAuthConfigEncodedInputOptions} MultiAuthConfigInputOptions
+ */
+
+/**
  * Plain object {@code authConfig} for built-in authenticators at wallet creation (before ABI encoding).
  *
  * Union of built-in authenticator config shapes at wallet creation. Runtime dispatches by
@@ -371,6 +403,7 @@
  *   | WalletSignatureAuthConfigInputOptions
  *   | DualFactorAuthConfigInputOptions
  *   | ApiKeySessionAuthConfigInputOptions
+ *   | MultiAuthConfigInputOptions
  * )} AuthConfigInputOptions
  */
 
@@ -389,6 +422,11 @@
 /**
  * ABI-encoded ApiKeySessionAuthenticator config at wallet creation ({@code abi.encode(bytes32)}).
  * @typedef {Bytes} EncodedAuthConfigApiKeySession
+ */
+
+/**
+ * ABI-encoded MultiAuthenticator config at wallet creation ({@code abi.encode(address[],bytes[])}).
+ * @typedef {Bytes} EncodedAuthConfigMulti
  */
 
 /**
@@ -419,6 +457,8 @@
  *   | EncodedAuthConfigWalletSignature
  *   | EncodedAuthConfigPassword
  *   | EncodedAuthConfigPasswordMinuteSignature
+ *   | EncodedAuthConfigApiKeySession
+ *   | EncodedAuthConfigMulti
  * )} EncodedAuthConfigOptions
  */
 
@@ -770,6 +810,12 @@
  */
 
 /**
+ * ABI-encoded proof for {@code MultiAuthenticator}.
+ * Layout: {@code abi.encode(address child, bytes childProof)}.
+ * @typedef {Bytes} EncodedAuthProofMulti
+ */
+
+/**
  * Result of minute-signature auth proof creation ({@code internal/crypto/authProof.js}, {@code createAuthProofMinuteSignature}).
  *
  * @typedef {Object} CreateAuthProofMinuteSignatureResult
@@ -787,6 +833,7 @@
  *   | EncodedAuthProofDualFactor
  *   | EncodedAuthProofPasswordMinute
  *   | EncodedAuthProofApiKeySession
+ *   | EncodedAuthProofMulti
  * )} AuthProofOptions
  */
 
@@ -956,6 +1003,17 @@
  *   | CreateAuthProofApiKeySessionTokenOptions
  *   | CreateAuthProofApiKeySessionVerifyOptions
  * )} CreateAuthProofApiKeySessionOptions
+ */
+
+/**
+ * Inputs to build {@link EncodedAuthProofMulti} by routing through a child authenticator.
+ *
+ * @typedef {CreateAuthProofBaseOptions & {
+ *   childFlowId?: string;
+ *   viaChildFlowId?: string;
+ *   viaChild?: Address;
+ *   child?: Address;
+ * } & Record<string, unknown>} CreateAuthProofMultiOptions
  */
 
 /**
@@ -1233,6 +1291,10 @@
  */
 
 /**
+ * @typedef {KeyVaultAddrOptions & { selector: Bytes4; paramsHash: Bytes32 }} ComputeMultiAuthenticatorActionHashOptions
+ */
+
+/**
  * @typedef {KeyVaultAddrOptions & { newImplementation: Address }} ComputeCustomImplementationAckHashOptions
  */
 
@@ -1266,6 +1328,21 @@
 
 /**
  * @typedef {KeyVaultAddrOptions & { apiKeySecret?: Bytes32 }} ConfigureApiKeySessionOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authConfig: MultiAuthConfigInputOptions }} ConfigureMultiAuthenticatorOptions
+ */
+
+/**
+ * @typedef {CreateAuthProofMultiOptions & {
+ *   child: Address;
+ *   childAuthConfig: AuthConfigInputOptions;
+ * }} AddMultiAuthenticatorOptions
+ */
+
+/**
+ * @typedef {CreateAuthProofMultiOptions & { child: Address }} RemoveMultiAuthenticatorOptions
  */
 
 /**
@@ -1453,6 +1530,14 @@
 
 /** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigApiKeySession }} ApiKeySessionClientConfigureOptions */
 
+/** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigMulti }} MultiAuthenticatorClientConfigureOptions */
+/** @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofMulti; action: AuthContext }} MultiAuthenticatorClientVerifyOptions */
+/** @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofMulti; child: Address; childConfig: Bytes }} MultiAuthenticatorClientAddAuthenticatorOptions */
+/** @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofMulti; child: Address }} MultiAuthenticatorClientRemoveAuthenticatorOptions */
+/** @typedef {KeyVaultAddrOptions & { child: Address }} MultiAuthenticatorClientIsEnabledOptions */
+/** @typedef {KeyVaultAddrOptions} MultiAuthenticatorClientGetAuthenticatorsOptions */
+/** @typedef {KeyVaultAddrOptions & { selector: Bytes4; paramsHash: Bytes32 }} MultiAuthenticatorClientComputeActionHashOptions */
+
 /**
  * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToAdd: Address }} WalletSignatureClientAddToWhitelistOptions
  */
@@ -1555,7 +1640,7 @@
 
 /**
  * Union type for authenticator client instances.
- * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default | import('../clients/auth/PasswordMinuteSignatureAuthenticatorClient.js').default | import('../clients/auth/ApiKeySessionAuthenticatorClient.js').default} AuthenticatorClientInstance
+ * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default | import('../clients/auth/PasswordMinuteSignatureAuthenticatorClient.js').default | import('../clients/auth/ApiKeySessionAuthenticatorClient.js').default | import('../clients/auth/MultiAuthenticatorClient.js').default} AuthenticatorClientInstance
  */
 
 // Export empty object to make this a valid ES module

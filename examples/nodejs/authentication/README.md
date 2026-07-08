@@ -9,6 +9,7 @@ Choose the auth type that matches your product. Each folder has focused recipes;
 | [`password/`](password/) | Default. User proves knowledge of a password hash stored on-chain. |
 | [`wallet-signature/`](wallet-signature/) | Whitelist of EOAs that can sign proofs (no password). Good for backend or multi-signer setups. |
 | [`password-minute-signature/`](password-minute-signature/) | Password + time-bound minute signature. Proofs expire quickly. |
+| [`multi/`](multi/) | MultiAuthenticator router: password at create, add API key child later. |
 | `dual-factor/` | *(not yet covered by an example)* — use API docs and unit tests under `tests/unit/`. |
 | [`management/`](management/) | Switch authenticator type or inspect available authenticator clients. |
 
@@ -17,6 +18,7 @@ Choose the auth type that matches your product. Each folder has focused recipes;
 1. **Password** — start with [../getting-started/password-only/01-create-wallet.js](../getting-started/password-only/01-create-wallet.js), then [password/update-password.js](password/update-password.js) if you need rotation.
 2. **Wallet signature** — [wallet-signature/whitelist-flow.js](wallet-signature/whitelist-flow.js) (creates its own wallet).
 3. **Password-minute-signature** — [password-minute-signature/create-and-sign.js](password-minute-signature/create-and-sign.js) (requires `KEYVAULT_ADDRESS`).
+4. **MultiAuthenticator** — [multi/create-wallet.js](multi/create-wallet.js), then [multi/add-authenticator.js](multi/add-authenticator.js).
 
 ## Common env vars
 

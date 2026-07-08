@@ -26,6 +26,7 @@ import KeyVaultEvents from './keyVault.js';
 import DualFactorAuthenticatorEvents from './dualFactorAuthenticator.js';
 import { parseEventFromReceipt } from './decodeReceipt.js';
 import PasswordMinuteSignatureAuthenticatorEvents from './passwordMinuteSignatureAuthenticator.js';
+import MultiAuthenticatorEvents from './multiAuthenticator.js';
 
 export {
   ApiKeySessionAuthenticatorEvents,
@@ -36,4 +37,5 @@ export {
   KeyVaultEvents,
   parseEventFromReceipt,
   PasswordMinuteSignatureAuthenticatorEvents,
+  MultiAuthenticatorEvents,
 };

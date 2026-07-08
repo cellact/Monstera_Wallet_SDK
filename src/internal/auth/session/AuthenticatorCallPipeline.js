@@ -94,6 +94,28 @@ function toPrepareInput(flowId, resolved, authenticatorAddr) {
         expiry: resolved.expiry,
         scopeMask: resolved.scopeMask
       };
+    case 'multi': {
+      const hasExplicitProofRoute =
+        resolved.viaChild != null ||
+        resolved.viaChildFlowId != null ||
+        resolved.childFlowId != null;
+      return {
+        ...base,
+        viaChild: resolved.viaChild,
+        viaChildFlowId: resolved.viaChildFlowId,
+        childFlowId: resolved.childFlowId,
+        ...(hasExplicitProofRoute ? {} : { child: resolved.child }),
+        apiKeySecret: resolved.apiKeySecret,
+        password: resolved.currentPassword ?? resolved.password,
+        passwordHash: resolved.passwordHash,
+        signer: resolved.signer,
+        deadline: resolved.deadline,
+        chainId: resolved.chainId,
+        mode: resolved.mode,
+        expiry: resolved.expiry,
+        scopeMask: resolved.scopeMask
+      };
+    }
     default:
       return base;
   }

@@ -65,6 +65,22 @@ export function collectProofInput(spec, options) {
         expiry: partial.expiry ?? options.expiry,
         scopeMask: partial.scopeMask ?? options.scopeMask
       };
+    case 'multi':
+      return {
+        ...partial,
+        viaChild: partial.viaChild ?? options.viaChild,
+        child: partial.child ?? options.child,
+        childFlowId: partial.childFlowId ?? options.childFlowId,
+        viaChildFlowId: partial.viaChildFlowId ?? options.viaChildFlowId,
+        apiKeySecret: partial.apiKeySecret ?? options.apiKeySecret,
+        mode: partial.mode ?? options.mode,
+        expiry: partial.expiry ?? options.expiry,
+        scopeMask: partial.scopeMask ?? options.scopeMask,
+        password: partial.password ?? options.password,
+        passwordHash: partial.passwordHash ?? options.passwordHash,
+        signer: partial.signer ?? options.signer,
+        deadline: partial.deadline ?? options.deadline
+      };
     default:
       return { ...partial };
   }

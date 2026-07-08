@@ -19,6 +19,7 @@ import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
 import WalletSignatureAuthenticatorClient from './WalletSignatureAuthenticatorClient.js';
 import DualFactorAuthenticatorClient from './DualFactorAuthenticatorClient.js';
 import PasswordMinuteSignatureAuthenticatorClient from './PasswordMinuteSignatureAuthenticatorClient.js';
+import MultiAuthenticatorClient from './MultiAuthenticatorClient.js';
 import { ValidationError } from '../../errors/index.js';
 import log from '../../internal/logger.js';
 import { requireString } from '../../internal/assert.js';
@@ -45,6 +46,7 @@ class AuthenticatorClient {
     this.password = new PasswordAuthenticatorClient(readProvider, writeSigner, config);
     this.dualFactor = new DualFactorAuthenticatorClient(readProvider, writeSigner, config);
     this.passwordMinuteSignature = new PasswordMinuteSignatureAuthenticatorClient(readProvider, writeSigner, config);
+    this.multi = new MultiAuthenticatorClient(readProvider, writeSigner, config);
   }
 
   /**

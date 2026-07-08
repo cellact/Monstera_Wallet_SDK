@@ -231,7 +231,10 @@ export class AuthProofPipeline {
     );
 
     let proofInput = collectProofInput(spec, resolved);
-    proofInput = spec.applySessionInput(session, proofInput);
+    proofInput = spec.applySessionInput(session, {
+      ...proofInput,
+      addresses: this._config.addresses
+    });
 
     if (proofInput.action == null && typeof buildAction === 'function') {
       proofInput = { ...proofInput, action: buildAction(resolved) };
@@ -297,11 +300,12 @@ export class AuthProofPipeline {
     });
 
     const proofInput = collectProofInput(spec, options);
-    spec.validatePrepareInput({ ...options, ...proofInput });
+    const withDefaults = spec.applyConfigDefaults(this._config, { ...options, ...proofInput });
+    spec.validatePrepareInput(withDefaults);
     const { action, actionHash, withConfig } = await this._resolveAction(
       spec,
       authenticatorAddr,
-      { ...options, ...proofInput },
+      withDefaults,
       flowOptions
     );
 

@@ -5,6 +5,7 @@
  *
  * @typedef {import('../../../types/index.js').Address} Address
  * @typedef {import('../../../types/index.js').Bytes32} Bytes32
+ * @typedef {import('../../../types/index.js').Bytes} Bytes
  * @typedef {import('../../../types/index.js').WalletSignatureAuthConfigInputOptions} WalletSignatureAuthConfigInputOptions
  * @typedef {import('../../../types/index.js').EncodedAuthConfigWalletSignature} EncodedAuthConfigWalletSignature
  * @typedef {import('../../../types/index.js').EncodedAuthConfigDualFactor} EncodedAuthConfigDualFactor
@@ -15,7 +16,7 @@
  */
 
 import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
-import { requireAddress, requireArray, requireBytes32 } from '../../assert.js';
+import { requireAddress, requireArray, requireBytes, requireBytes32 } from '../../assert.js';
 
 /**
  * Build the {@code WalletSignatureAuthenticator} create-wallet config bytes.
@@ -59,4 +60,25 @@ function createApiKeySessionAuthConfig(apiKeySecret) {
   return defaultAbiCoder.encode(['bytes32'], [apiKeySecret]);
 }
 
-export { createWalletSigAuthConfig, createDualFactorAuthConfig, createApiKeySessionAuthConfig };
+/**
+ * Build the {@code MultiAuthenticator} create-wallet / configure config bytes.
+ *
+ * @public
+ * @param {Address[]} children
+ * @param {Bytes[]} childConfigs
+ * @returns {EncodedAuthConfigMulti}
+ */
+function createMultiAuthConfig(children, childConfigs) {
+  requireArray(children, 'children');
+  requireArray(childConfigs, 'childConfigs');
+  for (const child of children) {
+    requireAddress(child, 'child');
+  }
+  for (const childConfig of childConfigs) {
+    requireBytes(childConfig, 'childConfig');
+  }
+  return defaultAbiCoder.encode(['address[]', 'bytes[]'], [children, childConfigs]);
+}
+
+
+export { createWalletSigAuthConfig, createDualFactorAuthConfig, createApiKeySessionAuthConfig, createMultiAuthConfig };

@@ -16,6 +16,10 @@ export {
 } from './authenticator/dualFactor.js';
 export { buildRotateApiKeyAction } from './authenticator/apiKeySession.js';
 export {
+  buildAddAuthenticatorAction,
+  buildRemoveAuthenticatorAction
+} from './authenticator/multi.js';
+export {
   buildAuthenticatorVerifyProbeAction,
   getVerifySelector,
   VERIFY_PROBE_PARAMS_HASH

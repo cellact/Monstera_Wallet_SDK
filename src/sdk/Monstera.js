@@ -81,6 +81,15 @@
  * @typedef {import('../types/index.js').ConfigureWalletSignatureOptions} ConfigureWalletSignatureOptions
  * @typedef {import('../types/index.js').ConfigureApiKeySessionOptions} ConfigureApiKeySessionOptions
  * @typedef {import('../types/index.js').ConfigureApiKeySessionResult} ConfigureApiKeySessionResult
+ * @typedef {import('../types/index.js').ConfigureMultiAuthenticatorOptions} ConfigureMultiAuthenticatorOptions
+ * @typedef {import('../types/index.js').ConfigureMultiAuthenticatorResult} ConfigureMultiAuthenticatorResult
+ * @typedef {import('../types/index.js').AddMultiAuthenticatorOptions} AddMultiAuthenticatorOptions
+ * @typedef {import('../types/index.js').AddMultiAuthenticatorResult} AddMultiAuthenticatorResult
+ * @typedef {import('../types/index.js').RemoveMultiAuthenticatorOptions} RemoveMultiAuthenticatorOptions
+ * @typedef {import('../types/index.js').RemoveMultiAuthenticatorResult} RemoveMultiAuthenticatorResult
+ * @typedef {import('../types/index.js').CreateAuthProofMultiOptions} CreateAuthProofMultiOptions
+ * @typedef {import('../types/index.js').EncodedAuthProofMulti} EncodedAuthProofMulti
+ * @typedef {import('../types/index.js').ComputeMultiAuthenticatorActionHashOptions} ComputeMultiAuthenticatorActionHashOptions
  * @typedef {import('../types/index.js').RotateApiKeyOptions} RotateApiKeyOptions
  * @typedef {import('../types/index.js').RotateApiKeyResult} RotateApiKeyResult
  * @typedef {import('../types/index.js').CreateAuthProofApiKeySessionOptions} CreateAuthProofApiKeySessionOptions
@@ -174,7 +183,9 @@ import {
   buildAddToWhitelistAction,
   buildRemoveFromWhitelistAction,
   buildMinuteSignatureChangePasswordAction,
-  buildRotateApiKeyAction
+  buildRotateApiKeyAction,
+  buildAddAuthenticatorAction,
+  buildRemoveAuthenticatorAction
 } from '../internal/auth/context/actions/index.js';
 import { CredentialsSession } from '../internal/auth/session/CredentialsSession.js';
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
@@ -628,6 +639,25 @@ class Monstera {
     return authProof;
   }
 
+  /**
+   * Build the routed {@code authProof} for {@code MultiAuthenticator}.
+   *
+   * ABI-encodes {@code (address child, bytes childProof)} by delegating proof construction to the
+   * selected child authenticator ({@code childFlowId} or {@code child}). Session password and API
+   * key material are merged when connect credentials are active.
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofMultiOptions} options
+   * @returns {Promise<EncodedAuthProofMulti>}
+   */
+  async createAuthProofMulti(options = {}) {
+    const { authProof } = await this._authenticatorPipeline.encodeAuthProof('multi', options, {
+      flags: { defaultCurrentPassword: true, defaultApiKeySecret: true }
+    });
+    return authProof;
+  }
+
   // /**
   //  * Build the {@code authProof} for {@code ApiKeySessionAuthenticator}.
   //  *
@@ -856,6 +886,27 @@ class Monstera {
       authenticatorAddr: this.config.addresses.apiKeySessionAuth
     });
     return this.auth.apiKeySession.configure({ keyVaultAddr, authConfig });
+  }
+
+  /**
+   * Configure {@code MultiAuthenticator} for a wallet.
+   *
+   * Encodes structured {@code authConfig.children} entries into
+   * {@code abi.encode(address[] children, bytes[] childConfigs)} before delegating to
+   * {@link MultiAuthenticatorClient#configure}.
+   *
+   * @public
+   * @async
+   * @param {ConfigureMultiAuthenticatorOptions} options - {@code keyVaultAddr} and structured multi {@code authConfig}
+   * @returns {Promise<ConfigureMultiAuthenticatorResult>}
+   */
+  async configureMultiAuthenticator(options = {}) {
+    const { keyVaultAddr, authConfig } = await this._vaultPipeline.resolveVaultOptions(options);
+    const { authConfig: encoded } = this._encodeAuthConfig.encode({
+      authConfig,
+      authenticatorAddr: this.config.addresses.multiAuthenticator
+    });
+    return this.auth.multi.configure({ keyVaultAddr, authConfig: encoded });
   }
 
   // ============================================================================
@@ -1407,6 +1458,24 @@ class Monstera {
    */
   async computeActionHash(options = {}) {
     return this.keyVault.computeActionHash(await this._vaultPipeline.resolveVaultOptions(options));
+  }
+
+  /**
+   * Compute the action hash for a {@code MultiAuthenticator} management call.
+   *
+   * Delegates to {@link MultiAuthenticatorClient#computeActionHash}.
+   *
+   * @public
+   * @async
+   * @param {ComputeMultiAuthenticatorActionHashOptions} options - {@code keyVaultAddr}, 4-byte {@code selector}, and {@code paramsHash}
+   * @returns {Promise<Bytes32>} Action hash bound into routed child auth proofs
+   * @throws {ValidationError} If {@code keyVaultAddr}, {@code selector}, or {@code paramsHash} are invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async computeMultiAuthenticatorActionHash(options = {}) {
+    return this.auth.multi.computeActionHash(await this._vaultPipeline.resolveVaultOptions(options));
   }
 
   /**
@@ -2038,6 +2107,66 @@ class Monstera {
    */
   async isApiKeySessionConfigured(options = {}) {
     return this.auth.apiKeySession.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+  }
+
+  /**
+   * Check whether {@code MultiAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options
+   * @returns {Promise<boolean>}
+   */
+  async isMultiAuthenticatorConfigured(options = {}) {
+    return this.auth.multi.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+  }
+
+  /**
+   * List enabled child authenticators for a multi-authenticated wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options
+   * @returns {Promise<Address[]>}
+   */
+  async getMultiAuthenticators(options = {}) {
+    return this.auth.multi.getAuthenticators(await this._vaultPipeline.resolveVaultOptions(options));
+  }
+
+  /**
+   * Check whether a child authenticator is enabled for a multi-authenticated wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions & { child: Address }} options
+   * @returns {Promise<boolean>}
+   */
+  async isMultiAuthenticatorChildEnabled(options = {}) {
+    return this.auth.multi.isEnabled(await this._vaultPipeline.resolveVaultOptions(options));
+  }
+
+  /**
+   * Build a routed multi-authenticator proof and verify it on-chain.
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofMultiOptions} [options={}] - {@code childFlowId} or {@code child} required; session password/API key defaults apply
+   * @returns {Promise<boolean>} {@code true} if the on-chain verifier accepts the routed child proof
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the read provider fails to return the latest block, or the verify RPC call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isMultiValid(options = {}) {
+    const { keyVaultAddr, authProof, action } = await this._authenticatorPipeline.encodeAuthProof(
+      'multi',
+      options,
+      {
+        flags: { defaultCurrentPassword: true, defaultApiKeySecret: true },
+        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
+      }
+    );
+    return this.auth.multi.verify({ keyVaultAddr, authProof, action });
   }
 
   /**
@@ -2729,6 +2858,90 @@ class Monstera {
           authProof,
           newApiKeySecret
         })
+    );
+  }
+
+  /**
+   * Enable an additional child authenticator on a multi-authenticated wallet.
+   *
+   * Builds an action-bound routed proof via an existing child ({@code viaChildFlowId}) and calls
+   * {@link MultiAuthenticatorClient#addAuthenticator}.
+   *
+   * @public
+   * @async
+   * @param {AddMultiAuthenticatorOptions} options
+   * @returns {Promise<AddMultiAuthenticatorResult>}
+   */
+  async addMultiAuthenticator(options = {}) {
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options, {
+      defaultCurrentPassword: true,
+      defaultApiKeySecret: true
+    });
+    const { child, childAuthConfig } = resolved;
+    const { authConfig: childConfig } = this._encodeAuthConfig.encode({
+      authConfig: childAuthConfig,
+      authenticatorAddr: child
+    });
+
+    const {
+      keyVaultAddr: _kv,
+      child: _contractChild,
+      childAuthConfig: _childAuthConfig,
+      ...proofOptions
+    } = options;
+
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'multi',
+      {
+        ...proofOptions,
+        keyVaultAddr: resolved.keyVaultAddr,
+        viaChildFlowId: options.viaChildFlowId ?? options.childFlowId
+      },
+      { defaultCurrentPassword: true, defaultApiKeySecret: true },
+      (_, authenticatorAddr) => buildAddAuthenticatorAction(authenticatorAddr, child, childConfig),
+      ({ keyVaultAddr: vaultAddr, authProof }) =>
+        this.auth.multi.addAuthenticator({
+          keyVaultAddr: vaultAddr,
+          authProof,
+          child,
+          childConfig
+        }),
+      { authenticatorAddr: this.config.addresses.multiAuthenticator }
+    );
+  }
+
+  /**
+   * Disable a child authenticator on a multi-authenticated wallet.
+   *
+   * @public
+   * @async
+   * @param {RemoveMultiAuthenticatorOptions} options
+   * @returns {Promise<RemoveMultiAuthenticatorResult>}
+   */
+  async removeMultiAuthenticator(options = {}) {
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options, {
+      defaultCurrentPassword: true,
+      defaultApiKeySecret: true
+    });
+    const { child, keyVaultAddr } = resolved;
+    const {
+      child: _contractChild,
+      keyVaultAddr: _kv,
+      ...proofOptions
+    } = options;
+
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'multi',
+      {
+        ...proofOptions,
+        keyVaultAddr,
+        viaChildFlowId: options.viaChildFlowId ?? options.childFlowId
+      },
+      { defaultCurrentPassword: true, defaultApiKeySecret: true },
+      (_, authenticatorAddr) => buildRemoveAuthenticatorAction(authenticatorAddr, child),
+      ({ keyVaultAddr: vaultAddr, authProof }) =>
+        this.auth.multi.removeAuthenticator({ keyVaultAddr: vaultAddr, authProof, child }),
+      { authenticatorAddr: this.config.addresses.multiAuthenticator }
     );
   }
 }

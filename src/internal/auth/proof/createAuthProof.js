@@ -27,7 +27,7 @@
 import { Wallet } from '../../../adapters/ethers/index.js';
 import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
 import { getBytes, keccak256, solidityPacked } from '../../../adapters/ethers/hashing.js';
-import { requireUtf8Bytes, requireBytes32 } from '../../assert.js';
+import { requireUtf8Bytes, requireBytes32, requireAddress, requireNonEmptyBytes } from '../../assert.js';
 import {
   assertWalletSignatureAuthProofOptions,
   assertMinuteSignatureAuthProofOptions,
@@ -302,11 +302,29 @@ function createAuthProofPassword({ password, actionHash }) {
   return defaultAbiCoder.encode(['bytes', 'bytes32'], [password, actionHash]);
 }
 
+/**
+ * Build {@code authProof} bytes for the {@code MultiAuthenticator}.
+ *
+ * @description Returns {@code abi.encode(address child, bytes childProof)}.
+ *
+ * @public
+ * @param {Object} options
+ * @param {import('../../types/index.js').Address} options.child - Enabled child authenticator address
+ * @param {import('../../types/index.js').Bytes} options.childProof - Child authenticator proof bytes
+ * @returns {import('../../types/index.js').EncodedAuthProofMulti}
+ */
+function createAuthProofMulti({ child, childProof }) {
+  requireAddress(child, 'child');
+  requireNonEmptyBytes(childProof, 'childProof');
+  return defaultAbiCoder.encode(['address', 'bytes'], [child, childProof]);
+}
+
 export {
   createAuthProofWalletSignature,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor,
-  createAuthProofPassword
+  createAuthProofPassword,
+  createAuthProofMulti
 };
 
 export { createAuthProofApiKeySession } from '../apiKeySession/onChainProof.js';

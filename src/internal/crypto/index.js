@@ -10,13 +10,14 @@
 
 export { generateMnemonic, deriveSeed } from './mnemonic.js';
 
-export { createWalletSigAuthConfig, createDualFactorAuthConfig } from '../auth/config/createAuthConfig.js';
+export { createWalletSigAuthConfig, createDualFactorAuthConfig, createMultiAuthConfig } from '../auth/config/createAuthConfig.js';
 export {
   createAuthProofWalletSignature,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor,
   createAuthProofPassword,
-  createAuthProofApiKeySession
+  createAuthProofApiKeySession,
+  createAuthProofMulti
 } from '../auth/proof/createAuthProof.js';
 export { isApiKeySessionTokenMode } from '../auth/apiKeySession/mode.js';
 export { MODE_TOKEN, MODE_ACTION, SCOPE_SIGN_ALL, SCOPE_ALL } from '../auth/apiKeySession/constants.js';
@@ -36,6 +37,8 @@ export {
   buildDualFactorChangePasswordAction,
   buildChangeGuardianAction,
   buildRotateApiKeyAction,
+  buildAddAuthenticatorAction,
+  buildRemoveAuthenticatorAction,
   buildAddToWhitelistAction,
   buildRemoveFromWhitelistAction,
   buildAuthenticatorVerifyProbeAction,

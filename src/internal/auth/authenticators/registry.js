@@ -14,9 +14,10 @@ import { passwordMinuteSignatureAuthenticator } from './passwordMinuteSignature.
 import { walletSignatureAuthenticator } from './walletSignature.js';
 import { dualFactorAuthenticator } from './dualFactor.js';
 import { apiKeySessionAuthenticator } from './apiKeySession.js';
+import { multiAuthenticator, wrapMultiConfigEncoder } from './multi.js';
 
-/** @type {readonly BuiltinAuthenticatorSpec[]} */
-export const BUILTIN_AUTHENTICATORS = [
+/** @type {readonly import('./types.js').BuiltinAuthenticatorSpec[]} */
+const CHILD_AUTHENTICATORS = [
   apiKeySessionAuthenticator,
   passwordAuthenticator,
   passwordMinuteSignatureAuthenticator,
@@ -24,16 +25,38 @@ export const BUILTIN_AUTHENTICATORS = [
   dualFactorAuthenticator
 ];
 
-/** @typedef {'apiKeySession' | 'password' | 'minuteSignature' | 'walletSignature' | 'dualFactor'} AuthProofFlowId */
+/** @type {readonly import('./types.js').BuiltinAuthenticatorSpec[]} */
+export const BUILTIN_AUTHENTICATORS = [
+  ...CHILD_AUTHENTICATORS,
+  multiAuthenticator
+];
+
+/** @typedef {'apiKeySession' | 'password' | 'minuteSignature' | 'walletSignature' | 'dualFactor' | 'multi'} AuthProofFlowId */
 
 /** @type {Map<string, BuiltinAuthenticatorSpec>} */
 const byFlowId = new Map(BUILTIN_AUTHENTICATORS.map((spec) => [spec.flowId, spec]));
+
+/**
+ * @param {ContractAddresses} addresses
+ * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => import('../../../types/index.js').CreateWalletAuthEncoder | undefined }}
+ */
+function createChildConfigEncoderRegistry(addresses) {
+  return createRegistryByChecksumAddress(
+    CHILD_AUTHENTICATORS.map((spec) => ({
+      address: addresses[spec.addressKey],
+      encoder: spec.configEncoder
+    }))
+  );
+}
 
 /**
  * @public
  * @param {ContractAddresses} addresses
  */
 export function createBuiltinAuthenticatorRegistry(addresses) {
+  const childConfigRegistry = createChildConfigEncoderRegistry(addresses);
+  const multiConfigEncoder = wrapMultiConfigEncoder(childConfigRegistry);
+
   const proofByAddr = createRegistryByChecksumAddress(
     BUILTIN_AUTHENTICATORS.map((spec) => ({
       address: addresses[spec.addressKey],
@@ -44,7 +67,7 @@ export function createBuiltinAuthenticatorRegistry(addresses) {
   const configByAddr = createRegistryByChecksumAddress(
     BUILTIN_AUTHENTICATORS.map((spec) => ({
       address: addresses[spec.addressKey],
-      encoder: spec.configEncoder
+      encoder: spec.flowId === 'multi' ? multiConfigEncoder : spec.configEncoder
     }))
   );
 
@@ -80,5 +103,6 @@ export {
   passwordAuthenticator,
   passwordMinuteSignatureAuthenticator,
   walletSignatureAuthenticator,
-  dualFactorAuthenticator
+  dualFactorAuthenticator,
+  multiAuthenticator
 };
