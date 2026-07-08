@@ -8,6 +8,7 @@
  * @typedef {import('../../../types/index.js').WalletSignatureAuthConfigInputOptions} WalletSignatureAuthConfigInputOptions
  * @typedef {import('../../../types/index.js').EncodedAuthConfigWalletSignature} EncodedAuthConfigWalletSignature
  * @typedef {import('../../../types/index.js').EncodedAuthConfigDualFactor} EncodedAuthConfigDualFactor
+ * @typedef {import('../../../types/index.js').EncodedAuthConfigApiKeySession} EncodedAuthConfigApiKeySession
  * @typedef {import('../../../types/index.js').DualFactorAuthConfigInputOptions} DualFactorAuthConfigInputOptions
  *
  * @module internal/auth/config/createAuthConfig
@@ -46,4 +47,16 @@ function createDualFactorAuthConfig(passwordHash, guardianAddr) {
   return defaultAbiCoder.encode(['bytes32', 'address'], [passwordHash, guardianAddr]);
 }
 
-export { createWalletSigAuthConfig, createDualFactorAuthConfig };
+/**
+ * Build the {@code ApiKeySessionAuthenticator} create-wallet / configure config bytes.
+ *
+ * @public
+ * @param {Bytes32} apiKeySecret
+ * @returns {EncodedAuthConfigApiKeySession}
+ */
+function createApiKeySessionAuthConfig(apiKeySecret) {
+  requireBytes32(apiKeySecret, 'apiKeySecret');
+  return defaultAbiCoder.encode(['bytes32'], [apiKeySecret]);
+}
+
+export { createWalletSigAuthConfig, createDualFactorAuthConfig, createApiKeySessionAuthConfig };

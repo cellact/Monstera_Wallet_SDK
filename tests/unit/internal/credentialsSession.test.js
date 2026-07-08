@@ -54,6 +54,18 @@ describe('parseConnectCredentials', () => {
     expect(() => parseConnectCredentials({ username: '  ', password: 'x' })).toThrow(ValidationError);
     expect(() => parseConnectCredentials({ username: 'alice', password: '' })).toThrow(ValidationError);
   });
+
+  test('accepts username and apiKey', () => {
+    const apiKey = '0x' + 'ab'.repeat(32);
+    expect(parseConnectCredentials({ username: 'alice', apiKey })).toEqual({
+      username: 'alice',
+      apiKey
+    });
+  });
+
+  test('rejects username without password or apiKey', () => {
+    expect(() => parseConnectCredentials({ username: 'alice' })).toThrow(ValidationError);
+  });
 });
 
 describe('CredentialsSession', () => {
@@ -93,6 +105,22 @@ describe('CredentialsSession', () => {
     const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
 
     expect(session.getPasswordHash()).toBe(keccak256(toUtf8Bytes('pw')));
+  });
+
+  test('getApiKeySecret returns keccak256 of session apiKey', () => {
+    const apiKey = '0x' + 'cd'.repeat(32);
+    const session = new CredentialsSession({ username: 'alice', apiKey }, createDeps());
+
+    expect(session.getApiKeySecret()).toBe(keccak256(apiKey));
+  });
+
+  test('applyToOptions injects apiKeySecret when requested', async () => {
+    const apiKey = '0x' + 'cd'.repeat(32);
+    const session = new CredentialsSession({ username: 'alice', apiKey }, createDeps());
+
+    const resolved = await session.applyToOptions({}, { defaultApiKeySecret: true });
+
+    expect(resolved.apiKeySecret).toBe(keccak256(apiKey));
   });
 
   test('applyToOptions injects currentPassword when requested', async () => {

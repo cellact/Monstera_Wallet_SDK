@@ -68,6 +68,7 @@ export class EncodeAuthConfig {
     requireDefined(authInput, 'authConfig');
 
     if (typeof authInput === 'string') {
+      log.info('auth config input is a string, returning options as is');
       return { ...options };
     }
 

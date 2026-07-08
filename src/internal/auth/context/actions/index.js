@@ -14,6 +14,7 @@ export {
   buildChangePasswordAction as buildDualFactorChangePasswordAction,
   buildChangeGuardianAction
 } from './authenticator/dualFactor.js';
+export { buildRotateApiKeyAction } from './authenticator/apiKeySession.js';
 export {
   buildAuthenticatorVerifyProbeAction,
   getVerifySelector,

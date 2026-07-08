@@ -2,10 +2,11 @@
  * Username/password session for Monstera connect.
  *
  * Resolves and caches the wallet proxy and KeyVault addresses for a registered username,
- * and exposes password material for vault-authenticated calls.
+ * and exposes password and/or API key material for vault-authenticated calls.
  *
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
+ * @typedef {import('../../../types/index.js').Address} Address
+ * @typedef {import('../../../types/index.js').Bytes32} Bytes32
+ * @typedef {import('../../../types/index.js').ConnectCredentials} ConnectCredentials
  *
  * @module internal/auth/session/CredentialsSession
  */
@@ -16,12 +17,6 @@ import { CredentialsRequiredError, ValidationError } from '../../../errors/index
 import { requireNormalizedUsername } from '../../assert.js';
 
 export { parseConnectCredentials } from '../../validators/connectOptions.js';
-
-/**
- * @typedef {Object} ConnectCredentialsInput
- * @property {string} username - Registered username (factory-normalised before hashing)
- * @property {string} password - UTF-8 password used for PasswordAuthenticator proofs
- */
 
 /**
  * Factory lookups required to resolve a username to on-chain wallet addresses.
@@ -35,6 +30,7 @@ export { parseConnectCredentials } from '../../validators/connectOptions.js';
 /**
  * @typedef {Object} ResolveVaultOptionsFlags
  * @property {boolean} [defaultCurrentPassword=false] - Inject {@code currentPassword} from the session password
+ * @property {boolean} [defaultApiKeySecret=false] - Inject {@code apiKeySecret} from the session API key
  */
 
 /**
@@ -43,13 +39,14 @@ export { parseConnectCredentials } from '../../validators/connectOptions.js';
 export class CredentialsSession {
   /**
    * @public
-   * @param {ConnectCredentialsInput} credentials
+   * @param {ConnectCredentials} credentials
    * @param {CredentialsSessionDeps} deps
    */
   constructor(credentials, deps) {
     this._username = credentials.username;
-    this._passwordBytes = toUtf8Bytes(credentials.password);
-    this._passwordHash = keccak256(this._passwordBytes);
+    this._passwordBytes = credentials.password ? toUtf8Bytes(credentials.password) : null;
+    this._passwordHash = this._passwordBytes ? keccak256(this._passwordBytes) : null;
+    this._apiKeySecret = credentials.apiKey ? keccak256(credentials.apiKey) : null;
     this._deps = deps;
     /** @type {Address | null} */
     this._walletAddr = null;
@@ -69,9 +66,39 @@ export class CredentialsSession {
 
   /**
    * @public
+   * @returns {boolean}
+   */
+  hasPassword() {
+    return this._passwordBytes != null;
+  }
+
+  /**
+   * @public
+   * @returns {boolean}
+   */
+  hasApiKey() {
+    return this._apiKeySecret != null;
+  }
+
+  /**
+   * @public
+   * @returns {Bytes32}
+   */
+  getApiKeySecret() {
+    if (!this._apiKeySecret) {
+      throw new ValidationError('credentials.apiKey is required for this operation', 'credentials.apiKey', null);
+    }
+    return this._apiKeySecret;
+  }
+
+  /**
+   * @public
    * @returns {Uint8Array}
    */
   getPasswordBytes() {
+    if (!this._passwordBytes) {
+      throw new ValidationError('credentials.password is required for this operation', 'credentials.password', null);
+    }
     return this._passwordBytes;
   }
 
@@ -80,6 +107,9 @@ export class CredentialsSession {
    * @returns {Bytes32}
    */
   getPasswordHash() {
+    if (!this._passwordHash) {
+      throw new ValidationError('credentials.password is required for this operation', 'credentials.password', null);
+    }
     return this._passwordHash;
   }
 
@@ -129,6 +159,10 @@ export class CredentialsSession {
 
     if (flags.defaultCurrentPassword && resolved.currentPassword == null) {
       resolved.currentPassword = this._passwordBytes;
+    }
+
+    if (flags.defaultApiKeySecret && resolved.apiKeySecret == null) {
+      resolved.apiKeySecret = this._apiKeySecret;
     }
 
     return resolved;

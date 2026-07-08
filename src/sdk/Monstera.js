@@ -79,6 +79,18 @@
  * @typedef {import('../types/index.js').ConfigurePasswordOptions} ConfigurePasswordOptions
  * @typedef {import('../types/index.js').ConfigurePasswordMinuteOptions} ConfigurePasswordMinuteOptions
  * @typedef {import('../types/index.js').ConfigureWalletSignatureOptions} ConfigureWalletSignatureOptions
+ * @typedef {import('../types/index.js').ConfigureApiKeySessionOptions} ConfigureApiKeySessionOptions
+ * @typedef {import('../types/index.js').ConfigureApiKeySessionResult} ConfigureApiKeySessionResult
+ * @typedef {import('../types/index.js').RotateApiKeyOptions} RotateApiKeyOptions
+ * @typedef {import('../types/index.js').RotateApiKeyResult} RotateApiKeyResult
+ * @typedef {import('../types/index.js').CreateAuthProofApiKeySessionOptions} CreateAuthProofApiKeySessionOptions
+ * @typedef {import('../types/index.js').EncodedAuthProofApiKeySession} EncodedAuthProofApiKeySession
+ * @typedef {import('../types/index.js').ComputeTokenMacOptions} ComputeTokenMacOptions
+ * @typedef {import('../types/index.js').ComputeActionMacOptions} ComputeActionMacOptions
+ * @typedef {import('../types/index.js').BuildTokenAuthProofOptions} BuildTokenAuthProofOptions
+ * @typedef {import('../types/index.js').BuildActionAuthProofOptions} BuildActionAuthProofOptions
+ * @typedef {import('../types/index.js').SelectorBitOptions} SelectorBitOptions
+ * @typedef {import('../types/index.js').SelectorBitResult} SelectorBitResult
  * @typedef {import('../types/index.js').DeactivateActivateKeyOptions} DeactivateActivateKeyOptions
  * @typedef {import('../types/index.js').RemoveWhitelistOptions} RemoveWhitelistOptions
  * @typedef {import('../types/index.js').TransferAdminOptions} TransferAdminOptions
@@ -161,12 +173,16 @@ import {
   buildChangeGuardianAction,
   buildAddToWhitelistAction,
   buildRemoveFromWhitelistAction,
-  buildMinuteSignatureChangePasswordAction
+  buildMinuteSignatureChangePasswordAction,
+  buildRotateApiKeyAction
 } from '../internal/auth/context/actions/index.js';
 import { CredentialsSession } from '../internal/auth/session/CredentialsSession.js';
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
 import { VaultCallPipeline } from '../internal/auth/session/VaultCallPipeline.js';
 import { AuthenticatorCallPipeline } from '../internal/auth/session/AuthenticatorCallPipeline.js';
+import { resolveActionHash } from '../internal/auth/context/createAuthContext.js';
+import { defaultProofDeadline } from '../internal/auth/authenticators/deadline.js';
+import { SCOPE_ALL, SCOPE_SIGN_ALL } from '../internal/auth/apiKeySession/constants.js';
 
 /**
  * Main entry point for Monstera wallet operations on Oasis Sapphire.
@@ -327,6 +343,30 @@ class Monstera {
   }
 
   /**
+   * ApiKeySession TOKEN-mode scope: all KeyVault signing ops (bits 0–4), excluding {@code executeWithAuth}.
+   *
+   * @public
+   * @static
+   * @readonly
+   * @returns {number}
+   */
+  static get API_KEY_SESSION_SCOPE_SIGN_ALL() {
+    return SCOPE_SIGN_ALL;
+  }
+
+  /**
+   * ApiKeySession TOKEN-mode scope: all signing ops plus {@code executeWithAuth} (bits 0–5).
+   *
+   * @public
+   * @static
+   * @readonly
+   * @returns {number}
+   */
+  static get API_KEY_SESSION_SCOPE_ALL() {
+    return SCOPE_ALL;
+  }
+
+  /**
    * Ordered list of {@link ContractAddresses} keys that must be present after config is resolved.
    *
    * @public
@@ -461,6 +501,23 @@ class Monstera {
   }
 
   /**
+   * Merge ApiKeySession call options with connect credentials and SDK config defaults.
+   *
+   * @private
+   * @async
+   * @param {Record<string, unknown>} [options={}]
+   * @param {import('../internal/auth/session/CredentialsSession.js').ResolveVaultOptionsFlags} [flags]
+   * @returns {Promise<Record<string, unknown>>}
+   */
+  async _resolveApiKeySessionProofOptions(options = {}, flags = { defaultApiKeySecret: true }) {
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options, flags);
+    return {
+      ...resolved,
+      chainId: resolved.chainId ?? this.config.chainId
+    };
+  }
+
+  /**
    * Get the wallet proxy address for the connect-time username.
    * 
    * @returns {Promise<Address>} Wallet proxy address
@@ -568,6 +625,30 @@ class Monstera {
    */
   async createAuthProofDualFactor(options = {}) {
     const { authProof } = await this._authenticatorPipeline.encodeAuthProof('dualFactor', options);
+    return authProof;
+  }
+
+  /**
+   * Build the {@code authProof} for {@code ApiKeySessionAuthenticator}.
+   *
+   * MAC computation and ABI encoding delegate to the on-chain pure helpers
+   * ({@code computeTokenMac}/{@code computeActionMac} + {@code buildTokenAuthProof}/{@code buildActionAuthProof}).
+   *
+   * ACTION mode (default): binds the proof to {@code action} or {@code actionHash}.
+   * TOKEN mode: mint a bearer token when {@code mode === 'token'} or {@code expiry}/{@code scopeMask}
+   * are set — {@code expiry} defaults to now + 1 hour, {@code scopeMask} defaults to
+   * {@code SCOPE_SIGN_ALL} (0x1F).
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofApiKeySessionOptions} options
+   * @returns {Promise<EncodedAuthProofApiKeySession>} ABI-encoded auth proof bytes
+   * @throws {ValidationError} If required parameters are missing or invalid
+   */
+  async createAuthProofApiKeySession(options = {}) {
+    const { authProof } = await this._authenticatorPipeline.encodeAuthProof('apiKeySession', options, {
+      flags: { defaultApiKeySecret: true }
+    });
     return authProof;
   }
 
@@ -747,6 +828,34 @@ class Monstera {
       authenticatorAddr: this.config.addresses.passwordMinuteSignatureAuth
     });
     return this.auth.passwordMinuteSignature.configure({ keyVaultAddr, authConfig });
+  }
+
+  /**
+   * Configure {@code ApiKeySessionAuthenticator} for a wallet by storing the API key hash on-chain.
+   *
+   * Delegates to {@link ApiKeySessionAuthenticatorClient#configure}.
+   *
+   * @public
+   * @async
+   * @param {ConfigureApiKeySessionOptions} options - Optional {@code keyVaultAddr} and 32-byte {@code apiKeySecret} (defaults from connect credentials when omitted)
+   * @returns {Promise<ConfigureApiKeySessionResult>} Standard write result with the parsed {@code wallet} field
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code apiKeySecret} is not a 32-byte hex string
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction fails
+   * @throws {ContractRevertError} If the transaction reverts on-chain
+   * @throws {EventNotFoundError} If the {@code ApiKeySessionConfigured} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async configureApiKeySession(options = {}) {
+    const { keyVaultAddr, apiKeySecret } = await this._vaultPipeline.resolveVaultOptions(options, {
+      defaultApiKeySecret: true
+    });
+    const { authConfig } = this._encodeAuthConfig.encode({
+      authConfig: { apiKeySecret },
+      authenticatorAddr: this.config.addresses.apiKeySessionAuth
+    });
+    return this.auth.apiKeySession.configure({ keyVaultAddr, authConfig });
   }
 
   // ============================================================================
@@ -1909,10 +2018,168 @@ class Monstera {
       'minuteSignature',
       options,
       {
-        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
+        flowOptions: { includeAuthContext: true, useVerifyProbe: true } // TODO: should i not add the flag to use password? 
       }
     );
     return this.auth.passwordMinuteSignature.verify({ keyVaultAddr, authProof, action });
+  }
+
+  /**
+   * Check whether {@code ApiKeySessionAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr}
+   * @returns {Promise<boolean>} {@code true} if configured
+   * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isApiKeySessionConfigured(options = {}) {
+    return this.auth.apiKeySession.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+  }
+
+  /**
+   * Build and verify an API key session auth proof and verify it on-chain.
+   *
+   * @public
+   * @async
+   * @param {import('../types/index.js').CreateAuthProofApiKeySessionVerifyOptions} [options={}] - Optional overrides; defaults from connect credentials and SDK config
+   * @returns {Promise<boolean>} {@code true} if the on-chain verifier accepts the proof
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the read provider fails to return the latest block, or the verify RPC call fails
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async isApiKeySessionValid(options = {}) {
+    const { keyVaultAddr, authProof, action } = await this._authenticatorPipeline.encodeAuthProof(
+      'apiKeySession',
+      options,
+      {
+        flags: { defaultApiKeySecret: true },
+        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
+      }
+    );
+    return this.auth.apiKeySession.verify({ keyVaultAddr, authProof, action });
+  }
+
+  /**
+   * Compute a TOKEN-mode MAC for an API key session via the on-chain pure helper.
+   *
+   * @public
+   * @async
+   * @param {ComputeTokenMacOptions} [options={}] - {@code keyVaultAddr} and {@code apiKeySecret} default from connect credentials; {@code chainId} from SDK config; {@code expiry} now + 1h; {@code scopeMask} {@code SCOPE_SIGN_ALL}
+   * @returns {Promise<Bytes32>} Token MAC
+   * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code apiKeySecret} is not a 32-byte hex string
+   * @throws {NetworkError} If the read call fails over RPC
+   */
+  async computeTokenMac(options = {}) {
+    const resolved = await this._resolveApiKeySessionProofOptions(options);
+    const expiry = resolved.expiry ?? defaultProofDeadline();
+    const scopeMask = resolved.scopeMask ?? SCOPE_SIGN_ALL;
+
+    return this.auth.apiKeySession.computeTokenMac({
+      keyVaultAddr: /** @type {Address} */ (resolved.keyVaultAddr),
+      apiKeySecret: /** @type {Bytes32} */ (resolved.apiKeySecret),
+      chainId: /** @type {ChainId} */ (resolved.chainId),
+      expiry,
+      scopeMask
+    });
+  }
+
+  /**
+   * Compute an ACTION-mode MAC for an API key session via the on-chain pure helper.
+   *
+   * @public
+   * @async
+   * @param {ComputeActionMacOptions} [options={}] - {@code apiKeySecret} defaults from connect credentials; supply {@code action} or {@code actionHash}
+   * @returns {Promise<Bytes32>} Action MAC
+   * @throws {ValidationError} If {@code apiKeySecret} is not a 32-byte hex string or neither {@code action} nor {@code actionHash} is supplied
+   * @throws {NetworkError} If the read call fails over RPC
+   */
+  async computeActionMac(options = {}) {
+    const resolved = await this._resolveApiKeySessionProofOptions(options);
+    const actionHash = await resolveActionHash(
+      {
+        readProvider: this.readProvider,
+        chainId: /** @type {ChainId} */ (resolved.chainId),
+        keyVaultAddr: /** @type {Address} */ (resolved.keyVaultAddr)
+      },
+      { action: resolved.action, actionHash: resolved.actionHash }
+    );
+
+    return this.auth.apiKeySession.computeActionMac({
+      apiKeySecret: /** @type {Bytes32} */ (resolved.apiKeySecret),
+      actionHash
+    });
+  }
+
+  /**
+   * Build a TOKEN-mode auth proof via on-chain {@code computeTokenMac} + {@code buildTokenAuthProof}.
+   *
+   * @public
+   * @async
+   * @param {BuildTokenAuthProofOptions} [options={}]
+   * @returns {Promise<EncodedAuthProofApiKeySession>} ABI-encoded auth proof bytes
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   */
+  async buildTokenAuthProof(options = {}) {
+    const resolved = await this._resolveApiKeySessionProofOptions(options);
+    const expiry = resolved.expiry ?? defaultProofDeadline();
+    const scopeMask = resolved.scopeMask ?? SCOPE_SIGN_ALL;
+    const mac = await this.computeTokenMac({ ...resolved, expiry, scopeMask });
+
+    return this.auth.apiKeySession.buildTokenAuthProof({
+      expiry,
+      scopeMask,
+      mac
+    });
+  }
+
+  /**
+   * Build an ACTION-mode auth proof via on-chain {@code computeActionMac} + {@code buildActionAuthProof}.
+   *
+   * @public
+   * @async
+   * @param {BuildActionAuthProofOptions} [options={}] - Supply {@code action} or {@code actionHash}
+   * @returns {Promise<EncodedAuthProofApiKeySession>} ABI-encoded auth proof bytes
+   * @throws {ValidationError} If required parameters are missing or invalid
+   * @throws {NetworkError} If the read call fails over RPC
+   */
+  async buildActionAuthProof(options = {}) {
+    const resolved = await this._resolveApiKeySessionProofOptions(options);
+    const actionHash = await resolveActionHash(
+      {
+        readProvider: this.readProvider,
+        chainId: /** @type {ChainId} */ (resolved.chainId),
+        keyVaultAddr: /** @type {Address} */ (resolved.keyVaultAddr)
+      },
+      { action: resolved.action, actionHash: resolved.actionHash }
+    );
+    const mac = await this.auth.apiKeySession.computeActionMac({
+      apiKeySecret: /** @type {Bytes32} */ (resolved.apiKeySecret),
+      actionHash
+    });
+
+    return this.auth.apiKeySession.buildActionAuthProof({ mac });
+  }
+
+  /**
+   * Get the selector bit for an API key session.
+   *
+   * @public
+   * @async
+   * @param {SelectorBitOptions} options - {@code selector}
+   * @returns {Promise<SelectorBitResult>} {@code ok} and {@code bit}
+   * @throws {ValidationError} If {@code selector} is not a 4-byte hex string
+   * @throws {NetworkError} If the read call fails over RPC
+   * @throws {ContractRevertError} If the underlying call reverts
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async selectorBit(options = {}) {
+    return this.auth.apiKeySession.selectorBit(await this._vaultPipeline.resolveVaultOptions(options));
   }
 
 
@@ -2432,6 +2699,36 @@ class Monstera {
           newPasswordHash
         }),
       { authenticatorAddr: this.config.addresses.passwordMinuteSignatureAuth }
+    );
+  }
+
+  /**
+   * Rotate the API key for an API key session.
+   *
+   * @public
+   * @async
+   * @param {RotateApiKeyOptions} options - {@code newApiKeySecret} required; {@code keyVaultAddr} and current {@code apiKeySecret} default from connect credentials; ACTION-mode {@code authProof} built internally
+   * @returns {Promise<RotateApiKeyResult>} Standard write result with parsed {@code wallet}
+   * @throws {ValidationError} If addresses or {@code newApiKeySecret} are missing/invalid
+   * @throws {WriteRequiresSignerError} If no signer is configured
+   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
+   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or new API key hash is zero)
+   * @throws {EventNotFoundError} If the {@code ApiKeyRotated} event is missing from the receipt
+   * @throws {EventParseError} If the event log decodes but mapping fails
+   * @throws {WalletError} For other unrecognised failures
+   */
+  async rotateApiKey(options = {}) {
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'apiKeySession',
+      options,
+      { defaultApiKeySecret: true },
+      (resolved, authenticatorAddr) => buildRotateApiKeyAction(authenticatorAddr, resolved.newApiKeySecret),
+      ({ keyVaultAddr, authProof, newApiKeySecret }) =>
+        this.auth.apiKeySession.rotateApiKey({
+          keyVaultAddr,
+          authProof,
+          newApiKeySecret
+        })
     );
   }
 }

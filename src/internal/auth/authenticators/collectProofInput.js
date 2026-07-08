@@ -57,6 +57,14 @@ export function collectProofInput(spec, options) {
         signer: partial.signer ?? options.signer,
         deadline: partial.deadline ?? options.deadline
       };
+    case 'apiKeySession':
+      return {
+        ...partial,
+        apiKeySecret: partial.apiKeySecret ?? options.apiKeySecret,
+        mode: partial.mode ?? options.mode,
+        expiry: partial.expiry ?? options.expiry,
+        scopeMask: partial.scopeMask ?? options.scopeMask
+      };
     default:
       return { ...partial };
   }

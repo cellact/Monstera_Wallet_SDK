@@ -38,5 +38,8 @@ export const SENSITIVE_PARAM_NAMES = Object.freeze([
   'hash',
   'privateKey',
   'password',
-  'providedSigner'
+  'providedSigner',
+  'apiKey',
+  'apiKeySecret',
+  'newApiKeySecret'
 ]);

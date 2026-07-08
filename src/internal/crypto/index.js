@@ -15,8 +15,11 @@ export {
   createAuthProofWalletSignature,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor,
-  createAuthProofPassword
+  createAuthProofPassword,
+  createAuthProofApiKeySession
 } from '../auth/proof/createAuthProof.js';
+export { isApiKeySessionTokenMode } from '../auth/apiKeySession/mode.js';
+export { MODE_TOKEN, MODE_ACTION, SCOPE_SIGN_ALL, SCOPE_ALL } from '../auth/apiKeySession/constants.js';
 export {
   AUTH_CONTEXT_TYPEHASH,
   computeParamsHash,
@@ -32,6 +35,7 @@ export {
   buildMinuteSignatureChangePasswordAction,
   buildDualFactorChangePasswordAction,
   buildChangeGuardianAction,
+  buildRotateApiKeyAction,
   buildAddToWhitelistAction,
   buildRemoveFromWhitelistAction,
   buildAuthenticatorVerifyProbeAction,

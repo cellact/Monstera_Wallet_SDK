@@ -308,3 +308,5 @@ export {
   createAuthProofDualFactor,
   createAuthProofPassword
 };
+
+export { createAuthProofApiKeySession } from '../apiKeySession/onChainProof.js';

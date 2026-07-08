@@ -75,6 +75,7 @@
  * @property {Address} walletSignatureAuth - WalletSignatureAuthenticator contract address
  * @property {Address} dualFactorAuth - DualFactorAuthenticator contract address
  * @property {Address} passwordMinuteSignatureAuth - PasswordMinuteSignatureAuthenticator contract address
+ * @property {Address} apiKeySessionAuth - ApiKeySessionAuthenticator contract address
  */
 
 /**
@@ -158,7 +159,8 @@
  *
  * @typedef {Object} ConnectCredentials
  * @property {string} username - Registered username (factory-normalised before hashing)
- * @property {string} password - UTF-8 password for PasswordAuthenticator proofs
+ * @property {string} [password] - UTF-8 password for PasswordAuthenticator proofs
+ * @property {Bytes32} [apiKey] - Raw 32-byte API key ({@code credentials.apiKey}); session exposes {@code apiKeySecret = keccak256(apiKey)}
  */
 
 /**
@@ -228,6 +230,10 @@
 /** @typedef {BaseTransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigureWalletSignatureResult */
 
 /** @typedef {BaseTransactionResult & { wallet: Address; guardian: Address }} ConfigurePasswordDualFactorResult */
+
+/** @typedef {BaseTransactionResult & { wallet: Address }} ConfigureApiKeySessionResult */
+
+/** @typedef {BaseTransactionResult & { wallet: Address }} RotateApiKeyResult */
 
 /** @typedef {BaseTransactionResult & { newAdmin?: Address; implementation?: Address }} UpdateResult */
 
@@ -349,12 +355,14 @@
  */
 
 /**
+ * @typedef {Object} ApiKeySessionAuthConfigInputOptions
+ * @property {Bytes32} apiKeySecret - keccak256(rawApiKey); stored on-chain, raw key never sent
+ */
+
+/**
  * Plain object {@code authConfig} for built-in authenticators at wallet creation (before ABI encoding).
  *
- * Union of four logical variants: password (PasswordAuthenticator), wallet-signature whitelist, dual-factor,
- * and password-minute-signature. TypeScript may show only three members in hovers because
- * {@link PasswordAuthConfigInputOptions} and {@link PasswordMinuteSignatureAuthConfigInputOptions} share the
- * same underlying shape ({@link PasswordAuthConfigInputOptions}); runtime still dispatches by
+ * Union of built-in authenticator config shapes at wallet creation. Runtime dispatches by
  * {@code authenticatorAddr}.
  *
  * @typedef {(
@@ -362,6 +370,7 @@
  *   | PasswordMinuteSignatureAuthConfigInputOptions
  *   | WalletSignatureAuthConfigInputOptions
  *   | DualFactorAuthConfigInputOptions
+ *   | ApiKeySessionAuthConfigInputOptions
  * )} AuthConfigInputOptions
  */
 
@@ -375,6 +384,11 @@
  * ABI-encoded dual-factor authenticator config at wallet creation ({@code abi.encode(bytes32,address)}).
  * @see {@link module:internal/crypto/authConfig.js} {@code createDualFactorAuthConfig}
  * @typedef {Bytes} EncodedAuthConfigDualFactor
+ */
+
+/**
+ * ABI-encoded ApiKeySessionAuthenticator config at wallet creation ({@code abi.encode(bytes32)}).
+ * @typedef {Bytes} EncodedAuthConfigApiKeySession
  */
 
 /**
@@ -621,12 +635,61 @@
  */
 
 /**
+ * ApiKeySession proof mode discriminator.
+ * @typedef {'token' | 'action'} ApiKeySessionProofMode
+ */
+
+/**
+ * Bearer scope bitmask for TOKEN-mode proofs (bit {@code n} enables the {@code n}th KeyVault signing op).
+ *
+ * Contract constants: {@code SCOPE_SIGN_ALL = 0x1F} (bits 0–4, all signing ops except {@code executeWithAuth}),
+ * {@code SCOPE_ALL = 0x3F} (bits 0–5, includes {@code executeWithAuth}).
+ *
+ * @typedef {number | bigint} ApiKeySessionScopeMask
+ */
+
+/**
+ * Shared optional fields for ApiKeySession structured proof input.
+ * @typedef {Object} ApiKeySessionAuthProofSharedOptions
+ * @property {Bytes32} [apiKeySecret] - {@code keccak256(apiKey)}; defaults from connect credentials when omitted
+ * @property {ApiKeySessionProofMode} [mode] - Explicit mode; inferred from {@code expiry}/{@code scopeMask} when omitted
+ */
+
+/**
+ * ACTION-mode structured input: one-shot proof bound to a single {@code actionHash}.
+ * @typedef {ApiKeySessionAuthProofSharedOptions & {
+ *   action?: AuthActionInput;
+ *   actionHash?: Bytes32;
+ * }} ApiKeySessionAuthProofActionOptions
+ */
+
+/**
+ * TOKEN-mode structured input: reusable bearer token until {@code expiry}.
+ * @typedef {ApiKeySessionAuthProofSharedOptions & {
+ *   mode?: 'token';
+ *   expiry?: number | bigint;
+ *   scopeMask?: ApiKeySessionScopeMask;
+ * }} ApiKeySessionAuthProofTokenOptions
+ */
+
+/**
+ * Structured input options to create auth proof for ApiKeySessionAuthenticator.
+ *
+ * Union of ACTION-mode ({@link ApiKeySessionAuthProofActionOptions}) and TOKEN-mode
+ * ({@link ApiKeySessionAuthProofTokenOptions}) shapes. When neither {@code expiry} nor
+ * {@code scopeMask} is set and {@code mode} is not {@code 'token'}, ACTION mode is used.
+ *
+ * @typedef {ApiKeySessionAuthProofActionOptions | ApiKeySessionAuthProofTokenOptions} ApiKeySessionAuthProofInputOptions
+ */
+
+/**
  * Allowed {@code authProof} input for KeyVault authenticated calls: raw bytes, UTF-8 password buffer, or a built-in structured proof object.
  * @typedef {(
  *   | PasswordAuthProofInputOptions
  *   | WalletSignatureAuthProofInputOptions
  *   | DualFactorAuthProofInputOptions
  *   | PasswordMinuteSignatureAuthProofInputOptions
+ *   | ApiKeySessionAuthProofInputOptions
  * )} AuthProofInputOptions
  */
 
@@ -701,6 +764,12 @@
  */
 
 /**
+ * ABI-encoded proof for {@code ApiKeySessionAuthenticator} (verify, rotateApiKey, etc.).
+ * Layout: {@code abi.encode(uint8 mode, bytes modeProof)} where {@code mode} is {@code MODE_TOKEN} (1) or {@code MODE_ACTION} (2).
+ * @typedef {Bytes} EncodedAuthProofApiKeySession
+ */
+
+/**
  * Result of minute-signature auth proof creation ({@code internal/crypto/authProof.js}, {@code createAuthProofMinuteSignature}).
  *
  * @typedef {Object} CreateAuthProofMinuteSignatureResult
@@ -717,6 +786,7 @@
  *   | EncodedAuthProofWalletSignature
  *   | EncodedAuthProofDualFactor
  *   | EncodedAuthProofPasswordMinute
+ *   | EncodedAuthProofApiKeySession
  * )} AuthProofOptions
  */
 
@@ -855,6 +925,37 @@
 /**
  * Inputs to build {@link EncodedAuthProofDualFactor} (dual-factor authenticator).
  * @typedef {CreateAuthProofBaseOptions & DualFactorAuthProofInputOptions } CreateAuthProofDualFactorOptions
+ */
+
+/**
+ * ACTION-mode inputs to build {@link EncodedAuthProofApiKeySession} for a specific operation.
+ * Supply {@code action} or {@code actionHash} (one required).
+ *
+ * @typedef {CreateAuthProofBaseOptions & ApiKeySessionAuthProofActionOptions} CreateAuthProofApiKeySessionActionOptions
+ */
+
+/**
+ * TOKEN-mode inputs to build a bearer {@link EncodedAuthProofApiKeySession}.
+ * {@code expiry} defaults to now + 1 hour; {@code scopeMask} defaults to {@code SCOPE_SIGN_ALL} (0x1F).
+ *
+ * @typedef {CreateAuthProofBaseOptions & ApiKeySessionAuthProofTokenOptions} CreateAuthProofApiKeySessionTokenOptions
+ */
+
+/**
+ * Minimal inputs for verify-only checks ({@link Monstera#isApiKeySessionValid}).
+ * The SDK builds an ACTION-mode verify-probe proof; no {@code action} required.
+ *
+ * @typedef {CreateAuthProofBaseOptions & ApiKeySessionAuthProofSharedOptions} CreateAuthProofApiKeySessionVerifyOptions
+ */
+
+/**
+ * Inputs to build {@link EncodedAuthProofApiKeySession} (API key session authenticator).
+ *
+ * @typedef {(
+ *   | CreateAuthProofApiKeySessionActionOptions
+ *   | CreateAuthProofApiKeySessionTokenOptions
+ *   | CreateAuthProofApiKeySessionVerifyOptions
+ * )} CreateAuthProofApiKeySessionOptions
  */
 
 /**
@@ -1164,6 +1265,14 @@
  */
 
 /**
+ * @typedef {KeyVaultAddrOptions & { apiKeySecret?: Bytes32 }} ConfigureApiKeySessionOptions
+ */
+
+/**
+ * @typedef {CreateAuthProofApiKeySessionActionOptions & { newApiKeySecret: Bytes32 }} RotateApiKeyOptions
+ */
+
+/**
  * @typedef {ConfigurePasswordOptions} ConfigurePasswordMinuteOptions
  */
 
@@ -1323,6 +1432,11 @@
  */
 
 /**
+ * {@code ApiKeySessionAuthenticator.verify} — expects {@link EncodedAuthProofApiKeySession}.
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofApiKeySession; action: AuthContext }} ApiKeySessionClientVerifyOptions
+ */
+
+/**
  * {@code IAuthenticator.configure} with fixed 32-byte {@code authConfig} (password hash authenticators).
  * @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigPassword }} PasswordClientConfigureOptions
  */
@@ -1336,6 +1450,8 @@
 
 
 /** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigDualFactor }} DualFactorClientConfigureOptions */
+
+/** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigApiKeySession }} ApiKeySessionClientConfigureOptions */
 
 /**
  * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToAdd: Address }} WalletSignatureClientAddToWhitelistOptions
@@ -1351,6 +1467,71 @@
 
 /**
  * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofDualFactor; newGuardian: Address }} DualFactorClientUpdateGuardianOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofApiKeySession; newApiKeySecret: Bytes32 }} ApiKeySessionClientRotateApiKeyOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { apiKeySecret: Bytes32; chainId: ChainId; expiry: number | bigint; scopeMask: number | bigint }} ApiKeySessionClientComputeTokenMacOptions
+ */
+
+/**
+ * @typedef {Object} ApiKeySessionClientComputeActionMacOptions
+ * @property {Bytes32} apiKeySecret
+ * @property {Bytes32} actionHash
+ */
+
+/**
+ * @typedef {Object} ApiKeySessionClientBuildTokenAuthProofOptions
+ * @property {number | bigint} expiry
+ * @property {number | bigint} scopeMask
+ * @property {Bytes32} mac
+ */
+
+/**
+ * @typedef {Object} ApiKeySessionClientBuildActionAuthProofOptions
+ * @property {Bytes32} mac
+ */
+
+/**
+ * @typedef {Object} ApiKeySessionClientSelectorBitOptions
+ * @property {string} selector - 4-byte function selector ({@code 0x........})
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & {
+ *   apiKeySecret?: Bytes32;
+ *   chainId?: ChainId;
+ *   expiry?: number | bigint;
+ *   scopeMask?: ApiKeySessionScopeMask;
+ * }} ComputeTokenMacOptions
+ */
+
+/**
+ * @typedef {Object} ComputeActionMacOptions
+ * @property {Bytes32} [apiKeySecret] - Defaults from connect credentials when omitted
+ * @property {Address} [keyVaultAddr] - Required when resolving {@code actionHash} from {@code action}
+ * @property {ChainId} [chainId] - Defaults to SDK config when resolving {@code actionHash}
+ * @property {AuthActionInput} [action] - Operation; required when {@code actionHash} is omitted
+ * @property {Bytes32} [actionHash] - Pre-resolved hash; required when {@code action} is omitted
+ */
+
+/**
+ * @typedef {CreateAuthProofApiKeySessionTokenOptions} BuildTokenAuthProofOptions
+ */
+
+/**
+ * @typedef {CreateAuthProofApiKeySessionActionOptions} BuildActionAuthProofOptions
+ */
+
+/** @typedef {ApiKeySessionClientSelectorBitOptions} SelectorBitOptions */
+
+/**
+ * @typedef {Object} SelectorBitResult
+ * @property {boolean} ok - Whether the selector is bearer-eligible
+ * @property {number} bit - Scope bit position when {@code ok} is true
  */
 
 // ============================================================================
@@ -1374,7 +1555,7 @@
 
 /**
  * Union type for authenticator client instances.
- * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default | import('../clients/auth/PasswordMinuteSignatureAuthenticatorClient.js').default} AuthenticatorClientInstance
+ * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default | import('../clients/auth/PasswordMinuteSignatureAuthenticatorClient.js').default | import('../clients/auth/ApiKeySessionAuthenticatorClient.js').default} AuthenticatorClientInstance
  */
 
 // Export empty object to make this a valid ES module

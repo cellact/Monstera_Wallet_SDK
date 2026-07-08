@@ -126,13 +126,13 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
    *
    * @public
    * @async
-   * @param {ApiKeySessionClientComputeTokenMacOptions} options - {@code keyVaultAddr}, {@code secret}, {@code chainId}, {@code expiry}, {@code scopeMask}
+   * @param {ApiKeySessionClientComputeTokenMacOptions} options - {@code keyVaultAddr}, {@code apiKeySecret}, {@code chainId}, {@code expiry}, {@code scopeMask}
    * @returns {Promise<Bytes32>} Token MAC
    */
   async computeTokenMac(options = {}) {
-    const { keyVaultAddr, secret, chainId, expiry, scopeMask } = options;
+    const { keyVaultAddr, apiKeySecret, chainId, expiry, scopeMask } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    requireBytes32(secret, 'secret');
+    requireBytes32(apiKeySecret, 'apiKeySecret');
     const normalizedChainId = requireChainId(chainId, 'chainId');
     requireNumber(expiry, 'expiry', { allowNegative: false });
     requireNumber(scopeMask, 'scopeMask', { allowNegative: false });
@@ -143,7 +143,7 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
 
     return this.executeRead(
       {
-        operation: () => apiKeySessionAuth.computeTokenMac(secret, normalizedChainId, keyVaultAddr, expiry, scopeMask),
+        operation: () => apiKeySessionAuth.computeTokenMac(apiKeySecret, normalizedChainId, keyVaultAddr, expiry, scopeMask),
         methodName: 'compute token MAC',
         ...options
       }
@@ -155,12 +155,12 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
    *
    * @public
    * @async
-   * @param {ApiKeySessionClientComputeActionMacOptions} options - {@code secret} and {@code actionHash}
+   * @param {ApiKeySessionClientComputeActionMacOptions} options - {@code apiKeySecret} and {@code actionHash}
    * @returns {Promise<Bytes32>} Action MAC
    */
   async computeActionMac(options = {}) {
-    const { secret, actionHash } = options;
-    requireBytes32(secret, 'secret');
+    const { apiKeySecret, actionHash } = options;
+    requireBytes32(apiKeySecret, 'apiKeySecret');
     requireBytes32(actionHash, 'actionHash');
     log.info('ApiKeySessionAuthenticator: computeActionMac');
     log.debug('Computing action MAC', sanitizer.forLog(options));
@@ -169,7 +169,7 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
 
     return this.executeRead(
       {
-        operation: () => apiKeySessionAuth.computeActionMac(secret, actionHash),
+        operation: () => apiKeySessionAuth.computeActionMac(apiKeySecret, actionHash),
         methodName: 'compute action MAC',
         ...options
       }
@@ -258,7 +258,7 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
   // ============================================================================
 
   /**
-   * Configure the API key session authenticator with ABI-encoded {@code bytes32 secret}.
+   * Configure the API key session authenticator with ABI-encoded {@code bytes32 apiKeySecret}.
    *
    * @public
    * @async
@@ -272,7 +272,7 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
    * @throws {EventParseError} If the event log decodes but mapping fails
    * @throws {WalletError} For other unrecognised failures
    *
-   * @remarks {@code authConfig = abi.encode(bytes32 secret)} where {@code secret == keccak256(apiKey)}.
+   * @remarks {@code authConfig = abi.encode(bytes32 apiKeySecret)} where {@code apiKeySecret == keccak256(apiKey)}.
    */
   async configure(options = {}) {
     const { keyVaultAddr, authConfig } = options;
@@ -302,7 +302,7 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
    *
    * @public
    * @async
-   * @param {ApiKeySessionClientRotateApiKeyOptions} options - {@code keyVaultAddr}, ACTION-mode {@code authProof}, {@code newSecret}
+   * @param {ApiKeySessionClientRotateApiKeyOptions} options - {@code keyVaultAddr}, ACTION-mode {@code authProof}, {@code newApiKeySecret}
    * @returns {Promise<RotateApiKeyResult>} Standard write result with parsed {@code wallet}
    * @throws {ValidationError} If inputs are missing or invalid
    * @throws {WriteRequiresSignerError} If no write signer is configured
@@ -314,13 +314,13 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
    *
    * @remarks
    * {@code authProof = abi.encode(MODE_ACTION, abi.encode(bytes32 mac))}.
-   * {@code newSecret = keccak256(newApiKey)}; must be non-zero.
+   * {@code newApiKeySecret = keccak256(newApiKey)}; must be non-zero.
    */
   async rotateApiKey(options = {}) {
-    const { keyVaultAddr, authProof, newSecret } = options;
+    const { keyVaultAddr, authProof, newApiKeySecret } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
-    requireBytes32(newSecret, 'newSecret');
+    requireBytes32(newApiKeySecret, 'newApiKeySecret');
     log.info('ApiKeySessionAuthenticator: rotateApiKey');
     log.debug('Rotating API key for keyVault', sanitizer.forLog(options));
 
@@ -328,7 +328,7 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
 
     return this.executeWrite(
       {
-        operation: () => apiKeySessionAuth.rotateApiKey(keyVaultAddr, authProof, newSecret),
+        operation: () => apiKeySessionAuth.rotateApiKey(keyVaultAddr, authProof, newApiKeySecret),
         methodName: 'rotate API key',
         parseEvents: [{
           eventDef: ApiKeySessionAuthenticatorEvents.ApiKeyRotated,

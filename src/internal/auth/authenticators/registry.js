@@ -13,16 +13,18 @@ import { passwordAuthenticator } from './password.js';
 import { passwordMinuteSignatureAuthenticator } from './passwordMinuteSignature.js';
 import { walletSignatureAuthenticator } from './walletSignature.js';
 import { dualFactorAuthenticator } from './dualFactor.js';
+import { apiKeySessionAuthenticator } from './apiKeySession.js';
 
 /** @type {readonly BuiltinAuthenticatorSpec[]} */
 export const BUILTIN_AUTHENTICATORS = [
+  apiKeySessionAuthenticator,
   passwordAuthenticator,
   passwordMinuteSignatureAuthenticator,
   walletSignatureAuthenticator,
   dualFactorAuthenticator
 ];
 
-/** @typedef {'password' | 'minuteSignature' | 'walletSignature' | 'dualFactor'} AuthProofFlowId */
+/** @typedef {'apiKeySession' | 'password' | 'minuteSignature' | 'walletSignature' | 'dualFactor'} AuthProofFlowId */
 
 /** @type {Map<string, BuiltinAuthenticatorSpec>} */
 const byFlowId = new Map(BUILTIN_AUTHENTICATORS.map((spec) => [spec.flowId, spec]));
@@ -74,6 +76,7 @@ export function createBuiltinAuthenticatorRegistry(addresses) {
 
 // Re-export individual specs for callers that need direct access.
 export {
+  apiKeySessionAuthenticator,
   passwordAuthenticator,
   passwordMinuteSignatureAuthenticator,
   walletSignatureAuthenticator,

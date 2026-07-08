@@ -84,6 +84,15 @@ function toPrepareInput(flowId, resolved, authenticatorAddr) {
         deadline: resolved.deadline,
         chainId: resolved.chainId
       };
+    case 'apiKeySession':
+      return {
+        ...base,
+        apiKeySecret: resolved.apiKeySecret,
+        chainId: resolved.chainId,
+        mode: resolved.mode,
+        expiry: resolved.expiry,
+        scopeMask: resolved.scopeMask
+      };
     default:
       return base;
   }

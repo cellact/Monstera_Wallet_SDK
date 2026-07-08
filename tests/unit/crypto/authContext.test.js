@@ -4,7 +4,9 @@ import {
   computeAuthenticatorActionHash,
   computeParamsHash
 } from '../../../src/internal/auth/context/createAuthContext.js';
-import { buildDualFactorChangePasswordAction } from '../../../src/internal/auth/context/actions/index.js';
+import { buildDualFactorChangePasswordAction, buildRotateApiKeyAction } from '../../../src/internal/auth/context/actions/index.js';
+import { getSelector } from '../../../src/internal/vault/getSelector.js';
+import { API_KEY_SESSION_AUTHENTICATOR_ABI } from '../../../src/contracts/abi/authenticators/apiKeySessionAuthenticator.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { DEFAULT_TESTNET_CHAIN_ID } from '../../utils/fixtures.js';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
@@ -62,5 +64,16 @@ describe('computeAuthenticatorActionHash', () => {
     });
 
     expect(actionHash).toMatch(/^0x[0-9a-fA-F]{64}$/);
+  });
+});
+
+describe('buildRotateApiKeyAction', () => {
+  test('builds rotateApiKey management action with newApiKeySecret params hash', () => {
+    const newApiKeySecret = keccak256(toUtf8Bytes('new-api-key-material'));
+    const action = buildRotateApiKeyAction(VALID_TEST_ADDRESS, newApiKeySecret);
+
+    expect(action.target).toBe(VALID_TEST_ADDRESS);
+    expect(action.selector).toBe(getSelector(API_KEY_SESSION_AUTHENTICATOR_ABI, 'rotateApiKey'));
+    expect(action.paramsHash).toBe(computeParamsHash(['bytes32'], [newApiKeySecret]));
   });
 });
