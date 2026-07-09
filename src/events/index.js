@@ -10,6 +10,8 @@
  * - {@link WalletFactoryEvents}
  * - {@link KeyVaultEvents}
  * - {@link WalletSignatureAuthenticatorEvents}
+ * - {@link PasswordOrWalletSignatureAuthenticatorEvents}
+ * - {@link MultiAuthenticatorEvents}
  * - {@link PasswordAuthenticatorEvents}
  * - {@link DualFactorAuthenticatorEvents}
  * - {@link PasswordMinuteSignatureAuthenticatorEvents}
@@ -27,6 +29,7 @@ import DualFactorAuthenticatorEvents from './dualFactorAuthenticator.js';
 import { parseEventFromReceipt } from './decodeReceipt.js';
 import PasswordMinuteSignatureAuthenticatorEvents from './passwordMinuteSignatureAuthenticator.js';
 import MultiAuthenticatorEvents from './multiAuthenticator.js';
+import PasswordOrWalletSignatureAuthenticatorEvents from './passwordOrWalletSignatureAuthenticator.js';
 
 export {
   ApiKeySessionAuthenticatorEvents,
@@ -38,4 +41,5 @@ export {
   parseEventFromReceipt,
   PasswordMinuteSignatureAuthenticatorEvents,
   MultiAuthenticatorEvents,
+  PasswordOrWalletSignatureAuthenticatorEvents,
 };

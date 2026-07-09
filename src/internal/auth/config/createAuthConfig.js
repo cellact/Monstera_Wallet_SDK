@@ -80,5 +80,28 @@ function createMultiAuthConfig(children, childConfigs) {
   return defaultAbiCoder.encode(['address[]', 'bytes[]'], [children, childConfigs]);
 }
 
+/**
+ * Build the {@code PasswordOrWalletSignatureAuthenticator} create-wallet / configure config bytes.
+ *
+ * @public
+ * @param {Bytes32} passwordHash
+ * @param {Address[]} initialWhitelist
+ * @returns {import('../../../types/index.js').EncodedAuthConfigPasswordOrWalletSignature}
+ */
+function createPasswordOrWalletSigAuthConfig(passwordHash, initialWhitelist) {
+  requireBytes32(passwordHash, 'passwordHash');
+  requireArray(initialWhitelist, 'initialWhitelist');
+  for (const address of initialWhitelist) {
+    requireAddress(address, 'initialWhitelist.address');
+  }
+  return defaultAbiCoder.encode(['bytes32', 'address[]'], [passwordHash, initialWhitelist]);
+}
 
-export { createWalletSigAuthConfig, createDualFactorAuthConfig, createApiKeySessionAuthConfig, createMultiAuthConfig };
+
+export {
+  createWalletSigAuthConfig,
+  createDualFactorAuthConfig,
+  createApiKeySessionAuthConfig,
+  createMultiAuthConfig,
+  createPasswordOrWalletSigAuthConfig,
+};

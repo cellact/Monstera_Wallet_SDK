@@ -21,6 +21,7 @@ import { passwordAuthenticator } from './password.js';
 import { passwordMinuteSignatureAuthenticator } from './passwordMinuteSignature.js';
 import { walletSignatureAuthenticator } from './walletSignature.js';
 import { dualFactorAuthenticator } from './dualFactor.js';
+import { passwordOrWalletSignatureAuthenticator } from './passwordOrWalletSignature.js';
 
 /** @type {readonly BuiltinAuthenticatorSpec[]} */
 const CHILD_AUTHENTICATORS = [
@@ -28,7 +29,8 @@ const CHILD_AUTHENTICATORS = [
   passwordAuthenticator,
   passwordMinuteSignatureAuthenticator,
   walletSignatureAuthenticator,
-  dualFactorAuthenticator
+  dualFactorAuthenticator,
+  passwordOrWalletSignatureAuthenticator,
 ];
 
 /** @type {Map<string, BuiltinAuthenticatorSpec>} */

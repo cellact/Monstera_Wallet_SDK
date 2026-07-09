@@ -4,7 +4,8 @@
  * Re-exports the {@link AuthenticatorClient} registry plus each individual authenticator client
  * ({@link PasswordAuthenticatorClient}, {@link WalletSignatureAuthenticatorClient},
  * {@link DualFactorAuthenticatorClient}, {@link PasswordMinuteSignatureAuthenticatorClient})
- * {@link ApiKeySessionAuthenticatorClient}
+ * {@link ApiKeySessionAuthenticatorClient}, {@link MultiAuthenticatorClient},
+ * {@link PasswordOrWalletSignatureAuthenticatorClient}
  * for both internal SDK use and advanced consumers that want to talk to a single authenticator
  * contract directly.
  *
@@ -18,6 +19,7 @@ import PasswordAuthenticatorClient from './PasswordAuthenticatorClient.js';
 import DualFactorAuthenticatorClient from './DualFactorAuthenticatorClient.js';
 import PasswordMinuteSignatureAuthenticatorClient from './PasswordMinuteSignatureAuthenticatorClient.js';
 import MultiAuthenticatorClient from './MultiAuthenticatorClient.js';
+import PasswordOrWalletSignatureAuthenticatorClient from './PasswordOrWalletSignatureAuthenticatorClient.js';
 
 export {
   ApiKeySessionAuthenticatorClient,
@@ -27,4 +29,5 @@ export {
   DualFactorAuthenticatorClient,
   PasswordMinuteSignatureAuthenticatorClient,
   MultiAuthenticatorClient,
+  PasswordOrWalletSignatureAuthenticatorClient,
 };

@@ -71,6 +71,8 @@ See [authentication/README.md](authentication/README.md) for which auth type to 
 | `password-minute-signature/` | [`create-and-sign.js`](authentication/password-minute-signature/create-and-sign.js) | Time-bound password-minute-signature auth |
 | `multi/` | [`create-wallet.js`](authentication/multi/create-wallet.js) | Create wallet with MultiAuthenticator + password child |
 | `multi/` | [`add-authenticator.js`](authentication/multi/add-authenticator.js) | Add ApiKeySession child to a multi-auth wallet |
+| `password-or-wallet-signature/` | [`create-wallet.js`](authentication/password-or-wallet-signature/create-wallet.js) | Create wallet with password + whitelist dual auth |
+| `password-or-wallet-signature/` | [`whitelist-flow.js`](authentication/password-or-wallet-signature/whitelist-flow.js) | Add/remove whitelist + LinkWallet approval flow |
 | `management/` | [`switch-authenticator.js`](authentication/management/switch-authenticator.js) | Switch authenticator on a wallet |
 | `management/` | [`list-authenticator-clients.js`](authentication/management/list-authenticator-clients.js) | List and access authenticator clients |
 

@@ -12,14 +12,14 @@
  * Signing failures are funnelled through {@link sdkErrorPipeline} with {@code authProofType} set,
  * so the {@code signingTranslator} categorises them.
  *
- * @typedef {import('../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
- * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
- * @typedef {import('../../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
- * @typedef {import('../../types/index.js').EncodedAuthProofWalletSignature} EncodedAuthProofWalletSignature
- * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureResult} CreateAuthProofMinuteSignatureResult
- * @typedef {import('../../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
- * @typedef {import('../../types/index.js').ChainId} ChainId
- * @typedef {import('../../types/index.js').AuthContext} AuthContext
+ * @typedef {import('../../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
+ * @typedef {import('../../../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
+ * @typedef {import('../../../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
+ * @typedef {import('../../../types/index.js').EncodedAuthProofWalletSignature} EncodedAuthProofWalletSignature
+ * @typedef {import('../../../types/index.js').CreateAuthProofMinuteSignatureResult} CreateAuthProofMinuteSignatureResult
+ * @typedef {import('../../../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
+ * @typedef {import('../../../types/index.js').ChainId} ChainId
+ * @typedef {import('../../../types/index.js').AuthContext} AuthContext
  *
  * @module internal/auth/proof/createAuthProof
  */
@@ -27,7 +27,14 @@
 import { Wallet } from '../../../adapters/ethers/index.js';
 import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
 import { getBytes, keccak256, solidityPacked } from '../../../adapters/ethers/hashing.js';
-import { requireUtf8Bytes, requireBytes32, requireAddress, requireNonEmptyBytes } from '../../assert.js';
+import {
+  requireUtf8Bytes,
+  requireBytes32,
+  requireAddress,
+  requireNonEmptyBytes,
+  requireWalletOrHdNode,
+  requireNumber,
+} from '../../assert.js';
 import {
   assertWalletSignatureAuthProofOptions,
   assertMinuteSignatureAuthProofOptions,
@@ -174,7 +181,7 @@ async function encodeMinuteSignatureProofPayload(options, normalizedChainId, act
  *   (e.g. ABI encoding failure, generic signer rejection)
  */
 async function createAuthProofWalletSignature(options = {}) {
-  const { signer, authenticatorAddr, deadline, keyVaultAddr, actionHash } = options;
+  const { signer, authenticatorAddr, deadline, keyVaultAddr, actionHash, eip712ContractName } = options;
   const { normalizedChainId } = assertWalletSignatureAuthProofOptions(options);
 
   log.info('Creating wallet signature auth proof');
@@ -188,7 +195,7 @@ async function createAuthProofWalletSignature(options = {}) {
 
   return signEip712ActionProof({
     signer,
-    contractName: 'WalletSignatureAuthenticator',
+    contractName: eip712ContractName ?? 'WalletSignatureAuthenticator',
     structName: 'WalletAuth',
     chainId: normalizedChainId,
     verifyingContract: authenticatorAddr,
@@ -319,12 +326,137 @@ function createAuthProofMulti({ child, childProof }) {
   return defaultAbiCoder.encode(['address', 'bytes'], [child, childProof]);
 }
 
+/** @type {1} */
+const METHOD_PASSWORD = 1;
+
+/** @type {2} */
+const METHOD_WALLET_SIGNATURE = 2;
+
+const LINK_WALLET_EIP712_FIELDS = [
+  { name: 'wallet', type: 'address' },
+  { name: 'newAddress', type: 'address' },
+  { name: 'nonce', type: 'bytes32' },
+  { name: 'deadline', type: 'uint256' },
+  { name: 'actionHash', type: 'bytes32' },
+];
+
+/**
+ * @param {'password' | 'walletSignature' | number | undefined} method
+ * @returns {'password' | 'walletSignature' | undefined}
+ */
+function normalizePasswordOrWalletMethod(method) {
+  if (method === METHOD_PASSWORD || method === 'password') {
+    return 'password';
+  }
+  if (method === METHOD_WALLET_SIGNATURE || method === 'walletSignature') {
+    return 'walletSignature';
+  }
+  return undefined;
+}
+
+/**
+ * Build {@code authProof} bytes for {@code PasswordOrWalletSignatureAuthenticator}.
+ *
+ * @description Returns {@code abi.encode(uint8 method, bytes methodProof)} where method {@code 1}
+ * uses {@code abi.encode(bytes password, bytes32 actionHash)} and method {@code 2} uses
+ * {@code abi.encode(uint256 deadline, bytes signature)} over EIP-712 {@code WalletAuth}.
+ *
+ * @public
+ * @async
+ * @param {Object} options
+ * @param {'password' | 'walletSignature' | number} [options.method] - Explicit method; inferred from signer/password when omitted
+ * @param {Uint8Array} [options.password] - UTF-8 password bytes
+ * @param {import('../../adapters/ethers/index.js').Wallet | import('../../adapters/ethers/index.js').HDNodeWallet} [options.signer]
+ * @param {import('../../types/index.js').Address} options.authenticatorAddr
+ * @param {import('../../types/index.js').Address} options.keyVaultAddr
+ * @param {import('../../types/index.js').Bytes32} options.actionHash
+ * @param {import('../../types/index.js').ChainId} options.chainId
+ * @param {number | bigint} [options.deadline]
+ * @returns {Promise<import('../../types/index.js').EncodedAuthProofPasswordOrWalletSignature>}
+ */
+async function createAuthProofPasswordOrWalletSignature(options = {}) {
+  const method = normalizePasswordOrWalletMethod(options.method)
+    ?? (options.signer != null ? 'walletSignature' : 'password');
+
+  if (method === 'password') {
+    const methodProof = createAuthProofPassword({
+      password: options.password,
+      actionHash: options.actionHash,
+    });
+    return defaultAbiCoder.encode(['uint8', 'bytes'], [METHOD_PASSWORD, methodProof]);
+  }
+
+  const methodProof = await createAuthProofWalletSignature({
+    ...options,
+    eip712ContractName: 'PasswordOrWalletSignatureAuthenticator',
+  });
+  return defaultAbiCoder.encode(['uint8', 'bytes'], [METHOD_WALLET_SIGNATURE, methodProof]);
+}
+
+/**
+ * Sign EIP-712 {@code LinkWallet} for {@code addToWhitelistWithProof}.
+ *
+ * @public
+ * @async
+ * @param {Object} options
+ * @param {import('../../adapters/ethers/index.js').Wallet | import('../../adapters/ethers/index.js').HDNodeWallet} options.linkSigner
+ * @param {import('../../types/index.js').Address} options.keyVaultAddr
+ * @param {import('../../types/index.js').Address} options.newAddress
+ * @param {import('../../types/index.js').Bytes32} options.nonce
+ * @param {number | bigint} options.deadline
+ * @param {import('../../types/index.js').Bytes32} options.actionHash
+ * @param {import('../../types/index.js').Address} options.authenticatorAddr
+ * @param {import('../../types/index.js').ChainId} options.chainId
+ * @returns {Promise<import('../../types/index.js').Bytes>}
+ */
+async function createLinkWalletSignature(options = {}) {
+  const {
+    linkSigner,
+    keyVaultAddr,
+    newAddress,
+    nonce,
+    deadline,
+    actionHash,
+    authenticatorAddr,
+    chainId,
+  } = options;
+
+  requireWalletOrHdNode(linkSigner, 'linkSigner');
+  requireAddress(keyVaultAddr, 'keyVaultAddr');
+  requireAddress(newAddress, 'newAddress');
+  requireBytes32(nonce, 'nonce');
+  requireNumber(deadline, 'deadline', { allowBigInt: true });
+  requireBytes32(actionHash, 'actionHash');
+  requireAddress(authenticatorAddr, 'authenticatorAddr');
+
+  const domain = {
+    name: 'PasswordOrWalletSignatureAuthenticator',
+    version: '1',
+    chainId,
+    verifyingContract: authenticatorAddr,
+  };
+  const types = { LinkWallet: LINK_WALLET_EIP712_FIELDS };
+  const value = { wallet: keyVaultAddr, newAddress, nonce, deadline, actionHash };
+
+  try {
+    return await linkSigner.signTypedData(domain, types, value);
+  } catch (error) {
+    sdkErrorPipeline.rethrow(error, {
+      authProofType: 'password-or-wallet link signature',
+      functionName: 'createLinkWalletSignature',
+      validationExtra: { deadline },
+    });
+  }
+}
+
 export {
   createAuthProofWalletSignature,
   createAuthProofMinuteSignature,
   createAuthProofDualFactor,
   createAuthProofPassword,
-  createAuthProofMulti
+  createAuthProofMulti,
+  createAuthProofPasswordOrWalletSignature,
+  createLinkWalletSignature,
 };
 
 export { createAuthProofApiKeySession } from '../apiKeySession/onChainProof.js';

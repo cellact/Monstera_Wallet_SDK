@@ -35,7 +35,8 @@ const REQUIRED_CONTRACT_ADDRESS_KEYS = Object.freeze([
   'dualFactorAuth',
   'passwordMinuteSignatureAuth',
   'apiKeySessionAuth',
-  'multiAuthenticator'
+  'multiAuthenticator',
+  'passwordOrWalletSigAuth'
 ]);
 
 /**

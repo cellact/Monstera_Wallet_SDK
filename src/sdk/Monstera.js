@@ -81,6 +81,8 @@
  * @typedef {import('../types/index.js').ConfigureWalletSignatureOptions} ConfigureWalletSignatureOptions
  * @typedef {import('../types/index.js').ConfigureApiKeySessionOptions} ConfigureApiKeySessionOptions
  * @typedef {import('../types/index.js').ConfigureApiKeySessionResult} ConfigureApiKeySessionResult
+ * @typedef {import('../types/index.js').ConfigurePasswordOrWalletSignatureOptions} ConfigurePasswordOrWalletSignatureOptions
+ * @typedef {import('../types/index.js').ConfigurePasswordOrWalletSignatureResult} ConfigurePasswordOrWalletSignatureResult
  * @typedef {import('../types/index.js').ConfigureMultiAuthenticatorOptions} ConfigureMultiAuthenticatorOptions
  * @typedef {import('../types/index.js').ConfigureMultiAuthenticatorResult} ConfigureMultiAuthenticatorResult
  * @typedef {import('../types/index.js').AddMultiAuthenticatorOptions} AddMultiAuthenticatorOptions
@@ -89,6 +91,16 @@
  * @typedef {import('../types/index.js').RemoveMultiAuthenticatorResult} RemoveMultiAuthenticatorResult
  * @typedef {import('../types/index.js').CreateAuthProofMultiOptions} CreateAuthProofMultiOptions
  * @typedef {import('../types/index.js').EncodedAuthProofMulti} EncodedAuthProofMulti
+ * @typedef {import('../types/index.js').CreateAuthProofPasswordOrWalletSignatureOptions} CreateAuthProofPasswordOrWalletSignatureOptions
+ * @typedef {import('../types/index.js').EncodedAuthProofPasswordOrWalletSignature} EncodedAuthProofPasswordOrWalletSignature
+ * @typedef {import('../types/index.js').UpdatePasswordOrWalletSignatureOptions} UpdatePasswordOrWalletSignatureOptions
+ * @typedef {import('../types/index.js').AddPasswordOrWalletSignatureWhitelistOptions} AddPasswordOrWalletSignatureWhitelistOptions
+ * @typedef {import('../types/index.js').RemovePasswordOrWalletSignatureWhitelistOptions} RemovePasswordOrWalletSignatureWhitelistOptions
+ * @typedef {import('../types/index.js').AddPasswordOrWalletSignatureWhitelistWithProofOptions} AddPasswordOrWalletSignatureWhitelistWithProofOptions
+ * @typedef {import('../types/index.js').AddToWhitelistWithProofResult} AddToWhitelistWithProofResult
+ * @typedef {import('../types/index.js').ComputePasswordOrWalletSignatureLinkParamsHashOptions} ComputePasswordOrWalletSignatureLinkParamsHashOptions
+ * @typedef {import('../types/index.js').ComputePasswordOrWalletSignatureLinkActionHashOptions} ComputePasswordOrWalletSignatureLinkActionHashOptions
+ * @typedef {import('../types/index.js').IsPasswordOrWalletSignatureLinkNonceUsedOptions} IsPasswordOrWalletSignatureLinkNonceUsedOptions
  * @typedef {import('../types/index.js').ComputeMultiAuthenticatorActionHashOptions} ComputeMultiAuthenticatorActionHashOptions
  * @typedef {import('../types/index.js').RotateApiKeyOptions} RotateApiKeyOptions
  * @typedef {import('../types/index.js').RotateApiKeyResult} RotateApiKeyResult
@@ -185,8 +197,14 @@ import {
   buildMinuteSignatureChangePasswordAction,
   buildRotateApiKeyAction,
   buildAddAuthenticatorAction,
-  buildRemoveAuthenticatorAction
+  buildRemoveAuthenticatorAction,
+  buildPasswordOrWalletChangePasswordAction,
+  buildPasswordOrWalletAddToWhitelistAction,
+  buildPasswordOrWalletRemoveFromWhitelistAction,
+  buildPasswordOrWalletAddToWhitelistWithProofAction,
 } from '../internal/auth/context/actions/index.js';
+import { createLinkWalletSignature } from '../internal/auth/proof/createAuthProof.js';
+import { hexlify, keccak256, randomBytes } from '../adapters/ethers/hashing.js';
 import { CredentialsSession } from '../internal/auth/session/CredentialsSession.js';
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
 import { VaultCallPipeline } from '../internal/auth/session/VaultCallPipeline.js';
@@ -658,6 +676,26 @@ class Monstera {
     return authProof;
   }
 
+  /**
+   * Build the unified {@code authProof} for {@code PasswordOrWalletSignatureAuthenticator}.
+   *
+   * ABI-encodes {@code (uint8 method, bytes methodProof)} using password (session default) or a
+   * whitelisted wallet signature. Method is inferred from {@code signer} vs {@code password} when omitted.
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofPasswordOrWalletSignatureOptions} options
+   * @returns {Promise<EncodedAuthProofPasswordOrWalletSignature>}
+   */
+  async createAuthProofPasswordOrWalletSignature(options = {}) {
+    const { authProof } = await this._authenticatorPipeline.encodeAuthProof(
+      'passwordOrWalletSignature',
+      options,
+      { flags: { defaultCurrentPassword: true } }
+    );
+    return authProof;
+  }
+
   // /**
   //  * Build the {@code authProof} for {@code ApiKeySessionAuthenticator}.
   //  *
@@ -886,6 +924,33 @@ class Monstera {
       authenticatorAddr: this.config.addresses.apiKeySessionAuth
     });
     return this.auth.apiKeySession.configure({ keyVaultAddr, authConfig });
+  }
+
+  /**
+   * Configure {@code PasswordOrWalletSignatureAuthenticator} for a wallet.
+   *
+   * Encodes {@code abi.encode(bytes32 passwordHash, address[] initialWhitelist)}. {@code passwordHash}
+   * defaults from connect credentials when omitted.
+   *
+   * @public
+   * @async
+   * @param {ConfigurePasswordOrWalletSignatureOptions} options - Optional {@code keyVaultAddr}, {@code passwordHash}, {@code initialWhitelist}
+   * @returns {Promise<ConfigurePasswordOrWalletSignatureResult>}
+   */
+  async configurePasswordOrWalletSignature(options = {}) {
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options, {
+      defaultCurrentPassword: true
+    });
+    const { keyVaultAddr, initialWhitelist } = resolved;
+    const passwordHash = resolved.passwordHash
+      ?? (resolved.currentPassword ? keccak256(resolved.currentPassword) : undefined)
+      ?? (this._credentialsSession?.hasPassword() ? this._credentialsSession.getPasswordHash() : undefined);
+
+    const { authConfig } = this._encodeAuthConfig.encode({
+      authConfig: { passwordHash, initialWhitelist },
+      authenticatorAddr: this.config.addresses.passwordOrWalletSigAuth
+    });
+    return this.auth.passwordOrWalletSignature.configure({ keyVaultAddr, authConfig });
   }
 
   /**
@@ -2170,6 +2235,130 @@ class Monstera {
   }
 
   /**
+   * Check whether {@code PasswordOrWalletSignatureAuthenticator} has been configured for a wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options
+   * @returns {Promise<boolean>}
+   */
+  async isPasswordOrWalletSignatureConfigured(options = {}) {
+    return this.auth.passwordOrWalletSignature.isConfigured(
+      await this._vaultPipeline.resolveVaultOptions(options)
+    );
+  }
+
+  /**
+   * Check whether an address is whitelisted on a password-or-wallet-signature wallet.
+   *
+   * @public
+   * @async
+   * @param {WhitelistCheckOptions} options
+   * @returns {Promise<boolean>}
+   */
+  async isPasswordOrWalletSignatureWhitelisted(options = {}) {
+    return this.auth.passwordOrWalletSignature.isWhitelisted(
+      await this._vaultPipeline.resolveVaultOptions(options)
+    );
+  }
+
+  /**
+   * Get all whitelisted addresses for a password-or-wallet-signature wallet.
+   *
+   * @public
+   * @async
+   * @param {KeyVaultAddrOptions} options
+   * @returns {Promise<Address[]>}
+   */
+  async getPasswordOrWalletSignatureWhitelist(options = {}) {
+    return this.auth.passwordOrWalletSignature.getWhitelist(
+      await this._vaultPipeline.resolveVaultOptions(options)
+    );
+  }
+
+  /**
+   * Check whether a wallet-link nonce has already been consumed.
+   *
+   * @public
+   * @async
+   * @param {IsPasswordOrWalletSignatureLinkNonceUsedOptions} options
+   * @returns {Promise<boolean>}
+   */
+  async isPasswordOrWalletSignatureLinkNonceUsed(options = {}) {
+    return this.auth.passwordOrWalletSignature.isLinkNonceUsed(
+      await this._vaultPipeline.resolveVaultOptions(options)
+    );
+  }
+
+  /**
+   * Get the EIP-712 domain separator for {@code PasswordOrWalletSignatureAuthenticator}.
+   *
+   * @public
+   * @async
+   * @param {Record<string, unknown>} [options={}]
+   * @returns {Promise<Bytes32>}
+   */
+  async getPasswordOrWalletSignatureDomainSeparator(options = {}) {
+    return this.auth.passwordOrWalletSignature.getDomainSeparator(options);
+  }
+
+  /**
+   * Compute the params hash for wallet-link operations on {@code PasswordOrWalletSignatureAuthenticator}.
+   *
+   * @public
+   * @async
+   * @param {ComputePasswordOrWalletSignatureLinkParamsHashOptions} options - {@code deadline} defaults to now + 1 hour
+   * @returns {Promise<Bytes32>}
+   */
+  async computePasswordOrWalletSignatureLinkParamsHash(options = {}) {
+    const { addressToAdd, nonce, deadline = defaultProofDeadline() } = options;
+    return this.auth.passwordOrWalletSignature.computeLinkParamsHash({
+      addressToAdd,
+      nonce,
+      deadline,
+    });
+  }
+
+  /**
+   * Compute the action hash for {@code addToWhitelistWithProof} on {@code PasswordOrWalletSignatureAuthenticator}.
+   *
+   * @public
+   * @async
+   * @param {ComputePasswordOrWalletSignatureLinkActionHashOptions} options - {@code keyVaultAddr} defaults from session; {@code deadline} defaults to now + 1 hour
+   * @returns {Promise<Bytes32>}
+   */
+  async computePasswordOrWalletSignatureLinkActionHash(options = {}) {
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
+    const { keyVaultAddr, addressToAdd, nonce, deadline = defaultProofDeadline() } = resolved;
+    return this.auth.passwordOrWalletSignature.computeLinkActionHash({
+      keyVaultAddr,
+      addressToAdd,
+      nonce,
+      deadline,
+    });
+  }
+
+  /**
+   * Build a password-or-wallet-signature auth proof and verify it on-chain.
+   *
+   * @public
+   * @async
+   * @param {CreateAuthProofPasswordOrWalletSignatureOptions} [options={}]
+   * @returns {Promise<boolean>}
+   */
+  async isPasswordOrWalletSignatureValid(options = {}) {
+    const { keyVaultAddr, authProof, action } = await this._authenticatorPipeline.encodeAuthProof(
+      'passwordOrWalletSignature',
+      options,
+      {
+        flags: { defaultCurrentPassword: true },
+        flowOptions: { includeAuthContext: true, useVerifyProbe: true },
+      }
+    );
+    return this.auth.passwordOrWalletSignature.verify({ keyVaultAddr, authProof, action });
+  }
+
+  /**
    * Build and verify an API key session auth proof and verify it on-chain.
    *
    * @public
@@ -2907,6 +3096,150 @@ class Monstera {
           childConfig
         }),
       { authenticatorAddr: this.config.addresses.multiAuthenticator }
+    );
+  }
+
+  /**
+   * Replace the password hash on {@code PasswordOrWalletSignatureAuthenticator}.
+   *
+   * Builds a unified password-or-wallet-signature admin proof internally.
+   *
+   * @public
+   * @async
+   * @param {UpdatePasswordOrWalletSignatureOptions} options
+   * @returns {Promise<UpdatePasswordResult>}
+   */
+  async updatePasswordOrWalletSignature(options = {}) {
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'passwordOrWalletSignature',
+      options,
+      { defaultCurrentPassword: true },
+      (resolved, authenticatorAddr) =>
+        buildPasswordOrWalletChangePasswordAction(authenticatorAddr, resolved.newPasswordHash),
+      ({ keyVaultAddr, authProof, newPasswordHash }) =>
+        this.auth.passwordOrWalletSignature.changePassword({
+          keyVaultAddr,
+          authProof,
+          newPasswordHash,
+        })
+    );
+  }
+
+  /**
+   * Add an address to a password-or-wallet-signature wallet whitelist.
+   *
+   * @public
+   * @async
+   * @param {AddPasswordOrWalletSignatureWhitelistOptions} options
+   * @returns {Promise<AddToWhitelistResult>}
+   */
+  async addToPasswordOrWalletSignatureWhitelist(options = {}) {
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'passwordOrWalletSignature',
+      options,
+      { defaultCurrentPassword: true },
+      (resolved, authenticatorAddr) =>
+        buildPasswordOrWalletAddToWhitelistAction(authenticatorAddr, resolved.addressToAdd),
+      ({ keyVaultAddr, authProof, addressToAdd }) =>
+        this.auth.passwordOrWalletSignature.addToWhitelist({
+          keyVaultAddr,
+          authProof,
+          addressToAdd,
+        })
+    );
+  }
+
+  /**
+   * Remove an address from a password-or-wallet-signature wallet whitelist.
+   *
+   * @public
+   * @async
+   * @param {RemovePasswordOrWalletSignatureWhitelistOptions} options
+   * @returns {Promise<RemoveFromWhitelistResult>}
+   */
+  async removeFromPasswordOrWalletSignatureWhitelist(options = {}) {
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'passwordOrWalletSignature',
+      options,
+      { defaultCurrentPassword: true },
+      (resolved, authenticatorAddr) =>
+        buildPasswordOrWalletRemoveFromWhitelistAction(authenticatorAddr, resolved.addressToRemove),
+      ({ keyVaultAddr, authProof, addressToRemove }) =>
+        this.auth.passwordOrWalletSignature.removeFromWhitelist({
+          keyVaultAddr,
+          authProof,
+          addressToRemove,
+        })
+    );
+  }
+
+  /**
+   * Add a wallet to the whitelist using a link signature from the new wallet.
+   *
+   * Generates {@code nonce} and {@code deadline} when omitted, computes the link action hash
+   * on-chain, signs {@code LinkWallet} when {@code newWalletSignature} is omitted, and builds the
+   * admin auth proof via password (session default) or wallet signature.
+   *
+   * @public
+   * @async
+   * @param {AddPasswordOrWalletSignatureWhitelistWithProofOptions} options
+   * @returns {Promise<AddToWhitelistWithProofResult>}
+   */
+  async addToPasswordOrWalletSignatureWhitelistWithProof(options = {}) {
+    const resolved = await this._vaultPipeline.resolveVaultOptions(options, {
+      defaultCurrentPassword: true,
+    });
+    const nonce = resolved.nonce ?? hexlify(randomBytes(32));
+    const deadline = resolved.deadline ?? defaultProofDeadline();
+    const { keyVaultAddr, addressToAdd } = resolved;
+
+    const actionHash = await this.auth.passwordOrWalletSignature.computeLinkActionHash({
+      keyVaultAddr,
+      addressToAdd,
+      nonce,
+      deadline,
+    });
+
+    let newWalletSignature = resolved.newWalletSignature;
+    if (!newWalletSignature) {
+      newWalletSignature = await createLinkWalletSignature({
+        linkSigner: resolved.linkSigner,
+        keyVaultAddr,
+        newAddress: addressToAdd,
+        nonce,
+        deadline,
+        actionHash,
+        authenticatorAddr: this.config.addresses.passwordOrWalletSigAuth,
+        chainId: resolved.chainId ?? this.config.chainId,
+      });
+    }
+
+    return this._authenticatorPipeline.invokeWithAuthProof(
+      'passwordOrWalletSignature',
+      {
+        ...options,
+        keyVaultAddr,
+        addressToAdd,
+        nonce,
+        deadline,
+      },
+      { defaultCurrentPassword: true },
+      (_, authenticatorAddr) =>
+        buildPasswordOrWalletAddToWhitelistWithProofAction(
+          authenticatorAddr,
+          addressToAdd,
+          nonce,
+          deadline
+        ),
+      ({ keyVaultAddr: vaultAddr, authProof }) =>
+        this.auth.passwordOrWalletSignature.addToWhitelistWithProof({
+          keyVaultAddr: vaultAddr,
+          authProof,
+          addressToAdd,
+          nonce,
+          deadline,
+          newWalletSignature,
+        })
     );
   }
 

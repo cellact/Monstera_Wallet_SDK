@@ -81,6 +81,14 @@ export function collectProofInput(spec, options) {
         signer: partial.signer ?? options.signer,
         deadline: partial.deadline ?? options.deadline
       };
+    case 'passwordOrWalletSignature':
+      return {
+        ...partial,
+        method: partial.method ?? options.method,
+        password: partial.password ?? options.password ?? options.currentPassword,
+        signer: partial.signer ?? options.signer,
+        deadline: partial.deadline ?? options.deadline
+      };
     default:
       return { ...partial };
   }

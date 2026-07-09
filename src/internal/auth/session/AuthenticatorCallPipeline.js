@@ -116,6 +116,15 @@ function toPrepareInput(flowId, resolved, authenticatorAddr) {
         scopeMask: resolved.scopeMask
       };
     }
+    case 'passwordOrWalletSignature':
+      return {
+        ...base,
+        method: resolved.method,
+        password: resolved.currentPassword ?? resolved.password,
+        signer: resolved.signer,
+        deadline: resolved.deadline,
+        chainId: resolved.chainId
+      };
     default:
       return base;
   }

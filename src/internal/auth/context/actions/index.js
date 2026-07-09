@@ -20,6 +20,12 @@ export {
   buildRemoveAuthenticatorAction
 } from './authenticator/multi.js';
 export {
+  buildPasswordOrWalletChangePasswordAction,
+  buildPasswordOrWalletAddToWhitelistAction,
+  buildPasswordOrWalletRemoveFromWhitelistAction,
+  buildPasswordOrWalletAddToWhitelistWithProofAction,
+} from './authenticator/passwordOrWalletSignature.js';
+export {
   buildAuthenticatorVerifyProbeAction,
   getVerifySelector,
   VERIFY_PROBE_PARAMS_HASH

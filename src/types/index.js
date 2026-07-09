@@ -77,11 +77,12 @@
  * @property {Address} passwordMinuteSignatureAuth - PasswordMinuteSignatureAuthenticator contract address
  * @property {Address} apiKeySessionAuth - ApiKeySessionAuthenticator contract address
  * @property {Address} multiAuthenticator - MultiAuthenticator contract address
+ * @property {Address} passwordOrWalletSigAuth - PasswordOrWalletSignatureAuthenticator contract address
  */
 
 /**
  * Keys of {@link ContractAddresses} that must be present after configuration is resolved.
- * @typedef {'factory'|'passwordAuth'|'walletSignatureAuth'|'dualFactorAuth'|'passwordMinuteSignatureAuth'|'apiKeySessionAuth'|'multiAuthenticator'} RequiredContractAddressKey
+ * @typedef {'factory'|'passwordAuth'|'walletSignatureAuth'|'dualFactorAuth'|'passwordMinuteSignatureAuth'|'apiKeySessionAuth'|'multiAuthenticator'|'passwordOrWalletSigAuth'} RequiredContractAddressKey
  */
 
 /**
@@ -230,6 +231,8 @@
 
 /** @typedef {BaseTransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigureWalletSignatureResult */
 
+/** @typedef {BaseTransactionResult & { wallet: Address; initialWhitelist: Address[] }} ConfigurePasswordOrWalletSignatureResult */
+
 /** @typedef {BaseTransactionResult & { wallet: Address; guardian: Address }} ConfigurePasswordDualFactorResult */
 
 /** @typedef {BaseTransactionResult & { wallet: Address }} ConfigureApiKeySessionResult */
@@ -262,6 +265,8 @@
 /** @typedef {UpdateAuthenticatorAddrResult & { customAckHash: Bytes32 }} UpdateAuthenticatorAddrCustomResult */
 
 /** @typedef {BaseTransactionResult & { wallet: Address; added: Address }} AddToWhitelistResult */
+
+/** @typedef {BaseTransactionResult & { wallet: Address; linkedWallet: Address; nonce: Bytes32 }} AddToWhitelistWithProofResult */
 
 /** @typedef {BaseTransactionResult & { wallet: Address; removed: Address }} RemoveFromWhitelistResult */
 
@@ -365,6 +370,12 @@
  */
 
 /**
+ * @typedef {Object} PasswordOrWalletSignatureAuthConfigInputOptions
+ * @property {Bytes32} [passwordHash] - keccak256(utf8(password)); defaults from connect credentials when omitted
+ * @property {Address[]} initialWhitelist - Initial whitelist (at least one address)
+ */
+
+/**
  * One structured child entry for {@link MultiAuthConfigInputOptions}.
  *
  * @typedef {Object} MultiAuthConfigChildEntry
@@ -403,6 +414,7 @@
  *   | WalletSignatureAuthConfigInputOptions
  *   | DualFactorAuthConfigInputOptions
  *   | ApiKeySessionAuthConfigInputOptions
+ *   | PasswordOrWalletSignatureAuthConfigInputOptions
  *   | MultiAuthConfigInputOptions
  * )} AuthConfigInputOptions
  */
@@ -436,6 +448,11 @@
  */
 
 /**
+ * ABI-encoded PasswordOrWalletSignatureAuthenticator config at wallet creation ({@code abi.encode(bytes32,address[])}).
+ * @typedef {Bytes} EncodedAuthConfigPasswordOrWalletSignature
+ */
+
+/**
  * Password-hash-only authenticator config for PasswordAuthenticator at creation (contract expects bytes32).
  * @see {@link module:internal/auth/authenticators/password.js} {@code passwordAuthenticator.configEncoder}
  * @typedef {Bytes32} EncodedAuthConfigPassword
@@ -459,6 +476,7 @@
  *   | EncodedAuthConfigPasswordMinuteSignature
  *   | EncodedAuthConfigApiKeySession
  *   | EncodedAuthConfigMulti
+ *   | EncodedAuthConfigPasswordOrWalletSignature
  * )} EncodedAuthConfigOptions
  */
 
@@ -675,6 +693,17 @@
  */
 
 /**
+ * Structured input options to create auth proof for PasswordOrWalletSignatureAuthenticator.
+ * @typedef {Object} PasswordOrWalletSignatureAuthProofInputOptions
+ * @property {'password' | 'walletSignature'} [method] - Explicit method; inferred from {@code signer} vs {@code password} when omitted
+ * @property {Uint8Array} [password] - UTF-8 password bytes (defaults from connect credentials when omitted)
+ * @property {EthersWallet | EthersHDNodeWallet} [signer] - Whitelisted wallet for the signature path
+ * @property {number | bigint} [deadline] - Wallet-signature path only (defaults to now + 1 hour)
+ * @property {AuthActionInput} [action] - Operation being authorized; required when {@code actionHash} is omitted
+ * @property {Bytes32} [actionHash] - Pre-resolved on-chain action hash; required when {@code action} is omitted
+ */
+
+/**
  * ApiKeySession proof mode discriminator.
  * @typedef {'token' | 'action'} ApiKeySessionProofMode
  */
@@ -730,6 +759,7 @@
  *   | DualFactorAuthProofInputOptions
  *   | PasswordMinuteSignatureAuthProofInputOptions
  *   | ApiKeySessionAuthProofInputOptions
+ *   | PasswordOrWalletSignatureAuthProofInputOptions
  * )} AuthProofInputOptions
  */
 
@@ -816,6 +846,12 @@
  */
 
 /**
+ * ABI-encoded proof for {@code PasswordOrWalletSignatureAuthenticator} (verify, password change, whitelist writes, etc.).
+ * Layout: {@code abi.encode(uint8 method, bytes methodProof)} where {@code method} is {@code 1} (password) or {@code 2} (wallet signature).
+ * @typedef {Bytes} EncodedAuthProofPasswordOrWalletSignature
+ */
+
+/**
  * Result of minute-signature auth proof creation ({@code internal/crypto/authProof.js}, {@code createAuthProofMinuteSignature}).
  *
  * @typedef {Object} CreateAuthProofMinuteSignatureResult
@@ -834,6 +870,7 @@
  *   | EncodedAuthProofPasswordMinute
  *   | EncodedAuthProofApiKeySession
  *   | EncodedAuthProofMulti
+ *   | EncodedAuthProofPasswordOrWalletSignature
  * )} AuthProofOptions
  */
 
@@ -972,6 +1009,11 @@
 /**
  * Inputs to build {@link EncodedAuthProofDualFactor} (dual-factor authenticator).
  * @typedef {CreateAuthProofBaseOptions & DualFactorAuthProofInputOptions } CreateAuthProofDualFactorOptions
+ */
+
+/**
+ * Inputs to build {@link EncodedAuthProofPasswordOrWalletSignature}.
+ * @typedef {CreateAuthProofBaseOptions & PasswordOrWalletSignatureAuthProofInputOptions} CreateAuthProofPasswordOrWalletSignatureOptions
  */
 
 /**
@@ -1323,6 +1365,10 @@
  */
 
 /**
+ * @typedef {KeyVaultAddrOptions & { passwordHash?: Bytes32; initialWhitelist: Address[] }} ConfigurePasswordOrWalletSignatureOptions
+ */
+
+/**
  * @typedef {KeyVaultAddrOptions & { passwordHash: Bytes32; guardianAddr: Address }} ConfigureDualFactorOptions
  */
 
@@ -1473,6 +1519,40 @@
  */
 
 /**
+ * @typedef {CreateAuthProofPasswordOrWalletSignatureOptions & { newPasswordHash: Bytes32 }} UpdatePasswordOrWalletSignatureOptions
+ */
+
+/**
+ * @typedef {CreateAuthProofPasswordOrWalletSignatureOptions & { addressToAdd: Address }} AddPasswordOrWalletSignatureWhitelistOptions
+ */
+
+/**
+ * @typedef {CreateAuthProofPasswordOrWalletSignatureOptions & { addressToRemove: Address }} RemovePasswordOrWalletSignatureWhitelistOptions
+ */
+
+/**
+ * @typedef {CreateAuthProofPasswordOrWalletSignatureOptions & {
+ *   addressToAdd: Address;
+ *   nonce?: Bytes32;
+ *   deadline?: number | bigint;
+ *   linkSigner?: EthersWallet | EthersHDNodeWallet;
+ *   newWalletSignature?: Bytes;
+ * }} AddPasswordOrWalletSignatureWhitelistWithProofOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { addressToAdd: Address; nonce?: Bytes32; deadline?: number | bigint }} ComputePasswordOrWalletSignatureLinkParamsHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { addressToAdd: Address; nonce?: Bytes32; deadline?: number | bigint }} ComputePasswordOrWalletSignatureLinkActionHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { nonce: Bytes32 }} IsPasswordOrWalletSignatureLinkNonceUsedOptions
+ */
+
+/**
  * @typedef {CreateAuthProofDualFactorOptions & { newPasswordHash: Bytes32 }} UpdatePasswordDualFactorOptions
  */
 
@@ -1514,6 +1594,11 @@
  */
 
 /**
+ * {@code PasswordOrWalletSignatureAuthenticator.verify} — expects {@link EncodedAuthProofPasswordOrWalletSignature}.
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordOrWalletSignature; action: AuthContext }} PasswordOrWalletSignatureClientVerifyOptions
+ */
+
+/**
  * {@code IAuthenticator.configure} with fixed 32-byte {@code authConfig} (password hash authenticators).
  * @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigPassword }} PasswordClientConfigureOptions
  */
@@ -1531,6 +1616,8 @@
 /** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigApiKeySession }} ApiKeySessionClientConfigureOptions */
 
 /** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigMulti }} MultiAuthenticatorClientConfigureOptions */
+
+/** @typedef {KeyVaultAddrOptions & { authConfig: EncodedAuthConfigPasswordOrWalletSignature }} PasswordOrWalletSignatureClientConfigureOptions */
 /** @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofMulti; action: AuthContext }} MultiAuthenticatorClientVerifyOptions */
 /** @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofMulti; child: Address; childConfig: Bytes }} MultiAuthenticatorClientAddAuthenticatorOptions */
 /** @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofMulti; child: Address }} MultiAuthenticatorClientRemoveAuthenticatorOptions */
@@ -1544,6 +1631,34 @@
 
 /**
  * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofWalletSignature; addressToRemove: Address }} WalletSignatureClientRemoveFromWhitelistOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordOrWalletSignature; newPasswordHash: Bytes32 }} PasswordOrWalletSignatureClientChangePasswordOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordOrWalletSignature; addressToAdd: Address }} PasswordOrWalletSignatureClientAddToWhitelistOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordOrWalletSignature; addressToRemove: Address }} PasswordOrWalletSignatureClientRemoveFromWhitelistOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { authProof: EncodedAuthProofPasswordOrWalletSignature; addressToAdd: Address; nonce: Bytes32; deadline: number | bigint; newWalletSignature: Bytes }} PasswordOrWalletSignatureClientAddToWhitelistWithProofOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { addressToAdd: Address; nonce: Bytes32; deadline: number | bigint }} PasswordOrWalletSignatureClientComputeLinkParamsHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { addressToAdd: Address; nonce: Bytes32; deadline: number | bigint }} PasswordOrWalletSignatureClientComputeLinkActionHashOptions
+ */
+
+/**
+ * @typedef {KeyVaultAddrOptions & { nonce: Bytes32 }} PasswordOrWalletSignatureClientIsLinkNonceUsedOptions
  */
 
 /**
@@ -1640,7 +1755,7 @@
 
 /**
  * Union type for authenticator client instances.
- * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default | import('../clients/auth/PasswordMinuteSignatureAuthenticatorClient.js').default | import('../clients/auth/ApiKeySessionAuthenticatorClient.js').default | import('../clients/auth/MultiAuthenticatorClient.js').default} AuthenticatorClientInstance
+ * @typedef {import('../clients/auth/PasswordAuthenticatorClient.js').default | import('../clients/auth/WalletSignatureAuthenticatorClient.js').default | import('../clients/auth/DualFactorAuthenticatorClient.js').default | import('../clients/auth/PasswordMinuteSignatureAuthenticatorClient.js').default | import('../clients/auth/ApiKeySessionAuthenticatorClient.js').default | import('../clients/auth/MultiAuthenticatorClient.js').default | import('../clients/auth/PasswordOrWalletSignatureAuthenticatorClient.js').default} AuthenticatorClientInstance
  */
 
 // Export empty object to make this a valid ES module

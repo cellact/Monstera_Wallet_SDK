@@ -15,6 +15,7 @@ import { walletSignatureAuthenticator } from './walletSignature.js';
 import { dualFactorAuthenticator } from './dualFactor.js';
 import { apiKeySessionAuthenticator } from './apiKeySession.js';
 import { multiAuthenticator, wrapMultiConfigEncoder } from './multi.js';
+import { passwordOrWalletSignatureAuthenticator } from './passwordOrWalletSignature.js';
 
 /** @type {readonly import('./types.js').BuiltinAuthenticatorSpec[]} */
 const CHILD_AUTHENTICATORS = [
@@ -22,7 +23,8 @@ const CHILD_AUTHENTICATORS = [
   passwordAuthenticator,
   passwordMinuteSignatureAuthenticator,
   walletSignatureAuthenticator,
-  dualFactorAuthenticator
+  dualFactorAuthenticator,
+  passwordOrWalletSignatureAuthenticator,
 ];
 
 /** @type {readonly import('./types.js').BuiltinAuthenticatorSpec[]} */
@@ -31,7 +33,7 @@ export const BUILTIN_AUTHENTICATORS = [
   multiAuthenticator
 ];
 
-/** @typedef {'apiKeySession' | 'password' | 'minuteSignature' | 'walletSignature' | 'dualFactor' | 'multi'} AuthProofFlowId */
+/** @typedef {'apiKeySession' | 'password' | 'minuteSignature' | 'walletSignature' | 'dualFactor' | 'passwordOrWalletSignature' | 'multi'} AuthProofFlowId */
 
 /** @type {Map<string, BuiltinAuthenticatorSpec>} */
 const byFlowId = new Map(BUILTIN_AUTHENTICATORS.map((spec) => [spec.flowId, spec]));
@@ -104,5 +106,6 @@ export {
   passwordMinuteSignatureAuthenticator,
   walletSignatureAuthenticator,
   dualFactorAuthenticator,
+  passwordOrWalletSignatureAuthenticator,
   multiAuthenticator
 };
