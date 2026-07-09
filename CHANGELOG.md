@@ -33,7 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **`AuthenticatorCallPipeline`**: Maps `apiKeySession` flow inputs (`mode`, `expiry`, `scopeMask`, `apiKeySecret`); maps `multi` and `passwordOrWalletSignature` flow inputs; debug logging on explicit encode.
+- **Sapphire `chainId` for auth proofs**: Auth proof encoding always uses the SDK config `chainId` (`applyConfigDefaults` on all built-in authenticators); optional caller overrides removed from public auth option types (`CreateAuthProofBaseOptions`, `PreparePasswordFlowOptions`, `UpdatePasswordOptions`, `ComputeTokenMacOptions`, `ComputeActionMacOptions`). **`signTransaction`** and **`signAuthorization`** still accept target-chain `chainId` where applicable.
+- **`AuthenticatorCallPipeline`**: Maps `apiKeySession` flow inputs (`mode`, `expiry`, `scopeMask`, `apiKeySecret`); maps `multi` and `passwordOrWalletSignature` flow inputs; debug logging on explicit encode; no longer forwards caller `chainId` into prepare input (defaults come from config).
 - **`VaultCallPipeline`**: Debug logging for pre-encoded vs built auth proofs on invoke.
 - **`AuthProofPipeline`**: Vault and explicit paths emit structured pipeline logs after proof encoding.
 - **`ExecutionPipeline`**: `Executing read` demoted from `info` to `debug` to reduce RPC noise during auth flows.
