@@ -542,7 +542,7 @@ class Monstera {
     const resolved = await this._vaultPipeline.resolveVaultOptions(options, flags);
     return {
       ...resolved,
-      chainId: resolved.chainId ?? this.config.chainId
+      chainId: this.config.chainId
     };
   }
 
@@ -605,14 +605,14 @@ class Monstera {
    * Build the EIP-712 {@code authProof} for {@code WalletSignatureAuthenticator}.
    *
    * Signs {@code WalletAuth(wallet, actionHash, deadline)} typed data with the supplied {@code signer} and ABI-encodes
-   * {@code (uint256 deadline, bytes signature)}. {@code authenticatorAddr}, {@code chainId} and {@code deadline}
-   * default from the SDK config (deadline = now + 1 hour).
+   * {@code (uint256 deadline, bytes signature)}. {@code authenticatorAddr} and {@code deadline}
+   * default from the SDK config (deadline = now + 1 hour). Sapphire {@code chainId} always comes from SDK config.
    *
    * @public
    * @async
    * @param {CreateAuthProofWalletSignatureOptions} options - Inputs for the proof ({@code action} or {@code actionHash} required)
    * @returns {Promise<EncodedAuthProofWalletSignature>} ABI-encoded auth proof bytes
-   * @throws {ValidationError} If {@code signer} is not a {@link EthersWallet}/{@link EthersHDNodeWallet}, addresses or {@code chainId}/{@code deadline} are invalid, or neither {@code action} nor {@code actionHash} is supplied
+   * @throws {ValidationError} If {@code signer} is not a {@link EthersWallet}/{@link EthersHDNodeWallet}, addresses or {@code deadline} are invalid, or neither {@code action} nor {@code actionHash} is supplied
    * @throws {NetworkError} If the signer's transport fails during typed-data signing
    * @throws {WalletError} For other unrecognised signing failures
    */
@@ -631,9 +631,9 @@ class Monstera {
    *
    * @public
    * @async
-   * @param {CreateAuthProofMinuteSignatureOptions} options - Inputs ({@code keyVaultAddr}, {@code passwordHash}, {@code action} or {@code actionHash}, optional {@code chainId} / {@code authenticatorAddr})
+   * @param {CreateAuthProofMinuteSignatureOptions} options - Inputs ({@code keyVaultAddr}, {@code passwordHash}, {@code action} or {@code actionHash}, optional {@code authenticatorAddr})
    * @returns {Promise<CreateAuthProofMinuteSignatureResult>} Encoded auth proof, minute bucket, and derived signer address
-   * @throws {ValidationError} If {@code keyVaultAddr}, {@code authenticatorAddr}, {@code chainId} are missing/invalid, {@code passwordHash} is not a 32-byte hex string, or neither {@code action} nor {@code actionHash} is supplied
+   * @throws {ValidationError} If {@code keyVaultAddr}, {@code authenticatorAddr} are missing/invalid, {@code passwordHash} is not a 32-byte hex string, or neither {@code action} nor {@code actionHash} is supplied
    * @throws {NetworkError} If the read provider fails to return the latest block
    */
   async createAuthProofMinuteSignature(options = {}) {
@@ -2938,7 +2938,7 @@ class Monstera {
    *
    * @public
    * @async
-   * @param {UpdatePasswordDualFactorOptions} options - {@code keyVaultAddr}, {@code passwordHash} (current), {@code newPasswordHash}, guardian {@code signer}, optional {@code deadline}/{@code chainId}/{@code authenticatorAddr}
+   * @param {UpdatePasswordDualFactorOptions} options - {@code keyVaultAddr}, {@code passwordHash} (current), {@code newPasswordHash}, guardian {@code signer}, optional {@code deadline}/{@code authenticatorAddr}
    * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet}
    * @throws {ValidationError} If addresses, password hashes, {@code signer}, or {@code deadline} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
@@ -2965,7 +2965,7 @@ class Monstera {
    *
    * @public
    * @async
-   * @param {UpdateGuardianOptions} options - {@code keyVaultAddr}, {@code passwordHash} (current), {@code newGuardian}, current guardian {@code signer}, optional {@code deadline}/{@code chainId}/{@code authenticatorAddr}
+   * @param {UpdateGuardianOptions} options - {@code keyVaultAddr}, {@code passwordHash} (current), {@code newGuardian}, current guardian {@code signer}, optional {@code deadline}/{@code authenticatorAddr}
    * @returns {Promise<UpdateGuardianResult>} Standard write result with parsed {@code newGuardian}
    * @throws {ValidationError} If addresses, {@code passwordHash}, {@code signer}, or {@code deadline} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
@@ -3210,7 +3210,7 @@ class Monstera {
         deadline,
         actionHash,
         authenticatorAddr: this.config.addresses.passwordOrWalletSigAuth,
-        chainId: resolved.chainId ?? this.config.chainId,
+        chainId: this.config.chainId,
       });
     }
 

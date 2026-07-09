@@ -24,7 +24,7 @@ function applyConfigDefaults(config, options) {
   return {
     ...options,
     addresses: options.addresses ?? config.addresses,
-    chainId: options.chainId ?? config.chainId,
+    chainId: config.chainId,
     authenticatorAddr: options.authenticatorAddr ?? config.addresses.multiAuthenticator
   };
 }

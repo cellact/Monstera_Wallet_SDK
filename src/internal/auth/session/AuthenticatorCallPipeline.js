@@ -74,22 +74,20 @@ function toPrepareInput(flowId, resolved, authenticatorAddr) {
     case 'password':
       return { ...base, password: resolved.currentPassword ?? resolved.password };
     case 'minuteSignature':
-      return { ...base, passwordHash: resolved.passwordHash, chainId: resolved.chainId };
+      return { ...base, passwordHash: resolved.passwordHash };
     case 'walletSignature':
-      return { ...base, signer: resolved.signer, deadline: resolved.deadline, chainId: resolved.chainId };
+      return { ...base, signer: resolved.signer, deadline: resolved.deadline };
     case 'dualFactor':
       return {
         ...base,
         passwordHash: resolved.passwordHash,
         signer: resolved.signer,
-        deadline: resolved.deadline,
-        chainId: resolved.chainId
+        deadline: resolved.deadline
       };
     case 'apiKeySession':
       return {
         ...base,
         apiKeySecret: resolved.apiKeySecret,
-        chainId: resolved.chainId,
         mode: resolved.mode,
         expiry: resolved.expiry,
         scopeMask: resolved.scopeMask
@@ -110,7 +108,6 @@ function toPrepareInput(flowId, resolved, authenticatorAddr) {
         passwordHash: resolved.passwordHash,
         signer: resolved.signer,
         deadline: resolved.deadline,
-        chainId: resolved.chainId,
         mode: resolved.mode,
         expiry: resolved.expiry,
         scopeMask: resolved.scopeMask
@@ -122,8 +119,7 @@ function toPrepareInput(flowId, resolved, authenticatorAddr) {
         method: resolved.method,
         password: resolved.currentPassword ?? resolved.password,
         signer: resolved.signer,
-        deadline: resolved.deadline,
-        chainId: resolved.chainId
+        deadline: resolved.deadline
       };
     default:
       return base;

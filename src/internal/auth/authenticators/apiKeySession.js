@@ -50,7 +50,7 @@ function applyConfigDefaults(config, options) {
   return {
     ...options,
     authenticatorAddr: options.authenticatorAddr ?? config.addresses.apiKeySessionAuth,
-    chainId: options.chainId ?? config.chainId
+    chainId: config.chainId
   };
 }
 

@@ -43,7 +43,7 @@ function validatePrepareInput(options) {
 function applyConfigDefaults(config, options) {
   return {
     ...options,
-    chainId: options.chainId ?? config.chainId,
+    chainId: config.chainId,
     authenticatorAddr: options.authenticatorAddr ?? config.addresses.passwordMinuteSignatureAuth
   };
 }

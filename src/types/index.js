@@ -993,7 +993,6 @@
  * @typedef {Object} CreateAuthProofBaseOptions
  * @property {Address} keyVaultAddr - KeyVault address of the wallet to authenticate
  * @property {Address} [authenticatorAddr] - Built-in authenticator address (defaults to config)
- * @property {ChainId} [chainId] - Chain ID (optional, defaults to config)
  */
 
 /**
@@ -1493,7 +1492,6 @@
  *   password: Uint8Array;
  *   action?: AuthActionInput;
  *   actionHash?: Bytes32;
- *   chainId?: ChainId;
  *   authenticatorAddr?: Address;
  * }} PreparePasswordFlowOptions
  */
@@ -1563,7 +1561,7 @@
 /**
  * currentPassword is raw password bytes (utf8 password bytes)
  * newPasswordHash is the new password hash (bytes32)
- * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array; newPasswordHash: Bytes32; chainId?: ChainId; authenticatorAddr?: Address }} UpdatePasswordOptions
+ * @typedef {KeyVaultAddrOptions & { currentPassword: Uint8Array; newPasswordHash: Bytes32; authenticatorAddr?: Address }} UpdatePasswordOptions
  */
 
 // --- Authenticator client methods (encoded {@code authProof} / {@code authConfig}) ---
@@ -1703,7 +1701,6 @@
 /**
  * @typedef {KeyVaultAddrOptions & {
  *   apiKeySecret?: Bytes32;
- *   chainId?: ChainId;
  *   expiry?: number | bigint;
  *   scopeMask?: ApiKeySessionScopeMask;
  * }} ComputeTokenMacOptions
@@ -1713,7 +1710,6 @@
  * @typedef {Object} ComputeActionMacOptions
  * @property {Bytes32} [apiKeySecret] - Defaults from connect credentials when omitted
  * @property {Address} [keyVaultAddr] - Required when resolving {@code actionHash} from {@code action}
- * @property {ChainId} [chainId] - Defaults to SDK config when resolving {@code actionHash}
  * @property {AuthActionInput} [action] - Operation; required when {@code actionHash} is omitted
  * @property {Bytes32} [actionHash] - Pre-resolved hash; required when {@code action} is omitted
  */

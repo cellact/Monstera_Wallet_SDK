@@ -58,7 +58,7 @@ function applyConfigDefaults(config, options) {
     ...options,
     authenticatorAddr: options.authenticatorAddr ?? config.addresses.dualFactorAuth,
     deadline: options.deadline ?? defaultProofDeadline(),
-    chainId: options.chainId ?? config.chainId
+    chainId: config.chainId
   };
 }
 
