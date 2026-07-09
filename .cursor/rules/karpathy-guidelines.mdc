@@ -67,4 +67,71 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ---
 
+## 5. SDK-Specific Architecture (Monstera)
+
+This SDK is a **facade + clients + pipelines** system, not a service/repository app. Follow these layer rules:
+
+| Layer | Location | Responsibility |
+|-------|----------|----------------|
+| Facade | `src/sdk/Monstera.js` | Session merge, option resolution, delegate to pipelines/clients |
+| Clients | `src/clients/*` | Contract RPC reads/writes via `BaseContractClient` |
+| Pipelines | `src/base/ExecutionPipeline.js`, `src/internal/auth/**` | Error translation, auth-proof encoding, vault/authenticator orchestration |
+| Action builders | `src/internal/vault/actions/`, `src/internal/auth/context/actions/` | `selector` + `paramsHash` for on-chain auth context |
+| Internals | `src/internal/` | Crypto, validation, sanitization — not public exports |
+
+**Rules:**
+- New contract methods: add to the **client first**, then expose on `Monstera` only if end-users need it.
+- Authenticated writes: use `VaultCallPipeline.invokeWithAuthProof` or `AuthenticatorCallPipeline` — do not reimplement auth encoding in `Monstera`.
+- Do not add `try/catch` to `Monstera` or clients; errors flow through `ExecutionPipeline` → `sdkErrorPipeline`.
+- One operation = one action builder. Do not duplicate `selector`/`paramsHash` logic across layers.
+- Validation belongs at the **client boundary** (`internal/assert.js`). Avoid re-validating the same fields in both `Monstera` and the client.
+
+## 6. Naming Conventions
+
+| Kind | Convention | Example |
+|------|------------|---------|
+| Classes | PascalCase | `KeyVaultClient`, `AuthProofPipeline` |
+| Functions / methods | camelCase, verb-first | `buildSignAction`, `encodeAuthProof` |
+| Constants | UPPER_SNAKE_CASE | `SCOPE_ALL`, `KEYVAULT_ABI` |
+| Files (classes) | PascalCase matching export | `KeyVaultClient.js` |
+| Files (utilities) | camelCase | `createAuthProof.js` |
+| Action builders | `build*Action` | `buildUpgradeImplementationAction` |
+| Booleans | `is*`, `has*`, `can*` | `hasCredentials`, `isPreEncodedAuthProof` |
+
+Name for **what** it does, not **how**: `resolveVaultOptions`, not `handleVaultStuff`.
+
+## 7. Error Handling — Fail Loud
+
+Operational failures must **throw** typed `WalletError` subclasses. Do not soften failures.
+
+**DO:**
+- Let errors propagate to the caller. `ExecutionPipeline` and `sdkErrorPipeline` are the only catch boundaries for RPC/signing failures.
+- Validate upfront with `requireAddress`, `requireBytes`, etc. — throw `ValidationError` before I/O.
+- Use `CredentialsRequiredError`, `WriteRequiresSignerError` for missing preconditions — never return `null` when the caller cannot distinguish failure from empty success.
+- Log at the point of failure with structured context (`methodName`, `keyVaultAddr`), then re-throw.
+- Use custom error classes sparingly for distinguishable cases callers must handle differently.
+
+**DO NOT:**
+- Wrap every function in `try/catch`.
+- Return `null`, `[]`, `{}`, or `false` when an operation failed and the caller cannot tell failure from empty success.
+- Use `catch (e) { return defaultValue }` without a documented, intentional recovery reason.
+- Add `try/catch` to `Monstera.js` — it has none by design.
+
+**Intentional non-throw paths** (document with a comment when adding new ones):
+- Translator `return null` = "not my error, try next translator"
+- Version check = best-effort, must never break SDK usage
+- Revert enrichment = best-effort context, main error still throws
+- `parseEvent` skipping unrelated logs during iteration
+
+## 8. Before Finishing Any SDK Change
+
+1. New logic lives in the correct layer (facade vs client vs pipeline vs action builder).
+2. Errors throw — no silent fallbacks unless documented above.
+3. Names follow conventions in section 6.
+4. No scattered `process.env` — config flows through `MonsteraConfig` / connect options.
+5. Secrets never appear in logs — use `sanitizer.forLog()` / `sanitizer.forErrorContext()`.
+6. Tests pass; if adding a contract method, mirror the existing client + pipeline pattern.
+
+---
+
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
