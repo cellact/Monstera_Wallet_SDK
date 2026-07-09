@@ -18,15 +18,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Getting-started track**: `examples/nodejs/getting-started/username-and-apiKey/` (`01-create-wallet.js`, `02-use-wallet.js`) — wallet creation with ApiKeySession auth config, connect with username + API key, ACTION-mode signing without explicit `authProof`, and inline TOKEN-mode `signMessage`.
 - **Types**: `ConnectCredentials.apiKey`, ApiKeySession auth-config / proof / verify / rotate options, and `EncodedAuthProofApiKeySession`.
 - **Tests**: Extended `credentialsSession` coverage for API key session defaults.
+- **`MultiAuthenticator`**: Full SDK integration — client (`MultiAuthenticatorClient`), contract ABI/wrapper, registry spec (`multi`), events, and network defaults (`addresses.multiAuthenticator` on Sapphire testnet/mainnet).
+- **`createAuthProofMulti`**: Routes proofs through enabled child authenticators via `abi.encode(address child, bytes childProof)`; child selection via `childFlowId`, `viaChildFlowId`, `viaChild`, or `child`.
+- **`Monstera` MultiAuthenticator API**: `configureMultiAuthenticator`, `createAuthProofMulti`, `isMultiAuthenticatorConfigured`, `getMultiAuthenticators`, `isMultiAuthenticatorChildEnabled`, `isMultiValid`, `computeMultiAuthenticatorActionHash`, `addMultiAuthenticator`, `removeMultiAuthenticator`.
+- **Multi auth config encoding**: Structured `authConfig.children` entries encode to `abi.encode(address[] children, bytes[] childConfigs)` at wallet creation and configure time.
+- **MultiAuthenticator examples**: `examples/nodejs/authentication/multi/` (`create-wallet.js`, `add-authenticator.js`) — create a multi-auth wallet with a password child, then add ApiKeySession as a second child.
+- **Tests**: Unit coverage for multi child address resolution (`tests/unit/internal/resolveChild.test.js`).
+- **`PasswordOrWalletSignatureAuthenticator`**: Full SDK integration — client (`PasswordOrWalletSignatureAuthenticatorClient`), contract ABI/wrapper, registry spec (`passwordOrWalletSignature`), events, and network defaults (`addresses.passwordOrWalletSigAuth` on Sapphire testnet/mainnet).
+- **Unified password-or-wallet proof envelope**: `createAuthProofPasswordOrWalletSignature` encodes `abi.encode(uint8 method, bytes methodProof)` — method `1` (password) or `2` (wallet signature); method inferred from `signer` vs `password` when omitted.
+- **`createLinkWalletSignature`**: EIP-712 `LinkWallet` signing helper for `addToWhitelistWithProof` wallet-link approval flows.
+- **`Monstera` PasswordOrWalletSignature API**: `configurePasswordOrWalletSignature`, `createAuthProofPasswordOrWalletSignature`, `isPasswordOrWalletSignatureConfigured`, `isPasswordOrWalletSignatureWhitelisted`, `getPasswordOrWalletSignatureWhitelist`, `isPasswordOrWalletSignatureLinkNonceUsed`, `getPasswordOrWalletSignatureDomainSeparator`, `computePasswordOrWalletSignatureLinkParamsHash`, `computePasswordOrWalletSignatureLinkActionHash`, `isPasswordOrWalletSignatureValid`, `updatePasswordOrWalletSignature`, `addToPasswordOrWalletSignatureWhitelist`, `removeFromPasswordOrWalletSignatureWhitelist`, `addToPasswordOrWalletSignatureWhitelistWithProof`.
+- **PasswordOrWalletSignature examples**: `examples/nodejs/authentication/password-or-wallet-signature/` (`create-wallet.js`, `whitelist-flow.js`) — dual auth paths (password + whitelisted wallet signature), whitelist administration, and LinkWallet approval.
+- **Types**: MultiAuthenticator and PasswordOrWalletSignature auth-config / proof / client options, result types, and encoded payload typedefs.
 
 ### Changed
 
-- **`AuthenticatorCallPipeline`**: Maps `apiKeySession` flow inputs (`mode`, `expiry`, `scopeMask`, `apiKeySecret`); debug logging on explicit encode.
+- **`AuthenticatorCallPipeline`**: Maps `apiKeySession` flow inputs (`mode`, `expiry`, `scopeMask`, `apiKeySecret`); maps `multi` and `passwordOrWalletSignature` flow inputs; debug logging on explicit encode.
 - **`VaultCallPipeline`**: Debug logging for pre-encoded vs built auth proofs on invoke.
 - **`AuthProofPipeline`**: Vault and explicit paths emit structured pipeline logs after proof encoding.
 - **`ExecutionPipeline`**: `Executing read` demoted from `info` to `debug` to reduce RPC noise during auth flows.
-- **`collectProofInput`**: Collects ApiKeySession structured proof fields (`mode`, `expiry`, `scopeMask`).
+- **`collectProofInput`**: Collects ApiKeySession structured proof fields (`mode`, `expiry`, `scopeMask`); collects multi routing fields and PasswordOrWalletSignature method/password/signer/deadline fields.
+- **`AuthenticatorClient`**: Registers `multi` and `passwordOrWalletSignature` clients on `monstera.auth`.
+- **Built-in authenticator registry**: Extended with `multi` and `passwordOrWalletSignature` specs; PasswordOrWalletSignature available as a MultiAuthenticator child.
+- **`createAuthProofWalletSignature`**: Optional `eip712ContractName` override (used by PasswordOrWalletSignatureAuthenticator).
 
+### Fixed
+
+- **`addMultiAuthenticator` / `removeMultiAuthenticator`**: Proof routing now prefers `viaChildFlowId` / `viaChild` over the contract `child` target so admin flows authorize via the correct enabled child instead of the child being added/removed.
+- **`resolveChildAddr`**: Returns checksummed addresses for multi proof routing.
 
 ## [2.3.0] - 2026-06-18
 
