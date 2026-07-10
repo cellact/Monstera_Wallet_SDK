@@ -7,30 +7,6 @@
  * whitelist administration and wallet linking via {@code addToWhitelistWithProof}.
  * {@link Monstera} talks to this client via {@code monstera.auth.passwordOrWalletSignature}.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').ConfigurePasswordOrWalletSignatureResult} ConfigurePasswordOrWalletSignatureResult
- * @typedef {import('../../types/index.js').UpdatePasswordResult} UpdatePasswordResult
- * @typedef {import('../../types/index.js').AddToWhitelistResult} AddToWhitelistResult
- * @typedef {import('../../types/index.js').RemoveFromWhitelistResult} RemoveFromWhitelistResult
- * @typedef {import('../../types/index.js').AddToWhitelistWithProofResult} AddToWhitelistWithProofResult
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').WhitelistCheckOptions} WhitelistCheckOptions
- * @typedef {import('../../types/index.js').AuthContext} AuthContext
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientVerifyOptions} PasswordOrWalletSignatureClientVerifyOptions
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientConfigureOptions} PasswordOrWalletSignatureClientConfigureOptions
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientChangePasswordOptions} PasswordOrWalletSignatureClientChangePasswordOptions
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientAddToWhitelistOptions} PasswordOrWalletSignatureClientAddToWhitelistOptions
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientRemoveFromWhitelistOptions} PasswordOrWalletSignatureClientRemoveFromWhitelistOptions
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientAddToWhitelistWithProofOptions} PasswordOrWalletSignatureClientAddToWhitelistWithProofOptions
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientComputeLinkActionHashOptions} PasswordOrWalletSignatureClientComputeLinkActionHashOptions
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientComputeLinkParamsHashOptions} PasswordOrWalletSignatureClientComputeLinkParamsHashOptions
- * @typedef {import('../../types/index.js').PasswordOrWalletSignatureClientIsLinkNonceUsedOptions} PasswordOrWalletSignatureClientIsLinkNonceUsedOptions
- *
  * @module clients/auth/PasswordOrWalletSignatureAuthenticatorClient
  */
 

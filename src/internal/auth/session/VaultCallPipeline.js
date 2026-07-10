@@ -1,9 +1,6 @@
 /**
  * End-user vault call pipeline: session merge → auth-proof encoding → client invoke.
  *
- * @typedef {import('../../../types/index.js').EncodeAuthProofInputOptions} EncodeAuthProofInputOptions
- * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
  * @typedef {import('./CredentialsSession.js').CredentialsSession} CredentialsSession
  * @typedef {import('../proof/AuthProofPipeline.js').AuthProofPipeline} AuthProofPipeline
  * @typedef {import('./CredentialsSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags

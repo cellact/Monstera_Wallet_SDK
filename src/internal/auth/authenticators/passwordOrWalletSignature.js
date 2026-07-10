@@ -96,7 +96,7 @@ function validatePrepareInput(options) {
 }
 
 /**
- * @param {import('../../../types/index.js').MonsteraConfigOptions} config
+ * @param {MonsteraConfigOptions} config
  * @param {Record<string, unknown>} options
  */
 function applyConfigDefaults(config, options) {
@@ -137,8 +137,8 @@ export const passwordOrWalletSignatureAuthenticator = {
         requireAddress(address, 'initialWhitelist.address');
       }
       return createPasswordOrWalletSigAuthConfig(
-        /** @type {import('../../../types/index.js').Bytes32} */ (passwordHash),
-        /** @type {import('../../../types/index.js').Address[]} */ (initialWhitelist)
+        /** @type {Bytes32} */ (passwordHash),
+        /** @type {Address[]} */ (initialWhitelist)
       );
     },
   },

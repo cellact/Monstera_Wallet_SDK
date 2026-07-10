@@ -17,10 +17,6 @@
  *   - {@link WriteRequiresSignerError} — code {@code "WRITE_REQUIRES_SIGNER"}
  *   - {@link EventParseError} — code {@code "EVENT_PARSE_ERROR"}
  *
- * @typedef {import('../types/index.js').TransactionHash} TransactionHash
- * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
- * @typedef {import('../types/index.js').Bytes} Bytes
- *
  * @module errors/WalletError
  */
 

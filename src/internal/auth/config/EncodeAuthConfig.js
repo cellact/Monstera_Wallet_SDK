@@ -12,10 +12,6 @@
  *
  * Used by {@code Monstera.createWallet*} before forwarding to {@code WalletFactoryClient}.
  *
- * @typedef {import('../../../types/index.js').EncodeAuthConfigInputOptions} EncodeAuthConfigInputOptions
- * @typedef {import('../../../types/index.js').EncodeAuthConfigOptionsResult} EncodeAuthConfigOptionsResult
- * @typedef {import('../../../types/index.js').AuthConfigContext} AuthConfigContext
- *
  * @module internal/auth/config/EncodeAuthConfig
  */
 

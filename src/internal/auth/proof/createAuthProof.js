@@ -12,14 +12,6 @@
  * Signing failures are funnelled through {@link sdkErrorPipeline} with {@code authProofType} set,
  * so the {@code signingTranslator} categorises them.
  *
- * @typedef {import('../../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
- * @typedef {import('../../../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
- * @typedef {import('../../../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
- * @typedef {import('../../../types/index.js').EncodedAuthProofWalletSignature} EncodedAuthProofWalletSignature
- * @typedef {import('../../../types/index.js').CreateAuthProofMinuteSignatureResult} CreateAuthProofMinuteSignatureResult
- * @typedef {import('../../../types/index.js').EncodedAuthProofDualFactor} EncodedAuthProofDualFactor
- * @typedef {import('../../../types/index.js').ChainId} ChainId
- * @typedef {import('../../../types/index.js').AuthContext} AuthContext
  *
  * @module internal/auth/proof/createAuthProof
  */
@@ -58,18 +50,18 @@ const ACTION_AUTH_EIP712_FIELDS = [
  * @private
  * @async
  * @param {Object} params
- * @param {import('../../adapters/ethers/index.js').Wallet | import('../../adapters/ethers/index.js').HDNodeWallet} params.signer
+ * @param {EthersWallet | EthersHDNodeWallet} params.signer
  * @param {string} params.contractName - EIP-712 domain {@code name}
  * @param {string} params.structName - Primary typed-data struct name
  * @param {ChainId} params.chainId
- * @param {import('../../types/index.js').Address} params.verifyingContract
- * @param {import('../../types/index.js').Address} params.keyVaultAddr
- * @param {import('../../types/index.js').Bytes32} params.actionHash
+ * @param {Address} params.verifyingContract
+ * @param {Address} params.keyVaultAddr
+ * @param {Bytes32} params.actionHash
  * @param {number | bigint} params.deadline
  * @param {string} params.authProofType - Error pipeline label
  * @param {string} params.functionName - Error pipeline label
- * @param {(signature: string) => import('../../types/index.js').Bytes} params.encodeOutput
- * @returns {Promise<import('../../types/index.js').Bytes>}
+ * @param {(signature: string) => Bytes} params.encodeOutput
+ * @returns {Promise<Bytes>}
  */
 async function signEip712ActionProof({
   signer,
@@ -300,8 +292,8 @@ async function createAuthProofDualFactor(options = {}) {
  * @public
  * @param {Object} options
  * @param {Uint8Array} options.password - UTF-8 password bytes
- * @param {import('../../types/index.js').Bytes32} options.actionHash - Canonical action hash
- * @returns {import('../../types/index.js').EncodedAuthProofPassword} ABI-encoded password proof bytes
+ * @param {Bytes32} options.actionHash - Canonical action hash
+ * @returns {EncodedAuthProofPassword} ABI-encoded password proof bytes
  */
 function createAuthProofPassword({ password, actionHash }) {
   requireUtf8Bytes(password, 'password');
@@ -316,9 +308,9 @@ function createAuthProofPassword({ password, actionHash }) {
  *
  * @public
  * @param {Object} options
- * @param {import('../../types/index.js').Address} options.child - Enabled child authenticator address
- * @param {import('../../types/index.js').Bytes} options.childProof - Child authenticator proof bytes
- * @returns {import('../../types/index.js').EncodedAuthProofMulti}
+ * @param {Address} options.child - Enabled child authenticator address
+ * @param {Bytes} options.childProof - Child authenticator proof bytes
+ * @returns {EncodedAuthProofMulti}
  */
 function createAuthProofMulti({ child, childProof }) {
   requireAddress(child, 'child');
@@ -366,13 +358,13 @@ function normalizePasswordOrWalletMethod(method) {
  * @param {Object} options
  * @param {'password' | 'walletSignature' | number} [options.method] - Explicit method; inferred from signer/password when omitted
  * @param {Uint8Array} [options.password] - UTF-8 password bytes
- * @param {import('../../adapters/ethers/index.js').Wallet | import('../../adapters/ethers/index.js').HDNodeWallet} [options.signer]
- * @param {import('../../types/index.js').Address} options.authenticatorAddr
- * @param {import('../../types/index.js').Address} options.keyVaultAddr
- * @param {import('../../types/index.js').Bytes32} options.actionHash
- * @param {import('../../types/index.js').ChainId} options.chainId
+ * @param {EthersWallet | EthersHDNodeWallet} [options.signer]
+ * @param {Address} options.authenticatorAddr
+ * @param {Address} options.keyVaultAddr
+ * @param {Bytes32} options.actionHash
+ * @param {ChainId} options.chainId
  * @param {number | bigint} [options.deadline]
- * @returns {Promise<import('../../types/index.js').EncodedAuthProofPasswordOrWalletSignature>}
+ * @returns {Promise<EncodedAuthProofPasswordOrWalletSignature>}
  */
 async function createAuthProofPasswordOrWalletSignature(options = {}) {
   const method = normalizePasswordOrWalletMethod(options.method)
@@ -399,15 +391,15 @@ async function createAuthProofPasswordOrWalletSignature(options = {}) {
  * @public
  * @async
  * @param {Object} options
- * @param {import('../../adapters/ethers/index.js').Wallet | import('../../adapters/ethers/index.js').HDNodeWallet} options.linkSigner
- * @param {import('../../types/index.js').Address} options.keyVaultAddr
- * @param {import('../../types/index.js').Address} options.newAddress
- * @param {import('../../types/index.js').Bytes32} options.nonce
+ * @param {EthersWallet | EthersHDNodeWallet} options.linkSigner
+ * @param {Address} options.keyVaultAddr
+ * @param {Address} options.newAddress
+ * @param {Bytes32} options.nonce
  * @param {number | bigint} options.deadline
- * @param {import('../../types/index.js').Bytes32} options.actionHash
- * @param {import('../../types/index.js').Address} options.authenticatorAddr
- * @param {import('../../types/index.js').ChainId} options.chainId
- * @returns {Promise<import('../../types/index.js').Bytes>}
+ * @param {Bytes32} options.actionHash
+ * @param {Address} options.authenticatorAddr
+ * @param {ChainId} options.chainId
+ * @returns {Promise<Bytes>}
  */
 async function createLinkWalletSignature(options = {}) {
   const {

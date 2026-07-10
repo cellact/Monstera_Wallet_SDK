@@ -1,8 +1,6 @@
 /**
  * Resolve a 4-byte function selector from a contract ABI fragment list.
  *
- * @typedef {import('../../types/index.js').Bytes4} Bytes4
- *
  * @module internal/crypto/getSelector
  */
 

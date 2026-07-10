@@ -1,10 +1,6 @@
 /**
  * ApiKeySessionAuthenticator management action builders.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
- * @typedef {import('../../../types/index.js').Bytes32} Bytes32
- *
  * @module internal/auth/context/actions/authenticator/apiKeySession
  */
 

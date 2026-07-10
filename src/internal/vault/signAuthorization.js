@@ -10,14 +10,7 @@
  * 5. Call {@code KeyVaultClient.executeWithAuth} with the encoded auth proof
  * 6. Decode the {@code (r, s, yParity)} return blob and assemble the public result
  *
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
- * @typedef {import('../../types/index.js').SignAuthorizationOptions} SignAuthorizationOptions
- * @typedef {import('../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
- * @typedef {import('../../types/index.js').AuthActionInput} AuthActionInput
  * @typedef {import('../../clients/keyVault/KeyVaultClient.js').default} KeyVaultClient
- * @typedef {import('../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
- * @typedef {import('../../types/index.js').ResolvedSignAuthorizationInputs} ResolvedSignAuthorizationInputs
  *
  * @module internal/crypto/signAuthorization
  */
@@ -137,7 +130,7 @@ async function resolveSignAuthorizationInputs(deps, options = {}) {
  * @async
  * @param {SignAuthorizationDeps} deps - Injected dependencies (KeyVault client, fallback provider, encode helper)
  * @param {SignAuthorizationOptions} [options={}] - Caller options
- * @param {(options: SignAuthorizationOptions & { implCall: Bytes }) => import('../../types/index.js').AuthActionInput} buildExecuteWithAuthAction -
+ * @param {(options: SignAuthorizationOptions & { implCall: Bytes }) => AuthActionInput} buildExecuteWithAuthAction -
  *   Builds the vault action for {@code executeWithAuth}
  * @returns {Promise<SignedAuthorizationResult>} Authorization tuple + decoded split signature
  * @throws {ValidationError} Forwarded from {@link resolveSignAuthorizationInputs}

@@ -11,9 +11,6 @@
  * Read-only providers do not need to be wrapped and are constructed via the shared
  * {@link createProvider} re-export.
  *
- * @typedef {import('../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../types/index.js').EthersSigner} EthersSigner
- * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
  *
  * @module providers/sapphire
  */

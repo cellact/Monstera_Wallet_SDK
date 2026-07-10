@@ -1,9 +1,6 @@
 /**
  * Factory for action-bound KeyVault {@code authProof} encoders.
  *
- * @typedef {import('../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../types/index.js').AuthProofEncodeContext} AuthProofEncodeContext
- *
  * @module internal/auth/proof/bindProofToAction
  */
 
@@ -17,7 +14,7 @@ import { defaultProofDeadline } from '../authenticators/deadline.js';
  * @template TInput
  * @param {Object} spec
  * @param {string} spec.id - Registry identifier
- * @param {(ctx: AuthProofEncodeContext & TInput & { actionHash: import('../../../types/index.js').Bytes32 }) => Promise<Bytes> | Bytes} spec.createProof
+ * @param {(ctx: AuthProofEncodeContext & TInput & { actionHash: Bytes32 }) => Promise<Bytes> | Bytes} spec.createProof
  * @param {boolean} [spec.withDeadline=false] - Default {@code deadline} when omitted
  * @param {(input: TInput) => void} [spec.validateInput] - Optional pre-flight validation
  * @returns {{ id: string, encode: (ctx: AuthProofEncodeContext, input: TInput) => Promise<Bytes> }}

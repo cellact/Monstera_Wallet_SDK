@@ -6,10 +6,6 @@
  * {@code IAuthenticator.verify} with {@code paramsHash = bytes32(0)} and
  * {@code target = authenticatorAddr}.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
- * @typedef {import('../../../types/index.js').Bytes32} Bytes32
- *
  * @module internal/auth/context/actions/authenticator/authenticatorProbe
  */
 
@@ -21,7 +17,7 @@ const VERIFY_PROBE_PARAMS_HASH = `0x${'00'.repeat(32)}`;
 
 /**
  * @public
- * @returns {import('../../../types/index.js').Bytes4} {@code verify(address,AuthContext,bytes)} selector
+ * @returns {Bytes4} {@code verify(address,AuthContext,bytes)} selector
  */
 function getVerifySelector() {
   return getSelector(I_AUTHENTICATOR_ABI, 'verify');

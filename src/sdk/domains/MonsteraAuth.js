@@ -786,7 +786,7 @@ export const monsteraAuthMethods = {
    *
    * @public
    * @async
-   * @param {import('../types/index.js').CreateAuthProofApiKeySessionVerifyOptions} [options={}] - Optional overrides; defaults from connect credentials and SDK config
+   * @param {CreateAuthProofApiKeySessionVerifyOptions} [options={}] - Optional overrides; defaults from connect credentials and SDK config
    * @returns {Promise<boolean>} {@code true} if the on-chain verifier accepts the proof
    * @throws {ValidationError} If required parameters are missing or invalid
    * @throws {NetworkError} If the read provider fails to return the latest block, or the verify RPC call fails

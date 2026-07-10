@@ -1,8 +1,6 @@
 /**
  * Built-in authenticator registry (address, flow id, and encoder lookups).
  *
- * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
- * @typedef {import('../../../types/index.js').Address} Address
  * @typedef {import('./types.js').BuiltinAuthenticatorSpec} BuiltinAuthenticatorSpec
  *
  * @module internal/auth/authenticators/registry
@@ -40,7 +38,7 @@ const byFlowId = new Map(BUILTIN_AUTHENTICATORS.map((spec) => [spec.flowId, spec
 
 /**
  * @param {ContractAddresses} addresses
- * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => import('../../../types/index.js').CreateWalletAuthEncoder | undefined }}
+ * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => CreateWalletAuthEncoder | undefined }}
  */
 function createChildConfigEncoderRegistry(addresses) {
   return createRegistryByChecksumAddress(

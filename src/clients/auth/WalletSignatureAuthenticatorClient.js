@@ -5,23 +5,6 @@
  * a whitelisted address proves identity for KeyVault calls and whitelist administration.
  * {@link Monstera} talks to this client via {@code monstera.auth.walletSignature}.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').ConfigureWalletSignatureResult} ConfigureWalletSignatureResult
- * @typedef {import('../../types/index.js').RemoveFromWhitelistResult} RemoveFromWhitelistResult
- * @typedef {import('../../types/index.js').AddToWhitelistResult} AddToWhitelistResult
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').WhitelistCheckOptions} WhitelistCheckOptions
- * @typedef {import('../../types/index.js').AuthContext} AuthContext
- * @typedef {import('../../types/index.js').WalletSignatureClientVerifyOptions} WalletSignatureClientVerifyOptions
- * @typedef {import('../../types/index.js').WalletSignatureClientAddToWhitelistOptions} WalletSignatureClientAddToWhitelistOptions
- * @typedef {import('../../types/index.js').WalletSignatureClientConfigureOptions} WalletSignatureClientConfigureOptions
- * @typedef {import('../../types/index.js').WalletSignatureClientRemoveFromWhitelistOptions} WalletSignatureClientRemoveFromWhitelistOptions
- *
  * @module clients/auth/WalletSignatureAuthenticatorClient
  */
 

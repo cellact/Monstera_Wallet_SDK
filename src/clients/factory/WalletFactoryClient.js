@@ -5,43 +5,6 @@
  * (beacon upgrade, admin transfer). All creation methods accept already-encoded {@link EncodedAuthConfigOptions}
  * — the {@link Monstera} facade uses {@link AuthConfigBuilder} to encode structured input before delegating here.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').WalletCreationResult} WalletCreationResult
- * @typedef {import('../../types/index.js').TransferAdminResult} TransferAdminResult
- * @typedef {import('../../types/index.js').UpdateWalletLogicImplAddrResult} UpdateWalletLogicImplAddrResult
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
- * @typedef {import('../../types/index.js').EncodedAuthConfigOptions} EncodedAuthConfigOptions
- * @typedef {import('../../types/index.js').FactoryClientCreateWalletBaseOptions} FactoryClientCreateWalletBaseOptions
- * @typedef {import('../../types/index.js').FactoryClientCreateWalletFromMnemonicOptions} FactoryClientCreateWalletFromMnemonicOptions
- * @typedef {import('../../types/index.js').FactoryClientCreateWalletWithHookOptions} FactoryClientCreateWalletWithHookOptions
- * @typedef {import('../../types/index.js').FactoryClientCreateWalletWithCustomLogicOptions} FactoryClientCreateWalletWithCustomLogicOptions
- * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
- * @typedef {import('../../types/index.js').UpdateWalletLogicImplOptions} UpdateWalletLogicImplOptions
- * @typedef {import('../../types/index.js').TransferAdminOptions} TransferAdminOptions
- * @typedef {import('../../types/index.js').FactoryAllowedAuthenticatorsOptions} FactoryAllowedAuthenticatorsOptions
- * @typedef {import('../../types/index.js').FactoryAllowedKeyVaultImplementationsOptions} FactoryAllowedKeyVaultImplementationsOptions
- * @typedef {import('../../types/index.js').FactoryIsImplementationApprovedOptions} FactoryIsImplementationApprovedOptions
- * @typedef {import('../../types/index.js').FactoryIsAuthenticatorApprovedOptions} FactoryIsAuthenticatorApprovedOptions
- * @typedef {import('../../types/index.js').SetAuthenticatorAllowedOptions} SetAuthenticatorAllowedOptions
- * @typedef {import('../../types/index.js').SetKeyVaultImplementationAllowedOptions} SetKeyVaultImplementationAllowedOptions
- * @typedef {import('../../types/index.js').SetWalletAuthenticatorAllowedOptions} SetWalletAuthenticatorAllowedOptions
- * @typedef {import('../../types/index.js').SetWalletImplementationAllowedOptions} SetWalletImplementationAllowedOptions
- * @typedef {import('../../types/index.js').SetAuthenticatorAllowedResult} SetAuthenticatorAllowedResult
- * @typedef {import('../../types/index.js').SetKeyVaultImplementationAllowedResult} SetKeyVaultImplementationAllowedResult
- * @typedef {import('../../types/index.js').SetWalletAuthenticatorAllowedResult} SetWalletAuthenticatorAllowedResult
- * @typedef {import('../../types/index.js').FactoryClientCreateWalletForUsernameOptions} FactoryClientCreateWalletForUsernameOptions
- * @typedef {import('../../types/index.js').FactoryClientCreateWalletForUsernameFromMnemonicOptions} FactoryClientCreateWalletForUsernameFromMnemonicOptions
- * @typedef {import('../../types/index.js').FactoryClientCreateWalletForUsernameHashOptions} FactoryClientCreateWalletForUsernameHashOptions
- * @typedef {import('../../types/index.js').FactoryClientCreateWalletForUsernameHashFromMnemonicOptions} FactoryClientCreateWalletForUsernameHashFromMnemonicOptions
- * @typedef {import('../../types/index.js').FactoryHashUsernameOptions} FactoryHashUsernameOptions
- * @typedef {import('../../types/index.js').FactoryWalletOfUsernameOptions} FactoryWalletOfUsernameOptions
- * @typedef {import('../../types/index.js').FactoryWalletUsernameHashOptions} FactoryWalletUsernameHashOptions
- * @typedef {import('../../types/index.js').UsernameWalletCreationResult} UsernameWalletCreationResult
- *
  * @module clients/factory/WalletFactoryClient
  */
 
@@ -95,8 +58,8 @@ class WalletFactoryClient extends BaseContractClient {
    * Event parsers used by username wallet creation flows.
    *
    * @private
-   * @param {import('ethers').Contract} factory - Factory write contract
-   * @returns {Array<{ eventDef: object; contract: import('ethers').Contract }>}
+   * @param {EthersContract} factory - Factory write contract
+   * @returns {Array<{ eventDef: object; contract: EthersContract }>}
    */
   _usernameWalletCreateEvents(factory) {
     return [
@@ -455,7 +418,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @public
    * @async
    * @param {FactoryHashUsernameOptions} options - {@code username} (normalised via trim + lowercase before hashing)
-   * @returns {Promise<import('../../types/index.js').Bytes32>} {@code keccak256(bytes(normalizedUsername))}
+   * @returns {Promise<Bytes32>} {@code keccak256(bytes(normalizedUsername))}
    * @throws {ValidationError} If {@code username} is missing or empty after normalisation
    * @throws {NetworkError} If the read call fails over RPC
    * @throws {ContractRevertError} If the underlying call reverts (e.g. empty username)
@@ -513,7 +476,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @public
    * @async
    * @param {FactoryWalletUsernameHashOptions} options - {@code walletAddr}
-   * @returns {Promise<import('../../types/index.js').Bytes32>} Username hash, or zero bytes32 if none
+   * @returns {Promise<Bytes32>} Username hash, or zero bytes32 if none
    * @throws {ValidationError} If {@code walletAddr} is missing or invalid
    * @throws {NetworkError} If the read call fails over RPC
    * @throws {ContractRevertError} If the underlying call reverts

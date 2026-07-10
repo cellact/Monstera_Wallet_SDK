@@ -4,10 +4,6 @@
  * Resolves and caches the wallet proxy and KeyVault addresses for a registered username,
  * and exposes password and/or API key material for vault-authenticated calls.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../../types/index.js').ConnectCredentials} ConnectCredentials
- *
  * @module internal/auth/session/CredentialsSession
  */
 

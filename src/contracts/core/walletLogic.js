@@ -5,11 +5,6 @@
  * signer (for writes) or a plain provider (for reads). Used by {@link ContractRegistry} on every
  * read/write call.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').EthersContract} EthersContract
- *
  * @module contracts/core/walletLogic
  */
 

@@ -1,8 +1,6 @@
 /**
  * Connect-time option parsing and validation helpers.
  * 
- * @typedef {import('../../types/index.js').ConnectCredentials} ConnectCredentials
- * 
  * @module internal/validators/connectOptions
  */
 

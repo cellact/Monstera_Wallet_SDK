@@ -37,7 +37,7 @@ function validatePrepareInput(options) {
 }
 
 /**
- * @param {import('../../../types/index.js').MonsteraConfigOptions} config
+ * @param {MonsteraConfigOptions} config
  * @param {Record<string, unknown>} options
  */
 function applyConfigDefaults(config, options) {

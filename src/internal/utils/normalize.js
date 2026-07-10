@@ -5,9 +5,6 @@
  * (typically the {@code require*} helpers in {@link ../assert.js}) can wrap them in their own
  * structured {@link ValidationError} messages.
  *
- * @typedef {import('../../types/index.js').ChainId} ChainId
- * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
- *
  * @module internal/utils/normalize
  */
 

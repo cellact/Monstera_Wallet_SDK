@@ -1,23 +1,6 @@
 /**
  * Low-level client for the {@code ApiKeySessionAuthenticator} contract.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').ConfigureApiKeySessionResult} ConfigureApiKeySessionResult
- * @typedef {import('../../types/index.js').RotateApiKeyResult} RotateApiKeyResult
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').ApiKeySessionClientVerifyOptions} ApiKeySessionClientVerifyOptions
- * @typedef {import('../../types/index.js').ApiKeySessionClientConfigureOptions} ApiKeySessionClientConfigureOptions
- * @typedef {import('../../types/index.js').ApiKeySessionClientRotateApiKeyOptions} ApiKeySessionClientRotateApiKeyOptions
- * @typedef {import('../../types/index.js').ApiKeySessionClientComputeTokenMacOptions} ApiKeySessionClientComputeTokenMacOptions
- * @typedef {import('../../types/index.js').ApiKeySessionClientComputeActionMacOptions} ApiKeySessionClientComputeActionMacOptions
- * @typedef {import('../../types/index.js').ApiKeySessionClientBuildTokenAuthProofOptions} ApiKeySessionClientBuildTokenAuthProofOptions
- * @typedef {import('../../types/index.js').ApiKeySessionClientBuildActionAuthProofOptions} ApiKeySessionClientBuildActionAuthProofOptions
- * @typedef {import('../../types/index.js').ApiKeySessionClientSelectorBitOptions} ApiKeySessionClientSelectorBitOptions
- * @typedef {import('../../types/index.js').SelectorBitResult} SelectorBitResult
- *
  * @module clients/auth/ApiKeySessionAuthenticatorClient
  */
 

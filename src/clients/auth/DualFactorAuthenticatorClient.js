@@ -5,22 +5,6 @@
  * guardian EIP-712 signature over {@code DualFactorAuth(wallet, actionHash, deadline)}. {@link Monstera} talks
  * to this client via {@code monstera.auth.dualFactor}.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').ConfigurePasswordDualFactorResult} ConfigurePasswordDualFactorResult
- * @typedef {import('../../types/index.js').UpdatePasswordResult} UpdatePasswordResult
- * @typedef {import('../../types/index.js').UpdateGuardianResult} UpdateGuardianResult
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').AuthContext} AuthContext
- * @typedef {import('../../types/index.js').DualFactorClientVerifyOptions} DualFactorClientVerifyOptions
- * @typedef {import('../../types/index.js').DualFactorClientUpdatePasswordOptions} DualFactorClientUpdatePasswordOptions
- * @typedef {import('../../types/index.js').DualFactorClientConfigureOptions} DualFactorClientConfigureOptions
- * @typedef {import('../../types/index.js').DualFactorClientUpdateGuardianOptions} DualFactorClientUpdateGuardianOptions
- *
  * @module clients/auth/DualFactorAuthenticatorClient
  */
 

@@ -9,7 +9,6 @@
  *
  * Failures are swallowed so the SDK never breaks because of registry issues.
  *
- * @typedef {import('../types/index.js').VersionCheckResult} VersionCheckResult
  *
  * @module internal/versionCheck
  */

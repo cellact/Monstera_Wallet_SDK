@@ -3,15 +3,6 @@
  *
  * Used by per-authenticator modules in {@code internal/auth/authenticators}.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../types/index.js').WalletSignatureAuthConfigInputOptions} WalletSignatureAuthConfigInputOptions
- * @typedef {import('../../../types/index.js').EncodedAuthConfigWalletSignature} EncodedAuthConfigWalletSignature
- * @typedef {import('../../../types/index.js').EncodedAuthConfigDualFactor} EncodedAuthConfigDualFactor
- * @typedef {import('../../../types/index.js').EncodedAuthConfigApiKeySession} EncodedAuthConfigApiKeySession
- * @typedef {import('../../../types/index.js').DualFactorAuthConfigInputOptions} DualFactorAuthConfigInputOptions
- *
  * @module internal/auth/config/createAuthConfig
  */
 
@@ -86,7 +77,7 @@ function createMultiAuthConfig(children, childConfigs) {
  * @public
  * @param {Bytes32} passwordHash
  * @param {Address[]} initialWhitelist
- * @returns {import('../../../types/index.js').EncodedAuthConfigPasswordOrWalletSignature}
+ * @returns {EncodedAuthConfigPasswordOrWalletSignature}
  */
 function createPasswordOrWalletSigAuthConfig(passwordHash, initialWhitelist) {
   requireBytes32(passwordHash, 'passwordHash');

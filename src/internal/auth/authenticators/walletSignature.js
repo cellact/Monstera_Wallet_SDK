@@ -35,7 +35,7 @@ function validatePrepareInput(options) {
 }
 
 /**
- * @param {import('../../../types/index.js').MonsteraConfigOptions} config
+ * @param {MonsteraConfigOptions} config
  * @param {Record<string, unknown>} options
  */
 function applyConfigDefaults(config, options) {
@@ -83,7 +83,7 @@ export const walletSignatureAuthenticator = {
     encode(authConfig) {
       const { initialWhitelist } = authConfig;
       return createWalletSigAuthConfig(
-        /** @type {import('../../../types/index.js').Address[]} */ (initialWhitelist)
+        /** @type {Address[]} */ (initialWhitelist)
       );
     }
   }

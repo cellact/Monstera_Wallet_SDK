@@ -5,14 +5,6 @@
  * {@code actionHash} is derived off-chain using the same formula as
  * {@code DualFactorAuthenticator._buildContext}.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../../types/index.js').Bytes4} Bytes4
- * @typedef {import('../../../types/index.js').ChainId} ChainId
- * @typedef {import('../../../types/index.js').AuthContext} AuthContext
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
- * @typedef {import('../../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
- *
  * @module internal/auth/context/createAuthContext
  */
 

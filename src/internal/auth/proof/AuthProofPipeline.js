@@ -5,13 +5,6 @@
  * - Vault-authenticated KeyVault calls (discover authenticator from chain, session defaults)
  * - Explicit proof builders ({@code createAuthProof*}, verify probes, management ops)
  *
- * @typedef {import('../../../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
- * @typedef {import('../../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
- * @typedef {import('../../../types/index.js').EncodeAuthProofInputOptions} EncodeAuthProofInputOptions
- * @typedef {import('../../../types/index.js').EncodeAuthProofOptionsResult} EncodeAuthProofOptionsResult
- * @typedef {import('../../../types/index.js').AuthProofFlowOptions} AuthProofFlowOptions
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
- * @typedef {import('../../../types/index.js').Address} Address
  * @typedef {import('../session/CredentialsSession.js').CredentialsSession} CredentialsSession
  * @typedef {import('./authenticators/registry.js').AuthProofFlowId} AuthProofFlowId
  * @typedef {import('./authenticators/types.js').BuiltinAuthenticatorSpec} BuiltinAuthenticatorSpec
@@ -155,7 +148,7 @@ export class AuthProofPipeline {
    * @param {Address} authenticatorAddr
    * @param {Record<string, unknown>} proofInput
    * @param {AuthActionInput | undefined} action
-   * @param {import('../../../types/index.js').Bytes32 | undefined} actionHash
+   * @param {Bytes32 | undefined} actionHash
    */
   async _encodeProofInput(spec, authenticatorAddr, proofInput, action, actionHash) {
     const withConfig = spec.applyConfigDefaults(this._config, proofInput);
@@ -269,7 +262,7 @@ export class AuthProofPipeline {
     return {
       ...resolved,
       keyVaultAddr,
-      authProof: /** @type {import('../../../types/index.js').Bytes} */ (authProofBytes)
+      authProof: /** @type {Bytes} */ (authProofBytes)
     };
   }
 
@@ -380,7 +373,7 @@ export class AuthProofPipeline {
     return {
       ...rest,
       keyVaultAddr,
-      authProof: /** @type {import('../../../types/index.js').Bytes} */ (authProofBytes)
+      authProof: /** @type {Bytes} */ (authProofBytes)
     };
   }
 }

@@ -5,10 +5,6 @@
  * Validates the supplied address via {@link requireAddress} and enforces the presence of a
  * write signer for write contracts (raising {@link WriteRequiresSignerError} otherwise).
  *
- * @typedef {import('../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../types/index.js').Address} Address
- *
  * @module base/ContractRegistry
  */
 

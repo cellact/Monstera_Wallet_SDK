@@ -6,11 +6,6 @@
  * named properties as well as via {@link AuthenticatorClient#getClient}. Add a new authenticator
  * by importing its client and assigning it on a new property in the constructor.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').AuthenticatorClientInstance} AuthenticatorClientInstance
- *
  * @module clients/auth/AuthenticatorClient
  */
 

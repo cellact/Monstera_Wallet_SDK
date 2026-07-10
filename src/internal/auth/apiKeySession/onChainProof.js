@@ -5,12 +5,6 @@
  * ({@code computeTokenMac}, {@code computeActionMac}, {@code buildTokenAuthProof},
  * {@code buildActionAuthProof}).
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../../types/index.js').ChainId} ChainId
- * @typedef {import('../../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
- *
  * @module internal/auth/apiKeySession/onChainProof
  */
 
@@ -23,7 +17,7 @@ import { isApiKeySessionTokenMode } from './mode.js';
 /**
  * @param {EthersAbstractProvider} readProvider
  * @param {Address} authenticatorAddr
- * @returns {import('../../../types/index.js').EthersContract}
+ * @returns {EthersContract}
  */
 function getReadContract(readProvider, authenticatorAddr) {
   requireAddress(authenticatorAddr, 'authenticatorAddr');

@@ -11,15 +11,6 @@
  *
  * All members are static; this class is never instantiated.
  *
- * @typedef {import('../types/index.js').NetworkPresets} NetworkPresets
- * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
- * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
- * @typedef {import('../types/index.js').BaseConnectNetworkOptions} BaseConnectNetworkOptions
- * @typedef {import('../types/index.js').ConnectOptions} ConnectOptions
- * @typedef {import('../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
- * @typedef {import('../types/index.js').RequiredContractAddressKeys} RequiredContractAddressKeys
- *
  * @module config/monstera
  */
 
@@ -37,8 +28,8 @@ import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
 
 /**
- * @param {Record<string, unknown>} [options]
- * @returns {{ logLevel: string; provider: import('../types/index.js').EthersProvider | null; checkVersion: boolean | undefined }}
+   * @param {Record<string, unknown>} [options]
+   * @returns {{ logLevel: string; provider: EthersProvider | null; checkVersion: boolean | undefined }}
  */
 function resolveConnectExtension(options = {}) {
   const logLevel = options.logLevel ?? (options.debug === true ? 'debug' : 'error');

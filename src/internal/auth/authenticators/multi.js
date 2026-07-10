@@ -1,11 +1,6 @@
 /**
  * MultiAuthenticator — create-wallet config, proof encoding, and defaults.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
- * @typedef {import('../../../types/index.js').AuthConfigInputOptions} AuthConfigInputOptions
- *
  * @module internal/auth/authenticators/multi
  */
 
@@ -30,7 +25,7 @@ function applyConfigDefaults(config, options) {
 }
 
 /**
- * @param {import('../../../types/index.js').AuthProofEncodeContext} ctx
+ * @param {AuthProofEncodeContext} ctx
  * @param {Record<string, unknown>} input
  */
 async function encodeMultiProof(ctx, input) {
@@ -54,8 +49,8 @@ async function encodeMultiProof(ctx, input) {
 }
 
 /**
- * @param {import('../../../types/index.js').CreateWalletAuthEncoder} childRegistry
- * @returns {import('../../../types/index.js').CreateWalletAuthEncoder}
+ * @param {CreateWalletAuthEncoder} childRegistry
+ * @returns {CreateWalletAuthEncoder}
  */
 export function wrapMultiConfigEncoder(childRegistry) {
   return {

@@ -10,24 +10,6 @@
  * API on the main class ({@code keyVaultAddr}); use this client when you need the WalletLogic contract surface with
  * {@code walletAddr} (proxy address), e.g. {@link WalletLogicClient#initialize} after deployment.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').SignTransactionWalletOptions} SignTransactionWalletOptions
- * @typedef {import('../../types/index.js').SignMessageWalletOptions} SignMessageWalletOptions
- * @typedef {import('../../types/index.js').SignHashWalletOptions} SignHashWalletOptions
- * @typedef {import('../../types/index.js').UpdateAuthenticatorWalletOptions} UpdateAuthenticatorWalletOptions
- * @typedef {import('../../types/index.js').UpdateResult} UpdateResult
- * @typedef {import('../../types/index.js').BaseTransactionResult} BaseTransactionResult
- * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').WalletProxyOptions} WalletProxyOptions
- * @typedef {import('../../types/index.js').WalletProxyIndexOptions} WalletProxyIndexOptions
- * @typedef {import('../../types/index.js').WalletProxyAccountSliceOptions} WalletProxyAccountSliceOptions
- * @typedef {import('../../types/index.js').InitializeWalletLogicOptions} InitializeWalletLogicOptions
- * @typedef {import('../../types/index.js').WalletLogicUpdateKeyVaultImplOptions} WalletLogicUpdateKeyVaultImplOptions
- *
  * @module clients/logic/WalletLogicClient
  */
 

@@ -5,20 +5,6 @@
  * form {@code abi.encode(bytes password, bytes32 actionHash)}. {@link Monstera} talks to this
  * client via {@code monstera.auth.password}.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').ConfigurePasswordResult} ConfigurePasswordResult
- * @typedef {import('../../types/index.js').UpdatePasswordResult} UpdatePasswordResult
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').AuthContext} AuthContext
- * @typedef {import('../../types/index.js').PasswordClientVerifyOptions} PasswordClientVerifyOptions
- * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
- * @typedef {import('../../types/index.js').PasswordClientConfigureOptions} PasswordClientConfigureOptions
- *
  * @module clients/auth/PasswordAuthenticatorClient
  */
 

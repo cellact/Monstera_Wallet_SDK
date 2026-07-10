@@ -1,9 +1,6 @@
 /**
  * ApiKeySessionAuthenticator — create-wallet config, proof encoding, and defaults.
  *
- * @typedef {import('../../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../../types/index.js').MonsteraConfigOptions} MonsteraConfigOptions
- *
  * @module internal/auth/authenticators/apiKeySession
  */
 

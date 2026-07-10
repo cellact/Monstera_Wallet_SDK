@@ -5,20 +5,6 @@
  * signature over the per-minute EIP-191 digest. {@link Monstera} talks to this client via
  * {@code monstera.auth.passwordMinuteSignature}.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').ConfigurePasswordResult} ConfigurePasswordResult
- * @typedef {import('../../types/index.js').UpdatePasswordResult} UpdatePasswordResult
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').AuthContext} AuthContext
- * @typedef {import('../../types/index.js').PasswordMinuteClientVerifyOptions} PasswordMinuteClientVerifyOptions
- * @typedef {import('../../types/index.js').UpdatePasswordOptions} UpdatePasswordOptions
- * @typedef {import('../../types/index.js').PasswordMinuteClientConfigureOptions} PasswordMinuteClientConfigureOptions
- *
  * @module clients/auth/PasswordMinuteSignatureAuthenticatorClient
  */
 

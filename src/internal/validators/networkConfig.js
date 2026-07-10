@@ -3,10 +3,6 @@
  *
  * Used by {@code MonsteraConfig.resolveBaseConfig} (during connect) and exported for tests.
  *
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').ContractAddresses} ContractAddresses
- * @typedef {import('../../types/index.js').RequiredContractAddressKeys} RequiredContractAddressKeys
- *
  * @module internal/validators/networkConfig
  */
 

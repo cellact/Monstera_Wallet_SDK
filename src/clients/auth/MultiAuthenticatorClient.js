@@ -1,22 +1,6 @@
 /**
  * Low-level client for the {@code MultiAuthenticator} contract.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').ConfigureMultiAuthenticatorResult} ConfigureMultiAuthenticatorResult
- * @typedef {import('../../types/index.js').AddMultiAuthenticatorResult} AddMultiAuthenticatorResult
- * @typedef {import('../../types/index.js').RemoveMultiAuthenticatorResult} RemoveMultiAuthenticatorResult
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').MultiAuthenticatorClientVerifyOptions} MultiAuthenticatorClientVerifyOptions
- * @typedef {import('../../types/index.js').MultiAuthenticatorClientConfigureOptions} MultiAuthenticatorClientConfigureOptions
- * @typedef {import('../../types/index.js').MultiAuthenticatorClientAddAuthenticatorOptions} MultiAuthenticatorClientAddAuthenticatorOptions
- * @typedef {import('../../types/index.js').MultiAuthenticatorClientRemoveAuthenticatorOptions} MultiAuthenticatorClientRemoveAuthenticatorOptions
- * @typedef {import('../../types/index.js').MultiAuthenticatorClientIsEnabledOptions} MultiAuthenticatorClientIsEnabledOptions
- * @typedef {import('../../types/index.js').MultiAuthenticatorClientGetAuthenticatorsOptions} MultiAuthenticatorClientGetAuthenticatorsOptions
- * @typedef {import('../../types/index.js').MultiAuthenticatorClientComputeActionHashOptions} MultiAuthenticatorClientComputeActionHashOptions
- *
  * @module clients/auth/MultiAuthenticatorClient
  */
 

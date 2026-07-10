@@ -1,9 +1,6 @@
 /**
  * WalletSignatureAuthenticator management action builders.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
- *
  * @module internal/auth/context/actions/authenticator/walletSignature
  */
 

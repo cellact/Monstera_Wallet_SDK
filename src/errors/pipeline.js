@@ -12,9 +12,6 @@
  * - {@link toWalletError} / {@link rethrowExecuteError} — convenience wrappers around the singleton
  * - {@link applySdkContext} — merge extra context onto an existing {@link WalletError}
  *
- * @typedef {import('../types/index.js').EthersInterface} EthersInterface
- * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
- *
  * @module errors/pipeline
  */
 

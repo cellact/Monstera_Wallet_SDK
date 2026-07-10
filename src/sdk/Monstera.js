@@ -129,16 +129,16 @@ class Monstera {
   /** @returns {string} Network name */
   get network() { return this.config.network; }
 
-  /** @returns {import('../types/index.js').ChainId} Chain ID */
+  /** @returns {ChainId} Chain ID */
   get chainId() { return this.config.chainId; }
 
   /** @returns {string} RPC URL */
   get rpcUrl() { return this.config.rpcUrl; }
 
-  /** @returns {import('../types/index.js').ContractAddresses} Contract addresses */
+  /** @returns {ContractAddresses} Contract addresses */
   get addresses() { return this.config.addresses; }
 
-  /** @returns {import('../types/index.js').EthersProvider|null} Provider instance or null */
+  /** @returns {EthersProvider|null} Provider instance or null */
   get provider() { return this.config.provider; }
 
   // ============================================================================

@@ -5,9 +5,6 @@
  * structured error context for diagnostics. Many helpers compose: e.g. {@link requireAddress}
  * defers to {@link requireString} first to give consistent "missing parameter" messages.
  *
- * @typedef {import('../types/index.js').Address} Address
- * @typedef {import('../types/index.js').Mnemonic} Mnemonic
- * @typedef {import('../types/index.js').ChainId} ChainId
  *
  * @module internal/assert
  */

@@ -11,13 +11,6 @@
  * - decoding the {@code (r, s, yParity)} return triple that KeyVault produces
  * - small adapters: {@link toChecksumAddress}, {@link finalizeSignedAuthorizationResult}
  *
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').CreateImplCallOptions} CreateImplCallOptions
- * @typedef {import('../../types/index.js').AuthorizationSplitSignature} AuthorizationSplitSignature
- * @typedef {import('../../types/index.js').SignedAuthorizationResult} SignedAuthorizationResult
- * @typedef {import('../../types/index.js').EthersAbstractProvider} EthersAbstractProvider
  *
  * @module internal/crypto/authorization
  */

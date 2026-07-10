@@ -3,12 +3,6 @@
  *
  * Each {@code build*} mirrors the corresponding {@code _buildAuthContext} call in {@code KeyVaultV3.sol}.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
- * @typedef {import('../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../../types/index.js').Bytes4} Bytes4
- *
  * @module internal/crypto/actions/keyVault
  */
 

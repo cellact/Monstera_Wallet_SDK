@@ -1,11 +1,6 @@
 /**
  * Authenticator management call pipeline: session merge → prepare(flowId) → client invoke.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
- * @typedef {import('../../../types/index.js').AuthContext} AuthContext
- * @typedef {import('../../../types/index.js').Bytes} Bytes
- * @typedef {import('../../../types/index.js').AuthProofFlowOptions} AuthProofFlowOptions
  * @typedef {import('./CredentialsSession.js').CredentialsSession} CredentialsSession
  * @typedef {import('../proof/AuthProofPipeline.js').AuthProofPipeline} AuthProofPipeline
  * @typedef {import('../authenticators/registry.js').AuthProofFlowId} AuthProofFlowId
@@ -35,7 +30,7 @@ import log from '../../logger.js';
  *   authProof: Bytes;
  *   authenticatorAddr: Address;
  *   action?: AuthContext | null;
- *   actionHash?: import('../../../types/index.js').Bytes32;
+ *   actionHash?: Bytes32;
  *   minuteBucket?: bigint;
  *   derivedAddress?: Address;
  * }} AuthenticatorEncodeResult

@@ -6,8 +6,6 @@
  * {@link toChecksumAddress} before storing or looking up entries, so callers can pass any case
  * variation and still get a hit.
  *
- * @typedef {import('../../types/index.js').Address} Address
- *
  * @module internal/auth/shared/registryByChecksumAddress
  */
 

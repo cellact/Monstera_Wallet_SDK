@@ -4,8 +4,6 @@
  * Used by the {@code WalletFactoryClient.createWallet*} flows to either generate a fresh seed for
  * the user or derive a deterministic seed from a caller-supplied mnemonic.
  *
- * @typedef {import('../../types/index.js').Mnemonic} Mnemonic
- *
  * @module internal/crypto/mnemonic
  */
 

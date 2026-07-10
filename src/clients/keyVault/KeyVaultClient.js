@@ -9,45 +9,6 @@
  * This is the preferred contract surface from {@link Monstera}: signing and account helpers take {@code keyVaultAddr}.
  * WalletLogic exposes parallel proxy methods that forward to KeyVault; using KeyVault directly avoids an extra hop.
  *
- * @typedef {import('../../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../../types/index.js').KeyVaultClientSignTransactionOptions} KeyVaultClientSignTransactionOptions
- * @typedef {import('../../types/index.js').KeyVaultClientSignMessageOptions} KeyVaultClientSignMessageOptions
- * @typedef {import('../../types/index.js').KeyVaultClientSignHashOptions} KeyVaultClientSignHashOptions
- * @typedef {import('../../types/index.js').InitializeOptions} InitializeOptions
- * @typedef {import('../../types/index.js').InitializeExplicitOptions} InitializeExplicitOptions
- * @typedef {import('../../types/index.js').KeyVaultClientUpdateAuthenticatorOptions} KeyVaultClientUpdateAuthenticatorOptions
- * @typedef {import('../../types/index.js').BaseTransactionResult} BaseTransactionResult
- * @typedef {import('../../types/index.js').UpdateAuthenticatorAddrResult} UpdateAuthenticatorAddrResult
- * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrResult} UpdateKeyVaultImplAddrResult
- * @typedef {import('../../types/index.js').Address} Address
- * @typedef {import('../../types/index.js').Bytes} Bytes
- * @typedef {import('../../types/index.js').Bytes32} Bytes32
- * @typedef {import('../../types/index.js').KeyMetadataResult} KeyMetadataResult
- * @typedef {import('../../types/index.js').KeyVaultClientSignWithImportedKeyOptions} KeyVaultClientSignWithImportedKeyOptions
- * @typedef {import('../../types/index.js').KeyVaultClientSignSolanaOptions} KeyVaultClientSignSolanaOptions
- * @typedef {import('../../types/index.js').KeyVaultClientImportKeyOptions} KeyVaultClientImportKeyOptions
- * @typedef {import('../../types/index.js').KeyVaultClientSetChainBaseKeysOptions} KeyVaultClientSetChainBaseKeysOptions
- * @typedef {import('../../types/index.js').KeyVaultAddrOptions} KeyVaultAddrOptions
- * @typedef {import('../../types/index.js').KeyVaultAddrIndexOptions} KeyVaultAddrIndexOptions
- * @typedef {import('../../types/index.js').KeyVaultAccountSliceOptions} KeyVaultAccountSliceOptions
- * @typedef {import('../../types/index.js').KeyVaultImportedKeyOptions} KeyVaultImportedKeyOptions
- * @typedef {import('../../types/index.js').KeyVaultClientExecuteWithAuthOptions} KeyVaultClientExecuteWithAuthOptions
- * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplOptions} KeyVaultClientUpdateKeyVaultImplOptions
- * @typedef {import('../../types/index.js').KeyVaultClientUpdateKeyVaultImplCustomOptions} KeyVaultClientUpdateKeyVaultImplCustomOptions
- * @typedef {import('../../types/index.js').KeyVaultClientUpdateAuthenticatorCustomOptions} KeyVaultClientUpdateAuthenticatorCustomOptions
- * @typedef {import('../../types/index.js').KeyVaultClientComputeCustomImplementationAckHashOptions} KeyVaultClientComputeCustomImplementationAckHashOptions
- * @typedef {import('../../types/index.js').KeyVaultClientComputeCustomAuthenticatorAckHashOptions} KeyVaultClientComputeCustomAuthenticatorAckHashOptions
- * @typedef {import('../../types/index.js').KeyVaultClientIsImplementationApprovedOptions} KeyVaultClientIsImplementationApprovedOptions
- * @typedef {import('../../types/index.js').KeyVaultClientIsAuthenticatorApprovedOptions} KeyVaultClientIsAuthenticatorApprovedOptions
- * @typedef {import('../../types/index.js').UpdateKeyVaultImplAddrCustomResult} UpdateKeyVaultImplAddrCustomResult
- * @typedef {import('../../types/index.js').UpdateAuthenticatorAddrCustomResult} UpdateAuthenticatorAddrCustomResult
- * @typedef {import('../../types/index.js').KeyVaultClientDeactivateActivateKeyOptions} KeyVaultClientDeactivateActivateKeyOptions
- * @typedef {import('../../types/index.js').ImportKeyResult} ImportKeyResult
- * @typedef {import('../../types/index.js').DeactivateKeyResult} DeactivateKeyResult
- * @typedef {import('../../types/index.js').ActivateKeyResult} ActivateKeyResult
- *
  * @module clients/keyVault/KeyVaultClient
  */
 

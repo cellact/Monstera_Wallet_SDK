@@ -50,7 +50,7 @@ function validatePrepareInput(options) {
 }
 
 /**
- * @param {import('../../../types/index.js').MonsteraConfigOptions} config
+ * @param {MonsteraConfigOptions} config
  * @param {Record<string, unknown>} options
  */
 function applyConfigDefaults(config, options) {
@@ -102,8 +102,8 @@ export const dualFactorAuthenticator = {
     encode(authConfig) {
       const { passwordHash, guardianAddr } = authConfig;
       return createDualFactorAuthConfig(
-        /** @type {import('../../../types/index.js').Bytes32} */ (passwordHash),
-        /** @type {import('../../../types/index.js').Address} */ (guardianAddr)
+        /** @type {Bytes32} */ (passwordHash),
+        /** @type {Address} */ (guardianAddr)
       );
     }
   }

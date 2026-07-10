@@ -20,7 +20,7 @@ function resolveApiKeySessionProofMode(encoderId, input) {
 }
 
 /**
- * @param {import('../../types/index.js').Bytes | Uint8Array | undefined} authProof
+ * @param {Bytes | Uint8Array | undefined} authProof
  * @returns {number | undefined}
  */
 function authProofByteLength(authProof) {
@@ -36,7 +36,7 @@ function authProofByteLength(authProof) {
 /**
  * @public
  * @param {Object} params
- * @param {import('../../types/index.js').Address} params.keyVaultAddr
+ * @param {Address} params.keyVaultAddr
  */
 export function logVaultAuthPreEncoded({ keyVaultAddr }) {
   log.info('auth pipeline: vault call', {
@@ -52,8 +52,8 @@ export function logVaultAuthPreEncoded({ keyVaultAddr }) {
  * @param {Object} params
  * @param {string} params.encoderId
  * @param {string} params.flowId
- * @param {import('../../types/index.js').Address} params.authenticatorAddr
- * @param {import('../../types/index.js').Address} params.keyVaultAddr
+ * @param {Address} params.authenticatorAddr
+ * @param {Address} params.keyVaultAddr
  * @param {Record<string, unknown>} [params.proofInput]
  */
 export function logVaultAuthResolved({ encoderId, flowId, authenticatorAddr, keyVaultAddr, proofInput }) {
@@ -82,9 +82,9 @@ export function logVaultAuthResolved({ encoderId, flowId, authenticatorAddr, key
  * @param {Object} params
  * @param {string} params.flowId
  * @param {string} params.encoderId
- * @param {import('../../types/index.js').Address} params.authenticatorAddr
- * @param {import('../../types/index.js').Address} [params.keyVaultAddr]
- * @param {import('../../types/index.js').AuthProofFlowOptions} [params.flowOptions]
+ * @param {Address} params.authenticatorAddr
+ * @param {Address} [params.keyVaultAddr]
+ * @param {AuthProofFlowOptions} [params.flowOptions]
  */
 export function logExplicitAuthPrepare({ flowId, encoderId, authenticatorAddr, keyVaultAddr, flowOptions }) {
   log.info('auth pipeline: explicit flow', {
@@ -106,11 +106,11 @@ export function logExplicitAuthPrepare({ flowId, encoderId, authenticatorAddr, k
  * @param {Object} params
  * @param {string} params.encoderId
  * @param {string} params.flowId
- * @param {import('../../types/index.js').Address} params.authenticatorAddr
- * @param {import('../../types/index.js').Address} params.keyVaultAddr
+ * @param {Address} params.authenticatorAddr
+ * @param {Address} params.keyVaultAddr
  * @param {Record<string, unknown>} [params.proofInput]
- * @param {import('../../types/index.js').AuthActionInput} [params.action]
- * @param {import('../../types/index.js').Bytes | Uint8Array} [params.authProof]
+ * @param {AuthActionInput} [params.action]
+ * @param {Bytes | Uint8Array} [params.authProof]
  */
 export function logAuthProofEncoded({
   encoderId,

@@ -1,10 +1,6 @@
 /**
  * MultiAuthenticator management action builders.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').AuthActionInput} AuthActionInput
- * @typedef {import('../../../types/index.js').Bytes} Bytes
- *
  * @module internal/auth/context/actions/authenticator/multi
  */
 

@@ -8,13 +8,6 @@
  *   3. Translate any caught error through {@code sdkErrorPipeline} (custom-error decode, RPC revert
  *      extraction, fallback enrichment for mined-but-failed transactions).
  *
- * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
- * @typedef {import('../types/index.js').ExecuteWriteOptions} ExecuteWriteOptions
- * @typedef {import('../types/index.js').EthersInterface} EthersInterface
- * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
- * @typedef {import('../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
  * @typedef {import('../internal/sanitization/Sanitizer.js').Sanitizer} Sanitizer
  *
  * @module base/ExecutionPipeline

@@ -9,14 +9,6 @@
  * {@link BaseContractClient#executeWrite} so that error handling, sanitisation, and event parsing
  * are uniform across the SDK.
  *
- * @typedef {import('../types/index.js').EthersProvider} EthersProvider
- * @typedef {import('../types/index.js').WrappedEthersSigner} WrappedEthersSigner
- * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../types/index.js').Address} Address
- * @typedef {import('../types/index.js').BaseTransactionResult} BaseTransactionResult
- * @typedef {import('../types/index.js').ExecuteReadInputOptions} ExecuteReadInputOptions
- * @typedef {import('../types/index.js').ExecuteWriteInputOptions} ExecuteWriteInputOptions
- *
  * @module base/BaseContractClient
  */
 

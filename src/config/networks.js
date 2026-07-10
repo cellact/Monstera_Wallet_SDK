@@ -9,12 +9,6 @@
  * Consumed by {@code MonsteraConfig.resolveBaseConfig}, which is itself called by the {@code Monstera}
  * facade during {@code connect}. No network I/O happens here — this module is fully static.
  *
- * @typedef {import('../types/index.js').NetworkConfig} NetworkConfig
- * @typedef {import('../types/index.js').ContractAddresses} ContractAddresses
- * @typedef {import('../types/index.js').DefaultContractAddresses} DefaultContractAddresses
- * @typedef {import('../types/index.js').NetworkPresets} NetworkPresets
- * @typedef {import('../types/index.js').BuildNetworkConfigInput} BuildNetworkConfigInput
- *
  * @module config/networks
  */
 

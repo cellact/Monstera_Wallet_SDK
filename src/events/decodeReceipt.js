@@ -8,10 +8,6 @@
  * - {@link parseEventFromReceipt} — public wrapper that takes a per-event definition record
  *   (produced by the per-contract event modules in this folder) and validates it
  *
- * @typedef {import('../types/index.js').TransactionHash} TransactionHash
- * @typedef {import('../types/index.js').TransactionReceipt} TransactionReceipt
- * @typedef {import('../types/index.js').EthersContract} EthersContract
- *
  * @module events/decodeReceipt
  */
 

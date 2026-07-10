@@ -5,11 +5,6 @@
  * and the underlying crypto helpers aligned — every entry point for a given proof type uses the
  * same assertions, so divergence is impossible.
  *
- * @typedef {import('../../types/index.js').ChainId} ChainId
- * @typedef {import('../../types/index.js').CreateAuthProofWalletSignatureOptions} CreateAuthProofWalletSignatureOptions
- * @typedef {import('../../types/index.js').CreateAuthProofMinuteSignatureWithProviderOptions} CreateAuthProofMinuteSignatureWithProviderOptions
- * @typedef {import('../../types/index.js').CreateAuthProofDualFactorWithProviderOptions} CreateAuthProofDualFactorWithProviderOptions
- *
  * @module internal/validators/authProofOptions
  */
 

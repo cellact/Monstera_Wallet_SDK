@@ -6,8 +6,6 @@
  * sign calls). Admin flows such as {@link Monstera#addMultiAuthenticator} also pass
  * {@code child} as the on-chain target; that must not override the authorizing child.
  *
- * @typedef {import('../../../types/index.js').Address} Address
- * @typedef {import('../../../types/index.js').ContractAddresses} ContractAddresses
  * @typedef {import('./types.js').BuiltinAuthenticatorSpec} BuiltinAuthenticatorSpec
  *
  * @module internal/auth/authenticators/resolveChild
