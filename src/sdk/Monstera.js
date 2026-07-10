@@ -35,7 +35,22 @@ import { monsteraSigningMethods } from './domains/MonsteraSigning.js';
 /**
  * Main entry point for Monstera wallet operations on Oasis Sapphire.
  *
+ * Domain methods are mixed onto the prototype from {@code src/sdk/domains/} at load time.
+ *
  * @public
+ * @property {MonsteraConfigOptions} config - Resolved network and contract configuration
+ * @property {string} version - SDK version string
+ * @property {EthersAbstractProvider} readProvider - Provider for read-only RPC calls
+ * @property {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for writes, or null
+ * @property {WalletFactoryClient} factory - WalletFactory client
+ * @property {WalletLogicClient} logic - WalletLogic client
+ * @property {KeyVaultClient} keyVault - KeyVault client
+ * @property {AuthenticatorClient} auth - Authenticator client
+ * @property {CredentialsSession | null} _credentialsSession - End-user credentials session, if connected with credentials
+ * @property {AuthProofPipeline} _authProofPipeline - Auth-proof encoding pipeline
+ * @property {VaultCallPipeline} _vaultPipeline - Vault-authenticated write pipeline
+ * @property {AuthenticatorCallPipeline} _authenticatorPipeline - Authenticator management write pipeline
+ * @property {EncodeAuthConfig} _encodeAuthConfig - Auth config encoder
  */
 class Monstera {
   constructor(config) {
@@ -43,21 +58,30 @@ class Monstera {
     const { credentials: _credentials, ...resolvedConfig } = config ?? {};
 
     assertValidResolvedConfig(resolvedConfig);
+    /** @type {MonsteraConfigOptions} */
     this.config = resolvedConfig;
+    /** @type {string} */
     this.version = MonsteraConfig.version;
 
     // Initialize read provider (for read operations)
+    /** @type {EthersAbstractProvider} */
     this.readProvider = resolvedConfig.provider ?? createProvider(resolvedConfig.rpcUrl, 'read');
     
     // Initialize write signer (for write operations with Sapphire wrapper)
+    /** @type {WrappedEthersSigner | null} */
     this.writeSigner = resolvedConfig.signer ? createWriteSigner(resolvedConfig.signer, resolvedConfig.rpcUrl, 'write') : null;
 
     // Wire domain clients
+    /** @type {WalletFactoryClient} */
     this.factory = new WalletFactoryClient(this.readProvider, this.writeSigner, resolvedConfig);
+    /** @type {WalletLogicClient} */
     this.logic = new WalletLogicClient(this.readProvider, this.writeSigner, resolvedConfig);
+    /** @type {KeyVaultClient} */
     this.keyVault = new KeyVaultClient(this.readProvider, this.writeSigner, resolvedConfig);
+    /** @type {AuthenticatorClient} */
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, resolvedConfig);
 
+    /** @type {CredentialsSession | null} */
     this._credentialsSession = parsedCredentials
       ? new CredentialsSession(parsedCredentials, {
           hashUsername: (opts) => this.factory.hashUsername(opts),
@@ -66,20 +90,25 @@ class Monstera {
         })
       : null;
 
+    /** @type {AuthProofPipeline} */
     this._authProofPipeline = new AuthProofPipeline({
       config: resolvedConfig,
       readProvider: this.readProvider,
       getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
     });
 
+    /** @type {VaultCallPipeline} */
     this._vaultPipeline = new VaultCallPipeline({
       credentialsSession: this._credentialsSession,
       authProofPipeline: this._authProofPipeline
     });
+
+    /** @type {AuthenticatorCallPipeline} */
     this._authenticatorPipeline = new AuthenticatorCallPipeline({
       credentialsSession: this._credentialsSession,
       authProofPipeline: this._authProofPipeline
     });
+    /** @type {EncodeAuthConfig} */
     this._encodeAuthConfig = new EncodeAuthConfig({ addresses: resolvedConfig.addresses });
 
     // Check version in background only when explicitly enabled.

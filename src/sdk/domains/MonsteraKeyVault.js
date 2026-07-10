@@ -16,8 +16,9 @@ import {
   buildSetChainBaseKeysAction,
 } from '../../internal/crypto/index.js';
 import { withDefaultAccountIndex } from '../../internal/vault/accountIndex.js';
+import { defineDomainMethods } from './defineDomainMethods.js';
 
-export const monsteraKeyVaultMethods = {
+export const monsteraKeyVaultMethods = defineDomainMethods({
   // ============================================================================
   // Initialize Methods (Write)
   // ============================================================================
@@ -567,4 +568,4 @@ export const monsteraKeyVaultMethods = {
       (encoded) => this.keyVault.setChainBaseKeys(encoded)
     );
   }
-};
+});

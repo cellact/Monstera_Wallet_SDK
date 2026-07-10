@@ -4,7 +4,9 @@
  * @module sdk/domains/MonsteraSession
  */
 
-export const monsteraSessionMethods = {
+import { defineDomainMethods } from './defineDomainMethods.js';
+
+export const monsteraSessionMethods = defineDomainMethods({
   // ============================================================================
   // Utility Methods
   // ============================================================================
@@ -149,4 +151,4 @@ export const monsteraSessionMethods = {
   getAvailableAuthTypes() {
     return this.auth.getAvailableTypes();
   }
-};
+});

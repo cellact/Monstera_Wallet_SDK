@@ -14,8 +14,9 @@ import {
   buildSignSolanaAction,
 } from '../../internal/crypto/index.js';
 import { executeSignAuthorization } from '../../internal/vault/signAuthorization.js';
+import { defineDomainMethods } from './defineDomainMethods.js';
 
-export const monsteraSigningMethods = {
+export const monsteraSigningMethods = defineDomainMethods({
   // --- Signing Reads ---
 
   /**
@@ -189,4 +190,4 @@ export const monsteraSigningMethods = {
       (encoded) => this.keyVault.signSolana(encoded)
     );
   }
-};
+});

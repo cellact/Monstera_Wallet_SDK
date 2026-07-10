@@ -25,8 +25,9 @@ import { resolveActionHash } from '../../internal/auth/context/createAuthContext
 import { defaultProofDeadline } from '../../internal/auth/authenticators/deadline.js';
 import { SCOPE_SIGN_ALL } from '../../internal/auth/apiKeySession/constants.js';
 import { hexlify, randomBytes } from '../../adapters/ethers/hashing.js';
+import { defineDomainMethods } from './defineDomainMethods.js';
 
-export const monsteraAuthMethods = {
+export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Build the EIP-712 {@code authProof} for {@code WalletSignatureAuthenticator}.
    *
@@ -1360,4 +1361,4 @@ export const monsteraAuthMethods = {
       { authenticatorAddr: this.config.addresses.multiAuthenticator }
     );
   }
-};
+});

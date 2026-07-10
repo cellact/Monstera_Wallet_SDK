@@ -5,7 +5,9 @@
  * @module sdk/domains/MonsteraFactory
  */
 
-export const monsteraFactoryMethods = {
+import { defineDomainMethods } from './defineDomainMethods.js';
+
+export const monsteraFactoryMethods = defineDomainMethods({
   // ============================================================================
   // Create Methods (Write)
   // ============================================================================
@@ -614,4 +616,4 @@ export const monsteraFactoryMethods = {
   async setWalletAuthenticatorAllowed(options = {}) {
     return this.factory.setWalletAuthenticatorAllowed(await this._resolveWalletOrKeyVaultScope(options));
   }
-};
+});
