@@ -46,9 +46,8 @@ Domain modules do not call pipelines directly for writes or configure flows. The
 | Recipe | Facade method | Pipeline(s) | When to use |
 |--------|---------------|-------------|-------------|
 | **Vault-authenticated** | `_invokeVaultAuthenticated` | `VaultCallPipeline.invokeWithAuthProof` | KeyVault signing views and vault admin writes (import key, upgrade impl, swap authenticator, …) |
-| **Authenticator-managed write** | `_invokeAuthenticatorManaged` | `AuthenticatorCallPipeline.invokeWithAuthProof` | Authenticator admin writes (change password, whitelist, rotate API key, …) |
+| **Authenticator-managed write / verify** | `_invokeAuthenticatorManaged` | `AuthenticatorCallPipeline.invokeWithAuthProof` | Authenticator admin writes and on-chain verify probes (`updatePassword`, `isPasswordValid`, …) |
 | **Authenticator-managed encode** | `_encodeAuthenticatorManaged` | `AuthenticatorCallPipeline.encodeAuthProof` | Off-chain proof building (`createAuthProof*`) |
-| **Authenticator-managed verify** | `_verifyAuthenticatorManaged` | `AuthenticatorCallPipeline.encodeAuthProof` (verify probe) | On-chain verify probes (`isPasswordValid`, …) |
 | **Configure** | `_configureAuthenticator` | `ConfigureCallPipeline.configure` | Initial authenticator setup (`configurePassword`, …) — no auth proof |
 
 Read-only vault-scoped calls still use `VaultCallPipeline.resolveVaultOptions` directly (no recipe wrapper). Factory wallet creation uses `EncodeAuthConfig.encode` inline before delegating to `factory.createWallet*`.
@@ -117,7 +116,7 @@ Read-only vault-scoped calls still use `VaultCallPipeline.resolveVaultOptions` d
 | User calls | Domain module | Client method |
 |------------|---------------|---------------|
 | `monstera.getAccountAddr()` | `MonsteraKeyVault` | `keyVault.getAccountAddr` |
-| `monstera.isPasswordValid()` | `MonsteraAuth` | `_verifyAuthenticatorManaged` → `AuthenticatorCallPipeline` | `auth.password.verify` |
+| `monstera.isPasswordValid()` | `MonsteraAuth` | `_invokeAuthenticatorManaged` → `AuthenticatorCallPipeline` | `auth.password.verify` |
 | `monstera.getWhitelist()` | `MonsteraAuth` | `auth.walletSignature.getWhitelist` |
 | `monstera.isWallet()` | `MonsteraFactory` | `factory.isWallet` |
 

@@ -202,8 +202,13 @@ export class AuthenticatorCallPipeline {
    * @returns {Promise<T>}
    */
   async invokeWithAuthProof(flowId, options = {}, config) {
-    const { flags = {}, buildAction, invoke, overrides = {} } = config;
-    const encoded = await this.encodeAuthProof(flowId, options, { flags, buildAction, overrides });
+    const { flags = {}, buildAction, invoke, flowOptions, overrides = {} } = config;
+    const encoded = await this.encodeAuthProof(flowId, options, {
+      flags,
+      buildAction,
+      flowOptions,
+      overrides
+    });
     return invoke(encoded);
   }
 }

@@ -5,7 +5,7 @@
  * the same call patterns. Each recipe accepts a single descriptor object.
  *
  * 1. **Vault-authenticated** — {@link Monstera#_invokeVaultAuthenticated}
- * 2. **Authenticator-managed** — {@link Monstera#_invokeAuthenticatorManaged} / {@link Monstera#_encodeAuthenticatorManaged} / {@link Monstera#_verifyAuthenticatorManaged}
+ * 2. **Authenticator-managed** — {@link Monstera#_invokeAuthenticatorManaged} / {@link Monstera#_encodeAuthenticatorManaged}
  * 3. **Configure** — {@link Monstera#_configureAuthenticator}
  *
  * @module sdk/domains/MonsteraRecipes
@@ -37,6 +37,7 @@ import { defineDomainMethods } from './defineDomainMethods.js';
  * @property {ResolveVaultOptionsFlags} [flags]
  * @property {(resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput} buildAction
  * @property {(ctx: AuthenticatorInvokeContext) => Promise<T>} invoke
+ * @property {import('../../internal/auth/proof/AuthProofPipeline.js').AuthProofFlowOptions} [flowOptions]
  * @property {import('../../internal/auth/session/AuthenticatorCallPipeline.js').AuthenticatorInvokeOverrides} [overrides]
  */
 
@@ -45,14 +46,6 @@ import { defineDomainMethods } from './defineDomainMethods.js';
  * @property {AuthProofFlowId} flowId
  * @property {Record<string, unknown>} [options]
  * @property {AuthenticatorEncodeConfig} [config]
- */
-
-/**
- * @typedef {Object} AuthenticatorManagedVerifyDescriptor
- * @property {AuthProofFlowId} flowId
- * @property {Record<string, unknown>} [options]
- * @property {ResolveVaultOptionsFlags} [flags]
- * @property {(ctx: AuthenticatorEncodeResult) => Promise<boolean>} verify
  */
 
 /**
@@ -79,7 +72,7 @@ export const monsteraRecipeMethods = defineDomainMethods({
   },
 
   /**
-   * Recipe 2a: authenticator-managed write (encode proof + invoke client).
+   * Recipe 2a: authenticator-managed invoke (encode proof + client call).
    *
    * @private
    * @template T
@@ -87,11 +80,12 @@ export const monsteraRecipeMethods = defineDomainMethods({
    * @returns {Promise<T>}
    */
   _invokeAuthenticatorManaged(descriptor) {
-    const { flowId, options = {}, flags, buildAction, invoke, overrides } = descriptor;
+    const { flowId, options = {}, flags, buildAction, invoke, flowOptions, overrides } = descriptor;
     return this._authenticatorPipeline.invokeWithAuthProof(flowId, options, {
       flags,
       buildAction,
       invoke,
+      flowOptions,
       overrides
     });
   },
@@ -106,22 +100,6 @@ export const monsteraRecipeMethods = defineDomainMethods({
   _encodeAuthenticatorManaged(descriptor) {
     const { flowId, options = {}, config = {} } = descriptor;
     return this._authenticatorPipeline.encodeAuthProof(flowId, options, config);
-  },
-
-  /**
-   * Recipe 2c: authenticator-managed verify probe (encode proof + on-chain verify).
-   *
-   * @private
-   * @param {AuthenticatorManagedVerifyDescriptor} descriptor
-   * @returns {Promise<boolean>}
-   */
-  async _verifyAuthenticatorManaged(descriptor) {
-    const { flowId, options = {}, flags, verify } = descriptor;
-    const ctx = await this._authenticatorPipeline.encodeAuthProof(flowId, options, {
-      flags,
-      flowOptions: { includeAuthContext: true, useVerifyProbe: true }
-    });
-    return verify(ctx);
   },
 
   /**
