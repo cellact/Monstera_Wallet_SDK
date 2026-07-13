@@ -5,10 +5,13 @@
  * four domain clients and offers high-level helpers that accept structured options.
  *
  * Domain methods live in {@code src/sdk/domains/} and are composed onto this class at load time.
+ * Operation recipes ({@code MonsteraRecipes}) are mixed first so all domains share the same call patterns.
  * See {@code docs/architecture.md} for the execution map.
  *
  * @module sdk/Monstera
  */
+
+/// <reference path="./Monstera.domain-methods.d.ts" />
 
 import MonsteraConfig from '../config/monstera.js';
 import MonsteraUtils from './MonsteraUtils.js';
@@ -26,6 +29,7 @@ import { parseConnectCredentials } from '../internal/validators/connectOptions.j
 import { VaultCallPipeline } from '../internal/auth/session/VaultCallPipeline.js';
 import { AuthenticatorCallPipeline } from '../internal/auth/session/AuthenticatorCallPipeline.js';
 import { SCOPE_ALL, SCOPE_SIGN_ALL } from '../internal/auth/apiKeySession/constants.js';
+import { monsteraRecipeMethods } from './domains/MonsteraRecipes.js';
 import { monsteraSessionMethods } from './domains/MonsteraSession.js';
 import { monsteraAuthMethods } from './domains/MonsteraAuth.js';
 import { monsteraFactoryMethods } from './domains/MonsteraFactory.js';
@@ -249,6 +253,7 @@ class Monstera {
 
 Object.assign(
   Monstera.prototype,
+  monsteraRecipeMethods,
   monsteraSessionMethods,
   monsteraAuthMethods,
   monsteraFactoryMethods,

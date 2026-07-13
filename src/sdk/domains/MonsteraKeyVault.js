@@ -373,7 +373,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddr(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) => buildUpgradeImplementationAction({ newImplAddr: o.newImplAddr }),
       (encoded) => this.keyVault.updateKeyVaultImplAddr(encoded)
@@ -396,7 +396,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddrCustom(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) =>
         buildUpgradeImplementationCustomAction({
@@ -423,7 +423,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddr(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) =>
         buildChangeAuthenticatorAction({
@@ -450,7 +450,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddrCustom(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) =>
         buildChangeAuthenticatorCustomAction({
@@ -478,7 +478,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async importKey(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) =>
         buildImportKeyAction({
@@ -511,7 +511,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async deactivateKey(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) => buildDeactivateKeyAction({ keyId: o.keyId }),
       (encoded) => this.keyVault.deactivateKey(encoded)
@@ -534,7 +534,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async activateKey(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) => buildActivateKeyAction({ keyId: o.keyId }),
       (encoded) => this.keyVault.activateKey(encoded)
@@ -557,7 +557,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async setChainBaseKeys(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) =>
         buildSetChainBaseKeysAction({

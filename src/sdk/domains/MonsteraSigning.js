@@ -35,7 +35,7 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async signTransaction(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) =>
         buildSignTransactionAction({
@@ -65,7 +65,7 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async signMessage(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) => buildSignMessageAction({ index: o.index, message: o.message }),
       (encoded) => this.keyVault.signMessage(encoded)
@@ -85,7 +85,7 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async sign(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) => buildSignAction({ index: o.index, digest: o.hash }),
       (encoded) => this.keyVault.sign(encoded)
@@ -144,7 +144,7 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async executeWithAuth(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) => buildExecuteWithAuthAction({ implCall: o.implCall }),
       (encoded) => this.keyVault.executeWithAuth(encoded)
@@ -164,7 +164,7 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async signWithImportedKey(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) => buildSignWithImportedKeyAction({ keyId: o.keyId, digest: o.digest }),
       (encoded) => this.keyVault.signWithImportedKey(encoded)
@@ -184,7 +184,7 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async signSolana(options = {}) {
-    return this._vaultPipeline.invokeWithAuthProof(
+    return this._invokeVaultAuthenticated(
       options,
       (o) => buildSignSolanaAction({ index: o.index, message: o.message }),
       (encoded) => this.keyVault.signSolana(encoded)
