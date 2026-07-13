@@ -26,6 +26,14 @@ import log from '../../logger.js';
  */
 
 /**
+ * @template T
+ * @typedef {AuthenticatorEncodeConfig & {
+ *   buildAction: (resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput;
+ *   invoke: (ctx: AuthenticatorInvokeContext) => Promise<T>;
+ * }} AuthenticatorInvokeConfig
+ */
+
+/**
  * @typedef {Record<string, unknown> & {
  *   authProof: Bytes;
  *   authenticatorAddr: Address;
@@ -189,14 +197,12 @@ export class AuthenticatorCallPipeline {
    * @async
    * @template T
    * @param {AuthProofFlowId} flowId
-   * @param {Record<string, unknown>} options
-   * @param {ResolveVaultOptionsFlags} [flags={}]
-   * @param {(resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput} buildAction
-   * @param {(ctx: AuthenticatorInvokeContext) => Promise<T>} invoke
-   * @param {AuthenticatorInvokeOverrides} [overrides={}]
+   * @param {Record<string, unknown>} [options={}]
+   * @param {AuthenticatorInvokeConfig<T>} config
    * @returns {Promise<T>}
    */
-  async invokeWithAuthProof(flowId, options, flags, buildAction, invoke, overrides = {}) {
+  async invokeWithAuthProof(flowId, options = {}, config) {
+    const { flags = {}, buildAction, invoke, overrides = {} } = config;
     const encoded = await this.encodeAuthProof(flowId, options, { flags, buildAction, overrides });
     return invoke(encoded);
   }

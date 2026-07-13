@@ -44,7 +44,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised signing failures
    */
   async createAuthProofWalletSignature(options = {}) {
-    const { authProof } = await this._encodeAuthenticatorManaged('walletSignature', options);
+    const { authProof } = await this._encodeAuthenticatorManaged({ flowId: 'walletSignature', options });
     return authProof;
   },
 
@@ -64,10 +64,10 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {NetworkError} If the read provider fails to return the latest block
    */
   async createAuthProofMinuteSignature(options = {}) {
-    const { authProof, minuteBucket, derivedAddress } = await this._encodeAuthenticatorManaged(
-      'minuteSignature',
+    const { authProof, minuteBucket, derivedAddress } = await this._encodeAuthenticatorManaged({
+      flowId: 'minuteSignature',
       options
-    );
+    });
     return { authProof, minuteBucket, derivedAddress };
   },
 
@@ -80,7 +80,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<EncodedAuthProofDualFactor>},
    */
   async createAuthProofDualFactor(options = {}) {
-    const { authProof } = await this._encodeAuthenticatorManaged('dualFactor', options);
+    const { authProof } = await this._encodeAuthenticatorManaged({ flowId: 'dualFactor', options });
     return authProof;
   },
 
@@ -97,8 +97,10 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<EncodedAuthProofMulti>},
    */
   async createAuthProofMulti(options = {}) {
-    const { authProof } = await this._encodeAuthenticatorManaged('multi', options, {
-      flags: { defaultCurrentPassword: true, defaultApiKeySecret: true }
+    const { authProof } = await this._encodeAuthenticatorManaged({
+      flowId: 'multi',
+      options,
+      config: { flags: { defaultCurrentPassword: true, defaultApiKeySecret: true } }
     });
     return authProof;
   },
@@ -115,11 +117,11 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<EncodedAuthProofPasswordOrWalletSignature>},
    */
   async createAuthProofPasswordOrWalletSignature(options = {}) {
-    const { authProof } = await this._encodeAuthenticatorManaged(
-      'passwordOrWalletSignature',
+    const { authProof } = await this._encodeAuthenticatorManaged({
+      flowId: 'passwordOrWalletSignature',
       options,
-      { flags: { defaultCurrentPassword: true } }
-    );
+      config: { flags: { defaultCurrentPassword: true } }
+    });
     return authProof;
   },
 
@@ -171,7 +173,8 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async configurePassword(options = {}) {
-    return this._configureAuthenticator(options, {
+    return this._configureAuthenticator({
+      options,
       authenticatorAddr: this.config.addresses.passwordAuth,
       buildAuthConfigInput: (resolved) => ({ passwordHash: resolved.passwordHash }),
       invoke: ({ keyVaultAddr, authConfig }) =>
@@ -197,7 +200,8 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async configureWalletSignature(options = {}) {
-    return this._configureAuthenticator(options, {
+    return this._configureAuthenticator({
+      options,
       authenticatorAddr: this.config.addresses.walletSignatureAuth,
       buildAuthConfigInput: (resolved) => ({ initialWhitelist: resolved.initialWhitelist }),
       invoke: ({ keyVaultAddr, authConfig }) =>
@@ -223,7 +227,8 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async configureDualFactor(options = {}) {
-    return this._configureAuthenticator(options, {
+    return this._configureAuthenticator({
+      options,
       authenticatorAddr: this.config.addresses.dualFactorAuth,
       buildAuthConfigInput: (resolved) => ({
         passwordHash: resolved.passwordHash,
@@ -253,7 +258,8 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async configurePasswordMinuteSignature(options = {}) {
-    return this._configureAuthenticator(options, {
+    return this._configureAuthenticator({
+      options,
       authenticatorAddr: this.config.addresses.passwordMinuteSignatureAuth,
       buildAuthConfigInput: (resolved) => ({ passwordHash: resolved.passwordHash }),
       invoke: ({ keyVaultAddr, authConfig }) =>
@@ -279,7 +285,8 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async configureApiKeySession(options = {}) {
-    return this._configureAuthenticator(options, {
+    return this._configureAuthenticator({
+      options,
       authenticatorAddr: this.config.addresses.apiKeySessionAuth,
       resolveFlags: { defaultApiKeySecret: true },
       buildAuthConfigInput: (resolved) => ({ apiKeySecret: resolved.apiKeySecret }),
@@ -300,7 +307,8 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<ConfigurePasswordOrWalletSignatureResult>},
    */
   async configurePasswordOrWalletSignature(options = {}) {
-    return this._configureAuthenticator(options, {
+    return this._configureAuthenticator({
+      options,
       authenticatorAddr: this.config.addresses.passwordOrWalletSigAuth,
       resolveFlags: { defaultCurrentPassword: true },
       buildAuthConfigInput: (resolved) => {
@@ -331,7 +339,8 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<ConfigureMultiAuthenticatorResult>},
    */
   async configureMultiAuthenticator(options = {}) {
-    return this._configureAuthenticator(options, {
+    return this._configureAuthenticator({
+      options,
       authenticatorAddr: this.config.addresses.multiAuthenticator,
       buildAuthConfigInput: (resolved) => resolved.authConfig,
       invoke: ({ keyVaultAddr, authConfig }) =>
@@ -371,15 +380,13 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordValid(options = {}) {
-    const { keyVaultAddr, authProof, action } = await this._encodeAuthenticatorManaged(
-      'password',
+    return this._verifyAuthenticatorManaged({
+      flowId: 'password',
       options,
-      {
-        flags: { defaultCurrentPassword: true },
-        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
-      }
-    );
-    return this.auth.password.verify({ keyVaultAddr, authProof, action });
+      flags: { defaultCurrentPassword: true },
+      verify: ({ keyVaultAddr, authProof, action }) =>
+        this.auth.password.verify({ keyVaultAddr, authProof, action })
+    });
   },
 
   /**
@@ -460,17 +467,11 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isWalletSignatureValid(options = {}) {
-    const { keyVaultAddr, authProof, action } = await this._encodeAuthenticatorManaged(
-      'walletSignature',
+    return this._verifyAuthenticatorManaged({
+      flowId: 'walletSignature',
       options,
-      {
-        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
-      }
-    );
-    return this.auth.walletSignature.verify({
-      keyVaultAddr,
-      authProof,
-      action
+      verify: ({ keyVaultAddr, authProof, action }) =>
+        this.auth.walletSignature.verify({ keyVaultAddr, authProof, action })
     });
   },
 
@@ -503,17 +504,11 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordDualFactorValid(options = {}) {
-    const { keyVaultAddr, authProof, action } = await this._encodeAuthenticatorManaged(
-      'dualFactor',
+    return this._verifyAuthenticatorManaged({
+      flowId: 'dualFactor',
       options,
-      {
-        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
-      }
-    );
-    return this.auth.dualFactor.verify({
-      keyVaultAddr,
-      authProof,
-      action
+      verify: ({ keyVaultAddr, authProof, action }) =>
+        this.auth.dualFactor.verify({ keyVaultAddr, authProof, action })
     });
   },
 
@@ -577,14 +572,12 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordMinuteSignatureValid(options = {}) {
-    const { keyVaultAddr, authProof, action } = await this._encodeAuthenticatorManaged(
-      'minuteSignature',
+    return this._verifyAuthenticatorManaged({
+      flowId: 'minuteSignature',
       options,
-      {
-        flowOptions: { includeAuthContext: true, useVerifyProbe: true } // TODO: should i not add the flag to use password? 
-      }
-    );
-    return this.auth.passwordMinuteSignature.verify({ keyVaultAddr, authProof, action });
+      verify: ({ keyVaultAddr, authProof, action }) =>
+        this.auth.passwordMinuteSignature.verify({ keyVaultAddr, authProof, action })
+    });
   },
 
   /**
@@ -652,15 +645,13 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isMultiValid(options = {}) {
-    const { keyVaultAddr, authProof, action } = await this._encodeAuthenticatorManaged(
-      'multi',
+    return this._verifyAuthenticatorManaged({
+      flowId: 'multi',
       options,
-      {
-        flags: { defaultCurrentPassword: true, defaultApiKeySecret: true },
-        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
-      }
-    );
-    return this.auth.multi.verify({ keyVaultAddr, authProof, action });
+      flags: { defaultCurrentPassword: true, defaultApiKeySecret: true },
+      verify: ({ keyVaultAddr, authProof, action }) =>
+        this.auth.multi.verify({ keyVaultAddr, authProof, action })
+    });
   },
 
   /**
@@ -776,15 +767,13 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<boolean>},
    */
   async isPasswordOrWalletSignatureValid(options = {}) {
-    const { keyVaultAddr, authProof, action } = await this._encodeAuthenticatorManaged(
-      'passwordOrWalletSignature',
+    return this._verifyAuthenticatorManaged({
+      flowId: 'passwordOrWalletSignature',
       options,
-      {
-        flags: { defaultCurrentPassword: true },
-        flowOptions: { includeAuthContext: true, useVerifyProbe: true },
-      }
-    );
-    return this.auth.passwordOrWalletSignature.verify({ keyVaultAddr, authProof, action });
+      flags: { defaultCurrentPassword: true },
+      verify: ({ keyVaultAddr, authProof, action }) =>
+        this.auth.passwordOrWalletSignature.verify({ keyVaultAddr, authProof, action })
+    });
   },
 
   /**
@@ -800,15 +789,13 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isApiKeySessionValid(options = {}) {
-    const { keyVaultAddr, authProof, action } = await this._encodeAuthenticatorManaged(
-      'apiKeySession',
+    return this._verifyAuthenticatorManaged({
+      flowId: 'apiKeySession',
       options,
-      {
-        flags: { defaultApiKeySecret: true },
-        flowOptions: { includeAuthContext: true, useVerifyProbe: true }
-      }
-    );
-    return this.auth.apiKeySession.verify({ keyVaultAddr, authProof, action });
+      flags: { defaultApiKeySecret: true },
+      verify: ({ keyVaultAddr, authProof, action }) =>
+        this.auth.apiKeySession.verify({ keyVaultAddr, authProof, action })
+    });
   },
 
   /**
@@ -947,19 +934,19 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePassword(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'password',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'password',
       options,
-      { defaultCurrentPassword: true },
-      (resolved, authenticatorAddr) =>
+      flags: { defaultCurrentPassword: true },
+      buildAction: (resolved, authenticatorAddr) =>
         buildChangePasswordAction(authenticatorAddr, resolved.newPasswordHash),
-      ({ keyVaultAddr, authProof, newPasswordHash }) =>
+      invoke: ({ keyVaultAddr, authProof, newPasswordHash }) =>
         this.auth.password.updatePassword({
           keyVaultAddr,
           currentPassword: authProof,
           newPasswordHash
         })
-    );
+    });
   },
 
   /**
@@ -981,15 +968,14 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async addToWhitelist(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'walletSignature',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'walletSignature',
       options,
-      {},
-      (resolved, authenticatorAddr) =>
+      buildAction: (resolved, authenticatorAddr) =>
         buildAddToWhitelistAction(authenticatorAddr, resolved.addressToAdd),
-      ({ keyVaultAddr, authProof, addressToAdd }) =>
+      invoke: ({ keyVaultAddr, authProof, addressToAdd }) =>
         this.auth.walletSignature.addToWhitelist({ keyVaultAddr, authProof, addressToAdd })
-    );
+    });
   },
 
   /**
@@ -1008,15 +994,14 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async removeFromWhitelist(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'walletSignature',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'walletSignature',
       options,
-      {},
-      (resolved, authenticatorAddr) =>
+      buildAction: (resolved, authenticatorAddr) =>
         buildRemoveFromWhitelistAction(authenticatorAddr, resolved.addressToRemove),
-      ({ keyVaultAddr, authProof, addressToRemove }) =>
+      invoke: ({ keyVaultAddr, authProof, addressToRemove }) =>
         this.auth.walletSignature.removeFromWhitelist({ keyVaultAddr, authProof, addressToRemove })
-    );
+    });
   },
 
   /**
@@ -1038,15 +1023,14 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordDualFactor(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'dualFactor',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'dualFactor',
       options,
-      {},
-      (resolved, authenticatorAddr) =>
+      buildAction: (resolved, authenticatorAddr) =>
         buildDualFactorChangePasswordAction(authenticatorAddr, resolved.newPasswordHash),
-      ({ keyVaultAddr, authProof, newPasswordHash }) =>
+      invoke: ({ keyVaultAddr, authProof, newPasswordHash }) =>
         this.auth.dualFactor.updatePassword({ keyVaultAddr, authProof, newPasswordHash })
-    );
+    });
   },
 
   /**
@@ -1065,15 +1049,14 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateGuardian(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'dualFactor',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'dualFactor',
       options,
-      {},
-      (resolved, authenticatorAddr) =>
+      buildAction: (resolved, authenticatorAddr) =>
         buildChangeGuardianAction(authenticatorAddr, resolved.newGuardian),
-      ({ keyVaultAddr, authProof, newGuardian }) =>
+      invoke: ({ keyVaultAddr, authProof, newGuardian }) =>
         this.auth.dualFactor.updateGuardian({ keyVaultAddr, authProof, newGuardian })
-    );
+    });
   },
 
   /**
@@ -1093,20 +1076,20 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordMinuteSignature(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'password',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'password',
       options,
-      { defaultCurrentPassword: true },
-      (resolved, authenticatorAddr) =>
+      flags: { defaultCurrentPassword: true },
+      buildAction: (resolved, authenticatorAddr) =>
         buildMinuteSignatureChangePasswordAction(authenticatorAddr, resolved.newPasswordHash),
-      ({ keyVaultAddr, authProof, newPasswordHash }) =>
+      invoke: ({ keyVaultAddr, authProof, newPasswordHash }) =>
         this.auth.passwordMinuteSignature.updatePassword({
           keyVaultAddr,
           currentPassword: authProof,
           newPasswordHash
         }),
-      { authenticatorAddr: this.config.addresses.passwordMinuteSignatureAuth }
-    );
+      overrides: { authenticatorAddr: this.config.addresses.passwordMinuteSignatureAuth }
+    });
   },
 
   /**
@@ -1125,18 +1108,19 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async rotateApiKey(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'apiKeySession',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'apiKeySession',
       options,
-      { defaultApiKeySecret: true },
-      (resolved, authenticatorAddr) => buildRotateApiKeyAction(authenticatorAddr, resolved.newApiKeySecret),
-      ({ keyVaultAddr, authProof, newApiKeySecret }) =>
+      flags: { defaultApiKeySecret: true },
+      buildAction: (resolved, authenticatorAddr) =>
+        buildRotateApiKeyAction(authenticatorAddr, resolved.newApiKeySecret),
+      invoke: ({ keyVaultAddr, authProof, newApiKeySecret }) =>
         this.auth.apiKeySession.rotateApiKey({
           keyVaultAddr,
           authProof,
           newApiKeySecret
         })
-    );
+    });
   },
 
   /**
@@ -1168,24 +1152,24 @@ export const monsteraAuthMethods = defineDomainMethods({
       ...proofOptions
     } = options;
 
-    return this._invokeAuthenticatorManaged(
-      'multi',
-      {
+    return this._invokeAuthenticatorManaged({
+      flowId: 'multi',
+      options: {
         ...proofOptions,
         keyVaultAddr: resolved.keyVaultAddr,
         viaChildFlowId: options.viaChildFlowId ?? options.childFlowId
       },
-      { defaultCurrentPassword: true, defaultApiKeySecret: true },
-      (_, authenticatorAddr) => buildAddAuthenticatorAction(authenticatorAddr, child, childConfig),
-      ({ keyVaultAddr: vaultAddr, authProof }) =>
+      flags: { defaultCurrentPassword: true, defaultApiKeySecret: true },
+      buildAction: (_, authenticatorAddr) => buildAddAuthenticatorAction(authenticatorAddr, child, childConfig),
+      invoke: ({ keyVaultAddr: vaultAddr, authProof }) =>
         this.auth.multi.addAuthenticator({
           keyVaultAddr: vaultAddr,
           authProof,
           child,
           childConfig
         }),
-      { authenticatorAddr: this.config.addresses.multiAuthenticator }
-    );
+      overrides: { authenticatorAddr: this.config.addresses.multiAuthenticator }
+    });
   },
 
   /**
@@ -1199,19 +1183,19 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<UpdatePasswordResult>},
    */
   async updatePasswordOrWalletSignature(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'passwordOrWalletSignature',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'passwordOrWalletSignature',
       options,
-      { defaultCurrentPassword: true },
-      (resolved, authenticatorAddr) =>
+      flags: { defaultCurrentPassword: true },
+      buildAction: (resolved, authenticatorAddr) =>
         buildPasswordOrWalletChangePasswordAction(authenticatorAddr, resolved.newPasswordHash),
-      ({ keyVaultAddr, authProof, newPasswordHash }) =>
+      invoke: ({ keyVaultAddr, authProof, newPasswordHash }) =>
         this.auth.passwordOrWalletSignature.changePassword({
           keyVaultAddr,
           authProof,
           newPasswordHash,
         })
-    );
+    });
   },
 
   /**
@@ -1223,19 +1207,19 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<AddToWhitelistResult>},
    */
   async addToPasswordOrWalletSignatureWhitelist(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'passwordOrWalletSignature',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'passwordOrWalletSignature',
       options,
-      { defaultCurrentPassword: true },
-      (resolved, authenticatorAddr) =>
+      flags: { defaultCurrentPassword: true },
+      buildAction: (resolved, authenticatorAddr) =>
         buildPasswordOrWalletAddToWhitelistAction(authenticatorAddr, resolved.addressToAdd),
-      ({ keyVaultAddr, authProof, addressToAdd }) =>
+      invoke: ({ keyVaultAddr, authProof, addressToAdd }) =>
         this.auth.passwordOrWalletSignature.addToWhitelist({
           keyVaultAddr,
           authProof,
           addressToAdd,
         })
-    );
+    });
   },
 
   /**
@@ -1247,19 +1231,19 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<RemoveFromWhitelistResult>},
    */
   async removeFromPasswordOrWalletSignatureWhitelist(options = {}) {
-    return this._invokeAuthenticatorManaged(
-      'passwordOrWalletSignature',
+    return this._invokeAuthenticatorManaged({
+      flowId: 'passwordOrWalletSignature',
       options,
-      { defaultCurrentPassword: true },
-      (resolved, authenticatorAddr) =>
+      flags: { defaultCurrentPassword: true },
+      buildAction: (resolved, authenticatorAddr) =>
         buildPasswordOrWalletRemoveFromWhitelistAction(authenticatorAddr, resolved.addressToRemove),
-      ({ keyVaultAddr, authProof, addressToRemove }) =>
+      invoke: ({ keyVaultAddr, authProof, addressToRemove }) =>
         this.auth.passwordOrWalletSignature.removeFromWhitelist({
           keyVaultAddr,
           authProof,
           addressToRemove,
         })
-    );
+    });
   },
 
   /**
@@ -1303,24 +1287,24 @@ export const monsteraAuthMethods = defineDomainMethods({
       });
     }
 
-    return this._invokeAuthenticatorManaged(
-      'passwordOrWalletSignature',
-      {
+    return this._invokeAuthenticatorManaged({
+      flowId: 'passwordOrWalletSignature',
+      options: {
         ...options,
         keyVaultAddr,
         addressToAdd,
         nonce,
         deadline,
       },
-      { defaultCurrentPassword: true },
-      (_, authenticatorAddr) =>
+      flags: { defaultCurrentPassword: true },
+      buildAction: (_, authenticatorAddr) =>
         buildPasswordOrWalletAddToWhitelistWithProofAction(
           authenticatorAddr,
           addressToAdd,
           nonce,
           deadline
         ),
-      ({ keyVaultAddr: vaultAddr, authProof }) =>
+      invoke: ({ keyVaultAddr: vaultAddr, authProof }) =>
         this.auth.passwordOrWalletSignature.addToWhitelistWithProof({
           keyVaultAddr: vaultAddr,
           authProof,
@@ -1329,7 +1313,7 @@ export const monsteraAuthMethods = defineDomainMethods({
           deadline,
           newWalletSignature,
         })
-    );
+    });
   },
 
   /**
@@ -1352,18 +1336,18 @@ export const monsteraAuthMethods = defineDomainMethods({
       ...proofOptions
     } = options;
 
-    return this._invokeAuthenticatorManaged(
-      'multi',
-      {
+    return this._invokeAuthenticatorManaged({
+      flowId: 'multi',
+      options: {
         ...proofOptions,
         keyVaultAddr,
         viaChildFlowId: options.viaChildFlowId ?? options.childFlowId
       },
-      { defaultCurrentPassword: true, defaultApiKeySecret: true },
-      (_, authenticatorAddr) => buildRemoveAuthenticatorAction(authenticatorAddr, child),
-      ({ keyVaultAddr: vaultAddr, authProof }) =>
+      flags: { defaultCurrentPassword: true, defaultApiKeySecret: true },
+      buildAction: (_, authenticatorAddr) => buildRemoveAuthenticatorAction(authenticatorAddr, child),
+      invoke: ({ keyVaultAddr: vaultAddr, authProof }) =>
         this.auth.multi.removeAuthenticator({ keyVaultAddr: vaultAddr, authProof, child }),
-      { authenticatorAddr: this.config.addresses.multiAuthenticator }
-    );
+      overrides: { authenticatorAddr: this.config.addresses.multiAuthenticator }
+    });
   }
 });

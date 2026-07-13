@@ -28,6 +28,7 @@ import { CredentialsSession } from '../internal/auth/session/CredentialsSession.
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
 import { VaultCallPipeline } from '../internal/auth/session/VaultCallPipeline.js';
 import { AuthenticatorCallPipeline } from '../internal/auth/session/AuthenticatorCallPipeline.js';
+import { ConfigureCallPipeline } from '../internal/auth/session/ConfigureCallPipeline.js';
 import { SCOPE_ALL, SCOPE_SIGN_ALL } from '../internal/auth/apiKeySession/constants.js';
 import { monsteraRecipeMethods } from './domains/MonsteraRecipes.js';
 import { monsteraSessionMethods } from './domains/MonsteraSession.js';
@@ -54,6 +55,7 @@ import { monsteraSigningMethods } from './domains/MonsteraSigning.js';
  * @property {AuthProofPipeline} _authProofPipeline - Auth-proof encoding pipeline
  * @property {VaultCallPipeline} _vaultPipeline - Vault-authenticated write pipeline
  * @property {AuthenticatorCallPipeline} _authenticatorPipeline - Authenticator management write pipeline
+ * @property {ConfigureCallPipeline} _configurePipeline - Authenticator configure pipeline
  * @property {EncodeAuthConfig} _encodeAuthConfig - Auth config encoder
  */
 class Monstera {
@@ -114,6 +116,12 @@ class Monstera {
     });
     /** @type {EncodeAuthConfig} */
     this._encodeAuthConfig = new EncodeAuthConfig({ addresses: resolvedConfig.addresses });
+    
+    /** @type {ConfigureCallPipeline} */
+    this._configurePipeline = new ConfigureCallPipeline({
+      vaultPipeline: this._vaultPipeline,
+      encodeAuthConfig: this._encodeAuthConfig
+    });
 
     // Check version in background only when explicitly enabled.
     if (resolvedConfig?.checkVersion === true && !MonsteraUtils.versionCheckDone) {

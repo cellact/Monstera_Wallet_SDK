@@ -35,9 +35,9 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async signTransaction(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) =>
+      buildAction: (o) =>
         buildSignTransactionAction({
           index: o.index,
           nonce: o.nonce,
@@ -48,8 +48,8 @@ export const monsteraSigningMethods = defineDomainMethods({
           txData: o.txData,
           chainId: o.chainId
         }),
-      (encoded) => this.keyVault.signTransaction(encoded)
-    );
+      invoke: (encoded) => this.keyVault.signTransaction(encoded)
+    });
   },
 
   /**
@@ -65,11 +65,11 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async signMessage(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) => buildSignMessageAction({ index: o.index, message: o.message }),
-      (encoded) => this.keyVault.signMessage(encoded)
-    );
+      buildAction: (o) => buildSignMessageAction({ index: o.index, message: o.message }),
+      invoke: (encoded) => this.keyVault.signMessage(encoded)
+    });
   },
 
   /**
@@ -85,11 +85,11 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async sign(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) => buildSignAction({ index: o.index, digest: o.hash }),
-      (encoded) => this.keyVault.sign(encoded)
-    );
+      buildAction: (o) => buildSignAction({ index: o.index, digest: o.hash }),
+      invoke: (encoded) => this.keyVault.sign(encoded)
+    });
   },
 
 
@@ -144,11 +144,11 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async executeWithAuth(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) => buildExecuteWithAuthAction({ implCall: o.implCall }),
-      (encoded) => this.keyVault.executeWithAuth(encoded)
-    );
+      buildAction: (o) => buildExecuteWithAuthAction({ implCall: o.implCall }),
+      invoke: (encoded) => this.keyVault.executeWithAuth(encoded)
+    });
   },
 
   /**
@@ -164,11 +164,11 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async signWithImportedKey(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) => buildSignWithImportedKeyAction({ keyId: o.keyId, digest: o.digest }),
-      (encoded) => this.keyVault.signWithImportedKey(encoded)
-    );
+      buildAction: (o) => buildSignWithImportedKeyAction({ keyId: o.keyId, digest: o.digest }),
+      invoke: (encoded) => this.keyVault.signWithImportedKey(encoded)
+    });
   },
 
   /**
@@ -184,10 +184,10 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async signSolana(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) => buildSignSolanaAction({ index: o.index, message: o.message }),
-      (encoded) => this.keyVault.signSolana(encoded)
-    );
+      buildAction: (o) => buildSignSolanaAction({ index: o.index, message: o.message }),
+      invoke: (encoded) => this.keyVault.signSolana(encoded)
+    });
   }
 });

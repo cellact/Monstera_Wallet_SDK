@@ -373,11 +373,11 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddr(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) => buildUpgradeImplementationAction({ newImplAddr: o.newImplAddr }),
-      (encoded) => this.keyVault.updateKeyVaultImplAddr(encoded)
-    );
+      buildAction: (o) => buildUpgradeImplementationAction({ newImplAddr: o.newImplAddr }),
+      invoke: (encoded) => this.keyVault.updateKeyVaultImplAddr(encoded)
+    });
   },
 
   /**
@@ -396,15 +396,15 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddrCustom(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) =>
+      buildAction: (o) =>
         buildUpgradeImplementationCustomAction({
           newImplAddr: o.newImplAddr,
           customAckHash: o.customAckHash
         }),
-      (encoded) => this.keyVault.updateKeyVaultImplAddrCustom(encoded)
-    );
+      invoke: (encoded) => this.keyVault.updateKeyVaultImplAddrCustom(encoded)
+    });
   },
 
   /**
@@ -423,15 +423,15 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddr(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) =>
+      buildAction: (o) =>
         buildChangeAuthenticatorAction({
           newAuthenticatorAddr: o.newAuthenticatorAddr,
           newAuthConfig: o.newAuthConfig
         }),
-      (encoded) => this.keyVault.updateAuthenticatorAddr(encoded)
-    );
+      invoke: (encoded) => this.keyVault.updateAuthenticatorAddr(encoded)
+    });
   },
 
   /**
@@ -450,16 +450,16 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddrCustom(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) =>
+      buildAction: (o) =>
         buildChangeAuthenticatorCustomAction({
           newAuthenticatorAddr: o.newAuthenticatorAddr,
           newAuthConfig: o.newAuthConfig,
           customAckHash: o.customAckHash
         }),
-      (encoded) => this.keyVault.updateAuthenticatorAddrCustom(encoded)
-    );
+      invoke: (encoded) => this.keyVault.updateAuthenticatorAddrCustom(encoded)
+    });
   },
 
   /**
@@ -478,9 +478,9 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async importKey(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) =>
+      buildAction: (o) =>
         buildImportKeyAction({
           keyId: o.keyId,
           privateKey: o.privateKey,
@@ -489,8 +489,8 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
           chain: o.chain,
           label: o.label
         }),
-      (encoded) => this.keyVault.importKey(encoded)
-    );
+      invoke: (encoded) => this.keyVault.importKey(encoded)
+    });
   },
 
   /**
@@ -511,11 +511,11 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async deactivateKey(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) => buildDeactivateKeyAction({ keyId: o.keyId }),
-      (encoded) => this.keyVault.deactivateKey(encoded)
-    );
+      buildAction: (o) => buildDeactivateKeyAction({ keyId: o.keyId }),
+      invoke: (encoded) => this.keyVault.deactivateKey(encoded)
+    });
   },
 
   /**
@@ -534,11 +534,11 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async activateKey(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) => buildActivateKeyAction({ keyId: o.keyId }),
-      (encoded) => this.keyVault.activateKey(encoded)
-    );
+      buildAction: (o) => buildActivateKeyAction({ keyId: o.keyId }),
+      invoke: (encoded) => this.keyVault.activateKey(encoded)
+    });
   },
 
   /**
@@ -557,15 +557,15 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async setChainBaseKeys(options = {}) {
-    return this._invokeVaultAuthenticated(
+    return this._invokeVaultAuthenticated({
       options,
-      (o) =>
+      buildAction: (o) =>
         buildSetChainBaseKeysAction({
           chain: o.chain,
           basePrivateKey: o.basePrivateKey,
           baseChainCode: o.baseChainCode
         }),
-      (encoded) => this.keyVault.setChainBaseKeys(encoded)
-    );
+      invoke: (encoded) => this.keyVault.setChainBaseKeys(encoded)
+    });
   }
 });

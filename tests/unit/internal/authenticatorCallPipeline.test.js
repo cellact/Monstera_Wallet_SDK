@@ -63,17 +63,19 @@ describe('AuthenticatorCallPipeline', () => {
     const result = await pipeline.invokeWithAuthProof(
       'password',
       { newPasswordHash: NEW_PASSWORD_HASH },
-      { defaultCurrentPassword: true },
-      (resolved, authenticatorAddr) => ({
-        target: authenticatorAddr,
-        selector: '0x12345678',
-        paramsHash: '0x' + '11'.repeat(32)
-      }),
-      async ({ keyVaultAddr, authProof, newPasswordHash }) => ({
-        keyVaultAddr,
-        currentPassword: authProof,
-        newPasswordHash
-      })
+      {
+        flags: { defaultCurrentPassword: true },
+        buildAction: (resolved, authenticatorAddr) => ({
+          target: authenticatorAddr,
+          selector: '0x12345678',
+          paramsHash: '0x' + '11'.repeat(32)
+        }),
+        invoke: async ({ keyVaultAddr, authProof, newPasswordHash }) => ({
+          keyVaultAddr,
+          currentPassword: authProof,
+          newPasswordHash
+        })
+      }
     );
 
     expect(result.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
@@ -119,17 +121,19 @@ describe('AuthenticatorCallPipeline', () => {
     await pipeline.invokeWithAuthProof(
       'password',
       { newPasswordHash: NEW_PASSWORD_HASH },
-      { defaultCurrentPassword: true },
-      (_resolved, authenticatorAddr) => {
-        capturedTarget = authenticatorAddr;
-        return {
-          target: authenticatorAddr,
-          selector: '0x12345678',
-          paramsHash: '0x' + '11'.repeat(32)
-        };
-      },
-      async () => ({}),
-      { authenticatorAddr: overrideAddr }
+      {
+        flags: { defaultCurrentPassword: true },
+        buildAction: (_resolved, authenticatorAddr) => {
+          capturedTarget = authenticatorAddr;
+          return {
+            target: authenticatorAddr,
+            selector: '0x12345678',
+            paramsHash: '0x' + '11'.repeat(32)
+          };
+        },
+        invoke: async () => ({}),
+        overrides: { authenticatorAddr: overrideAddr }
+      }
     );
 
     expect(capturedTarget).toBe(overrideAddr);
