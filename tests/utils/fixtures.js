@@ -2,7 +2,7 @@ import { Wallet } from '../../src/adapters/ethers/index.js';
 import { ZeroAddress } from '../../src/adapters/ethers/addresses.js';
 import { defaultAbiCoder } from '../../src/adapters/ethers/encoding.js';
 import { toUtf8Bytes, keccak256 } from '../../src/adapters/ethers/hashing.js';
-import { computeParamsHash } from '../../src/internal/auth/actionContext.js';
+import { computeParamsHash } from '../../src/internal/auth/context/actionContext.js';
 import {
   buildSignMessageAction,
   buildChangeAuthenticatorAction

@@ -7,7 +7,7 @@
  *
  * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
  *
- * @module internal/auth/encoding/AuthProofEncoder
+ * @module internal/auth/proof/AuthProofEncoder
  */
 
 import { requireAddress, requirePlainObject } from '../../validation/assert.js';
@@ -16,7 +16,7 @@ import {
   assertAuthActionInput,
   buildAuthContext,
   resolveActionHash
-} from '../actionContext.js';
+} from '../context/actionContext.js';
 import { buildAuthenticatorVerifyProbeAction } from '../probes/verifyProbe.js';
 import { createBuiltinAuthenticatorRegistry } from '../specs/registry.js';
 import {
@@ -24,7 +24,7 @@ import {
   logExplicitAuthPrepare,
   logVaultAuthPreEncoded,
   logVaultAuthResolved
-} from '../pipelineLog.js';
+} from './logging.js';
 
 /**
  * @param {unknown} authProof

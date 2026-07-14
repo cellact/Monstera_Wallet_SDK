@@ -6,9 +6,9 @@
 
 import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireBytes32 } from '../../validation/assert.js';
-import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
-import { createAuthProofMinuteSignature } from '../encoding/createAuthProof.js';
-import { pickAuthProofPartial, resolvePasswordHashFromProofInput } from '../encoding/proofDefaults.js';
+import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
+import { resolvePasswordHashFromProofInput } from '../proof/passwordInput.js';
+import { createAuthProofMinuteSignature } from '../proof/minuteSignature.js';
 import { passwordAuthenticator } from './password.js';
 
 /**

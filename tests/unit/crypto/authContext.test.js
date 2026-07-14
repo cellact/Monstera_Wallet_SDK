@@ -3,7 +3,7 @@ import {
   AUTH_CONTEXT_TYPEHASH,
   computeAuthenticatorActionHash,
   computeParamsHash
-} from '../../../src/internal/auth/actionContext.js';
+} from '../../../src/internal/auth/context/actionContext.js';
 import { buildDualFactorChangePasswordAction, buildRotateApiKeyAction } from '../../../src/internal/auth/actions/index.js';
 import { getSelector } from '../../../src/internal/vault/getSelector.js';
 import { API_KEY_SESSION_AUTHENTICATOR_ABI } from '../../../src/contracts/abi/authenticators/apiKeySessionAuthenticator.js';

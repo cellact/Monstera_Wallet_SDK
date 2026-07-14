@@ -6,7 +6,7 @@ import { describe, test, expect } from '@jest/globals';
 import { Wallet } from '../../../src/adapters/ethers/index.js';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { createTestVaultSignAction } from '../../utils/fixtures.js';
-import { AuthProofEncoder } from '../../../src/internal/auth/encoding/AuthProofEncoder.js';
+import { AuthProofEncoder } from '../../../src/internal/auth/proof/AuthProofEncoder.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { ValidationError, NetworkError } from '../../../src/errors/index.js';

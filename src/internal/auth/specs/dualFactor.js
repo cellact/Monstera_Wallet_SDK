@@ -6,14 +6,10 @@
 
 import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireBytes32, requireWalletOrHdNode } from '../../validation/assert.js';
-import { createDualFactorAuthConfig } from '../encoding/authConfigBytes.js';
-import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
-import { createAuthProofDualFactor } from '../encoding/createAuthProof.js';
-import {
-  defaultProofDeadline,
-  pickAuthProofPartial,
-  resolvePasswordHashFromProofInput
-} from '../encoding/proofDefaults.js';
+import { createDualFactorAuthConfig } from '../config/bytes.js';
+import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
+import { resolvePasswordHashFromProofInput } from '../proof/passwordInput.js';
+import { createAuthProofDualFactor } from '../proof/dualFactor.js';
 
 /**
  * @param {import('../session/ConnectSession.js').ConnectSession | null} session

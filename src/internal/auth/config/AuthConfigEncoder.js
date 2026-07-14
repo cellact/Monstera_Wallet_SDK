@@ -12,7 +12,7 @@
  *
  * Used by {@code Monstera.createWallet*} before forwarding to {@code WalletFactoryClient}.
  *
- * @module internal/auth/encoding/AuthConfigEncoder
+ * @module internal/auth/config/AuthConfigEncoder
  */
 
 import log from '../../logger.js';

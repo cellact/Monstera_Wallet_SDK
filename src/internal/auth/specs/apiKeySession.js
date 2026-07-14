@@ -6,10 +6,9 @@
 
 import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireBytes32 } from '../../validation/assert.js';
-import { createApiKeySessionAuthConfig } from '../encoding/authConfigBytes.js';
-import { createAuthProofApiKeySession } from '../encoding/apiKeySessionProof.js';
-import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
-import { pickAuthProofPartial } from '../encoding/proofDefaults.js';
+import { createApiKeySessionAuthConfig } from '../config/bytes.js';
+import { createAuthProofApiKeySession } from '../proof/apiKeySession.js';
+import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
 
 /** TOKEN-mode proof ({@code mode = 1}). */
 export const MODE_TOKEN = 1;

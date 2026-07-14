@@ -5,7 +5,7 @@
  */
 
 import { API_KEY_SESSION_AUTHENTICATOR_ABI } from '../../../contracts/abi/authenticators/apiKeySessionAuthenticator.js';
-import { buildManagementAction } from '../actionContext.js';
+import { buildManagementAction } from '../context/actionContext.js';
 
 /**
  * Build the ACTION-bound management action for {@code rotateApiKey(wallet, authProof, newSecret)}.

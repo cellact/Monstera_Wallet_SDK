@@ -12,10 +12,9 @@ import {
   requireUtf8Bytes,
   requireWalletOrHdNode,
 } from '../../validation/assert.js';
-import { createPasswordOrWalletSigAuthConfig } from '../encoding/authConfigBytes.js';
-import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
-import { createAuthProofPasswordOrWalletSignature } from '../encoding/createAuthProof.js';
-import { defaultProofDeadline, pickAuthProofPartial } from '../encoding/proofDefaults.js';
+import { createPasswordOrWalletSigAuthConfig } from '../config/bytes.js';
+import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
+import { createAuthProofPasswordOrWalletSignature } from '../proof/passwordOrWalletSignature.js';
 
 /** @type {1} */
 export const METHOD_PASSWORD = 1;

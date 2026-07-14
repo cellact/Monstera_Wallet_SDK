@@ -5,7 +5,7 @@
  */
 
 import { PASSWORD_AUTHENTICATOR_ABI } from '../../../contracts/abi/authenticators/passwordAuthenticator.js';
-import { buildManagementAction } from '../actionContext.js';
+import { buildManagementAction } from '../context/actionContext.js';
 
 /**
  * @public

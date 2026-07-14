@@ -13,7 +13,7 @@ import {
   buildDualFactorChangePasswordAction,
   buildChangeGuardianAction
 } from '../../../src/internal/auth/actions/index.js';
-import { buildAuthContext } from '../../../src/internal/auth/actionContext.js';
+import { buildAuthContext } from '../../../src/internal/auth/context/actionContext.js';
 import { createTestVaultSignAction } from '../../utils/fixtures.js';
 
 describe('Authentication — dual factor', () => {

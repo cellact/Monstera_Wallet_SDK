@@ -4,7 +4,7 @@
  * @module internal/auth/specs/registry
  */
 
-import { createRegistryByChecksumAddress } from '../registryByChecksumAddress.js';
+import { createRegistryByChecksumAddress } from '../registry/byChecksumAddress.js';
 import { passwordAuthenticator } from './password.js';
 import { passwordMinuteSignatureAuthenticator } from './passwordMinuteSignature.js';
 import { walletSignatureAuthenticator } from './walletSignature.js';

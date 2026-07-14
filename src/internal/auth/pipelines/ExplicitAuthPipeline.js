@@ -2,7 +2,7 @@
  * Authenticator management call pipeline: session merge → prepare(flowId) → client invoke.
  *
  * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
- * @typedef {import('../encoding/AuthProofEncoder.js').AuthProofEncoder} AuthProofEncoder
+ * @typedef {import('../proof/AuthProofEncoder.js').AuthProofEncoder} AuthProofEncoder
  *
  * @module internal/auth/pipelines/ExplicitAuthPipeline
  */

@@ -3,7 +3,7 @@
  *
  * Used by per-authenticator modules in {@code internal/auth/specs}.
  *
- * @module internal/auth/encoding/authConfigBytes
+ * @module internal/auth/config/bytes
  */
 
 import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';

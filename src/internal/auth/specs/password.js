@@ -6,9 +6,8 @@
 
 import { ValidationError } from '../../../errors/index.js';
 import { requireBytes32, requireUtf8Bytes, requireAddress } from '../../validation/assert.js';
-import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
-import { createAuthProofPassword } from '../encoding/createAuthProof.js';
-import { pickAuthProofPartial } from '../encoding/proofDefaults.js';
+import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
+import { createAuthProofPassword } from '../proof/abiProofs.js';
 
 /**
  * @param {import('../session/ConnectSession.js').ConnectSession | null} session

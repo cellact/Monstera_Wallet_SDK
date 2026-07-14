@@ -18,16 +18,14 @@ import {
 } from '../../utils/fixtures.js';
 import { getTestConfig } from '../../utils/setup.js';
 import { generateMnemonic, deriveSeed } from '../../../src/internal/crypto/mnemonic.js';
-import {
-  createAuthProofWalletSignature,
-  createAuthProofMinuteSignature,
-  createAuthProofDualFactor
-} from '../../../src/internal/auth/encoding/createAuthProof.js';
+import { createAuthProofWalletSignature } from '../../../src/internal/auth/proof/walletSignature.js';
+import { createAuthProofMinuteSignature } from '../../../src/internal/auth/proof/minuteSignature.js';
+import { createAuthProofDualFactor } from '../../../src/internal/auth/proof/dualFactor.js';
 import {
   createWalletSigAuthConfig,
   createDualFactorAuthConfig
-} from '../../../src/internal/auth/encoding/authConfigBytes.js';
-import { computeParamsHash } from '../../../src/internal/auth/actionContext.js';
+} from '../../../src/internal/auth/config/bytes.js';
+import { computeParamsHash } from '../../../src/internal/auth/context/actionContext.js';
 import { createTestVaultSignAction } from '../../utils/fixtures.js';
 import { floorTimestampToMinuteBucket, nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 import { NetworkError } from '../../../src/errors/index.js';

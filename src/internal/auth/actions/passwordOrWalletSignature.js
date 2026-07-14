@@ -5,7 +5,7 @@
  */
 
 import { PASSWORD_OR_WALLET_SIGNATURE_AUTHENTICATOR_ABI } from '../../../contracts/abi/authenticators/passwordOrWalletSignatureAuthenticator.js';
-import { buildManagementAction } from '../actionContext.js';
+import { buildManagementAction } from '../context/actionContext.js';
 
 /**
  * @public

@@ -1,5 +1,5 @@
 /**
- * Composed validation rules for the auth-proof helpers in {@code internal/auth/encoding/createAuthProof.js}.
+ * Composed validation rules for the auth-proof helpers in {@code internal/auth/proof/}.
  *
  * Holding the rules in one module keeps {@code Monstera}'s public methods, the proof builders,
  * and the underlying crypto helpers aligned — every entry point for a given proof type uses the

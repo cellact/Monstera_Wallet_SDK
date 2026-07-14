@@ -6,10 +6,9 @@
 
 import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireWalletOrHdNode } from '../../validation/assert.js';
-import { createWalletSigAuthConfig } from '../encoding/authConfigBytes.js';
-import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
-import { createAuthProofWalletSignature } from '../encoding/createAuthProof.js';
-import { defaultProofDeadline, pickAuthProofPartial } from '../encoding/proofDefaults.js';
+import { createWalletSigAuthConfig } from '../config/bytes.js';
+import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
+import { createAuthProofWalletSignature } from '../proof/walletSignature.js';
 
 /**
  * @param {import('../session/ConnectSession.js').ConnectSession | null} _session

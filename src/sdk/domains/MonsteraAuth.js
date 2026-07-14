@@ -21,9 +21,9 @@ import {
   buildPasswordOrWalletRemoveFromWhitelistAction,
   buildPasswordOrWalletAddToWhitelistWithProofAction,
 } from '../../internal/auth/actions/index.js';
-import { createLinkWalletSignature } from '../../internal/auth/encoding/createAuthProof.js';
-import { resolveActionHash } from '../../internal/auth/actionContext.js';
-import { defaultProofDeadline } from '../../internal/auth/encoding/proofDefaults.js';
+import { createLinkWalletSignature } from '../../internal/auth/proof/passwordOrWalletSignature.js';
+import { resolveActionHash } from '../../internal/auth/context/actionContext.js';
+import { defaultProofDeadline } from '../../internal/auth/proof/common.js';
 import { SCOPE_SIGN_ALL } from '../../internal/auth/specs/apiKeySession.js';
 import { hexlify, keccak256, randomBytes } from '../../adapters/ethers/hashing.js';
 import { defineDomainMethods } from './defineDomainMethods.js';

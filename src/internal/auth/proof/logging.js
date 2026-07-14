@@ -1,11 +1,11 @@
 /**
  * Structured logging for auth proof pipelines (vault + explicit flows).
  *
- * @module internal/auth/pipelineLog
+ * @module internal/auth/proof/logging
  */
 
-import log from '../logger.js';
-import { isApiKeySessionTokenMode } from './specs/apiKeySession.js';
+import log from '../../logger.js';
+import { isApiKeySessionTokenMode } from '../specs/apiKeySession.js';
 
 /**
  * @param {string} encoderId

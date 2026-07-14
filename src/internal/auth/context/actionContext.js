@@ -5,14 +5,14 @@
  * {@code actionHash} is derived off-chain using the same formula as
  * {@code DualFactorAuthenticator._buildContext}.
  *
- * @module internal/auth/actionContext
+ * @module internal/auth/context/actionContext
  */
 
-import { defaultAbiCoder } from '../../adapters/ethers/encoding.js';
-import { keccak256, toUtf8Bytes } from '../../adapters/ethers/hashing.js';
-import { getKeyVaultContract } from '../../contracts/core/keyVault.js';
-import { requireAddress, requireBytes32, requireBytes4, requireChainId, requirePlainObject, requireProviderMethod } from '../validation/assert.js';
-import { getSelector } from '../vault/getSelector.js';
+import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
+import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
+import { getKeyVaultContract } from '../../../contracts/core/keyVault.js';
+import { requireAddress, requireBytes32, requireBytes4, requireChainId, requirePlainObject, requireProviderMethod } from '../../validation/assert.js';
+import { getSelector } from '../../vault/getSelector.js';
 
 /** @type {Bytes32} */
 const AUTH_CONTEXT_TYPEHASH = keccak256(toUtf8Bytes('MONSTERA_AUTH_CONTEXT_V1'));

@@ -1,16 +1,12 @@
 /**
- * ApiKeySession auth-proof builder via on-chain pure helpers.
+ * ApiKeySessionAuthenticator auth-proof builder via on-chain pure helpers.
  *
- * Delegates MAC computation and ABI encoding to {@code ApiKeySessionAuthenticator}
- * ({@code computeTokenMac}, {@code computeActionMac}, {@code buildTokenAuthProof},
- * {@code buildActionAuthProof}).
- *
- * @module internal/auth/encoding/apiKeySessionProof
+ * @module internal/auth/proof/apiKeySession
  */
 
 import { getApiKeySessionAuthenticatorContract } from '../../../contracts/authenticators/ApiKeySessionAuthenticator.js';
 import { requireAddress, requireBytes32 } from '../../validation/assert.js';
-import { defaultProofDeadline } from './proofDefaults.js';
+import { defaultProofDeadline } from './common.js';
 import {
   isApiKeySessionTokenMode,
   SCOPE_SIGN_ALL
@@ -27,20 +23,7 @@ function getReadContract(readProvider, authenticatorAddr) {
 }
 
 /**
- * Build ABI-encoded {@code authProof} bytes by calling the authenticator's on-chain pure helpers.
- *
- * @public
- * @async
  * @param {Object} options
- * @param {EthersAbstractProvider} options.readProvider
- * @param {Address} options.authenticatorAddr
- * @param {Bytes32} options.apiKeySecret
- * @param {Address} options.keyVaultAddr
- * @param {ChainId} options.chainId
- * @param {Bytes32} [options.actionHash]
- * @param {'token' | 'action'} [options.mode]
- * @param {number | bigint} [options.expiry]
- * @param {number | bigint} [options.scopeMask]
  * @returns {Promise<Bytes>}
  */
 export async function createAuthProofApiKeySession(options) {

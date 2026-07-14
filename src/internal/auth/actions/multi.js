@@ -6,7 +6,7 @@
 
 import { keccak256 } from '../../../adapters/ethers/hashing.js';
 import { MULTI_AUTHENTICATOR_ABI } from '../../../contracts/abi/authenticators/multiAuthenticator.js';
-import { buildManagementAction } from '../actionContext.js';
+import { buildManagementAction } from '../context/actionContext.js';
 
 /**
  * Build the ACTION-bound management action for {@code addAuthenticator(wallet, authProof, child, childConfig)}.

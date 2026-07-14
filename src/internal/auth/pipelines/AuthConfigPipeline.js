@@ -5,7 +5,7 @@
  * initial authenticator setup (no auth proof).
  *
  * @typedef {import('./KeyVaultAuthPipeline.js').KeyVaultAuthPipeline} KeyVaultAuthPipeline
- * @typedef {import('../encoding/AuthConfigEncoder.js').AuthConfigEncoder} AuthConfigEncoder
+ * @typedef {import('../config/AuthConfigEncoder.js').AuthConfigEncoder} AuthConfigEncoder
  *
  * @module internal/auth/pipelines/AuthConfigPipeline
  */

@@ -1,7 +1,7 @@
 import { describe, test, expect } from '@jest/globals';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { defaultAbiCoder } from '../../../src/adapters/ethers/encoding.js';
-import { computeParamsHash } from '../../../src/internal/auth/actionContext.js';
+import { computeParamsHash } from '../../../src/internal/auth/context/actionContext.js';
 import {
   buildSignAction,
   buildSignMessageAction,

@@ -6,10 +6,9 @@
 
 import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireArray, requireBytes } from '../../validation/assert.js';
-import { createMultiAuthConfig } from '../encoding/authConfigBytes.js';
-import { createAuthProofMulti } from '../encoding/createAuthProof.js';
-import { pickAuthProofPartial } from '../encoding/proofDefaults.js';
-import { resolveActionHash } from '../actionContext.js';
+import { createMultiAuthConfig } from '../config/bytes.js';
+import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
+import { encodeMultiChildProof } from '../proof/multiChildEncode.js';
 import { resolveChildAddr, resolveChildSpec } from './multiChildResolver.js';
 
 /**
@@ -23,30 +22,6 @@ function applyConfigDefaults(config, options) {
     chainId: config.chainId,
     authenticatorAddr: options.authenticatorAddr ?? config.addresses.multiAuthenticator
   };
-}
-
-/**
- * @param {AuthProofEncodeContext} ctx
- * @param {Record<string, unknown>} input
- */
-async function encodeMultiProof(ctx, input) {
-  const childAddr = resolveChildAddr(input, ctx.addresses);
-  const childSpec = resolveChildSpec(input, ctx.addresses);
-
-  const actionHash = await resolveActionHash(ctx, {
-    action: input.action,
-    actionHash: input.actionHash
-  });
-
-  const childCtx = { ...ctx, authenticatorAddr: childAddr };
-  const childInput = {
-    ...input,
-    authenticatorAddr: childAddr,
-    actionHash
-  };
-
-  const childProof = await childSpec.proofEncoder.encode(childCtx, childInput);
-  return createAuthProofMulti({ child: childAddr, childProof });
 }
 
 /**
@@ -193,10 +168,10 @@ export const multiAuthenticator = {
     });
   },
 
-  proofEncoder: {
+  proofEncoder: createActionBoundEncoder({
     id: 'multiAuthenticator',
-    encode: encodeMultiProof
-  },
+    createProof: encodeMultiChildProof
+  }),
 
   configEncoder: {
     id: 'multiAuthenticator',

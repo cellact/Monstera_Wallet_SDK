@@ -5,7 +5,7 @@
  */
 
 import { PASSWORD_MINUTE_SIGNATURE_AUTHENTICATOR_ABI } from '../../../contracts/abi/authenticators/passwordMinuteSignatureAuthenticator.js';
-import { buildManagementAction } from '../actionContext.js';
+import { buildManagementAction } from '../context/actionContext.js';
 
 /**
  * @public

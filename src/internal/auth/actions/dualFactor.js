@@ -5,7 +5,7 @@
  */
 
 import { DUAL_FACTOR_AUTHENTICATOR_ABI } from '../../../contracts/abi/authenticators/dualFactorAuthenticator.js';
-import { buildManagementAction } from '../actionContext.js';
+import { buildManagementAction } from '../context/actionContext.js';
 
 /**
  * @public

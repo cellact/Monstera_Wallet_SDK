@@ -4,14 +4,14 @@
 
 import { describe, test, expect } from '@jest/globals';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
-import { AuthConfigEncoder } from '../../../src/internal/auth/encoding/AuthConfigEncoder.js';
+import { AuthConfigEncoder } from '../../../src/internal/auth/config/AuthConfigEncoder.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { ValidationError } from '../../../src/errors/index.js';
 import {
   createDualFactorAuthConfig,
   createWalletSigAuthConfig
-} from '../../../src/internal/auth/encoding/authConfigBytes.js';
+} from '../../../src/internal/auth/config/bytes.js';
 
 describe('AuthConfigEncoder.encode', () => {
   const network = buildNetworkConfig({ network: 'testnet' });

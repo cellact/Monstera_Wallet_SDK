@@ -2,7 +2,7 @@
  * End-user vault call pipeline: session merge → auth-proof encoding → client invoke.
  *
  * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
- * @typedef {import('../encoding/AuthProofEncoder.js').AuthProofEncoder} AuthProofEncoder
+ * @typedef {import('../proof/AuthProofEncoder.js').AuthProofEncoder} AuthProofEncoder
  *
  * @module internal/auth/pipelines/KeyVaultAuthPipeline
  */

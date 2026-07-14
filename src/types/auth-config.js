@@ -91,7 +91,7 @@
 
 /**
  * ABI-encoded dual-factor authenticator config at wallet creation ({@code abi.encode(bytes32,address)}).
- * @see {@link module:internal/auth/encoding/authConfigBytes} {@code createDualFactorAuthConfig}
+ * @see {@link module:internal/auth/config/bytes} {@code createDualFactorAuthConfig}
  * @typedef {Bytes} EncodedAuthConfigDualFactor
  */
 
@@ -107,7 +107,7 @@
 
 /**
  * ABI-encoded WalletSignatureAuthenticator whitelist ({@code abi.encode(address[])}).
- * @see {@link module:internal/auth/encoding/authConfigBytes} {@code createWalletSigAuthConfig}
+ * @see {@link module:internal/auth/config/bytes} {@code createWalletSigAuthConfig}
  * @typedef {Bytes} EncodedAuthConfigWalletSignature
  */
 

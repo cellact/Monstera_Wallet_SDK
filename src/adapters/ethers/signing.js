@@ -2,7 +2,7 @@
  * Re-exports of {@code ethers} signature recovery and EIP-7702 authorization helpers.
  *
  * Used by signature-based authenticators and the EIP-7702 authorization helpers in
- * {@code internal/validation/} and {@code internal/auth/encoding/} to verify or recover signers without importing {@code ethers}
+ * {@code internal/validation/} and {@code internal/auth/proof/} to verify or recover signers without importing {@code ethers}
  * directly.
  *
  * Re-exports:

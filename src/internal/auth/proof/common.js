@@ -1,11 +1,30 @@
 /**
- * Factory for action-bound KeyVault {@code authProof} encoders.
+ * Shared auth-proof pipeline helpers: action-bound encoders, defaults, multi-child delegation.
  *
- * @module internal/auth/encoding/createActionBoundEncoder
+ * @module internal/auth/proof/common
  */
 
-import { resolveActionHash } from '../actionContext.js';
-import { defaultProofDeadline } from './proofDefaults.js';
+import { resolveActionHash } from '../context/actionContext.js';
+import { isPlainObject } from '../../validation/assert.js';
+import { nowUnixTimestampSeconds } from '../../utils/time.js';
+
+/** @readonly */
+export const DEFAULT_PROOF_DEADLINE_OFFSET_SEC = 3600;
+
+/**
+ * @returns {number}
+ */
+export function defaultProofDeadline() {
+  return nowUnixTimestampSeconds() + DEFAULT_PROOF_DEADLINE_OFFSET_SEC;
+}
+
+/**
+ * @param {Record<string, unknown>} options
+ * @returns {Record<string, unknown>}
+ */
+export function pickAuthProofPartial(options) {
+  return isPlainObject(options.authProof) ? /** @type {Record<string, unknown>} */ (options.authProof) : {};
+}
 
 /**
  * Build a proof encoder strategy that resolves {@code actionHash} then delegates to {@code createProof}.
