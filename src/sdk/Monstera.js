@@ -24,7 +24,7 @@ import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { assertValidResolvedConfig } from '../internal/validators/networkConfig.js';
 import { AuthConfigEncoder } from '../internal/auth/encoding/AuthConfigEncoder.js';
 import { AuthProofEncoder } from '../internal/auth/encoding/AuthProofEncoder.js';
-import { CredentialsSession } from '../internal/auth/session/ConnectSession.js';
+import { ConnectSession } from '../internal/auth/session/ConnectSession.js';
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
 import { KeyVaultAuthPipeline } from '../internal/auth/pipelines/KeyVaultAuthPipeline.js';
 import { ExplicitAuthPipeline } from '../internal/auth/pipelines/ExplicitAuthPipeline.js';
@@ -51,7 +51,7 @@ import { monsteraSigningMethods } from './domains/MonsteraSigning.js';
  * @property {WalletLogicClient} logic - WalletLogic client
  * @property {KeyVaultClient} keyVault - KeyVault client
  * @property {AuthenticatorClient} auth - Authenticator client
- * @property {CredentialsSession | null} _credentialsSession - End-user credentials session, if connected with credentials
+ * @property {ConnectSession | null} _connectSession - End-user credentials session, if connected with credentials
  * @property {AuthProofEncoder} _authProofEncoder - Auth-proof encoding
  * @property {KeyVaultAuthPipeline} _keyVaultAuthPipeline - Vault-authenticated write pipeline
  * @property {ExplicitAuthPipeline} _explicitAuthPipeline - Authenticator management write pipeline
@@ -87,9 +87,9 @@ class Monstera {
     /** @type {AuthenticatorClient} */
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, resolvedConfig);
 
-    /** @type {CredentialsSession | null} */
-    this._credentialsSession = parsedCredentials
-      ? new CredentialsSession(parsedCredentials, {
+    /** @type {ConnectSession | null} */
+    this._connectSession = parsedCredentials
+      ? new ConnectSession(parsedCredentials, {
           hashUsername: (opts) => this.factory.hashUsername(opts),
           walletOfUsername: (opts) => this.factory.walletOfUsername(opts),
           getKeyVaultAddr: (opts) => this.factory.getKeyVaultAddr(opts)
@@ -105,13 +105,13 @@ class Monstera {
 
     /** @type {KeyVaultAuthPipeline} */
     this._keyVaultAuthPipeline = new KeyVaultAuthPipeline({
-      credentialsSession: this._credentialsSession,
+      connectSession: this._connectSession,
       authProofEncoder: this._authProofEncoder
     });
 
     /** @type {ExplicitAuthPipeline} */
     this._explicitAuthPipeline = new ExplicitAuthPipeline({
-      credentialsSession: this._credentialsSession,
+      connectSession: this._connectSession,
       authProofEncoder: this._authProofEncoder
     });
     /** @type {AuthConfigEncoder} */

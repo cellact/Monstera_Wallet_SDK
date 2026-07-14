@@ -5,7 +5,7 @@
  */
 
 import { ValidationError } from '../../../errors/index.js';
-import { requireAddress, requireBytes32, requireWalletOrHdNode } from '../../assert.js';
+import { requireAddress, requireBytes32, requireWalletOrHdNode } from '../../validation/assert.js';
 import { createDualFactorAuthConfig } from '../encoding/authConfigBytes.js';
 import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
 import { createAuthProofDualFactor } from '../encoding/createAuthProof.js';
@@ -16,7 +16,7 @@ import {
 } from '../encoding/proofDefaults.js';
 
 /**
- * @param {import('../session/ConnectSession.js').CredentialsSession | null} session
+ * @param {import('../session/ConnectSession.js').ConnectSession | null} session
  * @param {Record<string, unknown>} partial
  */
 function applySessionInput(session, partial) {

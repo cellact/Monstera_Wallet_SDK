@@ -18,7 +18,7 @@ import MultiAuthenticatorClient from './MultiAuthenticatorClient.js';
 import PasswordOrWalletSignatureAuthenticatorClient from './PasswordOrWalletSignatureAuthenticatorClient.js';
 import { ValidationError } from '../../errors/index.js';
 import log from '../../internal/logger.js';
-import { requireString } from '../../internal/assert.js';
+import { requireString } from '../../internal/validation/assert.js';
 
 /**
  * @public

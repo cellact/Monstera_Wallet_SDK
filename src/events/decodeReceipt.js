@@ -12,7 +12,7 @@
  */
 
 import { EventParseError } from '../errors/index.js';
-import { requireDefined, requirePlainObject, requireString } from '../internal/assert.js';
+import { requireDefined, requirePlainObject, requireString } from '../internal/validation/assert.js';
 import log from '../internal/logger.js';
 import { sanitizer } from '../internal/sanitization/index.js';
 

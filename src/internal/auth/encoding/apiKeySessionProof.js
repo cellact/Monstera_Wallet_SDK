@@ -9,7 +9,7 @@
  */
 
 import { getApiKeySessionAuthenticatorContract } from '../../../contracts/authenticators/ApiKeySessionAuthenticator.js';
-import { requireAddress, requireBytes32 } from '../../assert.js';
+import { requireAddress, requireBytes32 } from '../../validation/assert.js';
 import { defaultProofDeadline } from './proofDefaults.js';
 import {
   isApiKeySessionTokenMode,

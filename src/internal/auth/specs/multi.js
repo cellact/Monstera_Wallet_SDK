@@ -5,7 +5,7 @@
  */
 
 import { ValidationError } from '../../../errors/index.js';
-import { requireAddress, requireArray, requireBytes } from '../../assert.js';
+import { requireAddress, requireArray, requireBytes } from '../../validation/assert.js';
 import { createMultiAuthConfig } from '../encoding/authConfigBytes.js';
 import { createAuthProofMulti } from '../encoding/createAuthProof.js';
 import { pickAuthProofPartial } from '../encoding/proofDefaults.js';

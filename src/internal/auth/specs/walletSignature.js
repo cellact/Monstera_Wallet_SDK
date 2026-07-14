@@ -5,14 +5,14 @@
  */
 
 import { ValidationError } from '../../../errors/index.js';
-import { requireAddress, requireWalletOrHdNode } from '../../assert.js';
+import { requireAddress, requireWalletOrHdNode } from '../../validation/assert.js';
 import { createWalletSigAuthConfig } from '../encoding/authConfigBytes.js';
 import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
 import { createAuthProofWalletSignature } from '../encoding/createAuthProof.js';
 import { defaultProofDeadline, pickAuthProofPartial } from '../encoding/proofDefaults.js';
 
 /**
- * @param {import('../session/ConnectSession.js').CredentialsSession | null} _session
+ * @param {import('../session/ConnectSession.js').ConnectSession | null} _session
  * @param {Record<string, unknown>} partial
  */
 function applySessionInput(_session, partial) {

@@ -11,7 +11,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletSignatureAuthenticatorContract } from '../../contracts/authenticators/WalletSignatureAuthenticator.js';
 import { WalletSignatureAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireNonEmptyBytes, requireNonEmptyObject } from '../../internal/assert.js';
+import { requireAddress, requireNonEmptyBytes, requireNonEmptyObject } from '../../internal/validation/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 

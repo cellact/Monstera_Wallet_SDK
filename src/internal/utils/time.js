@@ -4,7 +4,7 @@
  * @module internal/utils/time
  */
 
-import { requireNonNegativeInteger } from '../assert.js';
+import { requireNonNegativeInteger } from '../validation/assert.js';
 
 /**
  * Current Unix timestamp in whole seconds, taken from the local clock.

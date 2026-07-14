@@ -1,7 +1,7 @@
 /**
  * End-user vault call pipeline: session merge → auth-proof encoding → client invoke.
  *
- * @typedef {import('../session/ConnectSession.js').CredentialsSession} CredentialsSession
+ * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
  * @typedef {import('../encoding/AuthProofEncoder.js').AuthProofEncoder} AuthProofEncoder
  * @typedef {import('../session/ConnectSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
  *
@@ -9,7 +9,7 @@
  */
 
 import { CredentialsRequiredError } from '../../../errors/index.js';
-import { CredentialsSession } from '../session/ConnectSession.js';
+import { ConnectSession } from '../session/ConnectSession.js';
 import { withDefaultAccountIndex } from '../../vault/accountIndex.js';
 import log from '../../logger.js';
 
@@ -21,10 +21,10 @@ import log from '../../logger.js';
 export class KeyVaultAuthPipeline {
   /**
    * @public
-   * @param {{ credentialsSession: CredentialsSession | null; authProofEncoder: AuthProofEncoder }} deps
+   * @param {{ connectSession: ConnectSession | null; authProofEncoder: AuthProofEncoder }} deps
    */
-  constructor({ credentialsSession, authProofEncoder }) {
-    this._credentialsSession = credentialsSession;
+  constructor({ connectSession, authProofEncoder }) {
+    this._connectSession = connectSession;
     this._authProofEncoder = authProofEncoder;
   }
 
@@ -33,23 +33,23 @@ export class KeyVaultAuthPipeline {
    * @returns {boolean}
    */
   hasCredentials() {
-    return this._credentialsSession != null;
+    return this._connectSession != null;
   }
 
   /**
    * @public
-   * @param {CredentialsSession | null} session
+   * @param {ConnectSession | null} session
    */
-  setCredentialsSession(session) {
-    this._credentialsSession = session;
+  setConnectSession(session) {
+    this._connectSession = session;
   }
 
   /**
    * @public
-   * @returns {CredentialsSession | null}
+   * @returns {ConnectSession | null}
    */
-  getCredentialsSession() {
-    return this._credentialsSession;
+  getConnectSession() {
+    return this._connectSession;
   }
 
   /**
@@ -58,7 +58,7 @@ export class KeyVaultAuthPipeline {
    * @throws {CredentialsRequiredError}
    */
   requireUserAccess(operation) {
-    if (!this._credentialsSession) {
+    if (!this._connectSession) {
       throw new CredentialsRequiredError(operation);
     }
   }
@@ -72,7 +72,7 @@ export class KeyVaultAuthPipeline {
    * @throws {CredentialsRequiredError}
    */
   async mergeVaultOptions(options = {}, flags = {}) {
-    return CredentialsSession.mergeVaultOptions(this._credentialsSession, options, flags);
+    return ConnectSession.mergeVaultOptions(this._connectSession, options, flags);
   }
 
   /**
@@ -84,7 +84,7 @@ export class KeyVaultAuthPipeline {
    */
   async encodeAuthProof(options, buildAction) {
     const resolved = withDefaultAccountIndex(await this.mergeVaultOptions(options));
-    return this._authProofEncoder.encodeForKeyVault(resolved, this._credentialsSession, buildAction);
+    return this._authProofEncoder.encodeForKeyVault(resolved, this._connectSession, buildAction);
   }
 
   /**

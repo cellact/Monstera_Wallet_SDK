@@ -59,7 +59,7 @@ export const monsteraSessionMethods = defineDomainMethods({
 
     return {
       ...options,
-      walletAddr: await this._keyVaultAuthPipeline.getCredentialsSession().getWalletAddr()
+      walletAddr: await this._keyVaultAuthPipeline.getConnectSession().getWalletAddr()
     };
   },
 
@@ -108,13 +108,13 @@ export const monsteraSessionMethods = defineDomainMethods({
    */
   async getSessionWalletAddr() {
     this._keyVaultAuthPipeline.requireUserAccess('getSessionWalletAddr');
-    return this._keyVaultAuthPipeline.getCredentialsSession().getWalletAddr();
+    return this._keyVaultAuthPipeline.getConnectSession().getWalletAddr();
   },
 
   /**
    * Resolve the cached KeyVault address for the connect-time username.
    *
-   * Uses the same {@link CredentialsSession} → {@link WalletFactoryClient#getKeyVaultAddr} path as
+   * Uses the same {@link ConnectSession} → {@link WalletFactoryClient#getKeyVaultAddr} path as
    * vault-scoped facade methods ({@link KeyVaultAuthPipeline#mergeVaultOptions}).
    *
    * @public

@@ -3,11 +3,11 @@
  *
  * Used by per-authenticator modules in {@code internal/auth/specs}.
  *
- * @module internal/auth/encoding/createAuthConfig
+ * @module internal/auth/encoding/authConfigBytes
  */
 
 import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
-import { requireAddress, requireArray, requireBytes, requireBytes32 } from '../../assert.js';
+import { requireAddress, requireArray, requireBytes, requireBytes32 } from '../../validation/assert.js';
 
 /**
  * Build the {@code WalletSignatureAuthenticator} create-wallet config bytes.

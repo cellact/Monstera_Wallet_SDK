@@ -5,13 +5,13 @@
  */
 
 import { ValidationError } from '../../../errors/index.js';
-import { requireBytes32, requireUtf8Bytes, requireAddress } from '../../assert.js';
+import { requireBytes32, requireUtf8Bytes, requireAddress } from '../../validation/assert.js';
 import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
 import { createAuthProofPassword } from '../encoding/createAuthProof.js';
 import { pickAuthProofPartial } from '../encoding/proofDefaults.js';
 
 /**
- * @param {import('../session/ConnectSession.js').CredentialsSession | null} session
+ * @param {import('../session/ConnectSession.js').ConnectSession | null} session
  * @param {Record<string, unknown>} partial
  * @returns {Record<string, unknown>}
  */

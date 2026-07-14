@@ -16,7 +16,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getWalletLogicContract } from '../../contracts/core/walletLogic.js';
 import { KeyVaultEvents } from '../../events/index.js';
-import { requireAddress, requireBytes, requireBytes32, requireNonNegativeInteger, requireNonEmptyBytes } from '../../internal/assert.js';
+import { requireAddress, requireBytes, requireBytes32, requireNonNegativeInteger, requireNonEmptyBytes } from '../../internal/validation/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 

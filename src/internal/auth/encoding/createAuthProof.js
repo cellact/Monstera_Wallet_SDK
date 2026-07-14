@@ -26,7 +26,7 @@ import {
   requireNonEmptyBytes,
   requireWalletOrHdNode,
   requireNumber,
-} from '../../assert.js';
+} from '../../validation/assert.js';
 import {
   assertWalletSignatureAuthProofOptions,
   assertMinuteSignatureAuthProofOptions,

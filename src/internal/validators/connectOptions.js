@@ -5,7 +5,7 @@
  */
 
 import { ValidationError } from '../../errors/index.js';
-import { requireNormalizedUsername, requirePlainObject, requireString, requireBytes32 } from '../assert.js';
+import { requireNormalizedUsername, requirePlainObject, requireString, requireBytes32 } from '../validation/assert.js';
 
 /**
  * Validate connect-time credentials and return a normalised input object.

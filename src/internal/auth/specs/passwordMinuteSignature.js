@@ -5,14 +5,14 @@
  */
 
 import { ValidationError } from '../../../errors/index.js';
-import { requireAddress, requireBytes32 } from '../../assert.js';
+import { requireAddress, requireBytes32 } from '../../validation/assert.js';
 import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
 import { createAuthProofMinuteSignature } from '../encoding/createAuthProof.js';
 import { pickAuthProofPartial, resolvePasswordHashFromProofInput } from '../encoding/proofDefaults.js';
 import { passwordAuthenticator } from './password.js';
 
 /**
- * @param {import('../session/ConnectSession.js').CredentialsSession | null} session
+ * @param {import('../session/ConnectSession.js').ConnectSession | null} session
  * @param {Record<string, unknown>} partial
  */
 function applySessionInput(session, partial) {

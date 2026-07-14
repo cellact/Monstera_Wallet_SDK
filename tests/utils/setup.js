@@ -2,7 +2,7 @@ import 'dotenv/config';
 import { Monstera } from '../../src/index.js';
 import { Wallet } from '../../src/adapters/ethers/index.js';
 import { keccak256, toUtf8Bytes } from '../../src/adapters/ethers/hashing.js';
-import { attachTestCredentialsSession } from './credentials.js';
+import { attachTestConnectSession } from './credentials.js';
 
 /**
  * Creates a configured SDK instance for testing
@@ -50,7 +50,7 @@ export function createTestSDK(options = {}) {
   });
 
   if (withCredentials) {
-    attachTestCredentialsSession(sdk);
+    attachTestConnectSession(sdk);
   }
 
   return sdk;

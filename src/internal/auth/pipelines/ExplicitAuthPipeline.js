@@ -1,7 +1,7 @@
 /**
  * Authenticator management call pipeline: session merge → prepare(flowId) → client invoke.
  *
- * @typedef {import('../session/ConnectSession.js').CredentialsSession} CredentialsSession
+ * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
  * @typedef {import('../encoding/AuthProofEncoder.js').AuthProofEncoder} AuthProofEncoder
  * @typedef {import('../specs/registry.js').AuthProofFlowId} AuthProofFlowId
  * @typedef {import('../session/ConnectSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
@@ -9,7 +9,7 @@
  * @module internal/auth/pipelines/ExplicitAuthPipeline
  */
 
-import { CredentialsSession } from '../session/ConnectSession.js';
+import { ConnectSession } from '../session/ConnectSession.js';
 import log from '../../logger.js';
 
 /**
@@ -72,10 +72,10 @@ function resolveAuthenticatorAddr(resolved, defaultAddr, overrideAddr) {
 export class ExplicitAuthPipeline {
   /**
    * @public
-   * @param {{ credentialsSession: CredentialsSession | null; authProofEncoder: AuthProofEncoder }} deps
+   * @param {{ connectSession: ConnectSession | null; authProofEncoder: AuthProofEncoder }} deps
    */
-  constructor({ credentialsSession, authProofEncoder }) {
-    this._credentialsSession = credentialsSession;
+  constructor({ connectSession, authProofEncoder }) {
+    this._connectSession = connectSession;
     this._authProofEncoder = authProofEncoder;
   }
 
@@ -89,8 +89,8 @@ export class ExplicitAuthPipeline {
    */
   async encodeAuthProof(flowId, options = {}, config = {}) {
     const { flags = {}, buildAction, flowOptions = {}, overrides = {} } = config;
-    const resolved = await CredentialsSession.mergeVaultOptions(
-      this._credentialsSession,
+    const resolved = await ConnectSession.mergeVaultOptions(
+      this._connectSession,
       options,
       flags
     );

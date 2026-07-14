@@ -46,7 +46,7 @@ function createMockSession() {
 describe('ExplicitAuthPipeline', () => {
   test('encodeAuthProof resolves flow and prepares proof without buildAction', async () => {
     const pipeline = new ExplicitAuthPipeline({
-      credentialsSession: createMockSession(),
+      connectSession: createMockSession(),
       authProofEncoder: createMockAuthProofEncoder()
     });
 
@@ -63,7 +63,7 @@ describe('ExplicitAuthPipeline', () => {
 
   test('invokeWithAuthProof delegates to encodeAuthProof then invokes client', async () => {
     const pipeline = new ExplicitAuthPipeline({
-      credentialsSession: createMockSession(),
+      connectSession: createMockSession(),
       authProofEncoder: createMockAuthProofEncoder()
     });
 
@@ -95,7 +95,7 @@ describe('ExplicitAuthPipeline', () => {
     let encodeOptions;
 
     const pipeline = new ExplicitAuthPipeline({
-      credentialsSession: createMockSession(),
+      connectSession: createMockSession(),
       authProofEncoder: {
         resolveByFlowId: (flowId) => ({
           authenticatorAddr: AUTHENTICATOR_ADDR,
@@ -127,7 +127,7 @@ describe('ExplicitAuthPipeline', () => {
     let capturedTarget;
 
     const pipeline = new ExplicitAuthPipeline({
-      credentialsSession: createMockSession(),
+      connectSession: createMockSession(),
       authProofEncoder: createMockAuthProofEncoder()
     });
 

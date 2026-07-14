@@ -28,7 +28,7 @@ describe('signAuthorization resolution', () => {
     return {
       keyVault: makeKeyVault(),
       fallbackProvider: null,
-      credentialsSession: null,
+      connectSession: null,
       ...overrides
     };
   }
@@ -48,13 +48,13 @@ describe('signAuthorization resolution', () => {
 
   test('resolveSignAuthorizationInputs resolves keyVaultAddr from credentials session', async () => {
     const sessionKeyVault = '0x' + '99'.repeat(20);
-    const credentialsSession = {
+    const connectSession = {
       mergeSessionDefaults: async (options) => ({
         ...options,
         keyVaultAddr: sessionKeyVault
       })
     };
-    const deps = makeDeps({ credentialsSession });
+    const deps = makeDeps({ connectSession });
     const out = await resolveSignAuthorizationInputs(deps, {
       delegateAddr,
       chainId: 1n,
@@ -136,7 +136,7 @@ describe('signAuthorization resolution', () => {
       {
         keyVault,
         fallbackProvider,
-        credentialsSession: null,
+        connectSession: null,
         encodeVaultAuthProof
       },
       { keyVaultAddr, delegateAddr },

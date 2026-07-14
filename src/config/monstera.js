@@ -15,7 +15,7 @@
  */
 
 import { DEFAULT_ADDRESSES, NETWORKS, buildNetworkConfig } from './networks.js';
-import { requireBoolean } from '../internal/assert.js';
+import { requireBoolean } from '../internal/validation/assert.js';
 import log from '../internal/logger.js';
 import { SENSITIVE_PARAM_NAMES } from '../internal/sanitization/index.js';
 import {

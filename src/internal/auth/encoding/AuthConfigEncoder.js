@@ -16,7 +16,7 @@
  */
 
 import log from '../../logger.js';
-import { requireAddress, requireDefined, requirePlainObject } from '../../assert.js';
+import { requireAddress, requireDefined, requirePlainObject } from '../../validation/assert.js';
 import { ValidationError } from '../../../errors/index.js';
 import { createBuiltinAuthenticatorRegistry } from '../specs/registry.js';
 

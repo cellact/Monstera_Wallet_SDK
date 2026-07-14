@@ -11,7 +11,7 @@ import {
   requireBytes32,
   requireUtf8Bytes,
   requireWalletOrHdNode,
-} from '../../assert.js';
+} from '../../validation/assert.js';
 import { createPasswordOrWalletSigAuthConfig } from '../encoding/authConfigBytes.js';
 import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
 import { createAuthProofPasswordOrWalletSignature } from '../encoding/createAuthProof.js';
@@ -60,7 +60,7 @@ function resolveMethod(input) {
 }
 
 /**
- * @param {import('../session/ConnectSession.js').CredentialsSession | null} session
+ * @param {import('../session/ConnectSession.js').ConnectSession | null} session
  * @param {Record<string, unknown>} partial
  * @returns {Record<string, unknown>}
  */

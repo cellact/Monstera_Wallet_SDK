@@ -19,7 +19,7 @@ import {
   requireNonEmptyBytes,
   requireNonEmptyObject,
   requireNumber,
-} from '../../internal/assert.js';
+} from '../../internal/validation/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 

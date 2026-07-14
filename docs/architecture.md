@@ -14,7 +14,7 @@ The SDK is organized into modular components:
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Error types, unified **`pipeline.js`** translator chain (`translators/`), and stable codes
-- **`internal/`**: Logger, version check, validation (`validation/` + `assert.js` barrel), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth encoding (`auth/`: see [`internal/auth/README.md`](../src/internal/auth/README.md) — **`session/`**, **`pipelines/`**, **`encoding/`**, **`specs/`**, **`actions/`**, **`actionContext.js`**, **`registryByChecksumAddress.js`**), vault action builders in **`vault/actions/`**, **`vault/eip7702.js`**, **`vault/signEip7702Authorization.js`**, validators (`validators/`), BIP-39 mnemonic (`crypto/mnemonic.js`), username normalisation (`utils/normalize.js`) — **not** a public package export
+- **`internal/`**: Logger, version check, validation (`validation/`), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth encoding (`auth/`: see [`internal/auth/README.md`](../src/internal/auth/README.md) — **`session/`**, **`pipelines/`**, **`encoding/`**, **`specs/`**, **`actions/`**, **`actionContext.js`**, **`registryByChecksumAddress.js`**), vault action builders in **`vault/actions/`**, **`vault/eip7702.js`**, **`vault/signEip7702Authorization.js`**, validators (`validators/`), BIP-39 mnemonic (`crypto/mnemonic.js`), username normalisation (`utils/normalize.js`) — **not** a public package export
 - **`sdk/`**: Main SDK class (`Monstera`) composed from domain modules (`sdk/domains/`), plus `MonsteraUtils` (version-check only)
 - **`types/`**: Shared JSDoc type definitions split by domain (`connect.js`, `transactions.js`, `auth-config.js`, `auth-proof.js`, `factory.js`, `keyvault.js`)
 - **`bin/`**: CLI tool (monstera command)
@@ -29,7 +29,7 @@ The SDK is organized into modular components:
 ### Validation boundaries
 
 - **Public API** — External inputs are validated at SDK boundaries: `Monstera.connect`, the `Monstera` constructor (resolved `NetworkConfig`), and public instance methods that accept user-supplied options.
-- **Shared primitives** — [`src/internal/assert.js`](../src/internal/assert.js) provides reusable checks (`requireAddress`, `requireBytes`, …). Ethereum addresses are validated with **`isAddress`** from [`src/adapters/ethers/addresses.js`](../src/adapters/ethers/addresses.js) (ethers-compatible, including EIP-55 for mixed-case strings).
+- **Shared primitives** — [`src/internal/validation/assert.js`](../src/internal/validation/assert.js) provides reusable checks (`requireAddress`, `requireBytes`, …). Ethereum addresses are validated with **`isAddress`** from [`src/adapters/ethers/addresses.js`](../src/adapters/ethers/addresses.js) (ethers-compatible, including EIP-55 for mixed-case strings).
 - **Clients** — Contract clients (`src/clients/`) typically re-validate method options per call as defense-in-depth, even when the facade has already validated.
 - **Parsers / decoders** — Event and receipt decoding (`events/`) interpret chain data with structured checks; composed validators handle structured auth options before crypto encoding.
 - **Composed options** — [`src/internal/validators/authProofOptions.js`](../src/internal/validators/authProofOptions.js) centralizes auth-proof parameter checks used by [`createAuthProof.js`](../src/internal/auth/encoding/createAuthProof.js). Action builders in [`src/internal/vault/actions/`](../src/internal/vault/actions/) and [`src/internal/auth/actions/`](../src/internal/auth/actions/) compute `selector` + `paramsHash` pairs aligned with KeyVaultV3 on-chain checks.
@@ -97,9 +97,9 @@ Read-only vault-scoped calls still use `KeyVaultAuthPipeline.mergeVaultOptions` 
 | User calls | Domain module | Pipeline | Client method |
 |------------|---------------|----------|---------------|
 | `monstera.createWallet()` | `MonsteraFactory` | `AuthConfigEncoder` (in method) | `factory.createWallet` |
-| `monstera.initializeWalletLogic()` | `MonsteraFactory` | `CredentialsSession` (resolve `keyVaultAddr`) | `logic.initialize` |
+| `monstera.initializeWalletLogic()` | `MonsteraFactory` | `ConnectSession` (resolve `keyVaultAddr`) | `logic.initialize` |
 | `monstera.configurePassword()` | `MonsteraAuth` | `_configureAuthenticator` → `AuthConfigPipeline` | `auth.password.configure` |
-| `monstera.getKeyVaultAddr()` | `MonsteraFactory` | `CredentialsSession` (via `_resolveWalletProxyOptions`) | `factory.getKeyVaultAddr` |
+| `monstera.getKeyVaultAddr()` | `MonsteraFactory` | `ConnectSession` (via `_resolveWalletProxyOptions`) | `factory.getKeyVaultAddr` |
 | `monstera.updateWalletLogicImplAddr()` | `MonsteraFactory` | — (admin signer) | `factory.updateWalletLogicImplAddr` |
 | `monstera.setAuthenticatorAllowed()` | `MonsteraFactory` | — (admin signer) | `factory.setAuthenticatorAllowed` |
 
@@ -109,7 +109,7 @@ Read-only vault-scoped calls still use `KeyVaultAuthPipeline.mergeVaultOptions` 
 |------------|---------------|-----------|
 | `monstera.hasCredentials()` | `MonsteraSession` | `KeyVaultAuthPipeline.hasCredentials()` |
 | `monstera.getSessionKeyVaultAddr()` | `MonsteraSession` | `KeyVaultAuthPipeline.mergeVaultOptions()` |
-| Any vault-scoped call with connect credentials | `MonsteraSession` | `CredentialsSession.mergeVaultOptions()` merges username → `keyVaultAddr`, password |
+| Any vault-scoped call with connect credentials | `MonsteraSession` | `ConnectSession.mergeVaultOptions()` merges username → `keyVaultAddr`, password |
 
 ### Read paths (no auth pipeline)
 

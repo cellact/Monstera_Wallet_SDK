@@ -16,7 +16,7 @@ import {
   requirePositiveInteger,
   requireProviderMethod,
   isInFuture
-} from '../assert.js';
+} from '../validation/assert.js';
 
 /**
  * Assert the inputs of {@link createAuthProofWalletSignature}.

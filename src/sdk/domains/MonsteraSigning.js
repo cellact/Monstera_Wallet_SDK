@@ -120,7 +120,7 @@ export const monsteraSigningMethods = defineDomainMethods({
       {
         keyVault: this.keyVault,
         fallbackProvider: this.readProvider ?? this.writeSigner?.provider ?? null,
-        credentialsSession: this._keyVaultAuthPipeline.getCredentialsSession(),
+        connectSession: this._keyVaultAuthPipeline.getConnectSession(),
         encodeVaultAuthProof: (opts, buildAction) => this._keyVaultAuthPipeline.encodeAuthProof(opts, buildAction)
       },
       options,

@@ -3,14 +3,14 @@
  *
  * Each {@code build*} mirrors the corresponding {@code _buildAuthContext} call in {@code KeyVaultV3.sol}.
  *
- * @module internal/crypto/actions/keyVault
+ * @module internal/vault/actions/keyVault
  */
 
 import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
 import { KEYVAULT_ABI } from '../../../contracts/abi/core/keyVault.js';
 import { getSelector } from '../getSelector.js';
 import { computeParamsHash } from '../../auth/actionContext.js';
-import { requireAddress, requireBytes, requireBytes32, requireNonNegativeInteger, requireString } from '../../assert.js';
+import { requireAddress, requireBytes, requireBytes32, requireNonNegativeInteger, requireString } from '../../validation/assert.js';
 
 /**
  * @private

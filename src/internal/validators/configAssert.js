@@ -10,7 +10,7 @@ import {
   requireChainId,
   requirePlainObject,
   requireString
-} from '../assert.js';
+} from '../validation/assert.js';
 
 /**
  * @param {unknown} value

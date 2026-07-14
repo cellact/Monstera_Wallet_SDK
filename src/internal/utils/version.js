@@ -10,7 +10,7 @@
  * @module internal/utils/version
  */
 
-import { requireString } from '../assert.js';
+import { requireString } from '../validation/assert.js';
 
 /**
  * Parse a semver string into structured components.

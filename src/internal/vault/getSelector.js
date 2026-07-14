@@ -1,7 +1,7 @@
 /**
  * Resolve a 4-byte function selector from a contract ABI fragment list.
  *
- * @module internal/crypto/getSelector
+ * @module internal/vault/getSelector
  */
 
 import { Interface } from '../../adapters/ethers/encoding.js';

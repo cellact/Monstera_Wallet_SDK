@@ -5,14 +5,14 @@
  * - Vault-authenticated KeyVault calls (discover authenticator from chain, session defaults)
  * - Explicit proof builders ({@code createAuthProof*}, verify probes, management ops)
  *
- * @typedef {import('../session/ConnectSession.js').CredentialsSession} CredentialsSession
+ * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
  * @typedef {import('../specs/registry.js').AuthProofFlowId} AuthProofFlowId
  * @typedef {import('../specs/types.js').BuiltinAuthenticatorSpec} BuiltinAuthenticatorSpec
  *
  * @module internal/auth/encoding/AuthProofEncoder
  */
 
-import { requireAddress, requirePlainObject } from '../../assert.js';
+import { requireAddress, requirePlainObject } from '../../validation/assert.js';
 import { ValidationError } from '../../../errors/index.js';
 import {
   assertAuthActionInput,
@@ -199,7 +199,7 @@ export class AuthProofEncoder {
    * @public
    * @async
    * @param {Record<string, unknown>} resolved - Options after session address merge
-   * @param {CredentialsSession | null} session
+   * @param {ConnectSession | null} session
    * @param {(resolved: Record<string, unknown>) => AuthActionInput} [buildAction]
    * @returns {Promise<EncodeAuthProofOptionsResult>}
    */

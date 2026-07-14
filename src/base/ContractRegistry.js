@@ -8,7 +8,7 @@
  * @module base/ContractRegistry
  */
 
-import { requireAddress } from '../internal/assert.js';
+import { requireAddress } from '../internal/validation/assert.js';
 import { WriteRequiresSignerError } from '../errors/index.js';
 import log from '../internal/logger.js';
 

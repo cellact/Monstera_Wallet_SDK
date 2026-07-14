@@ -6,7 +6,7 @@ import { describe, test, expect } from '@jest/globals';
 import { Wallet } from '../../../src/adapters/ethers/index.js';
 import Monstera from '../../../src/sdk/Monstera.js';
 import { CredentialsRequiredError, WriteRequiresSignerError } from '../../../src/errors/index.js';
-import { attachTestCredentialsSession } from '../../utils/credentials.js';
+import { attachTestConnectSession } from '../../utils/credentials.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 
 const TEST_SIGNER = Wallet.createRandom().privateKey;
@@ -91,7 +91,7 @@ describe('Monstera.connect', () => {
       signer: TEST_SIGNER,
       checkVersion: false
     });
-    attachTestCredentialsSession(sdk);
+    attachTestConnectSession(sdk);
 
     const resolved = await sdk._keyVaultAuthPipeline.mergeVaultOptions({});
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
@@ -104,7 +104,7 @@ describe('Monstera.connect', () => {
       signer: TEST_SIGNER,
       checkVersion: false
     });
-    attachTestCredentialsSession(sdk);
+    attachTestConnectSession(sdk);
 
     const resolved = await sdk._keyVaultAuthPipeline.mergeVaultOptions({
       passwordHash: '0x' + '11'.repeat(32)

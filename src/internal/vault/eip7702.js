@@ -12,7 +12,7 @@
  * - small adapters: {@link toChecksumAddress}, {@link finalizeSignedAuthorizationResult}
  *
  *
- * @module internal/crypto/authorization
+ * @module internal/vault/eip7702
  */
 
 import { ZeroHash, getAddress } from '../../adapters/ethers/addresses.js';
@@ -21,7 +21,7 @@ import {
   hashAuthorization as etherHashAuthorizationTuple,
   verifyAuthorization as etherVerifyAuthorizationTuple
 } from '../../adapters/ethers/signing.js';
-import { requireAddress, requireBigInt, requireNonNegativeInteger, requireNonEmptyBytes, requireNonEmptyObject, requireProviderMethod } from '../assert.js';
+import { requireAddress, requireBigInt, requireNonNegativeInteger, requireNonEmptyBytes, requireNonEmptyObject, requireProviderMethod } from '../validation/assert.js';
 import { ValidationError } from '../../errors/index.js';
 
 /**

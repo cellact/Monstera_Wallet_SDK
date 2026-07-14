@@ -2,7 +2,7 @@
  * Pure normalisation helpers used by config + assertion code.
  *
  * @description Both helpers return {@code undefined} on failure rather than throwing, so callers
- * (typically the {@code require*} helpers in {@link ../assert.js}) can wrap them in their own
+ * (typically the {@code require*} helpers in {@link ../validation/assert.js}) can wrap them in their own
  * structured {@link ValidationError} messages.
  *
  * @module internal/utils/normalize

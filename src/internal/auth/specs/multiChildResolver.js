@@ -13,7 +13,7 @@
 
 import { getAddress } from '../../../adapters/ethers/addresses.js';
 import { ValidationError } from '../../../errors/index.js';
-import { requireAddress } from '../../assert.js';
+import { requireAddress } from '../../validation/assert.js';
 import { apiKeySessionAuthenticator } from './apiKeySession.js';
 import { passwordAuthenticator } from './password.js';
 import { passwordMinuteSignatureAuthenticator } from './passwordMinuteSignature.js';

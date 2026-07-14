@@ -25,7 +25,7 @@ import {
   createTestVaultSignAction
 } from '../../utils/fixtures.js';
 import { CredentialsRequiredError, WriteRequiresSignerError } from '../../../src/errors/index.js';
-import { attachTestCredentialsSession } from '../../utils/credentials.js';
+import { attachTestConnectSession } from '../../utils/credentials.js';
 import {
   testMissingParam,
   testInvalidAddress,
@@ -52,9 +52,9 @@ describe('Monstera offline validation', () => {
     adminSdk = createTestSDK();
     readonlySdk = createTestSDK({ readonly: true });
     userSdk = createTestSDK({ readonly: true });
-    attachTestCredentialsSession(userSdk);
+    attachTestConnectSession(userSdk);
     fullSdk = createTestSDK();
-    attachTestCredentialsSession(fullSdk);
+    attachTestConnectSession(fullSdk);
     passwordHash = keccak256(toUtf8Bytes('offline-validation-suite'));
     keyVaultAddr = VALID_TEST_ADDRESS;
     walletAddr = VALID_TEST_ADDRESS;

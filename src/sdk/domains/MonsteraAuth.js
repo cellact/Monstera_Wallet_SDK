@@ -318,8 +318,8 @@ export const monsteraAuthMethods = defineDomainMethods({
         const passwordHash =
           resolved.passwordHash ??
           (resolved.currentPassword ? keccak256(resolved.currentPassword) : undefined) ??
-          (this._credentialsSession?.hasPassword()
-            ? this._credentialsSession.getPasswordHash()
+          (this._connectSession?.hasPassword()
+            ? this._connectSession.getPasswordHash()
             : undefined);
 
         return { passwordHash, initialWhitelist: resolved.initialWhitelist };

@@ -7,7 +7,7 @@ import { ZeroAddress } from '../../../src/adapters/ethers/addresses.js';
 import { toUtf8Bytes, keccak256 } from '../../../src/adapters/ethers/hashing.js';
 import { ValidationError, CredentialsRequiredError } from '../../../src/errors/index.js';
 import {
-  CredentialsSession
+  ConnectSession
 } from '../../../src/internal/auth/session/ConnectSession.js';
 import { parseConnectCredentials } from '../../../src/internal/validators/connectOptions.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
@@ -68,10 +68,10 @@ describe('parseConnectCredentials', () => {
   });
 });
 
-describe('CredentialsSession', () => {
+describe('ConnectSession', () => {
   test('resolves wallet and keyVault once, then caches', async () => {
     const deps = createDeps();
-    const session = new CredentialsSession({ username: 'alice', password: 'pw' }, deps);
+    const session = new ConnectSession({ username: 'alice', password: 'pw' }, deps);
 
     await expect(session.getKeyVaultAddr()).resolves.toBe(KEY_VAULT_ADDR);
     await expect(session.getWalletAddr()).resolves.toBe(WALLET_ADDR);
@@ -85,7 +85,7 @@ describe('CredentialsSession', () => {
 
   test('normalises mixed-case username before hashing', async () => {
     const deps = createDeps();
-    const session = new CredentialsSession({ username: '  Alice  ', password: 'pw' }, deps);
+    const session = new ConnectSession({ username: '  Alice  ', password: 'pw' }, deps);
 
     await session.getKeyVaultAddr();
 
@@ -93,7 +93,7 @@ describe('CredentialsSession', () => {
   });
 
   test('mergeSessionDefaults injects keyVaultAddr only', async () => {
-    const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
+    const session = new ConnectSession({ username: 'alice', password: 'pw' }, createDeps());
 
     const resolved = await session.mergeSessionDefaults({});
 
@@ -102,21 +102,21 @@ describe('CredentialsSession', () => {
   });
 
   test('getPasswordHash returns keccak256 of session password bytes', () => {
-    const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
+    const session = new ConnectSession({ username: 'alice', password: 'pw' }, createDeps());
 
     expect(session.getPasswordHash()).toBe(keccak256(toUtf8Bytes('pw')));
   });
 
   test('getApiKeySecret returns keccak256 of session apiKey', () => {
     const apiKey = '0x' + 'cd'.repeat(32);
-    const session = new CredentialsSession({ username: 'alice', apiKey }, createDeps());
+    const session = new ConnectSession({ username: 'alice', apiKey }, createDeps());
 
     expect(session.getApiKeySecret()).toBe(keccak256(apiKey));
   });
 
   test('mergeSessionDefaults injects apiKeySecret when requested', async () => {
     const apiKey = '0x' + 'cd'.repeat(32);
-    const session = new CredentialsSession({ username: 'alice', apiKey }, createDeps());
+    const session = new ConnectSession({ username: 'alice', apiKey }, createDeps());
 
     const resolved = await session.mergeSessionDefaults({}, { defaultApiKeySecret: true });
 
@@ -124,7 +124,7 @@ describe('CredentialsSession', () => {
   });
 
   test('mergeSessionDefaults injects currentPassword when requested', async () => {
-    const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
+    const session = new ConnectSession({ username: 'alice', password: 'pw' }, createDeps());
 
     const resolved = await session.mergeSessionDefaults({}, { defaultCurrentPassword: true });
 
@@ -134,7 +134,7 @@ describe('CredentialsSession', () => {
   test('does not override explicit keyVaultAddr', async () => {
     const explicit = '0x2222222222222222222222222222222222222222';
     const deps = createDeps();
-    const session = new CredentialsSession({ username: 'alice', password: 'pw' }, deps);
+    const session = new ConnectSession({ username: 'alice', password: 'pw' }, deps);
 
     const resolved = await session.mergeSessionDefaults({ keyVaultAddr: explicit });
 
@@ -146,7 +146,7 @@ describe('CredentialsSession', () => {
     const deps = createDeps({
       walletOfUsername: jest.fn(async () => ZeroAddress)
     });
-    const session = new CredentialsSession({ username: 'missing', password: 'pw' }, deps);
+    const session = new ConnectSession({ username: 'missing', password: 'pw' }, deps);
 
     await expect(session.getKeyVaultAddr()).rejects.toThrow(ValidationError);
     await expect(session.getKeyVaultAddr()).rejects.toThrow(/No wallet is registered/);
@@ -154,16 +154,16 @@ describe('CredentialsSession', () => {
 
   describe('mergeVaultOptions', () => {
     test('merges session keyVaultAddr without injecting index', async () => {
-      const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
+      const session = new ConnectSession({ username: 'alice', password: 'pw' }, createDeps());
 
-      const resolved = await CredentialsSession.mergeVaultOptions(session, {});
+      const resolved = await ConnectSession.mergeVaultOptions(session, {});
 
       expect(resolved.keyVaultAddr).toBe(KEY_VAULT_ADDR);
       expect(resolved.index).toBeUndefined();
     });
 
     test('passes through explicit keyVaultAddr without session', async () => {
-      const resolved = await CredentialsSession.mergeVaultOptions(null, {
+      const resolved = await ConnectSession.mergeVaultOptions(null, {
         keyVaultAddr: WALLET_ADDR,
         index: 2
       });
@@ -173,7 +173,7 @@ describe('CredentialsSession', () => {
     });
 
     test('throws without session or keyVaultAddr', async () => {
-      await expect(CredentialsSession.mergeVaultOptions(null, {})).rejects.toThrow(
+      await expect(ConnectSession.mergeVaultOptions(null, {})).rejects.toThrow(
         CredentialsRequiredError
       );
     });

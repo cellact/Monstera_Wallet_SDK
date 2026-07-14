@@ -28,7 +28,7 @@ import {
   requireProviderMethod,
   requirePlainObject,
   requireNonEmptyObject
-} from '../../../src/internal/assert.js';
+} from '../../../src/internal/validation/assert.js';
 import { normalizeBigInt, normalizeChainId, normalizeMnemonic } from '../../../src/internal/utils/normalize.js';
 import { HDNodeWallet, Mnemonic, Wallet } from '../../../src/adapters/ethers/index.js';
 import { keccak256, randomBytes, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';

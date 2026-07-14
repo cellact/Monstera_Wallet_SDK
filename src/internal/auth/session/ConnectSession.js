@@ -10,14 +10,14 @@
 import { ZeroAddress } from '../../../adapters/ethers/addresses.js';
 import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
 import { CredentialsRequiredError, ValidationError } from '../../../errors/index.js';
-import { requireNormalizedUsername } from '../../assert.js';
+import { requireNormalizedUsername } from '../../validation/assert.js';
 
 export { parseConnectCredentials } from '../../validators/connectOptions.js';
 
 /**
  * Factory lookups required to resolve a username to on-chain wallet addresses.
  *
- * @typedef {Object} CredentialsSessionDeps
+ * @typedef {Object} ConnectSessionDeps
  * @property {(options: { username: string }) => Promise<Bytes32>} hashUsername
  * @property {(options: { usernameHash: Bytes32 }) => Promise<Address>} walletOfUsername
  * @property {(options: { walletAddr: Address }) => Promise<Address>} getKeyVaultAddr
@@ -32,11 +32,11 @@ export { parseConnectCredentials } from '../../validators/connectOptions.js';
 /**
  * @public
  */
-export class CredentialsSession {
+export class ConnectSession {
   /**
    * @public
    * @param {ConnectCredentials} credentials
-   * @param {CredentialsSessionDeps} deps
+   * @param {ConnectSessionDeps} deps
    */
   constructor(credentials, deps) {
     this._username = credentials.username;
@@ -170,17 +170,17 @@ export class CredentialsSession {
    * @public
    * @static
    * @async
-   * @param {CredentialsSession | null} credentialsSession
+   * @param {ConnectSession | null} connectSession
    * @param {Record<string, unknown>} [options={}]
    * @param {ResolveVaultOptionsFlags} [flags={}]
    * @returns {Promise<Record<string, unknown>>}
    * @throws {CredentialsRequiredError}
    */
-  static async mergeVaultOptions(credentialsSession, options = {}, flags = {}) {
+  static async mergeVaultOptions(connectSession, options = {}, flags = {}) {
     let resolved;
 
-    if (credentialsSession) {
-      resolved = await credentialsSession.mergeSessionDefaults(options, flags);
+    if (connectSession) {
+      resolved = await connectSession.mergeSessionDefaults(options, flags);
     } else if (options.keyVaultAddr) {
       resolved = { ...options };
     } else {

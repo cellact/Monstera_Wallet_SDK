@@ -12,12 +12,12 @@
  *
  * @typedef {import('../../clients/keyVault/KeyVaultClient.js').default} KeyVaultClient
  *
- * @module internal/crypto/signAuthorization
+ * @module internal/vault/signEip7702Authorization
  */
 
 import { ValidationError } from '../../errors/index.js';
-import { requireAddress, requireBigInt, requireChainId, requireNonNegativeInteger } from '../assert.js';
-import { CredentialsSession } from '../auth/session/ConnectSession.js';
+import { requireAddress, requireBigInt, requireChainId, requireNonNegativeInteger } from '../validation/assert.js';
+import { ConnectSession } from '../auth/session/ConnectSession.js';
 import {
   encodeSignAuthorizationImplCalldata,
   fetchAuthorizationChainId,
@@ -38,7 +38,7 @@ import { log } from '../logger.js';
  * @typedef {{
  *   keyVault: KeyVaultClient;
  *   fallbackProvider: EthersAbstractProvider | null;
- *   credentialsSession: import('../auth/session/ConnectSession.js').CredentialsSession | null;
+ *   connectSession: import('../auth/session/ConnectSession.js').ConnectSession | null;
  *   encodeVaultAuthProof: (
  *     options: SignAuthorizationOptions & { implCall: Bytes },
  *     buildAction: (options: SignAuthorizationOptions & { implCall: Bytes }) => AuthActionInput
@@ -70,8 +70,8 @@ import { log } from '../logger.js';
  *   {@link NetworkError}, {@link ContractRevertError})
  */
 async function resolveSignAuthorizationInputs(deps, options = {}) {
-  const { keyVault, fallbackProvider, credentialsSession } = deps;
-  const resolved = await CredentialsSession.mergeVaultOptions(credentialsSession, options);
+  const { keyVault, fallbackProvider, connectSession } = deps;
+  const resolved = await ConnectSession.mergeVaultOptions(connectSession, options);
   const { keyVaultAddr, delegateAddr, provider } = resolved;
 
   requireAddress(keyVaultAddr, 'keyVaultAddr');

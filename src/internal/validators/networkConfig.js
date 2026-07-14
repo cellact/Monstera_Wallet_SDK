@@ -7,7 +7,7 @@
  */
 
 import { ConfigError, ValidationError } from '../../errors/index.js';
-import { isAddress, requireArray } from '../assert.js';
+import { isAddress, requireArray } from '../validation/assert.js';
 import {
   requireConfigChainId,
   requireConfigPlainObject,

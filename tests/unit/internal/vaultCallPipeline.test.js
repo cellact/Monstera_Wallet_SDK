@@ -41,7 +41,7 @@ function createMockSession() {
 describe('KeyVaultAuthPipeline', () => {
   test('requireUserAccess throws without credentials session', () => {
     const pipeline = new KeyVaultAuthPipeline({
-      credentialsSession: null,
+      connectSession: null,
       authProofEncoder: { encodeForKeyVault: async (o) => o }
     });
 
@@ -50,7 +50,7 @@ describe('KeyVaultAuthPipeline', () => {
 
   test('mergeVaultOptions merges session keyVaultAddr', async () => {
     const pipeline = new KeyVaultAuthPipeline({
-      credentialsSession: {
+      connectSession: {
         mergeSessionDefaults: async (options) => ({
           ...options,
           keyVaultAddr: options.keyVaultAddr ?? VALID_TEST_ADDRESS
@@ -66,7 +66,7 @@ describe('KeyVaultAuthPipeline', () => {
 
   test('mergeVaultOptions passes through explicit keyVaultAddr without credentials session', async () => {
     const pipeline = new KeyVaultAuthPipeline({
-      credentialsSession: null,
+      connectSession: null,
       authProofEncoder: { encodeForKeyVault: async (o) => o }
     });
 
@@ -80,7 +80,7 @@ describe('KeyVaultAuthPipeline', () => {
 
   test('mergeVaultOptions throws without credentials or keyVaultAddr', async () => {
     const pipeline = new KeyVaultAuthPipeline({
-      credentialsSession: null,
+      connectSession: null,
       authProofEncoder: { encodeForKeyVault: async (o) => o }
     });
 
@@ -89,7 +89,7 @@ describe('KeyVaultAuthPipeline', () => {
 
   test('encodeAuthProof delegates to auth proof encoder', async () => {
     const pipeline = new KeyVaultAuthPipeline({
-      credentialsSession: createMockSession(),
+      connectSession: createMockSession(),
       authProofEncoder: createMockAuthProofEncoder()
     });
 
@@ -111,7 +111,7 @@ describe('KeyVaultAuthPipeline', () => {
 
   test('encodeAuthProof preserves explicit index', async () => {
     const pipeline = new KeyVaultAuthPipeline({
-      credentialsSession: createMockSession(),
+      connectSession: createMockSession(),
       authProofEncoder: createMockAuthProofEncoder()
     });
 

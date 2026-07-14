@@ -5,7 +5,7 @@
  */
 
 import { ValidationError } from '../../../errors/index.js';
-import { requireAddress, requireBytes32 } from '../../assert.js';
+import { requireAddress, requireBytes32 } from '../../validation/assert.js';
 import { createApiKeySessionAuthConfig } from '../encoding/authConfigBytes.js';
 import { createAuthProofApiKeySession } from '../encoding/apiKeySessionProof.js';
 import { createActionBoundEncoder } from '../encoding/createActionBoundEncoder.js';
@@ -38,7 +38,7 @@ export function isApiKeySessionTokenMode(input) {
 }
 
 /**
- * @param {import('../session/ConnectSession.js').CredentialsSession | null} session
+ * @param {import('../session/ConnectSession.js').ConnectSession | null} session
  * @param {Record<string, unknown>} partial
  */
 function applySessionInput(session, partial) {

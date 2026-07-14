@@ -84,7 +84,7 @@ This SDK is a **facade + clients + pipelines** system, not a service/repository 
 - Authenticated writes: use `KeyVaultAuthPipeline.invokeWithAuthProof` or `ExplicitAuthPipeline` — do not reimplement auth encoding in `Monstera`.
 - Do not add `try/catch` to `Monstera` or clients; errors flow through `ExecutionPipeline` → `sdkErrorPipeline`.
 - One operation = one action builder. Do not duplicate `selector`/`paramsHash` logic across layers.
-- Validation belongs at the **client boundary** (`internal/assert.js`). Avoid re-validating the same fields in both `Monstera` and the client.
+- Validation belongs at the **client boundary** (`internal/validation/assert.js`). Avoid re-validating the same fields in both `Monstera` and the client.
 
 ## 6. Naming Conventions
 

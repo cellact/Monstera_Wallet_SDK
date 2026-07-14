@@ -11,7 +11,7 @@
 import BaseContractClient from '../../base/BaseContractClient.js';
 import { getPasswordAuthenticatorContract } from '../../contracts/authenticators/PasswordAuthenticator.js';
 import { PasswordAuthenticatorEvents } from '../../events/index.js';
-import { requireAddress, requireBytes32, requireNonEmptyBytes, requireNonEmptyObject } from '../../internal/assert.js';
+import { requireAddress, requireBytes32, requireNonEmptyBytes, requireNonEmptyObject } from '../../internal/validation/assert.js';
 import log from '../../internal/logger.js';
 import { sanitizer } from '../../internal/sanitization/index.js';
 

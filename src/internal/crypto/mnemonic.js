@@ -9,7 +9,7 @@
 
 import crypto from 'crypto';
 import { Wallet } from '../../adapters/ethers/index.js';
-import { requireMnemonic } from '../assert.js';
+import { requireMnemonic } from '../validation/assert.js';
 import { normalizeMnemonic } from '../utils/normalize.js';
 import { ValidationError } from '../../errors/index.js';
 import log from '../logger.js';
