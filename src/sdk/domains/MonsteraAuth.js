@@ -20,11 +20,11 @@ import {
   buildPasswordOrWalletRemoveFromWhitelistAction,
   buildPasswordOrWalletAddToWhitelistWithProofAction,
   buildAuthenticatorVerifyProbeAction,
-} from '../../internal/auth/context/actions/index.js';
-import { createLinkWalletSignature } from '../../internal/auth/proof/createAuthProof.js';
-import { resolveActionHash } from '../../internal/auth/context/createAuthContext.js';
-import { defaultProofDeadline } from '../../internal/auth/authenticators/deadline.js';
-import { SCOPE_SIGN_ALL } from '../../internal/auth/apiKeySession/constants.js';
+} from '../../internal/auth/actions/index.js';
+import { createLinkWalletSignature } from '../../internal/auth/encoding/createAuthProof.js';
+import { resolveActionHash } from '../../internal/auth/actionContext.js';
+import { defaultProofDeadline } from '../../internal/auth/encoding/proofDefaults.js';
+import { SCOPE_SIGN_ALL } from '../../internal/auth/specs/apiKeySession.js';
 import { hexlify, keccak256, randomBytes } from '../../adapters/ethers/hashing.js';
 import { defineDomainMethods } from './defineDomainMethods.js';
 
@@ -146,7 +146,7 @@ export const monsteraAuthMethods = defineDomainMethods({
   //  * @throws {ValidationError} If required parameters are missing or invalid
   //  */
   // async createAuthProofApiKeySession(options = {}) {
-  //   const { authProof } = await this._authenticatorPipeline.encodeAuthProof('apiKeySession', options, {
+  //   const { authProof } = await this._explicitAuthPipeline.encodeAuthProof('apiKeySession', options, {
   //     flags: { defaultApiKeySecret: true }
   //   });
   //   return authProof;
@@ -367,7 +367,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordConfigured(options = {}) {
-    return this.auth.password.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.password.isConfigured(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -407,7 +407,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isWalletSignatureConfigured(options = {}) {
-    return this.auth.walletSignature.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.walletSignature.isConfigured(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -423,7 +423,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isWhitelisted(options = {}) {
-    return this.auth.walletSignature.isWhitelisted(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.walletSignature.isWhitelisted(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -439,7 +439,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getWhitelist(options = {}) {
-    return this.auth.walletSignature.getWhitelist(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.walletSignature.getWhitelist(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -495,7 +495,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isDualFactorConfigured(options = {}) {
-    return this.auth.dualFactor.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.dualFactor.isConfigured(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -534,7 +534,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getGuardian(options = {}) {
-    return this.auth.dualFactor.getGuardian(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.dualFactor.getGuardian(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -565,7 +565,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordMinuteSignatureConfigured(options = {}) {
-    return this.auth.passwordMinuteSignature.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.passwordMinuteSignature.isConfigured(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -604,7 +604,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isApiKeySessionConfigured(options = {}) {
-    return this.auth.apiKeySession.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.apiKeySession.isConfigured(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -616,7 +616,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<boolean>},
    */
   async isMultiAuthenticatorConfigured(options = {}) {
-    return this.auth.multi.isConfigured(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.multi.isConfigured(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -628,7 +628,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<Address[]>},
    */
   async getMultiAuthenticators(options = {}) {
-    return this.auth.multi.getAuthenticators(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.multi.getAuthenticators(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -640,7 +640,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<boolean>},
    */
   async isMultiAuthenticatorChildEnabled(options = {}) {
-    return this.auth.multi.isEnabled(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.multi.isEnabled(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -677,7 +677,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    */
   async isPasswordOrWalletSignatureConfigured(options = {}) {
     return this.auth.passwordOrWalletSignature.isConfigured(
-      await this._vaultPipeline.resolveVaultOptions(options)
+      await this._keyVaultAuthPipeline.mergeVaultOptions(options)
     );
   },
 
@@ -691,7 +691,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    */
   async isPasswordOrWalletSignatureWhitelisted(options = {}) {
     return this.auth.passwordOrWalletSignature.isWhitelisted(
-      await this._vaultPipeline.resolveVaultOptions(options)
+      await this._keyVaultAuthPipeline.mergeVaultOptions(options)
     );
   },
 
@@ -705,7 +705,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    */
   async getPasswordOrWalletSignatureWhitelist(options = {}) {
     return this.auth.passwordOrWalletSignature.getWhitelist(
-      await this._vaultPipeline.resolveVaultOptions(options)
+      await this._keyVaultAuthPipeline.mergeVaultOptions(options)
     );
   },
 
@@ -719,7 +719,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    */
   async isPasswordOrWalletSignatureLinkNonceUsed(options = {}) {
     return this.auth.passwordOrWalletSignature.isLinkNonceUsed(
-      await this._vaultPipeline.resolveVaultOptions(options)
+      await this._keyVaultAuthPipeline.mergeVaultOptions(options)
     );
   },
 
@@ -761,7 +761,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<Bytes32>},
    */
   async computePasswordOrWalletSignatureLinkActionHash(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
+    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options);
     const { keyVaultAddr, addressToAdd, nonce, deadline = defaultProofDeadline() } = resolved;
     return this.auth.passwordOrWalletSignature.computeLinkActionHash({
       keyVaultAddr,
@@ -930,7 +930,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async selectorBit(options = {}) {
-    return this.auth.apiKeySession.selectorBit(await this._vaultPipeline.resolveVaultOptions(options));
+    return this.auth.apiKeySession.selectorBit(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   // --- Auth Writes ---
@@ -1152,12 +1152,12 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<AddMultiAuthenticatorResult>},
    */
   async addMultiAuthenticator(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options, {
+    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options, {
       defaultCurrentPassword: true,
       defaultApiKeySecret: true
     });
     const { child, childAuthConfig } = resolved;
-    const { authConfig: childConfig } = this._encodeAuthConfig.encode({
+    const { authConfig: childConfig } = this._authConfigEncoder.encode({
       authConfig: childAuthConfig,
       authenticatorAddr: child
     });
@@ -1276,7 +1276,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<AddToWhitelistWithProofResult>},
    */
   async addToPasswordOrWalletSignatureWhitelistWithProof(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options, {
+    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options, {
       defaultCurrentPassword: true,
     });
     const nonce = resolved.nonce ?? hexlify(randomBytes(32));
@@ -1342,7 +1342,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<RemoveMultiAuthenticatorResult>},
    */
   async removeMultiAuthenticator(options = {}) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options, {
+    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options, {
       defaultCurrentPassword: true,
       defaultApiKeySecret: true
     });

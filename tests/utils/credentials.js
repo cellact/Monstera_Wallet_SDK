@@ -2,7 +2,7 @@
  * Test helpers for end-user credentials sessions (offline unit tests).
  */
 
-import { CredentialsSession } from '../../src/internal/auth/session/CredentialsSession.js';
+import { CredentialsSession } from '../../src/internal/auth/session/ConnectSession.js';
 import { VALID_TEST_ADDRESS } from './fixtures.js';
 
 /**
@@ -30,5 +30,5 @@ export function attachTestCredentialsSession(sdk, overrides = {}) {
   session._walletAddr = walletAddr;
   session._keyVaultAddr = keyVaultAddr;
   sdk._credentialsSession = session;
-  sdk._vaultPipeline?.setCredentialsSession(session);
+  sdk._keyVaultAuthPipeline?.setCredentialsSession(session);
 }

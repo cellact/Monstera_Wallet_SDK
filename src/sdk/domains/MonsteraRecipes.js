@@ -14,11 +14,11 @@
 import { defineDomainMethods } from './defineDomainMethods.js';
 
 /**
- * @typedef {import('../../internal/auth/authenticators/registry.js').AuthProofFlowId} AuthProofFlowId
- * @typedef {import('../../internal/auth/session/CredentialsSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
- * @typedef {import('../../internal/auth/session/AuthenticatorCallPipeline.js').AuthenticatorEncodeConfig} AuthenticatorEncodeConfig
- * @typedef {import('../../internal/auth/session/AuthenticatorCallPipeline.js').AuthenticatorInvokeContext} AuthenticatorInvokeContext
- * @typedef {import('../../internal/auth/session/AuthenticatorCallPipeline.js').AuthenticatorEncodeResult} AuthenticatorEncodeResult
+ * @typedef {import('../../internal/auth/specs/registry.js').AuthProofFlowId} AuthProofFlowId
+ * @typedef {import('../../internal/auth/session/ConnectSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
+ * @typedef {import('../../internal/auth/pipelines/ExplicitAuthPipeline.js').AuthenticatorEncodeConfig} AuthenticatorEncodeConfig
+ * @typedef {import('../../internal/auth/pipelines/ExplicitAuthPipeline.js').AuthenticatorInvokeContext} AuthenticatorInvokeContext
+ * @typedef {import('../../internal/auth/pipelines/ExplicitAuthPipeline.js').AuthenticatorEncodeResult} AuthenticatorEncodeResult
  */
 
 /**
@@ -37,8 +37,8 @@ import { defineDomainMethods } from './defineDomainMethods.js';
  * @property {ResolveVaultOptionsFlags} [flags]
  * @property {(resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput} buildAction
  * @property {(ctx: AuthenticatorInvokeContext) => Promise<T>} invoke
- * @property {import('../../internal/auth/proof/AuthProofPipeline.js').AuthProofFlowOptions} [flowOptions]
- * @property {import('../../internal/auth/session/AuthenticatorCallPipeline.js').AuthenticatorInvokeOverrides} [overrides]
+ * @property {import('../../internal/auth/encoding/AuthProofEncoder.js').AuthProofFlowOptions} [flowOptions]
+ * @property {import('../../internal/auth/pipelines/ExplicitAuthPipeline.js').AuthenticatorInvokeOverrides} [overrides]
  */
 
 /**
@@ -68,7 +68,7 @@ export const monsteraRecipeMethods = defineDomainMethods({
    */
   _invokeVaultAuthenticated(descriptor) {
     const { options = {}, buildAction, invoke } = descriptor;
-    return this._vaultPipeline.invokeWithAuthProof(options, buildAction, invoke);
+    return this._keyVaultAuthPipeline.invokeWithAuthProof(options, buildAction, invoke);
   },
 
   /**
@@ -81,7 +81,7 @@ export const monsteraRecipeMethods = defineDomainMethods({
    */
   _invokeAuthenticatorManaged(descriptor) {
     const { flowId, options = {}, flags, buildAction, invoke, flowOptions, overrides } = descriptor;
-    return this._authenticatorPipeline.invokeWithAuthProof(flowId, options, {
+    return this._explicitAuthPipeline.invokeWithAuthProof(flowId, options, {
       flags,
       buildAction,
       invoke,
@@ -99,7 +99,7 @@ export const monsteraRecipeMethods = defineDomainMethods({
    */
   _encodeAuthenticatorManaged(descriptor) {
     const { flowId, options = {}, config = {} } = descriptor;
-    return this._authenticatorPipeline.encodeAuthProof(flowId, options, config);
+    return this._explicitAuthPipeline.encodeAuthProof(flowId, options, config);
   },
 
   /**
@@ -111,6 +111,6 @@ export const monsteraRecipeMethods = defineDomainMethods({
    */
   _configureAuthenticator(descriptor) {
     const { options = {}, ...configureDescriptor } = descriptor;
-    return this._configurePipeline.configure(options, configureDescriptor);
+    return this._authConfigPipeline.configure(options, configureDescriptor);
   }
 });

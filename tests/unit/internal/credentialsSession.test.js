@@ -8,7 +8,7 @@ import { toUtf8Bytes, keccak256 } from '../../../src/adapters/ethers/hashing.js'
 import { ValidationError, CredentialsRequiredError } from '../../../src/errors/index.js';
 import {
   CredentialsSession
-} from '../../../src/internal/auth/session/CredentialsSession.js';
+} from '../../../src/internal/auth/session/ConnectSession.js';
 import { parseConnectCredentials } from '../../../src/internal/validators/connectOptions.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 
@@ -92,10 +92,10 @@ describe('CredentialsSession', () => {
     expect(deps.hashUsername).toHaveBeenCalledWith({ username: 'alice' });
   });
 
-  test('applyToOptions injects keyVaultAddr only', async () => {
+  test('mergeSessionDefaults injects keyVaultAddr only', async () => {
     const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
 
-    const resolved = await session.applyToOptions({});
+    const resolved = await session.mergeSessionDefaults({});
 
     expect(resolved.keyVaultAddr).toBe(KEY_VAULT_ADDR);
     expect(resolved.authProof).toBeUndefined();
@@ -114,19 +114,19 @@ describe('CredentialsSession', () => {
     expect(session.getApiKeySecret()).toBe(keccak256(apiKey));
   });
 
-  test('applyToOptions injects apiKeySecret when requested', async () => {
+  test('mergeSessionDefaults injects apiKeySecret when requested', async () => {
     const apiKey = '0x' + 'cd'.repeat(32);
     const session = new CredentialsSession({ username: 'alice', apiKey }, createDeps());
 
-    const resolved = await session.applyToOptions({}, { defaultApiKeySecret: true });
+    const resolved = await session.mergeSessionDefaults({}, { defaultApiKeySecret: true });
 
     expect(resolved.apiKeySecret).toBe(keccak256(apiKey));
   });
 
-  test('applyToOptions injects currentPassword when requested', async () => {
+  test('mergeSessionDefaults injects currentPassword when requested', async () => {
     const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
 
-    const resolved = await session.applyToOptions({}, { defaultCurrentPassword: true });
+    const resolved = await session.mergeSessionDefaults({}, { defaultCurrentPassword: true });
 
     expect(resolved.currentPassword).toEqual(toUtf8Bytes('pw'));
   });
@@ -136,7 +136,7 @@ describe('CredentialsSession', () => {
     const deps = createDeps();
     const session = new CredentialsSession({ username: 'alice', password: 'pw' }, deps);
 
-    const resolved = await session.applyToOptions({ keyVaultAddr: explicit });
+    const resolved = await session.mergeSessionDefaults({ keyVaultAddr: explicit });
 
     expect(resolved.keyVaultAddr).toBe(explicit);
     expect(deps.hashUsername).not.toHaveBeenCalled();
@@ -152,18 +152,18 @@ describe('CredentialsSession', () => {
     await expect(session.getKeyVaultAddr()).rejects.toThrow(/No wallet is registered/);
   });
 
-  describe('resolveVaultOptions', () => {
+  describe('mergeVaultOptions', () => {
     test('merges session keyVaultAddr without injecting index', async () => {
       const session = new CredentialsSession({ username: 'alice', password: 'pw' }, createDeps());
 
-      const resolved = await CredentialsSession.resolveVaultOptions(session, {});
+      const resolved = await CredentialsSession.mergeVaultOptions(session, {});
 
       expect(resolved.keyVaultAddr).toBe(KEY_VAULT_ADDR);
       expect(resolved.index).toBeUndefined();
     });
 
     test('passes through explicit keyVaultAddr without session', async () => {
-      const resolved = await CredentialsSession.resolveVaultOptions(null, {
+      const resolved = await CredentialsSession.mergeVaultOptions(null, {
         keyVaultAddr: WALLET_ADDR,
         index: 2
       });
@@ -173,7 +173,7 @@ describe('CredentialsSession', () => {
     });
 
     test('throws without session or keyVaultAddr', async () => {
-      await expect(CredentialsSession.resolveVaultOptions(null, {})).rejects.toThrow(
+      await expect(CredentialsSession.mergeVaultOptions(null, {})).rejects.toThrow(
         CredentialsRequiredError
       );
     });

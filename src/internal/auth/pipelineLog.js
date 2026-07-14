@@ -5,7 +5,7 @@
  */
 
 import log from '../logger.js';
-import { isApiKeySessionTokenMode } from './apiKeySession/mode.js';
+import { isApiKeySessionTokenMode } from './specs/apiKeySession.js';
 
 /**
  * @param {string} encoderId

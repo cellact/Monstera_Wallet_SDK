@@ -12,8 +12,8 @@ import { expectTransactionResult, expectValidTxHash, expectValidHex } from '../.
 import {
   buildDualFactorChangePasswordAction,
   buildChangeGuardianAction
-} from '../../../src/internal/auth/context/actions/index.js';
-import { buildAuthContext } from '../../../src/internal/auth/context/createAuthContext.js';
+} from '../../../src/internal/auth/actions/index.js';
+import { buildAuthContext } from '../../../src/internal/auth/actionContext.js';
 import { createTestVaultSignAction } from '../../utils/fixtures.js';
 
 describe('Authentication — dual factor', () => {

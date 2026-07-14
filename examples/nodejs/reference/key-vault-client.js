@@ -35,11 +35,11 @@ import { Contract, ContractFactory, formatUnits, parseUnits, ZeroAddress } from 
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { JsonRpcProvider } from '../../../src/adapters/ethers/provider.js';
 import {
-  createImplCall,
+  encodeSignAuthorizationImplCalldata,
   decodeSignAuthorizationResult,
   fetchAuthorizationChainId,
   fetchAuthorizationNonce
-} from '../../../src/internal/vault/authorization.js';
+} from '../../../src/internal/vault/eip7702.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;
@@ -366,12 +366,12 @@ async function main() {
   console.log("STEP 11: Sign authorization via executeWithAuth (advanced)");
   console.log("=".repeat(60));
   console.log("   For custom KeyVault implementation calls, you build implCall yourself.");
-  console.log("   For signAuthorizationImpl, use createImplCall (same helper the SDK uses).\n");
+  console.log("   For signAuthorizationImpl, use encodeSignAuthorizationImplCalldata (same helper the SDK uses).\n");
 
   const chainId = await fetchAuthorizationChainId(sdk.readProvider);
   const authNonce = await fetchAuthorizationNonce(sdk.readProvider, accountAddress);
 
-  const implCall = createImplCall({
+  const implCall = encodeSignAuthorizationImplCalldata({
     index: ACCOUNT_INDEX,
     delegateAddr: DELEGATE_CONTRACT,
     nonce: authNonce,

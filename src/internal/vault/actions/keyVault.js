@@ -9,7 +9,7 @@
 import { keccak256, toUtf8Bytes } from '../../../adapters/ethers/hashing.js';
 import { KEYVAULT_ABI } from '../../../contracts/abi/core/keyVault.js';
 import { getSelector } from '../getSelector.js';
-import { computeParamsHash } from '../../auth/context/createAuthContext.js';
+import { computeParamsHash } from '../../auth/actionContext.js';
 import { requireAddress, requireBytes, requireBytes32, requireNonNegativeInteger, requireString } from '../../assert.js';
 
 /**

@@ -22,14 +22,14 @@ import KeyVaultClient from '../clients/keyVault/index.js';
 import { AuthenticatorClient } from '../clients/auth/index.js';
 import { createProvider, createWriteSigner } from '../providers/sapphire.js';
 import { assertValidResolvedConfig } from '../internal/validators/networkConfig.js';
-import { EncodeAuthConfig } from '../internal/auth/config/EncodeAuthConfig.js';
-import { AuthProofPipeline } from '../internal/auth/proof/AuthProofPipeline.js';
-import { CredentialsSession } from '../internal/auth/session/CredentialsSession.js';
+import { AuthConfigEncoder } from '../internal/auth/encoding/AuthConfigEncoder.js';
+import { AuthProofEncoder } from '../internal/auth/encoding/AuthProofEncoder.js';
+import { CredentialsSession } from '../internal/auth/session/ConnectSession.js';
 import { parseConnectCredentials } from '../internal/validators/connectOptions.js';
-import { VaultCallPipeline } from '../internal/auth/session/VaultCallPipeline.js';
-import { AuthenticatorCallPipeline } from '../internal/auth/session/AuthenticatorCallPipeline.js';
-import { ConfigureCallPipeline } from '../internal/auth/session/ConfigureCallPipeline.js';
-import { SCOPE_ALL, SCOPE_SIGN_ALL } from '../internal/auth/apiKeySession/constants.js';
+import { KeyVaultAuthPipeline } from '../internal/auth/pipelines/KeyVaultAuthPipeline.js';
+import { ExplicitAuthPipeline } from '../internal/auth/pipelines/ExplicitAuthPipeline.js';
+import { AuthConfigPipeline } from '../internal/auth/pipelines/AuthConfigPipeline.js';
+import { SCOPE_ALL, SCOPE_SIGN_ALL } from '../internal/auth/specs/apiKeySession.js';
 import { monsteraRecipeMethods } from './domains/MonsteraRecipes.js';
 import { monsteraSessionMethods } from './domains/MonsteraSession.js';
 import { monsteraAuthMethods } from './domains/MonsteraAuth.js';
@@ -52,11 +52,11 @@ import { monsteraSigningMethods } from './domains/MonsteraSigning.js';
  * @property {KeyVaultClient} keyVault - KeyVault client
  * @property {AuthenticatorClient} auth - Authenticator client
  * @property {CredentialsSession | null} _credentialsSession - End-user credentials session, if connected with credentials
- * @property {AuthProofPipeline} _authProofPipeline - Auth-proof encoding pipeline
- * @property {VaultCallPipeline} _vaultPipeline - Vault-authenticated write pipeline
- * @property {AuthenticatorCallPipeline} _authenticatorPipeline - Authenticator management write pipeline
- * @property {ConfigureCallPipeline} _configurePipeline - Authenticator configure pipeline
- * @property {EncodeAuthConfig} _encodeAuthConfig - Auth config encoder
+ * @property {AuthProofEncoder} _authProofEncoder - Auth-proof encoding
+ * @property {KeyVaultAuthPipeline} _keyVaultAuthPipeline - Vault-authenticated write pipeline
+ * @property {ExplicitAuthPipeline} _explicitAuthPipeline - Authenticator management write pipeline
+ * @property {AuthConfigPipeline} _authConfigPipeline - Authenticator configure pipeline
+ * @property {AuthConfigEncoder} _authConfigEncoder - Auth config encoder
  */
 class Monstera {
   constructor(config) {
@@ -96,31 +96,31 @@ class Monstera {
         })
       : null;
 
-    /** @type {AuthProofPipeline} */
-    this._authProofPipeline = new AuthProofPipeline({
+    /** @type {AuthProofEncoder} */
+    this._authProofEncoder = new AuthProofEncoder({
       config: resolvedConfig,
       readProvider: this.readProvider,
       getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
     });
 
-    /** @type {VaultCallPipeline} */
-    this._vaultPipeline = new VaultCallPipeline({
+    /** @type {KeyVaultAuthPipeline} */
+    this._keyVaultAuthPipeline = new KeyVaultAuthPipeline({
       credentialsSession: this._credentialsSession,
-      authProofPipeline: this._authProofPipeline
+      authProofEncoder: this._authProofEncoder
     });
 
-    /** @type {AuthenticatorCallPipeline} */
-    this._authenticatorPipeline = new AuthenticatorCallPipeline({
+    /** @type {ExplicitAuthPipeline} */
+    this._explicitAuthPipeline = new ExplicitAuthPipeline({
       credentialsSession: this._credentialsSession,
-      authProofPipeline: this._authProofPipeline
+      authProofEncoder: this._authProofEncoder
     });
-    /** @type {EncodeAuthConfig} */
-    this._encodeAuthConfig = new EncodeAuthConfig({ addresses: resolvedConfig.addresses });
+    /** @type {AuthConfigEncoder} */
+    this._authConfigEncoder = new AuthConfigEncoder({ addresses: resolvedConfig.addresses });
     
-    /** @type {ConfigureCallPipeline} */
-    this._configurePipeline = new ConfigureCallPipeline({
-      vaultPipeline: this._vaultPipeline,
-      encodeAuthConfig: this._encodeAuthConfig
+    /** @type {AuthConfigPipeline} */
+    this._authConfigPipeline = new AuthConfigPipeline({
+      keyVaultAuthPipeline: this._keyVaultAuthPipeline,
+      authConfigEncoder: this._authConfigEncoder
     });
 
     // Check version in background only when explicitly enabled.

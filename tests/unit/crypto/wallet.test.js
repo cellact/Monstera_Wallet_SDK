@@ -17,16 +17,17 @@ import {
   INVALID_ADDRESS
 } from '../../utils/fixtures.js';
 import { getTestConfig } from '../../utils/setup.js';
+import { generateMnemonic, deriveSeed } from '../../../src/internal/crypto/mnemonic.js';
 import {
-  generateMnemonic,
-  deriveSeed,
   createAuthProofWalletSignature,
-  createWalletSigAuthConfig,
-  createDualFactorAuthConfig,
   createAuthProofMinuteSignature,
-  createAuthProofDualFactor,
-  computeParamsHash
-} from '../../../src/internal/crypto/index.js';
+  createAuthProofDualFactor
+} from '../../../src/internal/auth/encoding/createAuthProof.js';
+import {
+  createWalletSigAuthConfig,
+  createDualFactorAuthConfig
+} from '../../../src/internal/auth/encoding/authConfigBytes.js';
+import { computeParamsHash } from '../../../src/internal/auth/actionContext.js';
 import { createTestVaultSignAction } from '../../utils/fixtures.js';
 import { floorTimestampToMinuteBucket, nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 import { NetworkError } from '../../../src/errors/index.js';

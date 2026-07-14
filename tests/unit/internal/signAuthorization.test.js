@@ -7,7 +7,7 @@ import { defaultAbiCoder } from '../../../src/adapters/ethers/encoding.js';
 import {
   executeSignAuthorization,
   resolveSignAuthorizationInputs
-} from '../../../src/internal/vault/signAuthorization.js';
+} from '../../../src/internal/vault/signEip7702Authorization.js';
 import { buildExecuteWithAuthAction } from '../../../src/internal/vault/actions/keyVault.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 
@@ -49,7 +49,7 @@ describe('signAuthorization resolution', () => {
   test('resolveSignAuthorizationInputs resolves keyVaultAddr from credentials session', async () => {
     const sessionKeyVault = '0x' + '99'.repeat(20);
     const credentialsSession = {
-      applyToOptions: async (options) => ({
+      mergeSessionDefaults: async (options) => ({
         ...options,
         keyVaultAddr: sessionKeyVault
       })

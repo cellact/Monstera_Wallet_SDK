@@ -181,7 +181,7 @@
  */
 
 /**
- * One entry in {@link createAuthProofEncoderRegistry} (async encoder for a fixed built-in authenticator).
+ * One entry in {@link createBuiltinAuthenticatorRegistry} (async encoder for a fixed built-in authenticator).
  *
  * @typedef {Object} KeyVaultAuthProofEncoder
  * @property {string} id - Encoder identifier (logging / diagnostics)

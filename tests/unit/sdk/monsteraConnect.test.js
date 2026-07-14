@@ -52,7 +52,7 @@ describe('Monstera.connect', () => {
       checkVersion: false
     });
 
-    const resolved = await sdk._vaultPipeline.resolveVaultOptions({
+    const resolved = await sdk._keyVaultAuthPipeline.mergeVaultOptions({
       keyVaultAddr: VALID_TEST_ADDRESS
     });
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
@@ -93,7 +93,7 @@ describe('Monstera.connect', () => {
     });
     attachTestCredentialsSession(sdk);
 
-    const resolved = await sdk._vaultPipeline.resolveVaultOptions({});
+    const resolved = await sdk._keyVaultAuthPipeline.mergeVaultOptions({});
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
     expect(resolved.index).toBeUndefined();
   });
@@ -106,7 +106,7 @@ describe('Monstera.connect', () => {
     });
     attachTestCredentialsSession(sdk);
 
-    const resolved = await sdk._vaultPipeline.resolveVaultOptions({
+    const resolved = await sdk._keyVaultAuthPipeline.mergeVaultOptions({
       passwordHash: '0x' + '11'.repeat(32)
     });
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);

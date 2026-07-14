@@ -1,10 +1,10 @@
 /**
- * Unit tests for {@link AuthenticatorCallPipeline}.
+ * Unit tests for {@link ExplicitAuthPipeline}.
  */
 
 import { describe, test, expect } from '@jest/globals';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
-import { AuthenticatorCallPipeline } from '../../../src/internal/auth/session/AuthenticatorCallPipeline.js';
+import { ExplicitAuthPipeline } from '../../../src/internal/auth/pipelines/ExplicitAuthPipeline.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 
 const PASSWORD_BYTES = toUtf8Bytes('pw');
@@ -12,13 +12,20 @@ const PASSWORD_HASH = keccak256(PASSWORD_BYTES);
 const NEW_PASSWORD_HASH = keccak256(toUtf8Bytes('new-pw'));
 const AUTHENTICATOR_ADDR = '0x' + 'aa'.repeat(20);
 
-function createMockAuthProofPipeline() {
+function createMockAuthProofEncoder() {
   return {
     resolveByFlowId: (flowId) => ({
       authenticatorAddr: AUTHENTICATOR_ADDR,
-      spec: { flowId }
+      spec: {
+        flowId,
+        mapSessionResolved: (resolved, authenticatorAddr) => ({
+          keyVaultAddr: resolved.keyVaultAddr,
+          authenticatorAddr,
+          password: resolved.currentPassword ?? resolved.password
+        })
+      }
     }),
-    prepare: async (flowId, options) => ({
+    encodeForFlow: async (flowId, options) => ({
       authProof: `proof:${flowId}:${options.password ? 'password' : 'other'}`
     })
   };
@@ -26,7 +33,7 @@ function createMockAuthProofPipeline() {
 
 function createMockSession() {
   return {
-    applyToOptions: async (options) => ({
+    mergeSessionDefaults: async (options) => ({
       ...options,
       keyVaultAddr: options.keyVaultAddr ?? VALID_TEST_ADDRESS,
       currentPassword: options.currentPassword ?? PASSWORD_BYTES
@@ -36,11 +43,11 @@ function createMockSession() {
   };
 }
 
-describe('AuthenticatorCallPipeline', () => {
+describe('ExplicitAuthPipeline', () => {
   test('encodeAuthProof resolves flow and prepares proof without buildAction', async () => {
-    const pipeline = new AuthenticatorCallPipeline({
+    const pipeline = new ExplicitAuthPipeline({
       credentialsSession: createMockSession(),
-      authProofPipeline: createMockAuthProofPipeline()
+      authProofEncoder: createMockAuthProofEncoder()
     });
 
     const encoded = await pipeline.encodeAuthProof(
@@ -55,9 +62,9 @@ describe('AuthenticatorCallPipeline', () => {
   });
 
   test('invokeWithAuthProof delegates to encodeAuthProof then invokes client', async () => {
-    const pipeline = new AuthenticatorCallPipeline({
+    const pipeline = new ExplicitAuthPipeline({
       credentialsSession: createMockSession(),
-      authProofPipeline: createMockAuthProofPipeline()
+      authProofEncoder: createMockAuthProofEncoder()
     });
 
     const result = await pipeline.invokeWithAuthProof(
@@ -85,17 +92,23 @@ describe('AuthenticatorCallPipeline', () => {
 
   test('encodeAuthProof preserves caller-supplied authenticatorAddr', async () => {
     const callerAddr = '0x' + 'cc'.repeat(20);
-    let prepareOptions;
+    let encodeOptions;
 
-    const pipeline = new AuthenticatorCallPipeline({
+    const pipeline = new ExplicitAuthPipeline({
       credentialsSession: createMockSession(),
-      authProofPipeline: {
+      authProofEncoder: {
         resolveByFlowId: (flowId) => ({
           authenticatorAddr: AUTHENTICATOR_ADDR,
-          spec: { flowId }
+          spec: {
+            flowId,
+            mapSessionResolved: (resolved, authenticatorAddr) => ({
+              keyVaultAddr: resolved.keyVaultAddr,
+              authenticatorAddr
+            })
+          }
         }),
-        prepare: async (_flowId, options) => {
-          prepareOptions = options;
+        encodeForFlow: async (_flowId, options) => {
+          encodeOptions = options;
           return { authProof: 'proof' };
         }
       }
@@ -106,16 +119,16 @@ describe('AuthenticatorCallPipeline', () => {
       signer: {}
     });
 
-    expect(prepareOptions.authenticatorAddr).toBe(callerAddr);
+    expect(encodeOptions.authenticatorAddr).toBe(callerAddr);
   });
 
   test('invokeWithAuthProof honors authenticatorAddr override', async () => {
     const overrideAddr = '0x' + 'bb'.repeat(20);
     let capturedTarget;
 
-    const pipeline = new AuthenticatorCallPipeline({
+    const pipeline = new ExplicitAuthPipeline({
       credentialsSession: createMockSession(),
-      authProofPipeline: createMockAuthProofPipeline()
+      authProofEncoder: createMockAuthProofEncoder()
     });
 
     await pipeline.invokeWithAuthProof(

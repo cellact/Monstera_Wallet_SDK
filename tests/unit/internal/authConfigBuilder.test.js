@@ -1,21 +1,21 @@
 /**
- * Offline unit tests for {@link EncodeAuthConfig#encode}.
+ * Unit tests for {@link AuthConfigEncoder#encode}.
  */
 
 import { describe, test, expect } from '@jest/globals';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
-import { EncodeAuthConfig } from '../../../src/internal/auth/config/EncodeAuthConfig.js';
+import { AuthConfigEncoder } from '../../../src/internal/auth/encoding/AuthConfigEncoder.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { ValidationError } from '../../../src/errors/index.js';
 import {
   createDualFactorAuthConfig,
   createWalletSigAuthConfig
-} from '../../../src/internal/crypto/index.js';
+} from '../../../src/internal/auth/encoding/authConfigBytes.js';
 
-describe('EncodeAuthConfig.encode', () => {
+describe('AuthConfigEncoder.encode', () => {
   const network = buildNetworkConfig({ network: 'testnet' });
-  const builder = new EncodeAuthConfig({ addresses: network.addresses });
+  const builder = new AuthConfigEncoder({ addresses: network.addresses });
   const passwordHash = keccak256(toUtf8Bytes('offline-auth-config'));
 
   test('hex string authConfig passes through unchanged', () => {

@@ -12,8 +12,8 @@ import {
   buildExecuteWithAuthAction,
   buildSignWithImportedKeyAction,
   buildSignSolanaAction,
-} from '../../internal/crypto/index.js';
-import { executeSignAuthorization } from '../../internal/vault/signAuthorization.js';
+} from '../../internal/vault/actions/index.js';
+import { executeSignAuthorization } from '../../internal/vault/signEip7702Authorization.js';
 import { defineDomainMethods } from './defineDomainMethods.js';
 
 export const monsteraSigningMethods = defineDomainMethods({
@@ -112,16 +112,16 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @remarks
    * For an authorization targeting a chain different from the SDK's RPC, pass {@code provider} connected to that chain
    * so nonce and chain id stay consistent.
-   * Orchestration lives in {@code internal/crypto/signAuthorization.js}; hashing / verification / encoding helpers in
-   * {@code internal/crypto/authorization.js} (barrel: {@code internal/crypto/index.js}).
+   * Orchestration lives in {@code internal/vault/signEip7702Authorization.js}; hashing / verification / encoding helpers in
+   * {@code internal/vault/eip7702.js}.
    */
   async signAuthorization(options = {}) {
     return executeSignAuthorization(
       {
         keyVault: this.keyVault,
         fallbackProvider: this.readProvider ?? this.writeSigner?.provider ?? null,
-        credentialsSession: this._vaultPipeline.getCredentialsSession(),
-        encodeVaultAuthProof: (opts, buildAction) => this._vaultPipeline.encodeAuthProof(opts, buildAction)
+        credentialsSession: this._keyVaultAuthPipeline.getCredentialsSession(),
+        encodeVaultAuthProof: (opts, buildAction) => this._keyVaultAuthPipeline.encodeAuthProof(opts, buildAction)
       },
       options,
       buildExecuteWithAuthAction

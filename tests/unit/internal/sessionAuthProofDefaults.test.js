@@ -11,7 +11,7 @@ import {
   passwordMinuteSignatureAuthenticator,
   walletSignatureAuthenticator,
   dualFactorAuthenticator
-} from '../../../src/internal/auth/authenticators/registry.js';
+} from '../../../src/internal/auth/specs/registry.js';
 
 const PASSWORD_BYTES = toUtf8Bytes('secret');
 const PASSWORD_HASH = keccak256(PASSWORD_BYTES);

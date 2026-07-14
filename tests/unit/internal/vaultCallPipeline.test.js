@@ -1,19 +1,19 @@
 /**
- * Unit tests for {@link VaultCallPipeline}.
+ * Unit tests for {@link KeyVaultAuthPipeline}.
  */
 
 import { describe, test, expect } from '@jest/globals';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { ValidationError, CredentialsRequiredError } from '../../../src/errors/index.js';
-import { VaultCallPipeline } from '../../../src/internal/auth/session/VaultCallPipeline.js';
+import { KeyVaultAuthPipeline } from '../../../src/internal/auth/pipelines/KeyVaultAuthPipeline.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 
 const PASSWORD_BYTES = toUtf8Bytes('pw');
 const PASSWORD_HASH = keccak256(PASSWORD_BYTES);
 
-function createMockAuthProofPipeline() {
+function createMockAuthProofEncoder() {
   return {
-    encodeVaultCall: async (resolved, session, buildAction) => {
+    encodeForKeyVault: async (resolved, session, buildAction) => {
       const action = buildAction(resolved);
       return {
         ...resolved,
@@ -29,7 +29,7 @@ function createMockAuthProofPipeline() {
 
 function createMockSession() {
   return {
-    applyToOptions: async (options) => ({
+    mergeSessionDefaults: async (options) => ({
       ...options,
       keyVaultAddr: options.keyVaultAddr ?? VALID_TEST_ADDRESS
     }),
@@ -38,39 +38,39 @@ function createMockSession() {
   };
 }
 
-describe('VaultCallPipeline', () => {
+describe('KeyVaultAuthPipeline', () => {
   test('requireUserAccess throws without credentials session', () => {
-    const pipeline = new VaultCallPipeline({
+    const pipeline = new KeyVaultAuthPipeline({
       credentialsSession: null,
-      authProofPipeline: { encodeVaultCall: async (o) => o }
+      authProofEncoder: { encodeForKeyVault: async (o) => o }
     });
 
     expect(() => pipeline.requireUserAccess('test')).toThrow(CredentialsRequiredError);
   });
 
-  test('resolveVaultOptions merges session keyVaultAddr', async () => {
-    const pipeline = new VaultCallPipeline({
+  test('mergeVaultOptions merges session keyVaultAddr', async () => {
+    const pipeline = new KeyVaultAuthPipeline({
       credentialsSession: {
-        applyToOptions: async (options) => ({
+        mergeSessionDefaults: async (options) => ({
           ...options,
           keyVaultAddr: options.keyVaultAddr ?? VALID_TEST_ADDRESS
         })
       },
-      authProofPipeline: { encodeVaultCall: async (o) => o }
+      authProofEncoder: { encodeForKeyVault: async (o) => o }
     });
 
-    const resolved = await pipeline.resolveVaultOptions({});
+    const resolved = await pipeline.mergeVaultOptions({});
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
     expect(resolved.index).toBeUndefined();
   });
 
-  test('resolveVaultOptions passes through explicit keyVaultAddr without credentials session', async () => {
-    const pipeline = new VaultCallPipeline({
+  test('mergeVaultOptions passes through explicit keyVaultAddr without credentials session', async () => {
+    const pipeline = new KeyVaultAuthPipeline({
       credentialsSession: null,
-      authProofPipeline: { encodeVaultCall: async (o) => o }
+      authProofEncoder: { encodeForKeyVault: async (o) => o }
     });
 
-    const resolved = await pipeline.resolveVaultOptions({
+    const resolved = await pipeline.mergeVaultOptions({
       keyVaultAddr: VALID_TEST_ADDRESS,
       index: 2
     });
@@ -78,19 +78,19 @@ describe('VaultCallPipeline', () => {
     expect(resolved.index).toBe(2);
   });
 
-  test('resolveVaultOptions throws without credentials or keyVaultAddr', async () => {
-    const pipeline = new VaultCallPipeline({
+  test('mergeVaultOptions throws without credentials or keyVaultAddr', async () => {
+    const pipeline = new KeyVaultAuthPipeline({
       credentialsSession: null,
-      authProofPipeline: { encodeVaultCall: async (o) => o }
+      authProofEncoder: { encodeForKeyVault: async (o) => o }
     });
 
-    await expect(pipeline.resolveVaultOptions({})).rejects.toThrow(CredentialsRequiredError);
+    await expect(pipeline.mergeVaultOptions({})).rejects.toThrow(CredentialsRequiredError);
   });
 
-  test('encodeAuthProof delegates to auth proof pipeline', async () => {
-    const pipeline = new VaultCallPipeline({
+  test('encodeAuthProof delegates to auth proof encoder', async () => {
+    const pipeline = new KeyVaultAuthPipeline({
       credentialsSession: createMockSession(),
-      authProofPipeline: createMockAuthProofPipeline()
+      authProofEncoder: createMockAuthProofEncoder()
     });
 
     const encoded = await pipeline.encodeAuthProof({}, () => ({
@@ -110,9 +110,9 @@ describe('VaultCallPipeline', () => {
   });
 
   test('encodeAuthProof preserves explicit index', async () => {
-    const pipeline = new VaultCallPipeline({
+    const pipeline = new KeyVaultAuthPipeline({
       credentialsSession: createMockSession(),
-      authProofPipeline: createMockAuthProofPipeline()
+      authProofEncoder: createMockAuthProofEncoder()
     });
 
     const encoded = await pipeline.encodeAuthProof({ index: 3 }, () => ({

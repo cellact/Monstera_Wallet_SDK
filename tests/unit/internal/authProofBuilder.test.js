@@ -1,25 +1,25 @@
 /**
- * Unit tests for {@link AuthProofPipeline.prototype.encode} branches.
+ * Unit tests for {@link AuthProofEncoder.prototype.encode} branches.
  */
 
 import { describe, test, expect } from '@jest/globals';
 import { Wallet } from '../../../src/adapters/ethers/index.js';
 import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js';
 import { createTestVaultSignAction } from '../../utils/fixtures.js';
-import { AuthProofPipeline } from '../../../src/internal/auth/proof/AuthProofPipeline.js';
+import { AuthProofEncoder } from '../../../src/internal/auth/encoding/AuthProofEncoder.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
 import { ValidationError, NetworkError } from '../../../src/errors/index.js';
 import { nowUnixTimestampSeconds } from '../../../src/internal/utils/time.js';
 
-describe('AuthProofPipeline.encode', () => {
+describe('AuthProofEncoder.encode', () => {
   const network = buildNetworkConfig({ network: 'testnet' });
 
   /**
    * @param {(keyVaultAddr: string) => Promise<string>} getAuthenticatorAddr
    */
   function makePipeline(getAuthenticatorAddr) {
-    return new AuthProofPipeline({
+    return new AuthProofEncoder({
       config: network,
       readProvider: /** @type {import('../../../src/types/index.js').EthersAbstractProvider} */ ({}),
       getAuthenticatorAddr
@@ -62,7 +62,7 @@ describe('AuthProofPipeline.encode', () => {
 
   test('encodes structured password authProof via registry', async () => {
     const actionHash = keccak256(toUtf8Bytes('password-unit-action-hash'));
-    const pipeline = new AuthProofPipeline({
+    const pipeline = new AuthProofEncoder({
       config: network,
       readProvider: {
         call: async () => actionHash
@@ -106,7 +106,7 @@ describe('AuthProofPipeline.encode', () => {
     const actionHash = keccak256(toUtf8Bytes('wallet-signature-unit-action-hash'));
     const signer = Wallet.createRandom();
     const deadline = nowUnixTimestampSeconds() + 7200;
-    const pipeline = new AuthProofPipeline({
+    const pipeline = new AuthProofEncoder({
       config: network,
       readProvider: {
         call: async () => actionHash
@@ -130,7 +130,7 @@ describe('AuthProofPipeline.encode', () => {
       getBlock: async () => ({ timestamp: Math.floor(Date.now() / 1000) }),
       call: async () => actionHash
     };
-    const pipeline = new AuthProofPipeline({
+    const pipeline = new AuthProofEncoder({
       config: network,
       readProvider,
       getAuthenticatorAddr: async () => network.addresses.dualFactorAuth
@@ -149,7 +149,7 @@ describe('AuthProofPipeline.encode', () => {
   });
 });
 
-describe('AuthProofPipeline.encodeVaultCall', () => {
+describe('AuthProofEncoder.encodeForKeyVault', () => {
   const network = buildNetworkConfig({ network: 'testnet' });
   const actionHash = keccak256(toUtf8Bytes('vault-call-session-action-hash'));
 
@@ -161,7 +161,7 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
   }
 
   function makePipeline() {
-    return new AuthProofPipeline({
+    return new AuthProofEncoder({
       config: network,
       readProvider: {
         call: async () => actionHash
@@ -172,7 +172,7 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
 
   test('encodes proof from session when authProof is omitted', async () => {
     const pipeline = makePipeline();
-    const out = await pipeline.encodeVaultCall(
+    const out = await pipeline.encodeForKeyVault(
       { keyVaultAddr: VALID_TEST_ADDRESS, index: 0, message: toUtf8Bytes('hello') },
       mockSession(),
       () => createTestVaultSignAction()
@@ -186,7 +186,7 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
     const pipeline = makePipeline();
     const hex = '0xabcd';
     const opts = { keyVaultAddr: VALID_TEST_ADDRESS, authProof: hex };
-    const out = await pipeline.encodeVaultCall(opts, mockSession(), () => createTestVaultSignAction());
+    const out = await pipeline.encodeForKeyVault(opts, mockSession(), () => createTestVaultSignAction());
     expect(out).toBe(opts);
     expect(out.authProof).toBe(hex);
   });
@@ -194,7 +194,7 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
   test('uses explicit authProof fields over session defaults', async () => {
     const pipeline = makePipeline();
     const customPassword = toUtf8Bytes('explicit-password');
-    const out = await pipeline.encodeVaultCall(
+    const out = await pipeline.encodeForKeyVault(
       {
         keyVaultAddr: VALID_TEST_ADDRESS,
         authProof: { password: customPassword },
@@ -210,7 +210,7 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
   });
 
   test('encodes minute-signature proof from session when authProof is omitted', async () => {
-    const pipeline = new AuthProofPipeline({
+    const pipeline = new AuthProofEncoder({
       config: network,
       readProvider: {
         call: async () => actionHash,
@@ -219,7 +219,7 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
       getAuthenticatorAddr: async () => network.addresses.passwordMinuteSignatureAuth
     });
 
-    const out = await pipeline.encodeVaultCall(
+    const out = await pipeline.encodeForKeyVault(
       { keyVaultAddr: VALID_TEST_ADDRESS, index: 0, message: toUtf8Bytes('hello') },
       mockSession(),
       () => createTestVaultSignAction()
@@ -230,7 +230,7 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
   });
 
   test('minute-signature uses explicit authProof.password instead of session passwordHash', async () => {
-    const pipeline = new AuthProofPipeline({
+    const pipeline = new AuthProofEncoder({
       config: network,
       readProvider: {
         call: async () => actionHash,
@@ -239,12 +239,12 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
       getAuthenticatorAddr: async () => network.addresses.passwordMinuteSignatureAuth
     });
 
-    const fromSession = await pipeline.encodeVaultCall(
+    const fromSession = await pipeline.encodeForKeyVault(
       { keyVaultAddr: VALID_TEST_ADDRESS, index: 0, message: toUtf8Bytes('hello') },
       mockSession(),
       () => createTestVaultSignAction()
     );
-    const fromWrongPassword = await pipeline.encodeVaultCall(
+    const fromWrongPassword = await pipeline.encodeForKeyVault(
       {
         keyVaultAddr: VALID_TEST_ADDRESS,
         authProof: { password: toUtf8Bytes('wrongpassword') }, // could also use authProof: { passwordHash: keccak256(toUtf8Bytes('wrongpassword')) } as SDK will derive the passwordHash from the password
@@ -261,7 +261,7 @@ describe('AuthProofPipeline.encodeVaultCall', () => {
   test('throws when authProof omitted and no session can supply input', async () => {
     const pipeline = makePipeline();
     await expect(
-      pipeline.encodeVaultCall(
+      pipeline.encodeForKeyVault(
         { keyVaultAddr: VALID_TEST_ADDRESS, index: 0, message: toUtf8Bytes('hello') },
         null,
         () => createTestVaultSignAction()

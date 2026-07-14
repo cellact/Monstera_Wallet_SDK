@@ -1,5 +1,5 @@
 import { describe, test, expect } from '@jest/globals';
-import { resolveChildAddr } from '../../../src/internal/auth/authenticators/resolveChild.js';
+import { resolveChildAddr } from '../../../src/internal/auth/specs/multiChildResolver.js';
 import { DEFAULT_ADDRESSES } from '../../../src/config/networks.js';
 
 const addresses = DEFAULT_ADDRESSES.testnet;

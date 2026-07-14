@@ -41,7 +41,7 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @returns {boolean},
    */
   hasCredentials() {
-    return this._vaultPipeline.hasCredentials();
+    return this._keyVaultAuthPipeline.hasCredentials();
   },
 
   /**
@@ -59,7 +59,7 @@ export const monsteraSessionMethods = defineDomainMethods({
 
     return {
       ...options,
-      walletAddr: await this._vaultPipeline.getCredentialsSession().getWalletAddr()
+      walletAddr: await this._keyVaultAuthPipeline.getCredentialsSession().getWalletAddr()
     };
   },
 
@@ -76,7 +76,7 @@ export const monsteraSessionMethods = defineDomainMethods({
       return options;
     }
 
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options);
+    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options);
     return { ...options, ...resolved, walletOrKeyVaultAddr: resolved.keyVaultAddr };
   },
 
@@ -86,11 +86,11 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @private
    * @async
    * @param {Record<string, unknown>} [options={}]
-   * @param {import('../../internal/auth/session/CredentialsSession.js').ResolveVaultOptionsFlags} [flags]
+   * @param {import('../../internal/auth/session/ConnectSession.js').ResolveVaultOptionsFlags} [flags]
    * @returns {Promise<Record<string, unknown>>},
    */
   async _resolveApiKeySessionProofOptions(options = {}, flags = { defaultApiKeySecret: true }) {
-    const resolved = await this._vaultPipeline.resolveVaultOptions(options, flags);
+    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options, flags);
     return {
       ...resolved,
       chainId: this.config.chainId
@@ -107,15 +107,15 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getSessionWalletAddr() {
-    this._vaultPipeline.requireUserAccess('getSessionWalletAddr');
-    return this._vaultPipeline.getCredentialsSession().getWalletAddr();
+    this._keyVaultAuthPipeline.requireUserAccess('getSessionWalletAddr');
+    return this._keyVaultAuthPipeline.getCredentialsSession().getWalletAddr();
   },
 
   /**
    * Resolve the cached KeyVault address for the connect-time username.
    *
    * Uses the same {@link CredentialsSession} → {@link WalletFactoryClient#getKeyVaultAddr} path as
-   * vault-scoped facade methods ({@link VaultCallPipeline#resolveVaultOptions}).
+   * vault-scoped facade methods ({@link KeyVaultAuthPipeline#mergeVaultOptions}).
    *
    * @public
    * @async
@@ -126,7 +126,7 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getSessionKeyVaultAddr() {
-    const { keyVaultAddr } = await this._vaultPipeline.resolveVaultOptions({});
+    const { keyVaultAddr } = await this._keyVaultAuthPipeline.mergeVaultOptions({});
     return keyVaultAddr;
   },
 

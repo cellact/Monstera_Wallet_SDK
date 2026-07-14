@@ -76,12 +76,12 @@ This SDK is a **facade + clients + pipelines** system, not a service/repository 
 | Facade | `src/sdk/Monstera.js` | Session merge, option resolution, delegate to pipelines/clients |
 | Clients | `src/clients/*` | Contract RPC reads/writes via `BaseContractClient` |
 | Pipelines | `src/base/ExecutionPipeline.js`, `src/internal/auth/**` | Error translation, auth-proof encoding, vault/authenticator orchestration |
-| Action builders | `src/internal/vault/actions/`, `src/internal/auth/context/actions/` | `selector` + `paramsHash` for on-chain auth context |
+| Action builders | `src/internal/vault/actions/`, `src/internal/auth/actions/` | `selector` + `paramsHash` for on-chain auth context |
 | Internals | `src/internal/` | Crypto, validation, sanitization — not public exports |
 
 **Rules:**
 - New contract methods: add to the **client first**, then expose on `Monstera` only if end-users need it.
-- Authenticated writes: use `VaultCallPipeline.invokeWithAuthProof` or `AuthenticatorCallPipeline` — do not reimplement auth encoding in `Monstera`.
+- Authenticated writes: use `KeyVaultAuthPipeline.invokeWithAuthProof` or `ExplicitAuthPipeline` — do not reimplement auth encoding in `Monstera`.
 - Do not add `try/catch` to `Monstera` or clients; errors flow through `ExecutionPipeline` → `sdkErrorPipeline`.
 - One operation = one action builder. Do not duplicate `selector`/`paramsHash` logic across layers.
 - Validation belongs at the **client boundary** (`internal/assert.js`). Avoid re-validating the same fields in both `Monstera` and the client.
@@ -90,7 +90,7 @@ This SDK is a **facade + clients + pipelines** system, not a service/repository 
 
 | Kind | Convention | Example |
 |------|------------|---------|
-| Classes | PascalCase | `KeyVaultClient`, `AuthProofPipeline` |
+| Classes | PascalCase | `KeyVaultClient`, `AuthProofEncoder` |
 | Functions / methods | camelCase, verb-first | `buildSignAction`, `encodeAuthProof` |
 | Constants | UPPER_SNAKE_CASE | `SCOPE_ALL`, `KEYVAULT_ABI` |
 | Files (classes) | PascalCase matching export | `KeyVaultClient.js` |
@@ -98,7 +98,7 @@ This SDK is a **facade + clients + pipelines** system, not a service/repository 
 | Action builders | `build*Action` | `buildUpgradeImplementationAction` |
 | Booleans | `is*`, `has*`, `can*` | `hasCredentials`, `isPreEncodedAuthProof` |
 
-Name for **what** it does, not **how**: `resolveVaultOptions`, not `handleVaultStuff`.
+Name for **what** it does, not **how**: `mergeVaultOptions`, not `handleVaultStuff`.
 
 ## 7. Error Handling — Fail Loud
 

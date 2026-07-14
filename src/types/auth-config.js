@@ -118,13 +118,13 @@
 
 /**
  * Password-hash-only authenticator config for PasswordAuthenticator at creation (contract expects bytes32).
- * @see {@link module:internal/auth/authenticators/password.js} {@code passwordAuthenticator.configEncoder}
+ * @see {@link module:internal/auth/specs/password.js} {@code passwordAuthenticator.configEncoder}
  * @typedef {Bytes32} EncodedAuthConfigPassword
  */
 
 /**
  * Alias of {@link EncodedAuthConfigPassword} for PasswordMinuteSignatureAuthenticator create-wallet encoding (same bytes32 on-chain).
- * @see {@link module:internal/auth/authenticators/passwordMinuteSignature.js} {@code passwordMinuteSignatureAuthenticator.configEncoder}
+ * @see {@link module:internal/auth/specs/passwordMinuteSignature.js} {@code passwordMinuteSignatureAuthenticator.configEncoder}
  * @typedef {EncodedAuthConfigPassword} EncodedAuthConfigPasswordMinuteSignature
  */
 

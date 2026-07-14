@@ -27,9 +27,9 @@ export {
   verifyAuthorization,
   fetchAuthorizationChainId,
   fetchAuthorizationNonce,
-  createImplCall,
+  encodeSignAuthorizationImplCalldata,
   toChecksumAddress,
   decodeSignAuthorizationResult,
   finalizeSignedAuthorizationResult
-} from './authorization.js';
-export { executeSignAuthorization, resolveSignAuthorizationInputs } from './signAuthorization.js';
+} from './eip7702.js';
+export { executeSignAuthorization, resolveSignAuthorizationInputs } from './signEip7702Authorization.js';
