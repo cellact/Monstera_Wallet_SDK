@@ -6,7 +6,7 @@
  * {@code IAuthenticator.verify} with {@code paramsHash = bytes32(0)} and
  * {@code target = authenticatorAddr}.
  *
- * @module internal/auth/actions/verifyProbe
+ * @module internal/auth/probes/verifyProbe
  */
 
 import { I_AUTHENTICATOR_ABI } from '../../../contracts/abi/interfaces/iAuthenticator.js';

@@ -3,7 +3,7 @@ import {
   buildAuthenticatorVerifyProbeAction,
   getVerifySelector,
   VERIFY_PROBE_PARAMS_HASH
-} from '../../../src/internal/auth/actions/verifyProbe.js';
+} from '../../../src/internal/auth/probes/verifyProbe.js';
 import { getSelector } from '../../../src/internal/vault/getSelector.js';
 import { PASSWORD_AUTHENTICATOR_ABI } from '../../../src/contracts/abi/authenticators/passwordAuthenticator.js';
 import { WALLET_SIGNATURE_AUTHENTICATOR_ABI } from '../../../src/contracts/abi/authenticators/walletSignatureAuthenticator.js';

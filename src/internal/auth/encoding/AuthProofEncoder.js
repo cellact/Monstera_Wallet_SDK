@@ -18,7 +18,7 @@ import {
   buildAuthContext,
   resolveActionHash
 } from '../actionContext.js';
-import { buildAuthenticatorVerifyProbeAction } from '../actions/verifyProbe.js';
+import { buildAuthenticatorVerifyProbeAction } from '../probes/verifyProbe.js';
 import { createBuiltinAuthenticatorRegistry } from '../specs/registry.js';
 import {
   logAuthProofEncoded,

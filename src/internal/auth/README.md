@@ -13,6 +13,7 @@ encoding/         AuthProofEncoder, AuthConfigEncoder, createAuthProof, authConf
     ↓
 specs/            BuiltinAuthenticatorSpec plugins (one file per built-in auth)
 actions/          On-chain management action builders (selector + paramsHash)
+probes/           Cross-authenticator verify probe actions
 ```
 
 Root-level helpers: `actionContext.js`, `registryByChecksumAddress.js`, `pipelineLog.js`.

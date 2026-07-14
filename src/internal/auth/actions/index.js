@@ -25,8 +25,3 @@ export {
   buildPasswordOrWalletRemoveFromWhitelistAction,
   buildPasswordOrWalletAddToWhitelistWithProofAction,
 } from './passwordOrWalletSignature.js';
-export {
-  buildAuthenticatorVerifyProbeAction,
-  getVerifySelector,
-  VERIFY_PROBE_PARAMS_HASH
-} from './verifyProbe.js';

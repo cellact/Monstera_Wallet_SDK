@@ -5,6 +5,7 @@
  * @module sdk/domains/MonsteraAuth
  */
 
+import { buildAuthenticatorVerifyProbeAction } from '../../internal/auth/probes/verifyProbe.js';
 import {
   buildChangePasswordAction,
   buildDualFactorChangePasswordAction,
@@ -19,7 +20,6 @@ import {
   buildPasswordOrWalletAddToWhitelistAction,
   buildPasswordOrWalletRemoveFromWhitelistAction,
   buildPasswordOrWalletAddToWhitelistWithProofAction,
-  buildAuthenticatorVerifyProbeAction,
 } from '../../internal/auth/actions/index.js';
 import { createLinkWalletSignature } from '../../internal/auth/encoding/createAuthProof.js';
 import { resolveActionHash } from '../../internal/auth/actionContext.js';
