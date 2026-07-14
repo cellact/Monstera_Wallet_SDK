@@ -198,6 +198,16 @@
  */
 
 // ============================================================================
+// EIP-7702 Authorization
+// ============================================================================
+
+/**
+ * EIP-7702 authorization tuple for hashing / verification (ethers-compatible field names).
+ *
+ * @typedef {{ chainId: bigint, address: Address, nonce: bigint }} AuthorizationTupleInput
+ */
+
+// ============================================================================
 // Version Check Types
 // ============================================================================
 

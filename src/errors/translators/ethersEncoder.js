@@ -6,8 +6,6 @@
  * {@code argumentCount} / {@code expectedArgumentCount} / {@code argument} fields, and a
  * sanitised {@code value} (sensitive arg values like passwords are never copied verbatim).
  *
- * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
- *
  * @module errors/translators/ethersEncoder
  */
 

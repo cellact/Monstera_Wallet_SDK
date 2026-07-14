@@ -6,8 +6,6 @@
  * shape. Defers when {@code authProofType} is set so the {@link signingTranslator} gets the first
  * shot at signing-related failures.
  *
- * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
- *
  * @module errors/translators/network
  */
 

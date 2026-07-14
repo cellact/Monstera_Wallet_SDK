@@ -6,8 +6,6 @@
  * code, and a sanitised copy of the caller's SDK context (with {@code revertInterface} stripped
  * so we don't end up serialising an entire ABI inside an error).
  *
- * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
- *
  * @module errors/translators/fallback
  */
 

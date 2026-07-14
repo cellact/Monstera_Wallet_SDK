@@ -8,8 +8,6 @@
  * - ABI encoding failures → {@link ValidationError} on {@code authProof}
  * - Anything else → generic {@link WalletError} with code {@code "UNKNOWN_ERROR"}
  *
- * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
- *
  * @module errors/translators/signing
  */
 

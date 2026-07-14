@@ -3,7 +3,6 @@
  *
  * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
  * @typedef {import('../encoding/AuthProofEncoder.js').AuthProofEncoder} AuthProofEncoder
- * @typedef {import('../session/ConnectSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
  *
  * @module internal/auth/pipelines/KeyVaultAuthPipeline
  */

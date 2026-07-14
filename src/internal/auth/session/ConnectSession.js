@@ -15,21 +15,6 @@ import { requireNormalizedUsername } from '../../validation/assert.js';
 export { parseConnectCredentials } from '../../validators/connectOptions.js';
 
 /**
- * Factory lookups required to resolve a username to on-chain wallet addresses.
- *
- * @typedef {Object} ConnectSessionDeps
- * @property {(options: { username: string }) => Promise<Bytes32>} hashUsername
- * @property {(options: { usernameHash: Bytes32 }) => Promise<Address>} walletOfUsername
- * @property {(options: { walletAddr: Address }) => Promise<Address>} getKeyVaultAddr
- */
-
-/**
- * @typedef {Object} ResolveVaultOptionsFlags
- * @property {boolean} [defaultCurrentPassword=false] - Inject {@code currentPassword} from the session password
- * @property {boolean} [defaultApiKeySecret=false] - Inject {@code apiKeySecret} from the session API key
- */
-
-/**
  * @public
  */
 export class ConnectSession {

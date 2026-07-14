@@ -5,8 +5,6 @@
  * Public helpers ({@link extractRpcRevertBytes}, {@link decodeCustomError}) are reused outside
  * the pipeline by {@code ExecutionPipeline} when it pre-decodes mined-transaction reverts.
  *
- * @typedef {import('../pipeline.js').ErrorTranslationContext} ErrorTranslationContext
- *
  * @module errors/translators/revert
  */
 

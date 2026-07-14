@@ -10,8 +10,6 @@
  * 5. Call {@code KeyVaultClient.executeWithAuth} with the encoded auth proof
  * 6. Decode the {@code (r, s, yParity)} return blob and assemble the public result
  *
- * @typedef {import('../../clients/keyVault/KeyVaultClient.js').default} KeyVaultClient
- *
  * @module internal/vault/signEip7702Authorization
  */
 
@@ -27,24 +25,6 @@ import {
 } from './eip7702.js';
 import { withDefaultAccountIndex } from './accountIndex.js';
 import { log } from '../logger.js';
-
-/**
- * Dependency bundle injected from {@code Monstera} (or tests).
- *
- * @description {@code fallbackProvider} should be {@code readProvider ?? writeSigner?.provider}
- * so readonly SDK instances (no signer) still get an RPC connection for chain id / nonce
- * resolution.
- *
- * @typedef {{
- *   keyVault: KeyVaultClient;
- *   fallbackProvider: EthersAbstractProvider | null;
- *   connectSession: import('../auth/session/ConnectSession.js').ConnectSession | null;
- *   encodeVaultAuthProof: (
- *     options: SignAuthorizationOptions & { implCall: Bytes },
- *     buildAction: (options: SignAuthorizationOptions & { implCall: Bytes }) => AuthActionInput
- *   ) => Promise<EncodeAuthProofOptionsResult>;
- * }} SignAuthorizationDeps
- */
 
 /**
  * Validate the caller options and resolve every input needed to call

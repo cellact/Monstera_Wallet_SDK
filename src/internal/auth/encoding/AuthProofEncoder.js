@@ -6,7 +6,6 @@
  * - Explicit proof builders ({@code createAuthProof*}, verify probes, management ops)
  *
  * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
- * @typedef {import('../specs/registry.js').AuthProofFlowId} AuthProofFlowId
  *
  * @module internal/auth/encoding/AuthProofEncoder
  */

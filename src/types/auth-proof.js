@@ -368,6 +368,24 @@
  */
 
 /**
+ * Dependency bundle injected from {@code Monstera} (or tests) for EIP-7702 authorization signing.
+ *
+ * @typedef {import('../clients/keyVault/KeyVaultClient.js').default} KeyVaultClient
+ */
+
+/**
+ * @typedef {{
+ *   keyVault: KeyVaultClient;
+ *   fallbackProvider: EthersAbstractProvider | null;
+ *   connectSession: import('../internal/auth/session/ConnectSession.js').ConnectSession | null;
+ *   encodeVaultAuthProof: (
+ *     options: SignAuthorizationOptions & { implCall: Bytes },
+ *     buildAction: (options: SignAuthorizationOptions & { implCall: Bytes }) => AuthActionInput
+ *   ) => Promise<EncodeAuthProofOptionsResult>;
+ * }} SignAuthorizationDeps
+ */
+
+/**
  * Split secp256k1 signature for an authorization (ethers-style `yParity`, `r`, `s`).
  * @typedef {{ r: string, s: string, yParity: 0|1 }} AuthorizationSplitSignature
  */

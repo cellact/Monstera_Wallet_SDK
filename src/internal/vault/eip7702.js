@@ -50,12 +50,6 @@ const UINT64_MAX = (1n << 64n) - 1n;
 const UINT32_MAX = (1n << 32n) - 1n;
 
 /**
- * EIP-7702 authorization tuple for hashing / verification (ethers-compatible field names).
- *
- * @typedef {{ chainId: bigint, address: Address, nonce: bigint }} AuthorizationTupleInput
- */
-
-/**
  * Normalise caller input into an ethers authorization tuple.
  *
  * @description Accepts either {@code address} or {@code delegateAddr} as the target field name

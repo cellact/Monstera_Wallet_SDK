@@ -8,6 +8,10 @@
 
 // Foundation & connect
 import './connect.js';
+// Error pipeline
+import './errors.js';
+// Sanitization
+import './sanitization.js';
 // Transaction pipeline
 import './transactions.js';
 // Create-wallet auth config
@@ -16,6 +20,8 @@ import './auth-config.js';
 import './factory.js';
 // Auth proof & authenticator management
 import './auth-proof.js';
+// Auth pipeline & recipe descriptors
+import './auth-pipeline.js';
 // KeyVault operations
 import './keyvault.js';
 

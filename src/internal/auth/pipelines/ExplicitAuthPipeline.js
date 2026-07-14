@@ -3,50 +3,12 @@
  *
  * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
  * @typedef {import('../encoding/AuthProofEncoder.js').AuthProofEncoder} AuthProofEncoder
- * @typedef {import('../specs/registry.js').AuthProofFlowId} AuthProofFlowId
- * @typedef {import('../session/ConnectSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
  *
  * @module internal/auth/pipelines/ExplicitAuthPipeline
  */
 
 import { ConnectSession } from '../session/ConnectSession.js';
 import log from '../../logger.js';
-
-/**
- * @typedef {Object} AuthenticatorInvokeOverrides
- * @property {Address} [authenticatorAddr]
- */
-
-/**
- * @typedef {Object} AuthenticatorEncodeConfig
- * @property {ResolveVaultOptionsFlags} [flags]
- * @property {(resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput} [buildAction]
- * @property {AuthProofFlowOptions} [flowOptions]
- * @property {AuthenticatorInvokeOverrides} [overrides]
- */
-
-/**
- * @template T
- * @typedef {AuthenticatorEncodeConfig & {
- *   buildAction: (resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput;
- *   invoke: (ctx: AuthenticatorInvokeContext) => Promise<T>;
- * }} AuthenticatorInvokeConfig
- */
-
-/**
- * @typedef {Record<string, unknown> & {
- *   authProof: Bytes;
- *   authenticatorAddr: Address;
- *   action?: AuthContext | null;
- *   actionHash?: Bytes32;
- *   minuteBucket?: bigint;
- *   derivedAddress?: Address;
- * }} AuthenticatorEncodeResult
- */
-
-/**
- * @typedef {AuthenticatorEncodeResult} AuthenticatorInvokeContext
- */
 
 /**
  * @param {Record<string, unknown>} resolved

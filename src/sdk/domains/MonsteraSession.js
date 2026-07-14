@@ -86,7 +86,7 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @private
    * @async
    * @param {Record<string, unknown>} [options={}]
-   * @param {import('../../internal/auth/session/ConnectSession.js').ResolveVaultOptionsFlags} [flags]
+   * @param {ResolveVaultOptionsFlags} [flags]
    * @returns {Promise<Record<string, unknown>>},
    */
   async _resolveApiKeySessionProofOptions(options = {}, flags = { defaultApiKeySecret: true }) {

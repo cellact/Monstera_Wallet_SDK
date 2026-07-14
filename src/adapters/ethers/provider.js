@@ -5,8 +5,6 @@
  * Sapphire write provider is built separately in {@code src/providers/sapphire.js} but ultimately
  * reuses the same {@code ethers} import surface.
  *
- * @typedef {import('ethers').JsonRpcProvider} JsonRpcProviderType
- *
  * @module adapters/ethers/provider
  */
 

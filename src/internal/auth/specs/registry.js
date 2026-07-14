@@ -29,8 +29,6 @@ export const BUILTIN_AUTHENTICATORS = [
   multiAuthenticator
 ];
 
-/** @typedef {'apiKeySession' | 'password' | 'minuteSignature' | 'walletSignature' | 'dualFactor' | 'passwordOrWalletSignature' | 'multi'} AuthProofFlowId */
-
 /** @type {Map<string, BuiltinAuthenticatorSpec>} */
 const byFlowId = new Map(BUILTIN_AUTHENTICATORS.map((spec) => [spec.flowId, spec]));
 

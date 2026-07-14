@@ -8,12 +8,6 @@
  */
 
 /**
- * Safe serializable stand-in for a redacted validation value.
- *
- * @typedef {{ redacted: true, valueKind: string, valueLength?: number }} RedactedValidationValue
- */
-
-/**
  * Placeholder for sensitive keys in log output (string for readable {@code log.debug} JSON).
  *
  * @private

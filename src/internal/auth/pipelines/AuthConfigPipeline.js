@@ -6,17 +6,8 @@
  *
  * @typedef {import('./KeyVaultAuthPipeline.js').KeyVaultAuthPipeline} KeyVaultAuthPipeline
  * @typedef {import('../encoding/AuthConfigEncoder.js').AuthConfigEncoder} AuthConfigEncoder
- * @typedef {import('../session/ConnectSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
  *
  * @module internal/auth/pipelines/AuthConfigPipeline
- */
-
-/**
- * @typedef {Object} ConfigureCallDescriptor
- * @property {ResolveVaultOptionsFlags} [resolveFlags]
- * @property {Address} authenticatorAddr
- * @property {(resolved: Record<string, unknown>) => AuthConfigInputOptions} buildAuthConfigInput
- * @property {(params: { keyVaultAddr: Address; authConfig: Bytes }) => Promise<unknown>} invoke
  */
 
 /**

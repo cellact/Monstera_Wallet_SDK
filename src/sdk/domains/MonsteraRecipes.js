@@ -13,50 +13,6 @@
 
 import { defineDomainMethods } from './defineDomainMethods.js';
 
-/**
- * @typedef {import('../../internal/auth/specs/registry.js').AuthProofFlowId} AuthProofFlowId
- * @typedef {import('../../internal/auth/session/ConnectSession.js').ResolveVaultOptionsFlags} ResolveVaultOptionsFlags
- * @typedef {import('../../internal/auth/pipelines/ExplicitAuthPipeline.js').AuthenticatorEncodeConfig} AuthenticatorEncodeConfig
- * @typedef {import('../../internal/auth/pipelines/ExplicitAuthPipeline.js').AuthenticatorInvokeContext} AuthenticatorInvokeContext
- * @typedef {import('../../internal/auth/pipelines/ExplicitAuthPipeline.js').AuthenticatorEncodeResult} AuthenticatorEncodeResult
- */
-
-/**
- * @template T
- * @typedef {Object} VaultAuthenticatedCallDescriptor
- * @property {Record<string, unknown>} [options]
- * @property {(resolved: Record<string, unknown>) => AuthActionInput} buildAction
- * @property {(encoded: EncodeAuthProofOptionsResult) => Promise<T>} invoke
- */
-
-/**
- * @template T
- * @typedef {Object} AuthenticatorManagedCallDescriptor
- * @property {AuthProofFlowId} flowId
- * @property {Record<string, unknown>} [options]
- * @property {ResolveVaultOptionsFlags} [flags]
- * @property {(resolved: Record<string, unknown>, authenticatorAddr: Address) => AuthActionInput} buildAction
- * @property {(ctx: AuthenticatorInvokeContext) => Promise<T>} invoke
- * @property {import('../../internal/auth/encoding/AuthProofEncoder.js').AuthProofFlowOptions} [flowOptions]
- * @property {import('../../internal/auth/pipelines/ExplicitAuthPipeline.js').AuthenticatorInvokeOverrides} [overrides]
- */
-
-/**
- * @typedef {Object} AuthenticatorManagedEncodeDescriptor
- * @property {AuthProofFlowId} flowId
- * @property {Record<string, unknown>} [options]
- * @property {AuthenticatorEncodeConfig} [config]
- */
-
-/**
- * @typedef {Object} ConfigureAuthenticatorCallDescriptor
- * @property {Record<string, unknown>} [options]
- * @property {Address} authenticatorAddr
- * @property {ResolveVaultOptionsFlags} [resolveFlags]
- * @property {(resolved: Record<string, unknown>) => AuthConfigInputOptions} buildAuthConfigInput
- * @property {(params: { keyVaultAddr: Address; authConfig: Bytes }) => Promise<unknown>} invoke
- */
-
 export const monsteraRecipeMethods = defineDomainMethods({
   /**
    * Recipe 1: vault-authenticated operation (KeyVault signing, vault admin writes).
