@@ -19,7 +19,8 @@ function buildPasswordOrWalletChangePasswordAction(target, newPasswordHash) {
     'changePassword',
     ['bytes32'],
     [newPasswordHash],
-    target
+    target,
+    ['newPasswordHash']
   );
 }
 
@@ -35,7 +36,8 @@ function buildPasswordOrWalletAddToWhitelistAction(target, addressToAdd) {
     'addToWhitelist',
     ['address'],
     [addressToAdd],
-    target
+    target,
+    ['addressToAdd']
   );
 }
 
@@ -51,7 +53,8 @@ function buildPasswordOrWalletRemoveFromWhitelistAction(target, addressToRemove)
     'removeFromWhitelist',
     ['address'],
     [addressToRemove],
-    target
+    target,
+    ['addressToRemove']
   );
 }
 
@@ -69,7 +72,8 @@ function buildPasswordOrWalletAddToWhitelistWithProofAction(target, newAddress, 
     'addToWhitelistWithProof',
     ['address', 'bytes32', 'uint256'],
     [newAddress, nonce, deadline],
-    target
+    target,
+    ['newAddress', 'nonce', 'deadline']
   );
 }
 

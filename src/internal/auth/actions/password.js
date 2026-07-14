@@ -19,7 +19,8 @@ function buildChangePasswordAction(target, newPasswordHash) {
     'changePassword',
     ['bytes32'],
     [newPasswordHash],
-    target
+    target,
+    ['newPasswordHash']
   );
 }
 

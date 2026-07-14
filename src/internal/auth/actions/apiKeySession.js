@@ -21,7 +21,8 @@ function buildRotateApiKeyAction(target, newApiKeySecret) {
     'rotateApiKey',
     ['bytes32'],
     [newApiKeySecret],
-    target
+    target,
+    ['newApiKeySecret']
   );
 }
 

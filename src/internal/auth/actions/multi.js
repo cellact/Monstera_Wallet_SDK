@@ -23,7 +23,8 @@ function buildAddAuthenticatorAction(target, child, childConfig) {
     'addAuthenticator',
     ['address', 'bytes32'],
     [child, keccak256(childConfig)],
-    target
+    target,
+    ['child', 'childConfig']
   );
 }
 
@@ -41,7 +42,8 @@ function buildRemoveAuthenticatorAction(target, child) {
     'removeAuthenticator',
     ['address'],
     [child],
-    target
+    target,
+    ['child']
   );
 }
 

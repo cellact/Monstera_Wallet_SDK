@@ -67,7 +67,10 @@ describe('Network Configuration - testnet', () => {
                 passwordAuth: '0x34d2426BA65b6d782fE570F08658038974F840b8',
                 walletSignatureAuth: '0xF283b3A7FE88932968D9278e72A27A35CEBBf5eD',
                 dualFactorAuth: '0xBfd22Afcbcf514e3e352372dDDF1526b0c3464D3',
-                passwordMinuteSignatureAuth: '0xBb8b2343e34A26432F59ea8A7c857F003b5e3ccc'
+                passwordMinuteSignatureAuth: '0xBb8b2343e34A26432F59ea8A7c857F003b5e3ccc',
+                apiKeySessionAuth: '0x65124D1C7d11e0D1Ff93828A6ba43D08f09Fd784',
+                multiAuthenticator: '0xB970b92ace7552158CB5929ef527D80d433260e9',
+                passwordOrWalletSigAuth: '0x14bc2090C679f8f481E6b7911B6F00F1436fA785'
             });
             for (const addr of Object.values(DEFAULT_ADDRESSES.testnet)) {
                 expectValidAddress(addr);
@@ -117,7 +120,10 @@ describe('Network Configuration - testnet', () => {
                 passwordAuth: DEFAULT_ADDRESSES.testnet.passwordAuth,
                 walletSignatureAuth: DEFAULT_ADDRESSES.testnet.walletSignatureAuth,
                 dualFactorAuth: DEFAULT_ADDRESSES.testnet.dualFactorAuth,
-                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.testnet.passwordMinuteSignatureAuth
+                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.testnet.passwordMinuteSignatureAuth,
+                apiKeySessionAuth: DEFAULT_ADDRESSES.testnet.apiKeySessionAuth,
+                multiAuthenticator: DEFAULT_ADDRESSES.testnet.multiAuthenticator,
+                passwordOrWalletSigAuth: DEFAULT_ADDRESSES.testnet.passwordOrWalletSigAuth
             });
         });
 
@@ -142,7 +148,10 @@ describe('Network Configuration - testnet', () => {
                 passwordAuth: VALID_TEST_ADDRESS,
                 walletSignatureAuth: VALID_TEST_ADDRESS,
                 dualFactorAuth: VALID_TEST_ADDRESS,
-                passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
+                passwordMinuteSignatureAuth: VALID_TEST_ADDRESS,
+                apiKeySessionAuth: DEFAULT_ADDRESSES.testnet.apiKeySessionAuth,
+                multiAuthenticator: DEFAULT_ADDRESSES.testnet.multiAuthenticator,
+                passwordOrWalletSigAuth: DEFAULT_ADDRESSES.testnet.passwordOrWalletSigAuth
             });
         });
 
@@ -193,7 +202,10 @@ describe('Network Configuration - mainnet', () => {
                 passwordAuth: '0x93c675336372EBb64dA38018bE28d5EA1a8cC26A',
                 walletSignatureAuth: '0xC5AAFBC2e3D7D7674cE317AE0A02bF43f2eD2AA9',
                 dualFactorAuth: '0xB82D5511e43723A377d6e1d9B52Ec31979e56c97',
-                passwordMinuteSignatureAuth: '0x63B0A8E71a91a2Fc4116FAc57B76beAB82d559d3'
+                passwordMinuteSignatureAuth: '0x63B0A8E71a91a2Fc4116FAc57B76beAB82d559d3',
+                apiKeySessionAuth: '0x4cb14250Dbf288dEe12E6Fe0C5F1351E9D211347',
+                multiAuthenticator: '0x3315C78EEf2a79D141Abe16B226Afe948b22702e',
+                passwordOrWalletSigAuth: '0x129a9c6e4D431144d2613e53367a2e8700f48655'
             });
             for (const addr of Object.values(DEFAULT_ADDRESSES.mainnet)) {
                 expectValidAddress(addr);
@@ -235,7 +247,10 @@ describe('Network Configuration - mainnet', () => {
                 passwordAuth: DEFAULT_ADDRESSES.mainnet.passwordAuth,
                 walletSignatureAuth: DEFAULT_ADDRESSES.mainnet.walletSignatureAuth,
                 dualFactorAuth: DEFAULT_ADDRESSES.mainnet.dualFactorAuth,
-                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.mainnet.passwordMinuteSignatureAuth
+                passwordMinuteSignatureAuth: DEFAULT_ADDRESSES.mainnet.passwordMinuteSignatureAuth,
+                apiKeySessionAuth: DEFAULT_ADDRESSES.mainnet.apiKeySessionAuth,
+                multiAuthenticator: DEFAULT_ADDRESSES.mainnet.multiAuthenticator,
+                passwordOrWalletSigAuth: DEFAULT_ADDRESSES.mainnet.passwordOrWalletSigAuth
             });
         });
 
@@ -260,7 +275,10 @@ describe('Network Configuration - mainnet', () => {
                 passwordAuth: VALID_TEST_ADDRESS,
                 walletSignatureAuth: VALID_TEST_ADDRESS,
                 dualFactorAuth: VALID_TEST_ADDRESS,
-                passwordMinuteSignatureAuth: VALID_TEST_ADDRESS
+                passwordMinuteSignatureAuth: VALID_TEST_ADDRESS,
+                apiKeySessionAuth: DEFAULT_ADDRESSES.mainnet.apiKeySessionAuth,
+                multiAuthenticator: DEFAULT_ADDRESSES.mainnet.multiAuthenticator,
+                passwordOrWalletSigAuth: DEFAULT_ADDRESSES.mainnet.passwordOrWalletSigAuth
             });
         });
 

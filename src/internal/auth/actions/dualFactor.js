@@ -19,7 +19,8 @@ function buildChangePasswordAction(target, newPasswordHash) {
     'changePassword',
     ['bytes32'],
     [newPasswordHash],
-    target
+    target,
+    ['newPasswordHash']
   );
 }
 
@@ -35,7 +36,8 @@ function buildChangeGuardianAction(target, newGuardian) {
     'changeGuardian',
     ['address'],
     [newGuardian],
-    target
+    target,
+    ['newGuardian']
   );
 }
 

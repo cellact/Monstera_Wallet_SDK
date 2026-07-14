@@ -19,7 +19,8 @@ function buildAddToWhitelistAction(target, addressToAdd) {
     'addToWhitelist',
     ['address'],
     [addressToAdd],
-    target
+    target,
+    ['addressToAdd']
   );
 }
 
@@ -35,7 +36,8 @@ function buildRemoveFromWhitelistAction(target, addressToRemove) {
     'removeFromWhitelist',
     ['address'],
     [addressToRemove],
-    target
+    target,
+    ['addressToRemove']
   );
 }
 

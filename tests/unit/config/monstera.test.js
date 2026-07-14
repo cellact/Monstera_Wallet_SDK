@@ -103,18 +103,21 @@ describe('MonsteraConfig', () => {
                 expect(Array.isArray(required)).toBe(true);
             });
 
-            test('should contain factory, passwordAuth, walletSignatureAuth, dualFactorAuth, passwordMinuteSignatureAuth', () => {
+            test('should contain factory, passwordAuth, walletSignatureAuth, dualFactorAuth, passwordMinuteSignatureAuth, apiKeySessionAuth, multiAuthenticator, passwordOrWalletSigAuth', () => {
                 const required = MonsteraConfig.requiredAddresses;
                 expect(required).toContain('factory');
                 expect(required).toContain('passwordAuth');
                 expect(required).toContain('walletSignatureAuth');
                 expect(required).toContain('dualFactorAuth');
                 expect(required).toContain('passwordMinuteSignatureAuth');
+                expect(required).toContain('apiKeySessionAuth');
+                expect(required).toContain('multiAuthenticator');
+                expect(required).toContain('passwordOrWalletSigAuth');
             });
 
-            test('should have exactly 5 required addresses', () => {
+            test('should have exactly 8 required addresses', () => {
                 const required = MonsteraConfig.requiredAddresses;
-                expect(required.length).toBe(5);
+                expect(required.length).toBe(8);
             });
         });
 

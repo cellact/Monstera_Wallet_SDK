@@ -57,7 +57,22 @@ function assertAuthActionInput(action) {
  * @param {Address} target
  * @returns {AuthActionInput}
  */
-function buildManagementAction(abi, functionName, paramTypes, paramValues, target) {
+function validateManagementParams(paramTypes, paramValues, paramNames = []) {
+  for (let i = 0; i < paramTypes.length; i++) {
+    const type = paramTypes[i];
+    const value = paramValues[i];
+    const name = paramNames[i] ?? `param${i}`;
+
+    if (type === 'bytes32') {
+      requireBytes32(value, name);
+    } else if (type === 'address') {
+      requireAddress(value, name);
+    }
+  }
+}
+
+function buildManagementAction(abi, functionName, paramTypes, paramValues, target, paramNames = []) {
+  validateManagementParams(paramTypes, paramValues, paramNames);
   return {
     target,
     selector: getSelector(abi, functionName),
