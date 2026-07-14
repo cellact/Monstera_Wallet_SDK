@@ -19,7 +19,7 @@ Root-level helpers: `actionContext.js`, `registryByChecksumAddress.js`, `pipelin
 
 ## Adding a built-in authenticator
 
-1. Add `specs/<name>.js` — implement `BuiltinAuthenticatorSpec` (see `specs/types.js`)
+1. Add `specs/<name>.js` — implement `BuiltinAuthenticatorSpec` (see `types/auth-proof.js`)
 2. Register in `specs/registry.js` (`BUILTIN_AUTHENTICATORS`)
 3. Add proof helpers in `encoding/createAuthProof.js` (or `encoding/apiKeySessionProof.js` pattern)
 4. Add config helper in `encoding/authConfigBytes.js` if needed

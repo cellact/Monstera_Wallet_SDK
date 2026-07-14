@@ -139,7 +139,7 @@ function mapSessionResolved(resolved, authenticatorAddr) {
   };
 }
 
-/** @type {import('./types.js').BuiltinAuthenticatorSpec} */
+/** @type {BuiltinAuthenticatorSpec} */
 export const passwordOrWalletSignatureAuthenticator = {
   id: 'passwordOrWalletSigAuth',
   flowId: 'passwordOrWalletSignature',

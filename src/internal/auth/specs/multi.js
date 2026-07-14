@@ -146,7 +146,7 @@ export function createMultiConfigEncoder(childRegistry) {
   };
 }
 
-/** @type {import('./types.js').BuiltinAuthenticatorSpec} */
+/** @type {BuiltinAuthenticatorSpec} */
 export const multiAuthenticator = {
   id: 'multiAuthenticator',
   flowId: 'multi',

@@ -1,8 +1,6 @@
 /**
  * Built-in authenticator registry (address, flow id, and encoder lookups).
  *
- * @typedef {import('./types.js').BuiltinAuthenticatorSpec} BuiltinAuthenticatorSpec
- *
  * @module internal/auth/specs/registry
  */
 
@@ -15,7 +13,7 @@ import { apiKeySessionAuthenticator } from './apiKeySession.js';
 import { multiAuthenticator, createMultiConfigEncoder } from './multi.js';
 import { passwordOrWalletSignatureAuthenticator } from './passwordOrWalletSignature.js';
 
-/** @type {readonly import('./types.js').BuiltinAuthenticatorSpec[]} */
+/** @type {readonly BuiltinAuthenticatorSpec[]} */
 const CHILD_AUTHENTICATORS = [
   apiKeySessionAuthenticator,
   passwordAuthenticator,
@@ -25,7 +23,7 @@ const CHILD_AUTHENTICATORS = [
   passwordOrWalletSignatureAuthenticator,
 ];
 
-/** @type {readonly import('./types.js').BuiltinAuthenticatorSpec[]} */
+/** @type {readonly BuiltinAuthenticatorSpec[]} */
 export const BUILTIN_AUTHENTICATORS = [
   ...CHILD_AUTHENTICATORS,
   multiAuthenticator

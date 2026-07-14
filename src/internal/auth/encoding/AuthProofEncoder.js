@@ -7,7 +7,6 @@
  *
  * @typedef {import('../session/ConnectSession.js').ConnectSession} ConnectSession
  * @typedef {import('../specs/registry.js').AuthProofFlowId} AuthProofFlowId
- * @typedef {import('../specs/types.js').BuiltinAuthenticatorSpec} BuiltinAuthenticatorSpec
  *
  * @module internal/auth/encoding/AuthProofEncoder
  */

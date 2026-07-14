@@ -71,7 +71,7 @@ function mapSessionResolved(resolved, authenticatorAddr) {
   };
 }
 
-/** @type {import('./types.js').BuiltinAuthenticatorSpec} */
+/** @type {BuiltinAuthenticatorSpec} */
 export const passwordMinuteSignatureAuthenticator = {
   id: 'passwordMinuteSignatureAuth',
   flowId: 'minuteSignature',

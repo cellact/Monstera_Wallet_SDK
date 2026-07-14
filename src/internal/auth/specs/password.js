@@ -71,7 +71,7 @@ function mapSessionResolved(resolved, authenticatorAddr) {
   };
 }
 
-/** @type {import('./types.js').BuiltinAuthenticatorSpec} */
+/** @type {BuiltinAuthenticatorSpec} */
 export const passwordAuthenticator = {
   id: 'passwordAuth',
   flowId: 'password',
