@@ -271,7 +271,7 @@
 
 /**
  * Union of all **created / on-wire** {@code authProof} payloads for direct contract clients (e.g. {@link KeyVaultClient}).
- * Does not include structured {@link AuthProofInputOptions}; use that in {@link Monstera} (with {@link AuthProofBuilder.prototype.encode}) before calling the client.
+ * Does not include structured {@link AuthProofInputOptions}; use that in {@link Monstera} (with {@link AuthProofEncoder#encodeForKeyVault} / {@link AuthProofEncoder#encodeForFlow}) before calling the client.
  * @typedef {(
  *   | EncodedAuthProofPassword
  *   | EncodedAuthProofWalletSignature
@@ -534,7 +534,7 @@
 // ============================================================================
 
 /**
- * KeyVault-style call options before/after {@link AuthProofBuilder.prototype.encode}. When {@code authProof} is a plain object, {@code keyVaultAddr} is required.
+ * KeyVault-style call options before/after {@link AuthProofEncoder#encodeForKeyVault}. When {@code authProof} is a plain object, {@code keyVaultAddr} is required.
  * @typedef {Record<string, unknown> & {
  *   authProof?: AuthProofInputOptions;
  *   keyVaultAddr?: Address;
@@ -542,7 +542,7 @@
  */
 
 /**
- * Result of {@link AuthProofBuilder.prototype.encode}: same fields as input with {@code authProof} as hex {@link Bytes} or {@link Uint8Array}.
+ * Result of {@link AuthProofEncoder#encodeForKeyVault}: same fields as input with {@code authProof} as hex {@link Bytes} or {@link Uint8Array}.
  * @typedef {Record<string, unknown> & { authProof: Bytes|Uint8Array }} EncodeAuthProofOptionsResult
  */
 
