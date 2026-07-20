@@ -50,7 +50,6 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('WalletSignatureAuthenticator: isConfigured');
     log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
@@ -80,7 +79,6 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, addressToCheck } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(addressToCheck, 'addressToCheck');
-    log.info('WalletSignatureAuthenticator: isWhitelisted');
     log.debug('Checking if address is whitelisted for keyVault', sanitizer.forLog(options));
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
@@ -109,7 +107,6 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
   async getWhitelist(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('WalletSignatureAuthenticator: getWhitelist');
     log.debug('Getting whitelist for keyVault', sanitizer.forLog(options));
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
@@ -135,7 +132,7 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
    * @throws {WalletError} For other unrecognised failures
    */
   async getDomainSeparator(options = {}) {
-    log.info('WalletSignatureAuthenticator: getDomainSeparator');
+    log.debug('WalletSignatureAuthenticator: getDomainSeparator', sanitizer.forLog(options));
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);
 
@@ -165,7 +162,6 @@ class WalletSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
     requireNonEmptyObject(action, 'action');
-    log.info('WalletSignatureAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
     const walletSigAuth = this.getReadContract(getWalletSignatureAuthenticatorContract, this.config.addresses.walletSignatureAuth);

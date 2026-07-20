@@ -54,7 +54,6 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('ApiKeySessionAuthenticator: isConfigured');
     log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const apiKeySessionAuth = this.getReadContract(getApiKeySessionAuthenticatorContract, this.config.addresses.apiKeySessionAuth);
@@ -90,7 +89,6 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
     requireNonEmptyObject(action, 'action');
-    log.info('ApiKeySessionAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
     const apiKeySessionAuth = this.getReadContract(getApiKeySessionAuthenticatorContract, this.config.addresses.apiKeySessionAuth);
@@ -119,7 +117,6 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
     const normalizedChainId = requireChainId(chainId, 'chainId');
     requireNumber(expiry, 'expiry', { allowNegative: false });
     requireNumber(scopeMask, 'scopeMask', { allowNegative: false });
-    log.info('ApiKeySessionAuthenticator: computeTokenMac');
     log.debug('Computing token MAC for keyVault', sanitizer.forLog(options));
 
     const apiKeySessionAuth = this.getReadContract(getApiKeySessionAuthenticatorContract, this.config.addresses.apiKeySessionAuth);
@@ -145,7 +142,6 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
     const { apiKeySecret, actionHash } = options;
     requireBytes32(apiKeySecret, 'apiKeySecret');
     requireBytes32(actionHash, 'actionHash');
-    log.info('ApiKeySessionAuthenticator: computeActionMac');
     log.debug('Computing action MAC', sanitizer.forLog(options));
 
     const apiKeySessionAuth = this.getReadContract(getApiKeySessionAuthenticatorContract, this.config.addresses.apiKeySessionAuth);
@@ -172,7 +168,6 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
     requireNumber(expiry, 'expiry', { allowNegative: false });
     requireNumber(scopeMask, 'scopeMask', { allowNegative: false });
     requireBytes32(mac, 'mac');
-    log.info('ApiKeySessionAuthenticator: buildTokenAuthProof');
     log.debug('Building token auth proof', sanitizer.forLog(options));
 
     const apiKeySessionAuth = this.getReadContract(getApiKeySessionAuthenticatorContract, this.config.addresses.apiKeySessionAuth);
@@ -197,7 +192,6 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
   async buildActionAuthProof(options = {}) {
     const { mac } = options;
     requireBytes32(mac, 'mac');
-    log.info('ApiKeySessionAuthenticator: buildActionAuthProof');
     log.debug('Building action auth proof', sanitizer.forLog(options));
 
     const apiKeySessionAuth = this.getReadContract(getApiKeySessionAuthenticatorContract, this.config.addresses.apiKeySessionAuth);
@@ -222,7 +216,6 @@ class ApiKeySessionAuthenticatorClient extends BaseContractClient {
   async selectorBit(options = {}) {
     const { selector } = options;
     requireBytes4(selector, 'selector');
-    log.info('ApiKeySessionAuthenticator: selectorBit');
     log.debug('Getting selector bit', sanitizer.forLog(options));
 
     const apiKeySessionAuth = this.getReadContract(getApiKeySessionAuthenticatorContract, this.config.addresses.apiKeySessionAuth);

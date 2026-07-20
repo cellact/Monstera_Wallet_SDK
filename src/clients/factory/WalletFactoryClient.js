@@ -93,7 +93,6 @@ class WalletFactoryClient extends BaseContractClient {
   async isWallet(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletFactory: isWallet');
     log.debug('Checking if address is a wallet created by this factory', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -119,7 +118,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {WalletError} For other unrecognised failures
    */
   async getAdmin(options = {}) {
-    log.info('WalletFactory: getAdmin');
+    log.debug('WalletFactory: getAdmin', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -144,7 +143,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {WalletError} For other unrecognised failures
    */
   async getWalletLogicImplAddr(options = {}) {
-    log.info('WalletFactory: getWalletLogicImplAddr');
+    log.debug('WalletFactory: getWalletLogicImplAddr', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -172,7 +171,6 @@ class WalletFactoryClient extends BaseContractClient {
   async getKeyVaultAddr(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletFactory: getKeyVaultAddr');
     log.debug('Getting keyVault address for wallet', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -201,7 +199,6 @@ class WalletFactoryClient extends BaseContractClient {
   async getStorageAddr(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletFactory: getStorageAddr');
     log.debug('Getting storage address for wallet', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -227,7 +224,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {WalletError} For other unrecognised failures
    */
   async getBeaconAddr(options = {}) {
-    log.info('WalletFactory: getBeaconAddr');
+    log.debug('WalletFactory: getBeaconAddr', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -255,7 +252,6 @@ class WalletFactoryClient extends BaseContractClient {
   async getSecretVaultAddr(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletFactory: getSecretVaultAddr');
     log.debug('Getting secretVault address for wallet', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -281,7 +277,7 @@ class WalletFactoryClient extends BaseContractClient {
    * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultTemplate(options = {}) {
-    log.info('WalletFactory: getKeyVaultTemplate');
+    log.debug('WalletFactory: getKeyVaultTemplate', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
 
@@ -309,7 +305,6 @@ class WalletFactoryClient extends BaseContractClient {
   async allowedAuthenticators(options = {}) {
     const { authenticatorAddr } = options;
     requireAddress(authenticatorAddr, 'authenticatorAddr');
-    log.info('WalletFactory: allowedAuthenticators');
     log.debug('Checking factory authenticator allowlist', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -338,7 +333,6 @@ class WalletFactoryClient extends BaseContractClient {
   async allowedKeyVaultImplementations(options = {}) {
     const { implementationAddr } = options;
     requireAddress(implementationAddr, 'implementationAddr');
-    log.info('WalletFactory: allowedKeyVaultImplementations');
     log.debug('Checking factory key vault implementation allowlist', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -368,7 +362,6 @@ class WalletFactoryClient extends BaseContractClient {
     const { keyVaultAddr, implementationAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(implementationAddr, 'implementationAddr');
-    log.info('WalletFactory: isImplementationApproved');
     log.debug('Checking factory implementation policy', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -398,7 +391,6 @@ class WalletFactoryClient extends BaseContractClient {
     const { keyVaultAddr, authenticatorAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(authenticatorAddr, 'authenticatorAddr');
-    log.info('WalletFactory: isAuthenticatorApproved');
     log.debug('Checking factory authenticator policy', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -427,7 +419,6 @@ class WalletFactoryClient extends BaseContractClient {
   async hashUsername(options = {}) {
     const { username } = options;
     const normalized = requireNormalizedUsername(username, 'username');
-    log.info('WalletFactory: hashUsername');
     log.debug('Hashing normalized username', sanitizer.forLog({ username: normalized }));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -456,7 +447,6 @@ class WalletFactoryClient extends BaseContractClient {
   async walletOfUsername(options = {}) {
     const { usernameHash } = options;
     requireBytes32(usernameHash, 'usernameHash');
-    log.info('WalletFactory: walletOfUsername');
     log.debug('Resolving wallet for username hash', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);
@@ -485,7 +475,6 @@ class WalletFactoryClient extends BaseContractClient {
   async getWalletUsernameHash(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletFactory: getWalletUsernameHash');
     log.debug('Getting username hash for wallet', sanitizer.forLog(options));
 
     const factory = this.getReadContract(getWalletFactoryContract, this.config.addresses.factory);

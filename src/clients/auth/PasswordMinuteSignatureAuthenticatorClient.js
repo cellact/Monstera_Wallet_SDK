@@ -50,7 +50,6 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('PasswordMinuteSignatureAuthenticator: isConfigured');
     log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const passwordAuth = this.getReadContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);
@@ -88,7 +87,6 @@ class PasswordMinuteSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
     requireNonEmptyObject(action, 'action');
-    log.info('PasswordMinuteSignatureAuthenticator: verify');
     log.debug('Verifying minute signature for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getReadContract(getPasswordMinuteSignatureAuthenticatorContract, this.config.addresses.passwordMinuteSignatureAuth);

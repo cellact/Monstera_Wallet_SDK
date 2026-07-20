@@ -50,7 +50,6 @@ class PasswordAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('PasswordAuthenticator: isConfigured');
     log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);
@@ -84,7 +83,6 @@ class PasswordAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
     requireNonEmptyObject(action, 'action');
-    log.info('PasswordAuthenticator: verify');
     log.debug('Verifying password for keyVault', sanitizer.forLog(options));
 
     const passwordAuth = this.getReadContract(getPasswordAuthenticatorContract, this.config.addresses.passwordAuth);

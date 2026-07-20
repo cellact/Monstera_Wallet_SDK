@@ -62,7 +62,6 @@ class KeyVaultClient extends BaseContractClient {
   async getStorageAddr(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('KeyVault: getStorageAddr');
     log.debug('Getting storage address for keyVault', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -91,7 +90,6 @@ class KeyVaultClient extends BaseContractClient {
   async getAuthenticatorAddr(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('KeyVault: getAuthenticatorAddr');
     log.debug('Getting authenticator address for keyVault', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -123,7 +121,6 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes4(selector, 'selector');
     requireBytes32(paramsHash, 'paramsHash');
-    log.info('KeyVault: computeActionHash');
     log.debug('Computing action hash for keyVault', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -148,7 +145,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, newImplementation } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(newImplementation, 'newImplementation');
-    log.info('KeyVault: computeCustomImplementationAckHash');
+    log.debug('KeyVault: computeCustomImplementationAckHash', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -173,7 +170,7 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(newAuthenticator, 'newAuthenticator');
     requireBytes32(configHash, 'configHash');
-    log.info('KeyVault: computeCustomAuthenticatorAckHash');
+    log.debug('KeyVault: computeCustomAuthenticatorAckHash', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -199,7 +196,6 @@ class KeyVaultClient extends BaseContractClient {
   async getKeyVaultImplAddr(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('KeyVault: getKeyVaultImplAddr');
     log.debug('Getting keyVault implementation address for keyVault', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -228,7 +224,6 @@ class KeyVaultClient extends BaseContractClient {
   async isInitialized(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('KeyVault: isInitialized');
     log.debug('Checking if keyVault is initialized', sanitizer.forLog(options)); 
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -253,7 +248,7 @@ class KeyVaultClient extends BaseContractClient {
   async getPolicyRegistry(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('KeyVault: getPolicyRegistry');
+    log.debug('KeyVault: getPolicyRegistry', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -277,7 +272,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, implementation } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(implementation, 'implementation');
-    log.info('KeyVault: isImplementationApproved');
+    log.debug('KeyVault: isImplementationApproved', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -301,7 +296,7 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, authenticator } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(authenticator, 'authenticator');
-    log.info('KeyVault: isAuthenticatorApproved');
+    log.debug('KeyVault: isAuthenticatorApproved', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
 
@@ -328,7 +323,6 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, index } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonNegativeInteger(index, 'index');
-    log.info('KeyVault: getAccountAddr');
     log.debug('Getting account address for keyVault at index', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -359,7 +353,6 @@ class KeyVaultClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
-    log.info('KeyVault: getAccountAddresses');
     log.debug('Getting account addresses for keyVault for index range', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -524,7 +517,6 @@ class KeyVaultClient extends BaseContractClient {
   async getImportedKeyIds(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('KeyVault: getImportedKeyIds');
     log.debug('Getting imported key IDs for keyVault', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -554,7 +546,6 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(keyId, 'keyId');
-    log.info('KeyVault: getKeyMetadata');
     log.debug('Getting metadata for imported key in keyVault', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -584,7 +575,6 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(keyId, 'keyId');
-    log.info('KeyVault: keyExists');
     log.debug('Checking if key exists in keyVault', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -646,7 +636,6 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, keyId } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(keyId, 'keyId');
-    log.info('KeyVault: getImportedKeyAddr');
     log.debug('Getting address for imported key in keyVault', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);
@@ -676,7 +665,6 @@ class KeyVaultClient extends BaseContractClient {
     const { keyVaultAddr, index } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonNegativeInteger(index, 'index');
-    log.info('KeyVault: getSolanaAddr');
     log.debug('Getting Solana address for keyVault at index', sanitizer.forLog(options));
 
     const keyVault = this.getReadContract(getKeyVaultContract, keyVaultAddr);

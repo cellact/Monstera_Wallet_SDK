@@ -55,7 +55,6 @@ class WalletLogicClient extends BaseContractClient {
   async getKeyVaultAddr(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletLogic: getKeyVaultAddr');
     log.debug('Getting keyVault address for wallet', sanitizer.forLog(options));
 
     const logic = this.getReadContract(getWalletLogicContract, walletAddr);
@@ -86,7 +85,6 @@ class WalletLogicClient extends BaseContractClient {
   async get_key_vault_addr(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletLogic: get_key_vault_addr');
     log.debug('Getting keyVault address for wallet', sanitizer.forLog(options));
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
@@ -115,7 +113,6 @@ class WalletLogicClient extends BaseContractClient {
   async getAuthenticatorAddr(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletLogic: getAuthenticatorAddr');
     log.debug('Getting authenticator address for wallet', sanitizer.forLog(options));
 
     const logic = this.getReadContract(getWalletLogicContract, walletAddr);
@@ -144,7 +141,6 @@ class WalletLogicClient extends BaseContractClient {
   async isInitialized(options = {}) {
     const { walletAddr } = options;
     requireAddress(walletAddr, 'walletAddr');
-    log.info('WalletLogic: isInitialized');
     log.debug('Checking if wallet is initialized', sanitizer.forLog(options));
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
@@ -174,7 +170,6 @@ class WalletLogicClient extends BaseContractClient {
     const { walletAddr, index } = options;
     requireAddress(walletAddr, 'walletAddr');
     requireNonNegativeInteger(index, 'index');
-    log.info('WalletLogic: getAccountAddr');
     log.debug('Getting account address for wallet at index', sanitizer.forLog(options));
 
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);
@@ -205,7 +200,6 @@ class WalletLogicClient extends BaseContractClient {
     requireAddress(walletAddr, 'walletAddr');
     requireNonNegativeInteger(fromIndex, 'fromIndex');
     requireNonNegativeInteger(count, 'count');
-    log.info('WalletLogic: getAccountAddresses');
     log.debug('Getting account addresses for wallet for index range', sanitizer.forLog(options));
     
     const walletLogic = this.getReadContract(getWalletLogicContract, walletAddr);

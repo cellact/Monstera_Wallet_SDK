@@ -52,7 +52,6 @@ class MultiAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('MultiAuthenticator: isConfigured');
     log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const multiAuthenticator = this.getReadContract(getMultiAuthenticatorContract, this.config.addresses.multiAuthenticator);
@@ -86,7 +85,6 @@ class MultiAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
     requireNonEmptyObject(action, 'action');
-    log.info('MultiAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
     const multiAuthenticator = this.getReadContract(getMultiAuthenticatorContract, this.config.addresses.multiAuthenticator);
@@ -116,7 +114,6 @@ class MultiAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, child } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(child, 'child');
-    log.info('MultiAuthenticator: isEnabled');
     log.debug('Checking if child is enabled for keyVault', sanitizer.forLog(options));
 
     const multiAuthenticator = this.getReadContract(getMultiAuthenticatorContract, this.config.addresses.multiAuthenticator);
@@ -145,7 +142,6 @@ class MultiAuthenticatorClient extends BaseContractClient {
   async getAuthenticators(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('MultiAuthenticator: getAuthenticators');
     log.debug('Getting authenticators for keyVault', sanitizer.forLog(options));
 
     const multiAuthenticator = this.getReadContract(getMultiAuthenticatorContract, this.config.addresses.multiAuthenticator);
@@ -176,7 +172,6 @@ class MultiAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes4(selector, 'selector');
     requireBytes32(paramsHash, 'paramsHash');
-    log.info('MultiAuthenticator: computeActionHash');
     log.debug('Computing action hash for keyVault', sanitizer.forLog(options));
 
     const multiAuthenticator = this.getReadContract(getMultiAuthenticatorContract, this.config.addresses.multiAuthenticator);

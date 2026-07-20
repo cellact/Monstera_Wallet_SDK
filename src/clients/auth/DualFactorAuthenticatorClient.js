@@ -50,7 +50,6 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('DualFactorAuthenticator: isConfigured');
     log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const dualFactorAuth = this.getReadContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
@@ -88,7 +87,6 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
     requireNonEmptyObject(action, 'action');
-    log.info('DualFactorAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
     const dualFactorAuth = this.getReadContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
@@ -117,7 +115,6 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
   async getGuardian(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('DualFactorAuthenticator: getGuardian');
     log.debug('Getting guardian for keyVault', sanitizer.forLog(options));
 
     const dualFactorAuth = this.getReadContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
@@ -143,7 +140,7 @@ class DualFactorAuthenticatorClient extends BaseContractClient {
    * @throws {WalletError} For other unrecognised failures
    */
   async getDomainSeparator(options = {}) {
-    log.info('DualFactorAuthenticator: getDomainSeparator');
+    log.debug('DualFactorAuthenticator: getDomainSeparator', sanitizer.forLog(options));
 
     const dualFactorAuth = this.getReadContract(getDualFactorAuthenticatorContract, this.config.addresses.dualFactorAuth);
 

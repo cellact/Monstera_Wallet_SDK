@@ -66,7 +66,6 @@ class PasswordOrWalletSignatureAuthenticatorClient extends BaseContractClient {
   async isConfigured(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('PasswordOrWalletSignatureAuthenticator: isConfigured');
     log.debug('Checking if keyVault is configured', sanitizer.forLog(options));
 
     const auth = this.getReadContract(getPasswordOrWalletSignatureAuthenticatorContract, this._contractAddress);
@@ -94,7 +93,6 @@ class PasswordOrWalletSignatureAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, addressToCheck } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireAddress(addressToCheck, 'addressToCheck');
-    log.info('PasswordOrWalletSignatureAuthenticator: isWhitelisted');
     log.debug('Checking if address is whitelisted for keyVault', sanitizer.forLog(options));
 
     const auth = this.getReadContract(getPasswordOrWalletSignatureAuthenticatorContract, this._contractAddress);
@@ -121,7 +119,6 @@ class PasswordOrWalletSignatureAuthenticatorClient extends BaseContractClient {
   async getWhitelist(options = {}) {
     const { keyVaultAddr } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
-    log.info('PasswordOrWalletSignatureAuthenticator: getWhitelist');
     log.debug('Getting whitelist for keyVault', sanitizer.forLog(options));
 
     const auth = this.getReadContract(getPasswordOrWalletSignatureAuthenticatorContract, this._contractAddress);
@@ -149,7 +146,6 @@ class PasswordOrWalletSignatureAuthenticatorClient extends BaseContractClient {
     const { keyVaultAddr, nonce } = options;
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireBytes32(nonce, 'nonce');
-    log.info('PasswordOrWalletSignatureAuthenticator: isLinkNonceUsed');
     log.debug('Checking if link nonce is used', sanitizer.forLog(options));
 
     const auth = this.getReadContract(getPasswordOrWalletSignatureAuthenticatorContract, this._contractAddress);
@@ -173,7 +169,7 @@ class PasswordOrWalletSignatureAuthenticatorClient extends BaseContractClient {
    * @throws {WalletError} For other unrecognised failures
    */
   async getDomainSeparator(options = {}) {
-    log.info('PasswordOrWalletSignatureAuthenticator: getDomainSeparator');
+    log.debug('PasswordOrWalletSignatureAuthenticator: getDomainSeparator', sanitizer.forLog(options));
 
     const auth = this.getReadContract(getPasswordOrWalletSignatureAuthenticatorContract, this._contractAddress);
 
@@ -201,7 +197,6 @@ class PasswordOrWalletSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(addressToAdd, 'addressToAdd');
     requireBytes32(nonce, 'nonce');
     requireNumber(deadline, 'deadline', { allowBigInt: true });
-    log.info('PasswordOrWalletSignatureAuthenticator: computeLinkParamsHash');
     log.debug('Computing link params hash', sanitizer.forLog(options));
 
     const auth = this.getReadContract(getPasswordOrWalletSignatureAuthenticatorContract, this._contractAddress);
@@ -231,7 +226,6 @@ class PasswordOrWalletSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(addressToAdd, 'addressToAdd');
     requireBytes32(nonce, 'nonce');
     requireNumber(deadline, 'deadline', { allowBigInt: true });
-    log.info('PasswordOrWalletSignatureAuthenticator: computeLinkActionHash');
     log.debug('Computing link action hash', sanitizer.forLog(options));
 
     const auth = this.getReadContract(getPasswordOrWalletSignatureAuthenticatorContract, this._contractAddress);
@@ -264,7 +258,6 @@ class PasswordOrWalletSignatureAuthenticatorClient extends BaseContractClient {
     requireAddress(keyVaultAddr, 'keyVaultAddr');
     requireNonEmptyBytes(authProof, 'authProof');
     requireNonEmptyObject(action, 'action');
-    log.info('PasswordOrWalletSignatureAuthenticator: verify');
     log.debug('Verifying auth proof for keyVault', sanitizer.forLog(options));
 
     const auth = this.getReadContract(getPasswordOrWalletSignatureAuthenticatorContract, this._contractAddress);
