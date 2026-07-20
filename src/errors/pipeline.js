@@ -31,7 +31,7 @@ import { fallbackTranslator } from './translators/fallback.js';
  *
  * @description No-op when {@code err} is not a {@link WalletError} or {@code sdkContext} is not an
  * object. Does NOT sanitise the merged keys — callers that consume untrusted input should run
- * {@code sanitizer.forErrorContext} first (see {@link mergeSanitizedSdkContext}).
+ * {@code sanitizer.forErrorContext} first (see {@link _mergeSanitizedSdkContext}).
  *
  * @public
  * @param {WalletError} err - Target error (mutated in place)
@@ -57,7 +57,7 @@ export function applySdkContext(err, sdkContext = {}) {
  * @param {Record<string, unknown>} [sdkContext={}] - Context to sanitise + merge
  * @returns {void}
  */
-function mergeSanitizedSdkContext(err, sdkContext = {}) {
+function _mergeSanitizedSdkContext(err, sdkContext = {}) {
   applySdkContext(err, sanitizer.forErrorContext(sdkContext));
 }
 
@@ -101,7 +101,7 @@ export class ErrorPipeline {
     for (const translator of this.translators) {
       const result = translator(errObj, context);
       if (result) {
-        mergeSanitizedSdkContext(result, context.sdkContext);
+        _mergeSanitizedSdkContext(result, context.sdkContext);
         return result;
       }
     }
@@ -125,7 +125,7 @@ export class ErrorPipeline {
    */
   rethrow(error, context = {}) {
     if (error instanceof WalletError) {
-      mergeSanitizedSdkContext(error, context.sdkContext);
+      _mergeSanitizedSdkContext(error, context.sdkContext);
       throw error;
     }
     throw this.translate(error, context);

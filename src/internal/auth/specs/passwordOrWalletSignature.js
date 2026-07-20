@@ -27,7 +27,7 @@ export const METHOD_WALLET_SIGNATURE = 2;
  * @param {'password' | 'walletSignature' | number | undefined} method
  * @returns {'password' | 'walletSignature'}
  */
-function normalizeMethod(method) {
+function _normalizeMethod(method) {
   if (method === METHOD_PASSWORD || method === 'password') {
     return 'password';
   }
@@ -41,8 +41,8 @@ function normalizeMethod(method) {
  * @param {Record<string, unknown>} input
  * @returns {'password' | 'walletSignature'}
  */
-function resolveMethod(input) {
-  const explicit = normalizeMethod(
+function _resolveMethod(input) {
+  const explicit = _normalizeMethod(
     /** @type {'password' | 'walletSignature' | number | undefined} */ (input.method)
   );
   if (explicit) {
@@ -105,7 +105,7 @@ export const passwordOrWalletSignatureAuthenticator = createAuthenticatorSpec({
   },
 
   validate: (options) => {
-    const method = resolveMethod(options);
+    const method = _resolveMethod(options);
     if (method === 'walletSignature') {
       requireWalletOrHdNode(options.signer, 'signer');
     } else {
@@ -117,7 +117,7 @@ export const passwordOrWalletSignatureAuthenticator = createAuthenticatorSpec({
     id: 'passwordOrWalletSigAuth',
     withDeadline: true,
     validateInput: (input) => {
-      resolveMethod(input);
+      _resolveMethod(input);
     },
     createProof: (input) => createAuthProofPasswordOrWalletSignature(input)
   }),

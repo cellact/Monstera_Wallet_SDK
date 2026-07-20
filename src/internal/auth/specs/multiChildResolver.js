@@ -25,7 +25,7 @@ let childByFlowId = null;
 /**
  * @returns {Map<string, BuiltinAuthenticatorSpec>}
  */
-function getChildByFlowId() {
+function _getChildByFlowId() {
   if (childByFlowId == null) {
     childByFlowId = new Map(CHILD_AUTHENTICATORS.map((spec) => [spec.flowId, spec]));
   }
@@ -36,7 +36,7 @@ function getChildByFlowId() {
  * @param {ContractAddresses} addresses
  * @returns {Map<string, BuiltinAuthenticatorSpec>}
  */
-function buildAddressLookup(addresses) {
+function _buildAddressLookup(addresses) {
   /** @type {Map<string, BuiltinAuthenticatorSpec>} */
   const byAddr = new Map();
   for (const spec of CHILD_AUTHENTICATORS) {
@@ -50,8 +50,8 @@ function buildAddressLookup(addresses) {
  * @param {ContractAddresses} addresses
  * @returns {Address}
  */
-function resolveAddrFromFlowId(flowId, addresses) {
-  const spec = getChildByFlowId().get(flowId);
+function _resolveAddrFromFlowId(flowId, addresses) {
+  const spec = _getChildByFlowId().get(flowId);
   if (!spec) {
     throw new ValidationError('Unknown child auth proof flow', 'childFlowId', flowId);
   }
@@ -83,7 +83,7 @@ export function resolveChildAddr(input, addresses) {
 
   const flowId = input.viaChildFlowId ?? input.childFlowId;
   if (flowId != null) {
-    return resolveAddrFromFlowId(/** @type {string} */ (flowId), addresses);
+    return _resolveAddrFromFlowId(/** @type {string} */ (flowId), addresses);
   }
 
   if (input.child != null) {
@@ -105,7 +105,7 @@ export function resolveChildAddr(input, addresses) {
  */
 export function resolveChildSpec(input, addresses) {
   const childAddr = resolveChildAddr(input, addresses);
-  const byAddr = buildAddressLookup(addresses);
+  const byAddr = _buildAddressLookup(addresses);
   const spec = byAddr.get(childAddr.toLowerCase());
 
   if (!spec) {
@@ -124,5 +124,5 @@ export function resolveChildSpec(input, addresses) {
  * @returns {BuiltinAuthenticatorSpec | undefined}
  */
 export function getChildSpecByFlowId(flowId) {
-  return getChildByFlowId().get(flowId);
+  return _getChildByFlowId().get(flowId);
 }

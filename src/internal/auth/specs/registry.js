@@ -63,7 +63,7 @@ const byFlowId = new Map(BUILTIN_AUTHENTICATORS.map((spec) => [spec.flowId, spec
  * @param {ContractAddresses} addresses
  * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => CreateWalletAuthEncoder | undefined }}
  */
-function createChildConfigEncoderRegistry(addresses) {
+function _createChildConfigEncoderRegistry(addresses) {
   return createRegistryByChecksumAddress(
     CHILD_AUTHENTICATORS.map((spec) => ({
       address: addresses[spec.addressKey],
@@ -77,7 +77,7 @@ function createChildConfigEncoderRegistry(addresses) {
  * @param {ContractAddresses} addresses
  */
 export function createBuiltinAuthenticatorRegistry(addresses) {
-  const childConfigRegistry = createChildConfigEncoderRegistry(addresses);
+  const childConfigRegistry = _createChildConfigEncoderRegistry(addresses);
   const multiConfigEncoder = createMultiConfigEncoder(childConfigRegistry);
 
   const proofByAddr = createRegistryByChecksumAddress(

@@ -34,7 +34,7 @@ const LINK_WALLET_EIP712_FIELDS = [
  * @param {'password' | 'walletSignature' | number | undefined} method
  * @returns {'password' | 'walletSignature' | undefined}
  */
-function normalizePasswordOrWalletMethod(method) {
+function _normalizePasswordOrWalletMethod(method) {
   if (method === METHOD_PASSWORD || method === 'password') {
     return 'password';
   }
@@ -49,7 +49,7 @@ function normalizePasswordOrWalletMethod(method) {
  * @returns {Promise<EncodedAuthProofPasswordOrWalletSignature>}
  */
 export async function createAuthProofPasswordOrWalletSignature(options = {}) {
-  const method = normalizePasswordOrWalletMethod(options.method)
+  const method = _normalizePasswordOrWalletMethod(options.method)
     ?? (options.signer != null ? 'walletSignature' : 'password');
 
   if (method === 'password') {

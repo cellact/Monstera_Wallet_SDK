@@ -80,7 +80,7 @@ export function decodeCustomError(iface, data) {
  * @param {Error} err - Caught ethers error
  * @returns {string | null} Nested message or {@code null}
  */
-function nestedRpcMessage(err) {
+function _nestedRpcMessage(err) {
   const info = /** @type {{ error?: { message?: string } }} */ (err).info;
   const nested = info?.error?.message;
   return typeof nested === 'string' && nested.length > 0 ? nested : null;
@@ -94,7 +94,7 @@ function nestedRpcMessage(err) {
  * @param {{ revertArgs?: unknown, revertSignature?: string | null }} source - Decoded fields
  * @returns {void}
  */
-function assignRevertExtras(extra, source) {
+function _assignRevertExtras(extra, source) {
   if (source.revertArgs != null) {
     extra.revertArgs = source.revertArgs;
   }
@@ -120,7 +120,7 @@ function assignRevertExtras(extra, source) {
  * @returns {{ revertReason: string | null, revertArgs: unknown, revertSignature: string | null }}
  *   Resolved fields
  */
-function resolveRevertFields(iface, revertData, revertReason, revertArgsExisting, err) {
+function _resolveRevertFields(iface, revertData, revertReason, revertArgsExisting, err) {
   let revertReasonOut =
     (typeof revertReason === 'string' && revertReason) ||
     (typeof err.revert?.name === 'string' && err.revert.name) ||
@@ -152,7 +152,7 @@ function resolveRevertFields(iface, revertData, revertReason, revertArgsExisting
  *
  * @description Extracts revert bytes from the error (or accepts a pre-extracted value via
  * {@code enrichRevertData}), resolves the reason / args / signature via
- * {@link resolveRevertFields}, and packs decoded extras into a context bag.
+ * {@link _resolveRevertFields}, and packs decoded extras into a context bag.
  *
  * @private
  * @param {Error} err - Underlying ethers error
@@ -164,7 +164,7 @@ function resolveRevertFields(iface, revertData, revertReason, revertArgsExisting
  * @returns {{ revertData: string | null, resolved: { revertReason: string | null, revertArgs: unknown, revertSignature: string | null }, extra: Record<string, unknown> }}
  *   Triple ready for use in {@link ContractRevertError} construction
  */
-function buildCallExceptionRevertDetails(
+function _buildCallExceptionRevertDetails(
   err,
   revertInterface,
   enrichRevertData,
@@ -177,7 +177,7 @@ function buildCallExceptionRevertDetails(
     extractRpcRevertBytes(err) ||
     /** @type {any} */ (err).data ||
     null;
-  const resolved = resolveRevertFields(
+  const resolved = _resolveRevertFields(
     revertInterface,
     revertData,
     enrichRevertReason,
@@ -186,7 +186,7 @@ function buildCallExceptionRevertDetails(
   );
   /** @type {Record<string, unknown>} */
   const extra = {};
-  assignRevertExtras(extra, {
+  _assignRevertExtras(extra, {
     revertArgs: resolved.revertArgs,
     revertSignature: resolved.revertSignature || enrichRevertSignature
   });
@@ -236,7 +236,7 @@ export function revertTranslator(err, context) {
   const message = error.message || String(error);
   /** @type {string | undefined} */
   const action = typeof /** @type {any} */ (error).action === 'string' ? /** @type {any} */ (error).action : undefined;
-  const nestedRpc = nestedRpcMessage(error);
+  const nestedRpc = _nestedRpcMessage(error);
 
   const receipt = /** @type {TransactionReceipt | null | undefined} */ (
     receiptOpt ?? /** @type {any} */ (error).receipt
@@ -246,7 +246,7 @@ export function revertTranslator(err, context) {
     (receipt && typeof receipt.hash === 'string' ? receipt.hash : null);
 
   if (txHash && receipt) {
-    const { revertData, resolved, extra } = buildCallExceptionRevertDetails(
+    const { revertData, resolved, extra } = _buildCallExceptionRevertDetails(
       error,
       revertInterface ?? null,
       enrichRevertData,
@@ -267,7 +267,7 @@ export function revertTranslator(err, context) {
     );
   }
 
-  const { revertData, resolved, extra } = buildCallExceptionRevertDetails(
+  const { revertData, resolved, extra } = _buildCallExceptionRevertDetails(
     error,
     revertInterface ?? null,
     enrichRevertData,

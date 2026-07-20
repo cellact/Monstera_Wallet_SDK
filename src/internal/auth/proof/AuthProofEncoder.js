@@ -26,7 +26,7 @@ import { createBuiltinAuthenticatorRegistry } from '../specs/registry.js';
  * @param {unknown} authProof
  * @returns {boolean}
  */
-function isPreEncodedAuthProof(authProof) {
+function _isPreEncodedAuthProof(authProof) {
   return typeof authProof === 'string' || authProof instanceof Uint8Array;
 }
 
@@ -35,7 +35,7 @@ function isPreEncodedAuthProof(authProof) {
  * @param {Record<string, unknown>} [input]
  * @returns {'token' | 'action' | undefined}
  */
-function resolveApiKeySessionProofMode(encoderId, input) {
+function _resolveApiKeySessionProofMode(encoderId, input) {
   if (encoderId !== 'apiKeySessionAuth' || input == null) {
     return undefined;
   }
@@ -46,7 +46,7 @@ function resolveApiKeySessionProofMode(encoderId, input) {
  * @param {Bytes | Uint8Array | undefined} authProof
  * @returns {number | undefined}
  */
-function authProofByteLength(authProof) {
+function _authProofByteLength(authProof) {
   if (typeof authProof === 'string') {
     return Math.max(0, (authProof.length - 2) / 2);
   }
@@ -59,7 +59,7 @@ function authProofByteLength(authProof) {
 /**
  * @param {{ keyVaultAddr: Address }} params
  */
-function logVaultAuthPreEncoded({ keyVaultAddr }) {
+function _logVaultAuthPreEncoded({ keyVaultAddr }) {
   log.info('auth pipeline: vault call', {
     path: 'vault',
     encoderId: 'pre-encoded',
@@ -76,8 +76,8 @@ function logVaultAuthPreEncoded({ keyVaultAddr }) {
  * @param {Address} params.keyVaultAddr
  * @param {Record<string, unknown>} [params.proofInput]
  */
-function logVaultAuthResolved({ encoderId, flowId, authenticatorAddr, keyVaultAddr, proofInput }) {
-  const proofMode = resolveApiKeySessionProofMode(encoderId, proofInput);
+function _logVaultAuthResolved({ encoderId, flowId, authenticatorAddr, keyVaultAddr, proofInput }) {
+  const proofMode = _resolveApiKeySessionProofMode(encoderId, proofInput);
 
   log.info('auth pipeline: vault call', {
     path: 'vault',
@@ -105,7 +105,7 @@ function logVaultAuthResolved({ encoderId, flowId, authenticatorAddr, keyVaultAd
  * @param {Address} [params.keyVaultAddr]
  * @param {AuthProofFlowOptions} [params.flowOptions]
  */
-function logExplicitAuthPrepare({ flowId, encoderId, authenticatorAddr, keyVaultAddr, flowOptions }) {
+function _logExplicitAuthPrepare({ flowId, encoderId, authenticatorAddr, keyVaultAddr, flowOptions }) {
   log.info('auth pipeline: explicit flow', {
     path: 'explicit',
     flowId,
@@ -130,7 +130,7 @@ function logExplicitAuthPrepare({ flowId, encoderId, authenticatorAddr, keyVault
  * @param {AuthActionInput} [params.action]
  * @param {Bytes | Uint8Array} [params.authProof]
  */
-function logAuthProofEncoded({
+function _logAuthProofEncoded({
   encoderId,
   flowId,
   authenticatorAddr,
@@ -139,7 +139,7 @@ function logAuthProofEncoded({
   action,
   authProof
 }) {
-  const proofMode = resolveApiKeySessionProofMode(encoderId, proofInput);
+  const proofMode = _resolveApiKeySessionProofMode(encoderId, proofInput);
 
   log.debug('auth pipeline: proof encoded', {
     encoderId,
@@ -148,7 +148,7 @@ function logAuthProofEncoded({
     keyVaultAddr,
     ...(proofMode && { proofMode }),
     actionSelector: action?.selector,
-    authProofBytes: authProofByteLength(authProof)
+    authProofBytes: _authProofByteLength(authProof)
   });
 }
 
@@ -279,7 +279,7 @@ export class AuthProofEncoder {
 
     if (spec.prepareProofResult) {
       const result = await spec.prepareProofResult(encodeCtx, input);
-      logAuthProofEncoded({
+      _logAuthProofEncoded({
         encoderId: spec.id,
         flowId: spec.flowId,
         authenticatorAddr,
@@ -292,7 +292,7 @@ export class AuthProofEncoder {
     }
 
     const authProof = await spec.proofEncoder.encode(encodeCtx, input);
-    logAuthProofEncoded({
+    _logAuthProofEncoded({
       encoderId: spec.id,
       flowId: spec.flowId,
       authenticatorAddr,
@@ -352,12 +352,12 @@ export class AuthProofEncoder {
   async encodeForKeyVault(resolved, session, buildAction) {
     const { authProof, keyVaultAddr } = resolved;
 
-    if (authProof != null && isPreEncodedAuthProof(authProof)) {
-      logVaultAuthPreEncoded({ keyVaultAddr: /** @type {Address} */ (keyVaultAddr) });
+    if (authProof != null && _isPreEncodedAuthProof(authProof)) {
+      _logVaultAuthPreEncoded({ keyVaultAddr: /** @type {Address} */ (keyVaultAddr) });
       return /** @type {EncodeAuthProofOptionsResult} */ (resolved);
     }
 
-    if (authProof != null && !isPreEncodedAuthProof(authProof)) {
+    if (authProof != null && !_isPreEncodedAuthProof(authProof)) {
       requirePlainObject(authProof, 'authProof', {
         message:
           'authProof must be a hex string, Uint8Array, or a plain object for built-in authenticators'
@@ -370,7 +370,7 @@ export class AuthProofEncoder {
 
     const proofInput = this._mergeProofInput(spec, resolved, session, buildAction);
 
-    logVaultAuthResolved({
+    _logVaultAuthResolved({
       encoderId: spec.id,
       flowId: spec.flowId,
       authenticatorAddr,
@@ -415,7 +415,7 @@ export class AuthProofEncoder {
     const { includeAuthContext = false } = flowOptions;
     const { authenticatorAddr, spec } = this.resolveByFlowId(flowId);
 
-    logExplicitAuthPrepare({
+    _logExplicitAuthPrepare({
       flowId,
       encoderId: spec.id,
       authenticatorAddr,
@@ -479,7 +479,7 @@ export class AuthProofEncoder {
   async encode(options) { // TODO: check if this is used anywhere in production code
     const { authProof, keyVaultAddr, ...rest } = options;
 
-    if (!authProof || isPreEncodedAuthProof(authProof)) {
+    if (!authProof || _isPreEncodedAuthProof(authProof)) {
       return options;
     }
 

@@ -71,7 +71,7 @@ class Logger {
    * @param {unknown[]} args - Caller arguments
    * @returns {unknown[]} Formatted arguments
    */
-  format(level, args) {
+  _format(level, args) {
     return [`[${this.prefix}]`, `[${level}]`, ...args];
   }
 
@@ -83,7 +83,7 @@ class Logger {
    */
   error(...args) {
     if (this.shouldLog('error')) {
-      console.error(...this.format('error', args));
+      console.error(...this._format('error', args));
     }
   }
 
@@ -95,7 +95,7 @@ class Logger {
    */
   warn(...args) {
     if (this.shouldLog('warn')) {
-      console.warn(...this.format('warn', args));
+      console.warn(...this._format('warn', args));
     }
   }
 
@@ -107,7 +107,7 @@ class Logger {
    */
   info(...args) {
     if (this.shouldLog('info')) {
-      console.info(...this.format('info', args));
+      console.info(...this._format('info', args));
     }
   }
 
@@ -119,7 +119,7 @@ class Logger {
    */
   debug(...args) {
     if (this.shouldLog('debug')) {
-      console.debug(...this.format('debug', args));
+      console.debug(...this._format('debug', args));
     }
   }
 }

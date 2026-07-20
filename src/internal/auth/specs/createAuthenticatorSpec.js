@@ -58,7 +58,7 @@ export function requirePartialField(field, missingMessage) {
  * @param {Record<string, (partial: Record<string, unknown>, options: Record<string, unknown>) => unknown>} [resolve]
  * @returns {Record<string, unknown>}
  */
-function defaultCollectProofInput(options, keys, resolve = {}) {
+function _defaultCollectProofInput(options, keys, resolve = {}) {
   const partial = pickAuthProofPartial(options);
   /** @type {Record<string, unknown>} */
   const out = { ...partial };
@@ -80,7 +80,7 @@ function defaultCollectProofInput(options, keys, resolve = {}) {
  * @param {Record<string, true | ((resolved: Record<string, unknown>) => unknown)>} mapFields
  * @returns {Record<string, unknown>}
  */
-function defaultMapSessionResolved(resolved, authenticatorAddr, mapFields) {
+function _defaultMapSessionResolved(resolved, authenticatorAddr, mapFields) {
   /** @type {Record<string, unknown>} */
   const out = {
     keyVaultAddr: resolved.keyVaultAddr,
@@ -151,12 +151,12 @@ export function createAuthenticatorSpec(def) {
 
     collectProofInput:
       collectProofInputOverride ??
-      ((options) => defaultCollectProofInput(options, collectKeys, collectResolve)),
+      ((options) => _defaultCollectProofInput(options, collectKeys, collectResolve)),
 
     mapSessionResolved:
       mapSessionResolvedOverride ??
       ((resolved, authenticatorAddr) =>
-        defaultMapSessionResolved(resolved, authenticatorAddr, mapFields)),
+        _defaultMapSessionResolved(resolved, authenticatorAddr, mapFields)),
 
     applyConfigDefaults:
       applyConfigDefaultsOverride ??

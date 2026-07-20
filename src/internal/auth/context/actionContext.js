@@ -57,7 +57,7 @@ function assertAuthActionInput(action) {
  * @param {Address} target
  * @returns {AuthActionInput}
  */
-function validateManagementParams(paramTypes, paramValues, paramNames = []) {
+function _validateManagementParams(paramTypes, paramValues, paramNames = []) {
   for (let i = 0; i < paramTypes.length; i++) {
     const type = paramTypes[i];
     const value = paramValues[i];
@@ -72,7 +72,7 @@ function validateManagementParams(paramTypes, paramValues, paramNames = []) {
 }
 
 function buildManagementAction(abi, functionName, paramTypes, paramValues, target, paramNames = []) {
-  validateManagementParams(paramTypes, paramValues, paramNames);
+  _validateManagementParams(paramTypes, paramValues, paramNames);
   return {
     target,
     selector: getSelector(abi, functionName),

@@ -31,7 +31,7 @@ const require = createRequire(import.meta.url);
    * @param {Record<string, unknown>} [options]
    * @returns {{ logLevel: string; provider: EthersProvider | null; checkVersion: boolean | undefined }}
  */
-function resolveConnectExtension(options = {}) {
+function _resolveConnectExtension(options = {}) {
   const logLevel = options.logLevel ?? (options.debug === true ? 'debug' : 'error');
   log.setLevel(logLevel);
 
@@ -170,7 +170,7 @@ class MonsteraConfig {
    * @throws {ConfigError} If required contract addresses are missing
    */
   static resolveConnectConfig(options = {}) {
-    const extension = resolveConnectExtension(options);
+    const extension = _resolveConnectExtension(options);
     const base = MonsteraConfig.resolveBaseConfig(options);
     const { signer, credentials } = parseConnectInputs(options);
 

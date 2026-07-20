@@ -17,7 +17,7 @@ import {
  * @param {Address} authenticatorAddr
  * @returns {EthersContract}
  */
-function getReadContract(readProvider, authenticatorAddr) {
+function _getReadContract(readProvider, authenticatorAddr) {
   requireAddress(authenticatorAddr, 'authenticatorAddr');
   return getApiKeySessionAuthenticatorContract(readProvider, authenticatorAddr);
 }
@@ -39,7 +39,7 @@ export async function createAuthProofApiKeySession(options) {
     scopeMask
   } = options;
 
-  const contract = getReadContract(readProvider, authenticatorAddr);
+  const contract = _getReadContract(readProvider, authenticatorAddr);
 
   if (isApiKeySessionTokenMode({ mode, expiry, scopeMask })) {
     const resolvedExpiry = expiry ?? defaultProofDeadline();

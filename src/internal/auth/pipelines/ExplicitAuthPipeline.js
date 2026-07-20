@@ -16,7 +16,7 @@ import log from '../../logger.js';
  * @param {Address | undefined} overrideAddr
  * @returns {Address}
  */
-function resolveAuthenticatorAddr(resolved, defaultAddr, overrideAddr) {
+function _resolveAuthenticatorAddr(resolved, defaultAddr, overrideAddr) {
   if (resolved.authenticatorAddr != null) {
     return /** @type {Address} */ (resolved.authenticatorAddr);
   }
@@ -57,7 +57,7 @@ export class ExplicitAuthPipeline {
       flags
     );
     const { authenticatorAddr: defaultAddr, spec } = this._authProofEncoder.resolveByFlowId(flowId);
-    const authenticatorAddr = resolveAuthenticatorAddr(
+    const authenticatorAddr = _resolveAuthenticatorAddr(
       resolved,
       defaultAddr,
       overrides.authenticatorAddr
