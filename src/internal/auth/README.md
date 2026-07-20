@@ -11,11 +11,10 @@ pipelines/        KeyVaultAuthPipeline, ExplicitAuthPipeline, AuthConfigPipeline
     ↓
 proof/            AuthProofEncoder + builders/signing helpers; config/ for authConfig bytes
     ↓
-specs/            BuiltinAuthenticatorSpec plugins (one file per built-in auth)
+specs/            BuiltinAuthenticatorSpec plugins + registry lookups
 actions/          On-chain management action builders (selector + paramsHash)
 probes/           Cross-authenticator verify probe actions
 context/          Action hash resolution and AuthContext assembly
-registry/         Checksum-keyed encoder lookup helper
 ```
 
 ## `proof/` layout
@@ -24,8 +23,7 @@ registry/         Checksum-keyed encoder lookup helper
 proof/
   AuthProofEncoder.js   Orchestrator (vault resolve + explicit flow encode)
   logging.js            Encoder-only structured logs
-  common.js             createActionBoundEncoder, deadline / pickAuthProofPartial
-  passwordInput.js      Password hash resolution for proof input
+  common.js             createActionBoundEncoder, deadlines, password hash resolution
   builders/             Per-authenticator createAuthProof* functions
   signing/              Auth-domain EIP-712 wrappers (uses internal/crypto/eip712)
 ```

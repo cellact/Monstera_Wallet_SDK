@@ -4,7 +4,7 @@
  * @module internal/auth/specs/registry
  */
 
-import { createRegistryByChecksumAddress } from '../registry/byChecksumAddress.js';
+import { toChecksumAddress } from '../../crypto/address.js';
 import { passwordAuthenticator } from './password.js';
 import { passwordMinuteSignatureAuthenticator } from './passwordMinuteSignature.js';
 import { walletSignatureAuthenticator } from './walletSignature.js';
@@ -13,8 +13,35 @@ import { apiKeySessionAuthenticator } from './apiKeySession.js';
 import { multiAuthenticator, createMultiConfigEncoder } from './multi.js';
 import { passwordOrWalletSignatureAuthenticator } from './passwordOrWalletSignature.js';
 
+/**
+ * Build a checksum-keyed encoder registry.
+ *
+ * @description Normalises every input address to its EIP-55 checksum form via
+ * {@link toChecksumAddress} before storing or looking up entries.
+ *
+ * @template T
+ * @param {Array<{ address: Address, encoder: T }>} entries - Address / encoder pairs to register
+ * @returns {{ getByAuthenticatorAddr: (authenticatorAddr: Address) => T | undefined }}
+ */
+export function createRegistryByChecksumAddress(entries) {
+  /** @type {Map<string, T>} */
+  const byChecksum = new Map();
+
+  for (const { address, encoder } of entries) {
+    const key = toChecksumAddress(address);
+    byChecksum.set(key, encoder);
+  }
+
+  return {
+    getByAuthenticatorAddr(authenticatorAddr) {
+      const key = toChecksumAddress(authenticatorAddr);
+      return byChecksum.get(key);
+    }
+  };
+}
+
 /** @type {readonly BuiltinAuthenticatorSpec[]} */
-const CHILD_AUTHENTICATORS = [
+export const CHILD_AUTHENTICATORS = [
   apiKeySessionAuthenticator,
   passwordAuthenticator,
   passwordMinuteSignatureAuthenticator,

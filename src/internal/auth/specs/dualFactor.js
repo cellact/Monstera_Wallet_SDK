@@ -8,7 +8,7 @@ import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireBytes32, requireWalletOrHdNode } from '../../validation/assert.js';
 import { createDualFactorAuthConfig } from '../config/bytes.js';
 import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
-import { resolvePasswordHashFromProofInput } from '../proof/passwordInput.js';
+import { resolvePasswordHashFromProofInput } from '../proof/common.js';
 import { createAuthProofDualFactor } from '../proof/builders/dualFactor.js';
 
 /**

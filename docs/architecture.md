@@ -14,7 +14,7 @@ The SDK is organized into modular components:
 - **`clients/`**: Domain clients (factory, logic, keyVault, auth: password, walletSignature, dualFactor, passwordMinuteSignature)
 - **`events/`**: Event definitions and receipt parsing
 - **`errors/`**: Error types, unified **`pipeline.js`** translator chain (`translators/`), and stable codes
-- **`internal/`**: Logger, version check, validation (`validation/`), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth (`auth/`: see [`internal/auth/README.md`](../src/internal/auth/README.md) — **`session/`**, **`pipelines/`**, **`proof/`** (`builders/`, `signing/`), **`config/`**, **`context/`**, **`specs/`**, **`actions/`**, **`registry/`**), vault action builders in **`vault/actions/`**, KeyVault EIP-7702 encode/decode in **`vault/eip7702.js`** with pure EIP-7702 / EIP-712 / address helpers in **`crypto/`** (`eip7702.js`, `eip712.js`, `address.js`, `mnemonic.js`), **`vault/signEip7702Authorization.js`**, validators (`validators/`), username normalisation (`utils/normalize.js`) — **not** a public package export
+- **`internal/`**: Logger, version check, validation (`validation/`), sanitization (`sanitization/` — **`Sanitizer`** for logs and error **`context`**), built-in auth (`auth/`: see [`internal/auth/README.md`](../src/internal/auth/README.md) — **`session/`**, **`pipelines/`**, **`proof/`** (`builders/`, `signing/`), **`config/`**, **`context/`**, **`specs/`**, **`actions/`**), vault action builders in **`vault/actions/`**, KeyVault EIP-7702 encode/decode in **`vault/eip7702.js`** with pure EIP-7702 / EIP-712 / address helpers in **`crypto/`** (`eip7702.js`, `eip712.js`, `address.js`, `mnemonic.js`), **`vault/signEip7702Authorization.js`**, validators (`validators/`), username normalisation (`utils/normalize.js`) — **not** a public package export
 - **`sdk/`**: Main SDK class (`Monstera`) composed from domain modules (`sdk/domains/`), plus `MonsteraUtils` (version-check only)
 - **`types/`**: Shared JSDoc type definitions split by domain (`connect.js`, `transactions.js`, `auth-config.js`, `auth-proof.js`, `factory.js`, `keyvault.js`)
 - **`bin/`**: CLI tool (monstera command)
@@ -134,7 +134,7 @@ src/             # Source code
   clients/       # Factory, logic, keyVault, auth (password, walletSignature, dualFactor, passwordMinuteSignature)
   events/        # Event definitions and receipt parsing
   errors/        # Error types (single source of truth for error exports)
-  internal/      # logger, sanitization/, versionCheck, validation/, auth/ (session, pipelines, proof/{builders,signing}, config, context, specs, actions, registry), vault/ (actions/, eip7702.js KeyVault-only, signEip7702Authorization.js), validators/, crypto/ (mnemonic, address, eip712, eip7702), utils/
+  internal/      # logger, sanitization/, versionCheck, validation/, auth/ (session, pipelines, proof/{builders,signing}, config, context, specs, actions), vault/ (actions/, eip7702.js KeyVault-only, signEip7702Authorization.js), validators/, crypto/ (mnemonic, address, eip712, eip7702), utils/
   sdk/           # Monstera (thin composer), MonsteraUtils, domains/ (MonsteraRecipes, MonsteraSession, MonsteraAuth, …)
   types/         # Shared JSDoc types (connect, transactions, auth-config, auth-proof, factory, keyvault)
 bin/             # CLI (monstera command)

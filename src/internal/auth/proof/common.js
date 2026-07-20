@@ -1,9 +1,10 @@
 /**
- * Shared auth-proof pipeline helpers: action-bound encoders, defaults, multi-child delegation.
+ * Shared auth-proof pipeline helpers: action-bound encoders, defaults, password hash resolution.
  *
  * @module internal/auth/proof/common
  */
 
+import { keccak256 } from '../../../adapters/ethers/hashing.js';
 import { resolveActionHash } from '../context/actionContext.js';
 import { isPlainObject } from '../../validation/assert.js';
 import { nowUnixTimestampSeconds } from '../../utils/time.js';
@@ -24,6 +25,29 @@ export function defaultProofDeadline() {
  */
 export function pickAuthProofPartial(options) {
   return isPlainObject(options.authProof) ? /** @type {Record<string, unknown>} */ (options.authProof) : {};
+}
+
+/**
+ * Resolve password hash from explicit hash, UTF-8 password bytes, or top-level options.
+ *
+ * @param {Record<string, unknown>} partial
+ * @param {Record<string, unknown>} options
+ * @returns {Bytes32 | undefined}
+ */
+export function resolvePasswordHashFromProofInput(partial, options) {
+  if (partial.passwordHash != null) {
+    return /** @type {Bytes32} */ (partial.passwordHash);
+  }
+  if (partial.password != null) {
+    return keccak256(/** @type {Uint8Array} */ (partial.password));
+  }
+  if (options.passwordHash != null) {
+    return /** @type {Bytes32} */ (options.passwordHash);
+  }
+  if (options.password != null) {
+    return keccak256(/** @type {Uint8Array} */ (options.password));
+  }
+  return undefined;
 }
 
 /**

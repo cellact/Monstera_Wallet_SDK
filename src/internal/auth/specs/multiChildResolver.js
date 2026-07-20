@@ -12,25 +12,25 @@
 import { getAddress } from '../../../adapters/ethers/addresses.js';
 import { ValidationError } from '../../../errors/index.js';
 import { requireAddress } from '../../validation/assert.js';
-import { apiKeySessionAuthenticator } from './apiKeySession.js';
-import { passwordAuthenticator } from './password.js';
-import { passwordMinuteSignatureAuthenticator } from './passwordMinuteSignature.js';
-import { walletSignatureAuthenticator } from './walletSignature.js';
-import { dualFactorAuthenticator } from './dualFactor.js';
-import { passwordOrWalletSignatureAuthenticator } from './passwordOrWalletSignature.js';
+import { CHILD_AUTHENTICATORS } from './registry.js';
 
-/** @type {readonly BuiltinAuthenticatorSpec[]} */
-const CHILD_AUTHENTICATORS = [
-  apiKeySessionAuthenticator,
-  passwordAuthenticator,
-  passwordMinuteSignatureAuthenticator,
-  walletSignatureAuthenticator,
-  dualFactorAuthenticator,
-  passwordOrWalletSignatureAuthenticator,
-];
+/**
+ * Lazy maps — {@link CHILD_AUTHENTICATORS} is defined in {@link ./registry.js}, which imports
+ * {@code multi.js}, which imports this module. Access the list only after module init.
+ *
+ * @type {Map<string, BuiltinAuthenticatorSpec> | null}
+ */
+let childByFlowId = null;
 
-/** @type {Map<string, BuiltinAuthenticatorSpec>} */
-const byFlowId = new Map(CHILD_AUTHENTICATORS.map((spec) => [spec.flowId, spec]));
+/**
+ * @returns {Map<string, BuiltinAuthenticatorSpec>}
+ */
+function getChildByFlowId() {
+  if (childByFlowId == null) {
+    childByFlowId = new Map(CHILD_AUTHENTICATORS.map((spec) => [spec.flowId, spec]));
+  }
+  return childByFlowId;
+}
 
 /**
  * @param {ContractAddresses} addresses
@@ -51,7 +51,7 @@ function buildAddressLookup(addresses) {
  * @returns {Address}
  */
 function resolveAddrFromFlowId(flowId, addresses) {
-  const spec = byFlowId.get(flowId);
+  const spec = getChildByFlowId().get(flowId);
   if (!spec) {
     throw new ValidationError('Unknown child auth proof flow', 'childFlowId', flowId);
   }
@@ -124,5 +124,5 @@ export function resolveChildSpec(input, addresses) {
  * @returns {BuiltinAuthenticatorSpec | undefined}
  */
 export function getChildSpecByFlowId(flowId) {
-  return byFlowId.get(flowId);
+  return getChildByFlowId().get(flowId);
 }

@@ -3,7 +3,7 @@
  */
 
 import { describe, test, expect } from '@jest/globals';
-import { createRegistryByChecksumAddress } from '../../../src/internal/auth/registry/byChecksumAddress.js';
+import { createRegistryByChecksumAddress } from '../../../src/internal/auth/specs/registry.js';
 import { buildNetworkConfig } from '../../../src/config/networks.js';
 import { ValidationError } from '../../../src/errors/index.js';
 
