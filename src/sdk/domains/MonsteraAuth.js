@@ -1094,7 +1094,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    */
   async updatePasswordMinuteSignature(options = {}) {
     return this._invokeAuthenticatorManaged({
-      flowId: 'password', // TODO: check if this is correct 
+      flowId: 'minuteSignature',
       options,
       flags: { defaultCurrentPassword: true },
       buildAction: (resolved, authenticatorAddr) =>
