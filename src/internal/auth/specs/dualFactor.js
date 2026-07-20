@@ -5,103 +5,60 @@
  */
 
 import { ValidationError } from '../../../errors/index.js';
-import { requireAddress, requireBytes32, requireWalletOrHdNode } from '../../validation/assert.js';
+import { requireBytes32, requireWalletOrHdNode } from '../../validation/assert.js';
 import { createDualFactorAuthConfig } from '../config/bytes.js';
-import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
-import { resolvePasswordHashFromProofInput } from '../proof/common.js';
+import {
+  createActionBoundEncoder,
+  resolvePasswordHashFromProofInput
+} from '../proof/common.js';
 import { createAuthProofDualFactor } from '../proof/builders/dualFactor.js';
-
-/**
- * @param {import('../session/ConnectSession.js').ConnectSession | null} session
- * @param {Record<string, unknown>} partial
- */
-function applySessionInput(session, partial) {
-  const merged = {
-    ...partial,
-    passwordHash: partial.passwordHash ?? session?.getPasswordHash()
-  };
-
-  if (merged.passwordHash == null) {
-    throw new ValidationError(
-      'authProof.passwordHash is required when no credentials session is active',
-      'authProof.passwordHash',
-      merged.passwordHash
-    );
-  }
-
-  if (merged.signer == null) {
-    throw new ValidationError(
-      'authProof.signer is required for DualFactorAuthenticator; pass the guardian Wallet or HDNodeWallet',
-      'authProof.signer',
-      merged.signer
-    );
-  }
-
-  return merged;
-}
-
-/**
- * @param {Record<string, unknown>} options
- */
-function validatePrepareInput(options) {
-  requireAddress(options.keyVaultAddr, 'keyVaultAddr');
-  requireBytes32(options.passwordHash, 'passwordHash');
-  requireWalletOrHdNode(options.signer, 'signer');
-}
-
-/**
- * @param {MonsteraConfigOptions} config
- * @param {Record<string, unknown>} options
- */
-function applyConfigDefaults(config, options) {
-  return {
-    ...options,
-    authenticatorAddr: options.authenticatorAddr ?? config.addresses.dualFactorAuth,
-    deadline: options.deadline ?? defaultProofDeadline(),
-    chainId: config.chainId
-  };
-}
-
-/**
- * @param {Record<string, unknown>} options
- * @returns {Record<string, unknown>}
- */
-function collectProofInput(options) {
-  const partial = pickAuthProofPartial(options);
-  return {
-    ...partial,
-    passwordHash: resolvePasswordHashFromProofInput(partial, options),
-    signer: partial.signer ?? options.signer,
-    deadline: partial.deadline ?? options.deadline
-  };
-}
-
-/**
- * @param {Record<string, unknown>} resolved
- * @param {Address} authenticatorAddr
- * @returns {Record<string, unknown>}
- */
-function mapSessionResolved(resolved, authenticatorAddr) {
-  return {
-    keyVaultAddr: resolved.keyVaultAddr,
-    authenticatorAddr,
-    passwordHash: resolved.passwordHash,
-    signer: resolved.signer,
-    deadline: resolved.deadline
-  };
-}
+import { createAuthenticatorSpec } from './createAuthenticatorSpec.js';
 
 /** @type {BuiltinAuthenticatorSpec} */
-export const dualFactorAuthenticator = {
+export const dualFactorAuthenticator = createAuthenticatorSpec({
   id: 'dualFactorAuth',
   flowId: 'dualFactor',
   addressKey: 'dualFactorAuth',
+  withDeadline: true,
 
-  applySessionInput,
-  collectProofInput,
-  mapSessionResolved,
-  applyConfigDefaults,
-  validatePrepareInput,
+  applySessionInput(session, partial) {
+    const merged = {
+      ...partial,
+      passwordHash: partial.passwordHash ?? session?.getPasswordHash()
+    };
+
+    if (merged.passwordHash == null) {
+      throw new ValidationError(
+        'authProof.passwordHash is required when no credentials session is active',
+        'authProof.passwordHash',
+        merged.passwordHash
+      );
+    }
+
+    if (merged.signer == null) {
+      throw new ValidationError(
+        'authProof.signer is required for DualFactorAuthenticator; pass the guardian Wallet or HDNodeWallet',
+        'authProof.signer',
+        merged.signer
+      );
+    }
+
+    return merged;
+  },
+
+  collectKeys: ['signer', 'deadline'],
+  collectResolve: {
+    passwordHash: resolvePasswordHashFromProofInput
+  },
+  mapFields: {
+    passwordHash: true,
+    signer: true,
+    deadline: true
+  },
+  validate: (options) => {
+    requireBytes32(options.passwordHash, 'passwordHash');
+    requireWalletOrHdNode(options.signer, 'signer');
+  },
 
   proofEncoder: createActionBoundEncoder({
     id: 'dualFactorAuth',
@@ -128,14 +85,9 @@ export const dualFactorAuthenticator = {
       })
   }),
 
-  configEncoder: {
-    id: 'dualFactorAuth',
-    encode(authConfig) {
-      const { passwordHash, guardianAddr } = authConfig;
-      return createDualFactorAuthConfig(
-        /** @type {Bytes32} */ (passwordHash),
-        /** @type {Address} */ (guardianAddr)
-      );
-    }
-  }
-};
+  configEncoder: (authConfig) =>
+    createDualFactorAuthConfig(
+      /** @type {Bytes32} */ (authConfig.passwordHash),
+      /** @type {Address} */ (authConfig.guardianAddr)
+    )
+});

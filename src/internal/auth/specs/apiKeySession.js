@@ -4,11 +4,14 @@
  * @module internal/auth/specs/apiKeySession
  */
 
-import { ValidationError } from '../../../errors/index.js';
-import { requireAddress, requireBytes32 } from '../../validation/assert.js';
+import { requireBytes32 } from '../../validation/assert.js';
 import { createApiKeySessionAuthConfig } from '../config/bytes.js';
 import { createAuthProofApiKeySession } from '../proof/builders/apiKeySession.js';
-import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
+import { createActionBoundEncoder } from '../proof/common.js';
+import {
+  createAuthenticatorSpec,
+  requirePartialOrSession
+} from './createAuthenticatorSpec.js';
 
 /** TOKEN-mode proof ({@code mode = 1}). */
 export const MODE_TOKEN = 1;
@@ -36,89 +39,26 @@ export function isApiKeySessionTokenMode(input) {
   return input.expiry != null || input.scopeMask != null;
 }
 
-/**
- * @param {import('../session/ConnectSession.js').ConnectSession | null} session
- * @param {Record<string, unknown>} partial
- */
-function applySessionInput(session, partial) {
-  const merged = {
-    ...partial,
-    apiKeySecret: partial.apiKeySecret ?? session?.getApiKeySecret()
-  };
-
-  if (merged.apiKeySecret == null) {
-    throw new ValidationError(
-      'authProof.apiKeySecret is required when no credentials session is active',
-      'authProof.apiKeySecret',
-      merged.apiKeySecret
-    );
-  }
-
-  return merged;
-}
-
-/**
- * @param {Record<string, unknown>} options
- */
-function validatePrepareInput(options) {
-  requireAddress(options.keyVaultAddr, 'keyVaultAddr');
-  requireBytes32(options.apiKeySecret, 'apiKeySecret');
-}
-
-/**
- * @param {MonsteraConfigOptions} config
- * @param {Record<string, unknown>} options
- */
-function applyConfigDefaults(config, options) {
-  return {
-    ...options,
-    authenticatorAddr: options.authenticatorAddr ?? config.addresses.apiKeySessionAuth,
-    chainId: config.chainId
-  };
-}
-
-/**
- * @param {Record<string, unknown>} options
- * @returns {Record<string, unknown>}
- */
-function collectProofInput(options) {
-  const partial = pickAuthProofPartial(options);
-  return {
-    ...partial,
-    apiKeySecret: partial.apiKeySecret ?? options.apiKeySecret,
-    mode: partial.mode ?? options.mode,
-    expiry: partial.expiry ?? options.expiry,
-    scopeMask: partial.scopeMask ?? options.scopeMask
-  };
-}
-
-/**
- * @param {Record<string, unknown>} resolved
- * @param {Address} authenticatorAddr
- * @returns {Record<string, unknown>}
- */
-function mapSessionResolved(resolved, authenticatorAddr) {
-  return {
-    keyVaultAddr: resolved.keyVaultAddr,
-    authenticatorAddr,
-    apiKeySecret: resolved.apiKeySecret,
-    mode: resolved.mode,
-    expiry: resolved.expiry,
-    scopeMask: resolved.scopeMask
-  };
-}
-
 /** @type {BuiltinAuthenticatorSpec} */
-export const apiKeySessionAuthenticator = {
+export const apiKeySessionAuthenticator = createAuthenticatorSpec({
   id: 'apiKeySessionAuth',
   flowId: 'apiKeySession',
   addressKey: 'apiKeySessionAuth',
 
-  applySessionInput,
-  collectProofInput,
-  mapSessionResolved,
-  applyConfigDefaults,
-  validatePrepareInput,
+  applySessionInput: requirePartialOrSession(
+    'apiKeySecret',
+    (session) => session.getApiKeySecret(),
+    'authProof.apiKeySecret is required when no credentials session is active'
+  ),
+
+  collectKeys: ['apiKeySecret', 'mode', 'expiry', 'scopeMask'],
+  mapFields: {
+    apiKeySecret: true,
+    mode: true,
+    expiry: true,
+    scopeMask: true
+  },
+  validate: (options) => requireBytes32(options.apiKeySecret, 'apiKeySecret'),
 
   proofEncoder: createActionBoundEncoder({
     id: 'apiKeySessionAuth',
@@ -137,13 +77,6 @@ export const apiKeySessionAuthenticator = {
       })
   }),
 
-  configEncoder: {
-    id: 'apiKeySessionAuth',
-    encode(authConfig) {
-      const { apiKeySecret } = authConfig;
-      return createApiKeySessionAuthConfig(
-        /** @type {Bytes32} */ (apiKeySecret)
-      );
-    }
-  }
-};
+  configEncoder: (authConfig) =>
+    createApiKeySessionAuthConfig(/** @type {Bytes32} */ (authConfig.apiKeySecret))
+});

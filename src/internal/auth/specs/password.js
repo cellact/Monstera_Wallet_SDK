@@ -4,83 +4,31 @@
  * @module internal/auth/specs/password
  */
 
-import { ValidationError } from '../../../errors/index.js';
-import { requireBytes32, requireUtf8Bytes, requireAddress } from '../../validation/assert.js';
-import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
+import { requireBytes32, requireUtf8Bytes } from '../../validation/assert.js';
+import { createActionBoundEncoder } from '../proof/common.js';
 import { createAuthProofPassword } from '../proof/builders/abiProofs.js';
-
-/**
- * @param {import('../session/ConnectSession.js').ConnectSession | null} session
- * @param {Record<string, unknown>} partial
- * @returns {Record<string, unknown>}
- */
-function applySessionInput(session, partial) {
-  if (partial.password != null) {
-    return partial;
-  }
-  if (!session) {
-    throw new ValidationError(
-      'authProof.password is required when no credentials session is active',
-      'authProof.password',
-      partial.password
-    );
-  }
-  return { ...partial, password: session.getPasswordBytes() };
-}
-
-/**
- * @param {Record<string, unknown>} options
- */
-function validatePrepareInput(options) {
-  requireAddress(options.keyVaultAddr, 'keyVaultAddr');
-  requireUtf8Bytes(options.password, 'password');
-}
-
-/**
- * @param {MonsteraConfigOptions} config
- * @param {Record<string, unknown>} options
- */
-function applyConfigDefaults(config, options) {
-  return {
-    ...options,
-    chainId: config.chainId,
-    authenticatorAddr: options.authenticatorAddr ?? config.addresses.passwordAuth
-  };
-}
-
-/**
- * @param {Record<string, unknown>} options
- * @returns {Record<string, unknown>}
- */
-function collectProofInput(options) {
-  const partial = pickAuthProofPartial(options);
-  return { ...partial, password: partial.password ?? options.password };
-}
-
-/**
- * @param {Record<string, unknown>} resolved
- * @param {Address} authenticatorAddr
- * @returns {Record<string, unknown>}
- */
-function mapSessionResolved(resolved, authenticatorAddr) {
-  return {
-    keyVaultAddr: resolved.keyVaultAddr,
-    authenticatorAddr,
-    password: resolved.currentPassword ?? resolved.password
-  };
-}
+import {
+  createAuthenticatorSpec,
+  requirePartialOrSession
+} from './createAuthenticatorSpec.js';
 
 /** @type {BuiltinAuthenticatorSpec} */
-export const passwordAuthenticator = {
+export const passwordAuthenticator = createAuthenticatorSpec({
   id: 'passwordAuth',
   flowId: 'password',
   addressKey: 'passwordAuth',
 
-  applySessionInput,
-  collectProofInput,
-  mapSessionResolved,
-  applyConfigDefaults,
-  validatePrepareInput,
+  applySessionInput: requirePartialOrSession(
+    'password',
+    (session) => session.getPasswordBytes(),
+    'authProof.password is required when no credentials session is active'
+  ),
+
+  collectKeys: ['password'],
+  mapFields: {
+    password: (resolved) => resolved.currentPassword ?? resolved.password
+  },
+  validate: (options) => requireUtf8Bytes(options.password, 'password'),
 
   proofEncoder: createActionBoundEncoder({
     id: 'passwordAuth',
@@ -88,12 +36,9 @@ export const passwordAuthenticator = {
     createProof: ({ password, actionHash }) => createAuthProofPassword({ password, actionHash })
   }),
 
-  configEncoder: {
-    id: 'passwordAuth',
-    encode(authConfig) {
-      const { passwordHash } = authConfig;
-      requireBytes32(passwordHash, 'passwordHash');
-      return passwordHash;
-    }
+  configEncoder: (authConfig) => {
+    const { passwordHash } = authConfig;
+    requireBytes32(passwordHash, 'passwordHash');
+    return passwordHash;
   }
-};
+});

@@ -4,86 +4,33 @@
  * @module internal/auth/specs/walletSignature
  */
 
-import { ValidationError } from '../../../errors/index.js';
-import { requireAddress, requireWalletOrHdNode } from '../../validation/assert.js';
+import { requireWalletOrHdNode } from '../../validation/assert.js';
 import { createWalletSigAuthConfig } from '../config/bytes.js';
-import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
+import { createActionBoundEncoder } from '../proof/common.js';
 import { createAuthProofWalletSignature } from '../proof/builders/walletSignature.js';
-
-/**
- * @param {import('../session/ConnectSession.js').ConnectSession | null} _session
- * @param {Record<string, unknown>} partial
- */
-function applySessionInput(_session, partial) {
-  if (partial.signer == null) {
-    throw new ValidationError(
-      'authProof.signer is required for WalletSignatureAuthenticator; pass a whitelisted Wallet or HDNodeWallet',
-      'authProof.signer',
-      partial.signer
-    );
-  }
-  return partial;
-}
-
-/**
- * @param {Record<string, unknown>} options
- */
-function validatePrepareInput(options) {
-  requireAddress(options.keyVaultAddr, 'keyVaultAddr');
-  requireWalletOrHdNode(options.signer, 'signer');
-}
-
-/**
- * @param {MonsteraConfigOptions} config
- * @param {Record<string, unknown>} options
- */
-function applyConfigDefaults(config, options) {
-  return {
-    ...options,
-    authenticatorAddr: options.authenticatorAddr ?? config.addresses.walletSignatureAuth,
-    deadline: options.deadline ?? defaultProofDeadline(),
-    chainId: config.chainId
-  };
-}
-
-/**
- * @param {Record<string, unknown>} options
- * @returns {Record<string, unknown>}
- */
-function collectProofInput(options) {
-  const partial = pickAuthProofPartial(options);
-  return {
-    ...partial,
-    signer: partial.signer ?? options.signer,
-    deadline: partial.deadline ?? options.deadline
-  };
-}
-
-/**
- * @param {Record<string, unknown>} resolved
- * @param {Address} authenticatorAddr
- * @returns {Record<string, unknown>}
- */
-function mapSessionResolved(resolved, authenticatorAddr) {
-  return {
-    keyVaultAddr: resolved.keyVaultAddr,
-    authenticatorAddr,
-    signer: resolved.signer,
-    deadline: resolved.deadline
-  };
-}
+import {
+  createAuthenticatorSpec,
+  requirePartialField
+} from './createAuthenticatorSpec.js';
 
 /** @type {BuiltinAuthenticatorSpec} */
-export const walletSignatureAuthenticator = {
+export const walletSignatureAuthenticator = createAuthenticatorSpec({
   id: 'walletSignatureAuth',
   flowId: 'walletSignature',
   addressKey: 'walletSignatureAuth',
+  withDeadline: true,
 
-  applySessionInput,
-  collectProofInput,
-  mapSessionResolved,
-  applyConfigDefaults,
-  validatePrepareInput,
+  applySessionInput: requirePartialField(
+    'signer',
+    'authProof.signer is required for WalletSignatureAuthenticator; pass a whitelisted Wallet or HDNodeWallet'
+  ),
+
+  collectKeys: ['signer', 'deadline'],
+  mapFields: {
+    signer: true,
+    deadline: true
+  },
+  validate: (options) => requireWalletOrHdNode(options.signer, 'signer'),
 
   proofEncoder: createActionBoundEncoder({
     id: 'walletSignatureAuth',
@@ -106,13 +53,6 @@ export const walletSignatureAuthenticator = {
       })
   }),
 
-  configEncoder: {
-    id: 'walletSignatureAuth',
-    encode(authConfig) {
-      const { initialWhitelist } = authConfig;
-      return createWalletSigAuthConfig(
-        /** @type {Address[]} */ (initialWhitelist)
-      );
-    }
-  }
-};
+  configEncoder: (authConfig) =>
+    createWalletSigAuthConfig(/** @type {Address[]} */ (authConfig.initialWhitelist))
+});

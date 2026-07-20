@@ -30,8 +30,21 @@ proof/
 
 ## Adding a built-in authenticator
 
-1. Add `specs/<name>.js` — implement `BuiltinAuthenticatorSpec` (see `types/auth-proof.js`)
-2. Register in `specs/registry.js` (`BUILTIN_AUTHENTICATORS`)
+1. Add `specs/<name>.js` via `createAuthenticatorSpec` (see `types/auth-proof.js` for the resulting shape):
+   ```js
+   export const fooAuthenticator = createAuthenticatorSpec({
+     id: 'fooAuth',
+     flowId: 'foo',
+     addressKey: 'fooAuth',
+     applySessionInput: requirePartialOrSession('…', …),
+     collectKeys: ['…'],
+     mapFields: { …: true },
+     validate: (options) => { … },
+     proofEncoder: createActionBoundEncoder({ … }),
+     configEncoder: (authConfig) => { … }
+   });
+   ```
+2. Register in `specs/registry.js` (`CHILD_AUTHENTICATORS` / `BUILTIN_AUTHENTICATORS`)
 3. **Proof** — pick one:
    - Trivial ABI wrap: add to `proof/builders/abiProofs.js`, wire via `createActionBoundEncoder` in spec
    - EIP-712 / signing: add `proof/builders/<name>.js` (reuse `proof/signing/eip712.js`)

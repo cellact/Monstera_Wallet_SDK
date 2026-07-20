@@ -10,11 +10,12 @@ import {
   requireArray,
   requireBytes32,
   requireUtf8Bytes,
-  requireWalletOrHdNode,
+  requireWalletOrHdNode
 } from '../../validation/assert.js';
 import { createPasswordOrWalletSigAuthConfig } from '../config/bytes.js';
-import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
+import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
 import { createAuthProofPasswordOrWalletSignature } from '../proof/builders/passwordOrWalletSignature.js';
+import { createAuthenticatorSpec } from './createAuthenticatorSpec.js';
 
 /** @type {1} */
 export const METHOD_PASSWORD = 1;
@@ -41,7 +42,9 @@ function normalizeMethod(method) {
  * @returns {'password' | 'walletSignature'}
  */
 function resolveMethod(input) {
-  const explicit = normalizeMethod(/** @type {'password' | 'walletSignature' | number | undefined} */ (input.method));
+  const explicit = normalizeMethod(
+    /** @type {'password' | 'walletSignature' | number | undefined} */ (input.method)
+  );
   if (explicit) {
     return explicit;
   }
@@ -58,97 +61,57 @@ function resolveMethod(input) {
   );
 }
 
-/**
- * @param {import('../session/ConnectSession.js').ConnectSession | null} session
- * @param {Record<string, unknown>} partial
- * @returns {Record<string, unknown>}
- */
-function applySessionInput(session, partial) {
-  const merged = { ...partial };
-
-  if (merged.password == null && session?.hasPassword()) {
-    merged.password = session.getPasswordBytes();
-  }
-
-  if (merged.signer == null && merged.password == null) {
-    throw new ValidationError(
-      'authProof.password or authProof.signer is required for PasswordOrWalletSignatureAuthenticator',
-      'authProof',
-      partial
-    );
-  }
-
-  return merged;
-}
-
-/**
- * @param {Record<string, unknown>} options
- */
-function validatePrepareInput(options) {
-  requireAddress(options.keyVaultAddr, 'keyVaultAddr');
-  const method = resolveMethod(options);
-  if (method === 'walletSignature') {
-    requireWalletOrHdNode(options.signer, 'signer');
-  } else {
-    requireUtf8Bytes(options.password, 'password');
-  }
-}
-
-/**
- * @param {MonsteraConfigOptions} config
- * @param {Record<string, unknown>} options
- */
-function applyConfigDefaults(config, options) {
-  return {
-    ...options,
-    authenticatorAddr: options.authenticatorAddr ?? config.addresses.passwordOrWalletSigAuth,
-    deadline: options.deadline ?? defaultProofDeadline(),
-    chainId: config.chainId,
-  };
-}
-
-/**
- * @param {Record<string, unknown>} options
- * @returns {Record<string, unknown>}
- */
-function collectProofInput(options) {
-  const partial = pickAuthProofPartial(options);
-  return {
-    ...partial,
-    method: partial.method ?? options.method,
-    password: partial.password ?? options.password ?? options.currentPassword,
-    signer: partial.signer ?? options.signer,
-    deadline: partial.deadline ?? options.deadline
-  };
-}
-
-/**
- * @param {Record<string, unknown>} resolved
- * @param {Address} authenticatorAddr
- * @returns {Record<string, unknown>}
- */
-function mapSessionResolved(resolved, authenticatorAddr) {
-  return {
-    keyVaultAddr: resolved.keyVaultAddr,
-    authenticatorAddr,
-    method: resolved.method,
-    password: resolved.currentPassword ?? resolved.password,
-    signer: resolved.signer,
-    deadline: resolved.deadline
-  };
-}
-
 /** @type {BuiltinAuthenticatorSpec} */
-export const passwordOrWalletSignatureAuthenticator = {
+export const passwordOrWalletSignatureAuthenticator = createAuthenticatorSpec({
   id: 'passwordOrWalletSigAuth',
   flowId: 'passwordOrWalletSignature',
   addressKey: 'passwordOrWalletSigAuth',
+  withDeadline: true,
 
-  applySessionInput,
-  collectProofInput,
-  mapSessionResolved,
-  applyConfigDefaults,
-  validatePrepareInput,
+  applySessionInput(session, partial) {
+    const merged = { ...partial };
+
+    if (merged.password == null && session?.hasPassword()) {
+      merged.password = session.getPasswordBytes();
+    }
+
+    if (merged.signer == null && merged.password == null) {
+      throw new ValidationError(
+        'authProof.password or authProof.signer is required for PasswordOrWalletSignatureAuthenticator',
+        'authProof',
+        partial
+      );
+    }
+
+    return merged;
+  },
+
+  collectProofInput(options) {
+    const partial = pickAuthProofPartial(options);
+    return {
+      ...partial,
+      method: partial.method ?? options.method,
+      password: partial.password ?? options.password ?? options.currentPassword,
+      signer: partial.signer ?? options.signer,
+      deadline: partial.deadline ?? options.deadline
+    };
+  },
+
+  mapFields: {
+    method: true,
+    password: (resolved) => resolved.currentPassword ?? resolved.password,
+    signer: true,
+    deadline: true
+  },
+
+  validate: (options) => {
+    const method = resolveMethod(options);
+    if (method === 'walletSignature') {
+      requireWalletOrHdNode(options.signer, 'signer');
+    } else {
+      requireUtf8Bytes(options.password, 'password');
+    }
+  },
 
   proofEncoder: createActionBoundEncoder({
     id: 'passwordOrWalletSigAuth',
@@ -156,22 +119,19 @@ export const passwordOrWalletSignatureAuthenticator = {
     validateInput: (input) => {
       resolveMethod(input);
     },
-    createProof: (input) => createAuthProofPasswordOrWalletSignature(input),
+    createProof: (input) => createAuthProofPasswordOrWalletSignature(input)
   }),
 
-  configEncoder: {
-    id: 'passwordOrWalletSigAuth',
-    encode(authConfig) {
-      const { passwordHash, initialWhitelist } = authConfig;
-      requireBytes32(passwordHash, 'passwordHash');
-      requireArray(initialWhitelist, 'initialWhitelist');
-      for (const address of initialWhitelist) {
-        requireAddress(address, 'initialWhitelist.address');
-      }
-      return createPasswordOrWalletSigAuthConfig(
-        /** @type {Bytes32} */ (passwordHash),
-        /** @type {Address[]} */ (initialWhitelist)
-      );
-    },
-  },
-};
+  configEncoder: (authConfig) => {
+    const { passwordHash, initialWhitelist } = authConfig;
+    requireBytes32(passwordHash, 'passwordHash');
+    requireArray(initialWhitelist, 'initialWhitelist');
+    for (const address of initialWhitelist) {
+      requireAddress(address, 'initialWhitelist.address');
+    }
+    return createPasswordOrWalletSigAuthConfig(
+      /** @type {Bytes32} */ (passwordHash),
+      /** @type {Address[]} */ (initialWhitelist)
+    );
+  }
+});
