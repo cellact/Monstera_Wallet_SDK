@@ -12,19 +12,15 @@
 
 import { requireAddress, requirePlainObject } from '../../validation/assert.js';
 import { ValidationError } from '../../../errors/index.js';
+import log from '../../logger.js';
 import {
   assertAuthActionInput,
   buildAuthContext,
   resolveActionHash
 } from '../context/actionContext.js';
 import { buildAuthenticatorVerifyProbeAction } from '../probes/verifyProbe.js';
+import { isApiKeySessionTokenMode } from '../specs/apiKeySession.js';
 import { createBuiltinAuthenticatorRegistry } from '../specs/registry.js';
-import {
-  logAuthProofEncoded,
-  logExplicitAuthPrepare,
-  logVaultAuthPreEncoded,
-  logVaultAuthResolved
-} from './logging.js';
 
 /**
  * @param {unknown} authProof
@@ -32,6 +28,128 @@ import {
  */
 function isPreEncodedAuthProof(authProof) {
   return typeof authProof === 'string' || authProof instanceof Uint8Array;
+}
+
+/**
+ * @param {string} encoderId
+ * @param {Record<string, unknown>} [input]
+ * @returns {'token' | 'action' | undefined}
+ */
+function resolveApiKeySessionProofMode(encoderId, input) {
+  if (encoderId !== 'apiKeySessionAuth' || input == null) {
+    return undefined;
+  }
+  return isApiKeySessionTokenMode(input) ? 'token' : 'action';
+}
+
+/**
+ * @param {Bytes | Uint8Array | undefined} authProof
+ * @returns {number | undefined}
+ */
+function authProofByteLength(authProof) {
+  if (typeof authProof === 'string') {
+    return Math.max(0, (authProof.length - 2) / 2);
+  }
+  if (authProof instanceof Uint8Array) {
+    return authProof.length;
+  }
+  return undefined;
+}
+
+/**
+ * @param {{ keyVaultAddr: Address }} params
+ */
+function logVaultAuthPreEncoded({ keyVaultAddr }) {
+  log.info('auth pipeline: vault call', {
+    path: 'vault',
+    encoderId: 'pre-encoded',
+    keyVaultAddr,
+    proofSource: 'caller'
+  });
+}
+
+/**
+ * @param {Object} params
+ * @param {string} params.encoderId
+ * @param {string} params.flowId
+ * @param {Address} params.authenticatorAddr
+ * @param {Address} params.keyVaultAddr
+ * @param {Record<string, unknown>} [params.proofInput]
+ */
+function logVaultAuthResolved({ encoderId, flowId, authenticatorAddr, keyVaultAddr, proofInput }) {
+  const proofMode = resolveApiKeySessionProofMode(encoderId, proofInput);
+
+  log.info('auth pipeline: vault call', {
+    path: 'vault',
+    encoderId,
+    flowId,
+    authenticatorAddr,
+    keyVaultAddr,
+    ...(proofMode && { proofMode })
+  });
+
+  log.debug('auth pipeline: vault call detail', {
+    actionSelector: proofInput?.action?.selector,
+    actionTarget: proofInput?.action?.target,
+    proofMode,
+    sessionApiKey: proofInput?.apiKeySecret != null,
+    tokenExpiry: proofInput?.expiry
+  });
+}
+
+/**
+ * @param {Object} params
+ * @param {string} params.flowId
+ * @param {string} params.encoderId
+ * @param {Address} params.authenticatorAddr
+ * @param {Address} [params.keyVaultAddr]
+ * @param {AuthProofFlowOptions} [params.flowOptions]
+ */
+function logExplicitAuthPrepare({ flowId, encoderId, authenticatorAddr, keyVaultAddr, flowOptions }) {
+  log.info('auth pipeline: explicit flow', {
+    path: 'explicit',
+    flowId,
+    encoderId,
+    authenticatorAddr,
+    keyVaultAddr
+  });
+
+  log.debug('auth pipeline: explicit flow detail', {
+    useVerifyProbe: flowOptions?.useVerifyProbe === true,
+    includeAuthContext: flowOptions?.includeAuthContext === true
+  });
+}
+
+/**
+ * @param {Object} params
+ * @param {string} params.encoderId
+ * @param {string} params.flowId
+ * @param {Address} params.authenticatorAddr
+ * @param {Address} params.keyVaultAddr
+ * @param {Record<string, unknown>} [params.proofInput]
+ * @param {AuthActionInput} [params.action]
+ * @param {Bytes | Uint8Array} [params.authProof]
+ */
+function logAuthProofEncoded({
+  encoderId,
+  flowId,
+  authenticatorAddr,
+  keyVaultAddr,
+  proofInput,
+  action,
+  authProof
+}) {
+  const proofMode = resolveApiKeySessionProofMode(encoderId, proofInput);
+
+  log.debug('auth pipeline: proof encoded', {
+    encoderId,
+    flowId,
+    authenticatorAddr,
+    keyVaultAddr,
+    ...(proofMode && { proofMode }),
+    actionSelector: action?.selector,
+    authProofBytes: authProofByteLength(authProof)
+  });
 }
 
 /**

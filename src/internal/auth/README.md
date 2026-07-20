@@ -21,8 +21,7 @@ context/          Action hash resolution and AuthContext assembly
 
 ```
 proof/
-  AuthProofEncoder.js   Orchestrator (vault resolve + explicit flow encode)
-  logging.js            Encoder-only structured logs
+  AuthProofEncoder.js   Orchestrator (vault resolve + explicit flow encode; pipeline logs)
   common.js             createActionBoundEncoder, deadlines, password hash resolution
   builders/             Per-authenticator createAuthProof* functions
   signing/              Auth-domain EIP-712 wrappers (uses internal/crypto/eip712)
