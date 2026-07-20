@@ -1,10 +1,10 @@
 /**
  * Multi-authenticator child proof delegation.
  *
- * @module internal/auth/proof/multiChildEncode
+ * @module internal/auth/proof/builders/multiChildEncode
  */
 
-import { resolveChildAddr, resolveChildSpec } from '../specs/multiChildResolver.js';
+import { resolveChildAddr, resolveChildSpec } from '../../specs/multiChildResolver.js';
 import { createAuthProofMulti } from './abiProofs.js';
 
 /**

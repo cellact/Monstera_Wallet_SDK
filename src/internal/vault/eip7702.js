@@ -1,27 +1,14 @@
 /**
- * EIP-7702 authorization helpers.
+ * KeyVault-specific EIP-7702 helpers (calldata encode/decode for {@code signAuthorizationImpl}).
  *
- * Used by {@code signEip7702Authorization.js} (the high-level {@code Monstera.signAuthorization} flow).
- * Covers:
- * - hashing / verifying authorization tuples (delegating to ethers v6's
- *   {@code hashAuthorization} / {@code verifyAuthorization})
- * - reading {@code chainId} and {@code authorityAddress.nonce} from an ethers provider
- * - encoding the {@code signAuthorizationImpl} calldata that KeyVault expects via its
- *   {@code executeWithAuth} entry point
- * - decoding the {@code (r, s, yParity)} return triple that KeyVault produces
- * - small adapters: {@link toChecksumAddress}, {@link finalizeSignedAuthorizationResult}
- *
+ * Pure authorization hash/verify/normalize/provider reads live in {@code internal/crypto/eip7702.js}.
  *
  * @module internal/vault/eip7702
  */
 
-import { ZeroHash, getAddress } from '../../adapters/ethers/addresses.js';
+import { ZeroHash } from '../../adapters/ethers/addresses.js';
 import { defaultAbiCoder, Interface } from '../../adapters/ethers/encoding.js';
-import {
-  hashAuthorization as etherHashAuthorizationTuple,
-  verifyAuthorization as etherVerifyAuthorizationTuple
-} from '../../adapters/ethers/signing.js';
-import { requireAddress, requireBigInt, requireNonNegativeInteger, requireNonEmptyBytes, requireNonEmptyObject, requireProviderMethod } from '../validation/assert.js';
+import { requireAddress, requireBigInt, requireNonNegativeInteger, requireNonEmptyBytes } from '../validation/assert.js';
 import { ValidationError } from '../../errors/index.js';
 
 /**
@@ -50,100 +37,6 @@ const UINT64_MAX = (1n << 64n) - 1n;
 const UINT32_MAX = (1n << 32n) - 1n;
 
 /**
- * Normalise caller input into an ethers authorization tuple.
- *
- * @description Accepts either {@code address} or {@code delegateAddr} as the target field name
- * (the SDK uses {@code delegateAddr} elsewhere; ethers uses {@code address}). Performs full
- * validation and EIP-55 checksumming.
- *
- * @public
- * @param {{ address?: Address, delegateAddr?: Address, chainId: number | bigint, nonce: number | bigint }} auth -
- *   Authorization tuple (one of {@code address} / {@code delegateAddr} required)
- * @returns {AuthorizationTupleInput} Normalised tuple ({@code chainId} / {@code nonce} as
- *   {@code bigint}, {@code address} checksummed)
- * @throws {ValidationError} If {@code auth} is not an object, or the address fails validation
- *   (raised by {@link requireNonEmptyObject} / {@link requireAddress})
- */
-function normalizeAuthorizationTuple(auth) {
-  requireNonEmptyObject(auth, 'auth');
-  const rawAddr = auth.address ?? auth.delegateAddr;
-  requireAddress(rawAddr, 'address');
-  const address = getAddress(rawAddr);
-  const chainId = BigInt(auth.chainId);
-  const nonce = BigInt(auth.nonce);
-  return { chainId, address, nonce };
-}
-
-/**
- * Compute the EIP-7702 authorization digest.
- *
- * @description {@code keccak256(0x05 || rlp([chainId, address, nonce]))} — delegated to
- * {@code ethers.hashAuthorization} via the adapter.
- *
- * @public
- * @param {{ address?: Address, delegateAddr?: Address, chainId: number | bigint, nonce: number | bigint }} auth -
- *   Authorization tuple
- * @returns {Bytes32} 32-byte digest hex string
- * @throws {ValidationError} Forwarded from {@link normalizeAuthorizationTuple}
- */
-function hashAuthorization(auth) {
-  return etherHashAuthorizationTuple(normalizeAuthorizationTuple(auth));
-}
-
-/**
- * Recover the signer of an EIP-7702 authorization.
- *
- * @public
- * @param {{ address?: Address, delegateAddr?: Address, chainId: number | bigint, nonce: number | bigint }} auth -
- *   Authorization tuple
- * @param {AuthorizationSplitSignature} signature - Split signature ({@code r}, {@code s},
- *   {@code yParity})
- * @returns {Address} Recovered signer address (EIP-55 checksum)
- * @throws {ValidationError} Forwarded from {@link normalizeAuthorizationTuple}
- */
-function verifyAuthorization(auth, signature) {
-  return etherVerifyAuthorizationTuple(normalizeAuthorizationTuple(auth), signature);
-}
-
-/**
- * Read the EIP-155 chain id from a provider's current network.
- *
- * @public
- * @async
- * @param {EthersAbstractProvider} provider - Ethers provider exposing {@code getNetwork}
- * @returns {Promise<bigint>} Chain id as {@code bigint}
- * @throws {ValidationError} If {@code provider} does not expose {@code getNetwork}
- * @throws {NetworkError} Forwarded from the provider's network read on transport failures
- */
-async function fetchAuthorizationChainId(provider) {
-  requireProviderMethod(provider, 'getNetwork', 'provider');
-  const net = await provider.getNetwork();
-  return BigInt(net.chainId);
-}
-
-/**
- * Read the EIP-7702 authorization {@code nonce} for an authority address.
- *
- * @description Returns the authority's latest transaction count on the target chain — the value
- * that goes into the authorization tuple's {@code nonce} slot.
- *
- * @public
- * @async
- * @param {EthersAbstractProvider} provider - Ethers provider exposing {@code getTransactionCount}
- * @param {Address} authorityAddress - EOA acting as authority
- * @returns {Promise<bigint>} Latest nonce as {@code bigint}
- * @throws {ValidationError} If {@code provider} does not expose {@code getTransactionCount}, or
- *   {@code authorityAddress} fails address validation
- * @throws {NetworkError} Forwarded from the provider's transaction-count read on transport failures
- */
-async function fetchAuthorizationNonce(provider, authorityAddress) {
-  requireProviderMethod(provider, 'getTransactionCount', 'provider');
-  requireAddress(authorityAddress, 'authorityAddress');
-  const count = await provider.getTransactionCount(authorityAddress);
-  return BigInt(count);
-}
-
-/**
  * Encode {@code signAuthorizationImpl} calldata for {@code KeyVaultClient.executeWithAuth}.
  *
  * @description Validates {@code index} / {@code nonce} / {@code chainId} fit their on-chain widths
@@ -159,7 +52,7 @@ async function fetchAuthorizationNonce(provider, authorityAddress) {
  *   {@code index} > uint32 max, if {@code nonce} is outside [0, uint64 max], or if
  *   {@code chainId} is negative
  */
-function encodeSignAuthorizationImplCalldata(options = {}) {
+export function encodeSignAuthorizationImplCalldata(options = {}) {
   const { index, delegateAddr, nonce, chainId } = options;
   requireNonNegativeInteger(index, 'index');
   requireAddress(delegateAddr, 'delegateAddr');
@@ -187,19 +80,6 @@ function encodeSignAuthorizationImplCalldata(options = {}) {
 }
 
 /**
- * Validate and EIP-55 checksum an EVM address (same semantics as {@code ethers.getAddress}).
- *
- * @public
- * @param {Address} address - EVM address (any case)
- * @returns {Address} Checksum-cased address
- * @throws {ValidationError} If {@code address} fails validation (raised by {@link requireAddress})
- */
-function toChecksumAddress(address) {
-  requireAddress(address, 'address');
-  return getAddress(address);
-}
-
-/**
  * Decode the {@code (bytes32 r, bytes32 s, uint8 yParity)} tuple returned by KeyVault's
  * {@code signAuthorizationImpl}.
  *
@@ -209,7 +89,7 @@ function toChecksumAddress(address) {
  * @throws {ValidationError} If {@code returnData} is empty (raised by {@link requireNonEmptyBytes})
  *   or {@code yParity} is not exactly 0 / 1
  */
-function decodeSignAuthorizationResult(returnData) {
+export function decodeSignAuthorizationResult(returnData) {
   requireNonEmptyBytes(returnData, 'returnData');
   const decoded = defaultAbiCoder.decode(['bytes32', 'bytes32', 'uint8'], returnData);
   const yParityNum = Number(decoded[2]);
@@ -233,7 +113,7 @@ function decodeSignAuthorizationResult(returnData) {
  * @returns {SignedAuthorizationResult} Authorization tuple + decoded split signature
  * @throws {ValidationError} Forwarded from {@link decodeSignAuthorizationResult}
  */
-function finalizeSignedAuthorizationResult(params) {
+export function finalizeSignedAuthorizationResult(params) {
   const { delegateAddr, nonce, chainId, raw } = params;
   return {
     address: delegateAddr,
@@ -242,15 +122,3 @@ function finalizeSignedAuthorizationResult(params) {
     signature: decodeSignAuthorizationResult(raw)
   };
 }
-
-export {
-  normalizeAuthorizationTuple,
-  hashAuthorization,
-  verifyAuthorization,
-  fetchAuthorizationChainId,
-  fetchAuthorizationNonce,
-  encodeSignAuthorizationImplCalldata,
-  toChecksumAddress,
-  decodeSignAuthorizationResult,
-  finalizeSignedAuthorizationResult
-};

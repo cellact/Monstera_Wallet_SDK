@@ -1,16 +1,16 @@
 /**
  * PasswordMinuteSignatureAuthenticator auth-proof builder.
  *
- * @module internal/auth/proof/minuteSignature
+ * @module internal/auth/proof/builders/minuteSignature
  */
 
-import { Wallet } from '../../../adapters/ethers/index.js';
-import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
-import { getBytes, keccak256, solidityPacked } from '../../../adapters/ethers/hashing.js';
-import { assertMinuteSignatureAuthProofOptions } from '../../validators/authProofOptions.js';
-import { floorTimestampToMinuteBucket } from '../../utils/time.js';
-import { NetworkError } from '../../../errors/index.js';
-import log from '../../logger.js';
+import { Wallet } from '../../../../adapters/ethers/index.js';
+import { defaultAbiCoder } from '../../../../adapters/ethers/encoding.js';
+import { getBytes, keccak256, solidityPacked } from '../../../../adapters/ethers/hashing.js';
+import { assertMinuteSignatureAuthProofOptions } from '../../../validators/authProofOptions.js';
+import { floorTimestampToMinuteBucket } from '../../../utils/time.js';
+import { NetworkError } from '../../../../errors/index.js';
+import log from '../../../logger.js';
 
 /**
  * @param {CreateAuthProofMinuteSignatureWithProviderOptions} options

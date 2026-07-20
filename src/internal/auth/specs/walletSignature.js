@@ -8,7 +8,7 @@ import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireWalletOrHdNode } from '../../validation/assert.js';
 import { createWalletSigAuthConfig } from '../config/bytes.js';
 import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
-import { createAuthProofWalletSignature } from '../proof/walletSignature.js';
+import { createAuthProofWalletSignature } from '../proof/builders/walletSignature.js';
 
 /**
  * @param {import('../session/ConnectSession.js').ConnectSession | null} _session

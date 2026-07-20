@@ -1,13 +1,13 @@
 /**
  * WalletSignatureAuthenticator auth-proof builder.
  *
- * @module internal/auth/proof/walletSignature
+ * @module internal/auth/proof/builders/walletSignature
  */
 
-import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
-import { assertWalletSignatureAuthProofOptions } from '../../validators/authProofOptions.js';
-import log from '../../logger.js';
-import { signEip712ActionProof } from './eip712.js';
+import { defaultAbiCoder } from '../../../../adapters/ethers/encoding.js';
+import { assertWalletSignatureAuthProofOptions } from '../../../validators/authProofOptions.js';
+import log from '../../../logger.js';
+import { signEip712ActionProof } from '../signing/eip712.js';
 
 /**
  * @param {CreateAuthProofWalletSignatureOptions} [options={}]

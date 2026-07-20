@@ -8,7 +8,7 @@ import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireBytes32 } from '../../validation/assert.js';
 import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
 import { resolvePasswordHashFromProofInput } from '../proof/passwordInput.js';
-import { createAuthProofMinuteSignature } from '../proof/minuteSignature.js';
+import { createAuthProofMinuteSignature } from '../proof/builders/minuteSignature.js';
 import { passwordAuthenticator } from './password.js';
 
 /**

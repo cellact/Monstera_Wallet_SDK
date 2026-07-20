@@ -1,11 +1,11 @@
 /**
  * Trivial ABI-encoded auth proofs (no signing or provider calls).
  *
- * @module internal/auth/proof/abiProofs
+ * @module internal/auth/proof/builders/abiProofs
  */
 
-import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
-import { requireUtf8Bytes, requireBytes32, requireAddress, requireNonEmptyBytes } from '../../validation/assert.js';
+import { defaultAbiCoder } from '../../../../adapters/ethers/encoding.js';
+import { requireUtf8Bytes, requireBytes32, requireAddress, requireNonEmptyBytes } from '../../../validation/assert.js';
 
 /**
  * Build {@code authProof} bytes for the {@code PasswordAuthenticator}.

@@ -9,7 +9,7 @@ import { requireAddress, requireBytes32, requireWalletOrHdNode } from '../../val
 import { createDualFactorAuthConfig } from '../config/bytes.js';
 import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
 import { resolvePasswordHashFromProofInput } from '../proof/passwordInput.js';
-import { createAuthProofDualFactor } from '../proof/dualFactor.js';
+import { createAuthProofDualFactor } from '../proof/builders/dualFactor.js';
 
 /**
  * @param {import('../session/ConnectSession.js').ConnectSession | null} session

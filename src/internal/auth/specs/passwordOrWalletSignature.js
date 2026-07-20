@@ -14,7 +14,7 @@ import {
 } from '../../validation/assert.js';
 import { createPasswordOrWalletSigAuthConfig } from '../config/bytes.js';
 import { createActionBoundEncoder, defaultProofDeadline, pickAuthProofPartial } from '../proof/common.js';
-import { createAuthProofPasswordOrWalletSignature } from '../proof/passwordOrWalletSignature.js';
+import { createAuthProofPasswordOrWalletSignature } from '../proof/builders/passwordOrWalletSignature.js';
 
 /** @type {1} */
 export const METHOD_PASSWORD = 1;

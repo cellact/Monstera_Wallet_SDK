@@ -9,7 +9,7 @@
  * @module internal/auth/registry/byChecksumAddress
  */
 
-import { toChecksumAddress } from '../../vault/eip7702.js';
+import { toChecksumAddress } from '../../crypto/address.js';
 
 /**
  * Build a checksum-keyed encoder registry.

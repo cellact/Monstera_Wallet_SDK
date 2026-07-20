@@ -1,10 +1,14 @@
 /**
  * Shared EIP-712 signing for action-bound authenticator proofs.
  *
- * @module internal/auth/proof/eip712
+ * Pure typed-data signing lives in {@code internal/crypto/eip712.js}; this module owns the
+ * Monstera action-auth struct layout and auth-proof error context.
+ *
+ * @module internal/auth/proof/signing/eip712
  */
 
-import { sdkErrorPipeline } from '../../../errors/pipeline.js';
+import { signTypedData } from '../../../crypto/eip712.js';
+import { sdkErrorPipeline } from '../../../../errors/pipeline.js';
 
 /** Shared EIP-712 field layout for action-bound authenticator proofs. */
 export const ACTION_AUTH_EIP712_FIELDS = [
@@ -55,7 +59,7 @@ export async function signEip712ActionProof({
   const value = { wallet: keyVaultAddr, actionHash, deadline };
 
   try {
-    const signature = await signer.signTypedData(domain, types, value);
+    const signature = await signTypedData({ signer, domain, types, value });
     return encodeOutput(signature);
   } catch (error) {
     sdkErrorPipeline.rethrow(error, {

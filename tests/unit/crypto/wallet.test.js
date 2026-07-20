@@ -18,9 +18,9 @@ import {
 } from '../../utils/fixtures.js';
 import { getTestConfig } from '../../utils/setup.js';
 import { generateMnemonic, deriveSeed } from '../../../src/internal/crypto/mnemonic.js';
-import { createAuthProofWalletSignature } from '../../../src/internal/auth/proof/walletSignature.js';
-import { createAuthProofMinuteSignature } from '../../../src/internal/auth/proof/minuteSignature.js';
-import { createAuthProofDualFactor } from '../../../src/internal/auth/proof/dualFactor.js';
+import { createAuthProofWalletSignature } from '../../../src/internal/auth/proof/builders/walletSignature.js';
+import { createAuthProofMinuteSignature } from '../../../src/internal/auth/proof/builders/minuteSignature.js';
+import { createAuthProofDualFactor } from '../../../src/internal/auth/proof/builders/dualFactor.js';
 import {
   createWalletSigAuthConfig,
   createDualFactorAuthConfig

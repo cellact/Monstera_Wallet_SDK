@@ -1,16 +1,16 @@
 /**
  * ApiKeySessionAuthenticator auth-proof builder via on-chain pure helpers.
  *
- * @module internal/auth/proof/apiKeySession
+ * @module internal/auth/proof/builders/apiKeySession
  */
 
-import { getApiKeySessionAuthenticatorContract } from '../../../contracts/authenticators/ApiKeySessionAuthenticator.js';
-import { requireAddress, requireBytes32 } from '../../validation/assert.js';
-import { defaultProofDeadline } from './common.js';
+import { getApiKeySessionAuthenticatorContract } from '../../../../contracts/authenticators/ApiKeySessionAuthenticator.js';
+import { requireAddress, requireBytes32 } from '../../../validation/assert.js';
+import { defaultProofDeadline } from '../common.js';
 import {
   isApiKeySessionTokenMode,
   SCOPE_SIGN_ALL
-} from '../specs/apiKeySession.js';
+} from '../../specs/apiKeySession.js';
 
 /**
  * @param {EthersAbstractProvider} readProvider

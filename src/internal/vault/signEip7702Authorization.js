@@ -16,12 +16,14 @@
 import { ValidationError } from '../../errors/index.js';
 import { requireAddress, requireBigInt, requireChainId, requireNonNegativeInteger } from '../validation/assert.js';
 import { ConnectSession } from '../auth/session/ConnectSession.js';
+import { toChecksumAddress } from '../crypto/address.js';
+import {
+  fetchAuthorizationChainId,
+  fetchAuthorizationNonce
+} from '../crypto/eip7702.js';
 import {
   encodeSignAuthorizationImplCalldata,
-  fetchAuthorizationChainId,
-  fetchAuthorizationNonce,
-  finalizeSignedAuthorizationResult,
-  toChecksumAddress
+  finalizeSignedAuthorizationResult
 } from './eip7702.js';
 import { withDefaultAccountIndex } from './accountIndex.js';
 import { log } from '../logger.js';

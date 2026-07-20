@@ -261,7 +261,7 @@
  */
 
 /**
- * Result of minute-signature auth proof creation ({@code internal/auth/proof/minuteSignature.js}, {@code createAuthProofMinuteSignature}).
+ * Result of minute-signature auth proof creation ({@code internal/auth/proof/builders/minuteSignature.js}, {@code createAuthProofMinuteSignature}).
  *
  * @typedef {Object} CreateAuthProofMinuteSignatureResult
  * @property {EncodedAuthProofPasswordMinute} authProof - ABI-encoded signature for {@code PasswordMinuteSignatureAuthenticator.verify}

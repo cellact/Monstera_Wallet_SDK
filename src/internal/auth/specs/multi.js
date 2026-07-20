@@ -8,7 +8,7 @@ import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireArray, requireBytes } from '../../validation/assert.js';
 import { createMultiAuthConfig } from '../config/bytes.js';
 import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
-import { encodeMultiChildProof } from '../proof/multiChildEncode.js';
+import { encodeMultiChildProof } from '../proof/builders/multiChildEncode.js';
 import { resolveChildAddr, resolveChildSpec } from './multiChildResolver.js';
 
 /**

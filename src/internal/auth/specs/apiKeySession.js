@@ -7,7 +7,7 @@
 import { ValidationError } from '../../../errors/index.js';
 import { requireAddress, requireBytes32 } from '../../validation/assert.js';
 import { createApiKeySessionAuthConfig } from '../config/bytes.js';
-import { createAuthProofApiKeySession } from '../proof/apiKeySession.js';
+import { createAuthProofApiKeySession } from '../proof/builders/apiKeySession.js';
 import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
 
 /** TOKEN-mode proof ({@code mode = 1}). */

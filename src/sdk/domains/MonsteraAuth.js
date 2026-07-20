@@ -21,7 +21,7 @@ import {
   buildPasswordOrWalletRemoveFromWhitelistAction,
   buildPasswordOrWalletAddToWhitelistWithProofAction,
 } from '../../internal/auth/actions/index.js';
-import { createLinkWalletSignature } from '../../internal/auth/proof/passwordOrWalletSignature.js';
+import { createLinkWalletSignature } from '../../internal/auth/proof/builders/passwordOrWalletSignature.js';
 import { resolveActionHash } from '../../internal/auth/context/actionContext.js';
 import { defaultProofDeadline } from '../../internal/auth/proof/common.js';
 import { SCOPE_SIGN_ALL } from '../../internal/auth/specs/apiKeySession.js';

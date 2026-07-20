@@ -36,10 +36,12 @@ import { keccak256, toUtf8Bytes } from '../../../src/adapters/ethers/hashing.js'
 import { JsonRpcProvider } from '../../../src/adapters/ethers/provider.js';
 import {
   encodeSignAuthorizationImplCalldata,
-  decodeSignAuthorizationResult,
+  decodeSignAuthorizationResult
+} from '../../../src/internal/vault/eip7702.js';
+import {
   fetchAuthorizationChainId,
   fetchAuthorizationNonce
-} from '../../../src/internal/vault/eip7702.js';
+} from '../../../src/internal/crypto/eip7702.js';
 
 // ============ CONFIGURATION ============
 const SIGNER_PRIVATE_KEY = process.env.SIGNER_PRIVATE_KEY;

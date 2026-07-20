@@ -7,7 +7,7 @@
 import { ValidationError } from '../../../errors/index.js';
 import { requireBytes32, requireUtf8Bytes, requireAddress } from '../../validation/assert.js';
 import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
-import { createAuthProofPassword } from '../proof/abiProofs.js';
+import { createAuthProofPassword } from '../proof/builders/abiProofs.js';
 
 /**
  * @param {import('../session/ConnectSession.js').ConnectSession | null} session

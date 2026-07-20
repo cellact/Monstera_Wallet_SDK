@@ -112,7 +112,8 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @remarks
    * For an authorization targeting a chain different from the SDK's RPC, pass {@code provider} connected to that chain
    * so nonce and chain id stay consistent.
-   * Orchestration lives in {@code internal/vault/signEip7702Authorization.js}; hashing / verification / encoding helpers in
+   * Orchestration lives in {@code internal/vault/signEip7702Authorization.js}; pure EIP-7702
+   * helpers in {@code internal/crypto/eip7702.js}; KeyVault calldata encode/decode in
    * {@code internal/vault/eip7702.js}.
    */
   async signAuthorization(options = {}) {

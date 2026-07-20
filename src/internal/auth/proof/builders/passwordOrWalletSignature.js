@@ -1,17 +1,18 @@
 /**
  * PasswordOrWalletSignatureAuthenticator auth-proof builder.
  *
- * @module internal/auth/proof/passwordOrWalletSignature
+ * @module internal/auth/proof/builders/passwordOrWalletSignature
  */
 
-import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
+import { defaultAbiCoder } from '../../../../adapters/ethers/encoding.js';
 import {
   requireWalletOrHdNode,
   requireAddress,
   requireBytes32,
   requireNumber,
-} from '../../validation/assert.js';
-import { sdkErrorPipeline } from '../../../errors/pipeline.js';
+} from '../../../validation/assert.js';
+import { signTypedData } from '../../../crypto/eip712.js';
+import { sdkErrorPipeline } from '../../../../errors/pipeline.js';
 import { createAuthProofPassword } from './abiProofs.js';
 import { createAuthProofWalletSignature } from './walletSignature.js';
 
@@ -100,7 +101,7 @@ export async function createLinkWalletSignature(options = {}) {
   const value = { wallet: keyVaultAddr, newAddress, nonce, deadline, actionHash };
 
   try {
-    return await linkSigner.signTypedData(domain, types, value);
+    return await signTypedData({ signer: linkSigner, domain, types, value });
   } catch (error) {
     sdkErrorPipeline.rethrow(error, {
       authProofType: 'password-or-wallet link signature',

@@ -1,13 +1,13 @@
 /**
  * DualFactorAuthenticator auth-proof builder.
  *
- * @module internal/auth/proof/dualFactor
+ * @module internal/auth/proof/builders/dualFactor
  */
 
-import { defaultAbiCoder } from '../../../adapters/ethers/encoding.js';
-import { assertDualFactorAuthProofOptions } from '../../validators/authProofOptions.js';
-import log from '../../logger.js';
-import { signEip712ActionProof } from './eip712.js';
+import { defaultAbiCoder } from '../../../../adapters/ethers/encoding.js';
+import { assertDualFactorAuthProofOptions } from '../../../validators/authProofOptions.js';
+import log from '../../../logger.js';
+import { signEip712ActionProof } from '../signing/eip712.js';
 import { encodeMinuteSignatureProofPayload } from './minuteSignature.js';
 
 /**

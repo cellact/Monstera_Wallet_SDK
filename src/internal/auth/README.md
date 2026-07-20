@@ -9,7 +9,7 @@ session/          ConnectSession (connect → keyVaultAddr, password, API key)
     ↓
 pipelines/        KeyVaultAuthPipeline, ExplicitAuthPipeline, AuthConfigPipeline
     ↓
-proof/ + config/  AuthProofEncoder, per-auth proof builders; AuthConfigEncoder, config bytes
+proof/            AuthProofEncoder + builders/signing helpers; config/ for authConfig bytes
     ↓
 specs/            BuiltinAuthenticatorSpec plugins (one file per built-in auth)
 actions/          On-chain management action builders (selector + paramsHash)
@@ -18,14 +18,26 @@ context/          Action hash resolution and AuthContext assembly
 registry/         Checksum-keyed encoder lookup helper
 ```
 
+## `proof/` layout
+
+```
+proof/
+  AuthProofEncoder.js   Orchestrator (vault resolve + explicit flow encode)
+  logging.js            Encoder-only structured logs
+  common.js             createActionBoundEncoder, deadline / pickAuthProofPartial
+  passwordInput.js      Password hash resolution for proof input
+  builders/             Per-authenticator createAuthProof* functions
+  signing/              Auth-domain EIP-712 wrappers (uses internal/crypto/eip712)
+```
+
 ## Adding a built-in authenticator
 
 1. Add `specs/<name>.js` — implement `BuiltinAuthenticatorSpec` (see `types/auth-proof.js`)
 2. Register in `specs/registry.js` (`BUILTIN_AUTHENTICATORS`)
 3. **Proof** — pick one:
-   - Trivial ABI wrap: add to `proof/abiProofs.js`, wire via `createActionBoundEncoder` in spec
-   - EIP-712 / signing: add `proof/<name>.js` (reuse `proof/eip712.js`)
-   - Provider / on-chain helpers: add `proof/<name>.js` (see `proof/apiKeySession.js`)
+   - Trivial ABI wrap: add to `proof/builders/abiProofs.js`, wire via `createActionBoundEncoder` in spec
+   - EIP-712 / signing: add `proof/builders/<name>.js` (reuse `proof/signing/eip712.js`)
+   - Provider / on-chain helpers: add `proof/builders/<name>.js` (see `apiKeySession.js`)
 4. **Config** (if needed): add one function in `config/bytes.js`
 5. Add `actions/<name>.js` for management writes; export from `actions/index.js`
 6. Add client under `src/clients/auth/` and wire `MonsteraAuth` facade methods

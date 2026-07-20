@@ -26,9 +26,11 @@ export {
   hashAuthorization,
   verifyAuthorization,
   fetchAuthorizationChainId,
-  fetchAuthorizationNonce,
+  fetchAuthorizationNonce
+} from '../crypto/eip7702.js';
+export { toChecksumAddress } from '../crypto/address.js';
+export {
   encodeSignAuthorizationImplCalldata,
-  toChecksumAddress,
   decodeSignAuthorizationResult,
   finalizeSignedAuthorizationResult
 } from './eip7702.js';
