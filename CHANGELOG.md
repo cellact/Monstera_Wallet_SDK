@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.4.1] - 2026-07-20
+
+### Added
+
+- **`Monstera` domain modules**: Facade methods split into `sdk/domains/` (`MonsteraSession`, `MonsteraSigning`, `MonsteraFactory`, `MonsteraKeyVault`, `MonsteraAuth`) and composed onto `Monstera.prototype` at load time; `Monstera.js` keeps constructor wiring and static API.
+- **Domain operation recipes** (`MonsteraRecipes`): Shared vault-authenticated, authenticator-managed, and configure call patterns used by domain methods.
+- **`createAuthenticatorSpec`**: Form Template Method for built-in authenticator specs; each `specs/*.js` declares only what differs (session, collect keys, map fields, validation, encoders).
+- **Auth `proof/` layout**: Per-authenticator builders under `proof/builders/`, EIP-712 wrappers under `proof/signing/`, shared helpers in `proof/common.js`; `AuthConfigEncoder` / config bytes under `auth/config/`.
+- **Crypto primitives**: Pure helpers under `internal/crypto/` (`address`, `eip712`, `eip7702`); KeyVault EIP-7702 calldata remains in `internal/vault/eip7702.js`.
+- **Verify probes**: Cross-authenticator verify-probe actions live under `auth/probes/`; `is*Valid` paths use the same authenticator-managed invoke recipe as writes.
+- **Types**: JSDoc typedefs split into domain modules (`connect`, `transactions`, `auth-config`, `auth-proof`, `auth-pipeline`, `factory`, `keyvault`, `errors`, `sanitization`, …) with a barrel re-export from `types/index.js`.
+- **IDE typing**: `Monstera.domain-methods.d.ts` / mixin typing so domain methods resolve for navigation.
+- **Internal auth README**: Layer stack and “add authenticator” guide under `src/internal/auth/README.md`.
+
+### Changed
+
+- **Auth pipelines renamed**: `VaultCallPipeline` → `KeyVaultAuthPipeline`, `AuthenticatorCallPipeline` → `ExplicitAuthPipeline`, plus `AuthConfigPipeline`; Monstera wiring and docs updated.
+- **`CredentialsSession` → `ConnectSession`**: Connect-time session naming aligned across pipelines, vault helpers, tests, and docs.
+- **Auth encoding split**: Monolithic `createAuthProof` / central `collectProofInput` replaced by `AuthProofEncoder` + per-spec plugins; shared `CHILD_AUTHENTICATORS` in `specs/registry.js`.
+- **`ExecutionPipeline` write path**: Submit/confirm, event parse, and mined-revert enrichment split into named private helpers; `AuthProofEncoder.encodeForKeyVault` session/action wiring extracted to `_mergeProofInput`.
+- **Client logging**: Noisy read-path `info` logs removed or demoted to `debug` on factory / KeyVault / authenticator clients; write-path `info` retained.
+- **Auth pipeline logs**: Structured vault/explicit proof logs inlined into `AuthProofEncoder` (no separate `proof/logging.js` module).
+- **Module-private helpers**: File-scoped non-exported helpers (and `Logger._format`) consistently prefixed with `_`.
+- **Validation imports**: Prefer `internal/validation/assert.js` directly; assert barrel removed.
+- **Architecture docs**: Execution map and recipe/pipeline paths updated for the new layout.
+
+### Fixed
+
+- **`updatePasswordMinuteSignature`**: Uses `flowId: 'minuteSignature'` so proofs are encoded for `PasswordMinuteSignatureAuthenticator` (was incorrectly using the password flow).
+- **Management action builders**: Validate `bytes32` / `address` params before ABI encode; unit tests restored for config address requirements and wallet proof `actionHash`.
+
+### Removed
+
+- **`AuthProofEncoder.encode`**: Unused low-level entrypoint; production and tests use `encodeForKeyVault` / `encodeForFlow` only.
+- **`CredentialsSession` name** (renamed to `ConnectSession`).
+- **Internal leftovers**: `internal/assert.js` re-export barrel; `proof/logging.js`; central `authenticators/collectProofInput.js` and related switch/barrel files superseded by specs; deleted thin helpers (`passwordInput.js`, `registry/byChecksumAddress.js`) colocated into `proof/common.js` / `specs/registry.js`.
+
 ## [2.4.0] - 2026-07-09
 
 ### Added
