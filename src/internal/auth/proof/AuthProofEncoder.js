@@ -187,6 +187,36 @@ export class AuthProofEncoder {
   }
 
   /**
+   * Merge structured proof input: collect → session defaults → action from {@code buildAction}.
+   *
+   * @private
+   * @param {BuiltinAuthenticatorSpec} spec
+   * @param {Record<string, unknown>} resolved
+   * @param {ConnectSession | null} session
+   * @param {(resolved: Record<string, unknown>) => AuthActionInput} [buildAction]
+   * @returns {Record<string, unknown>}
+   */
+  _mergeProofInput(spec, resolved, session, buildAction) {
+    let proofInput = spec.collectProofInput(resolved);
+    proofInput = spec.applySessionInput(session, {
+      ...proofInput,
+      addresses: this._config.addresses
+    });
+
+    if (proofInput.action == null && typeof buildAction === 'function') {
+      proofInput = { ...proofInput, action: buildAction(resolved) };
+    } else if (proofInput.action == null && typeof buildAction !== 'function') {
+      throw new ValidationError(
+        'authProof.action is required for structured auth proofs on this call',
+        'authProof',
+        proofInput
+      );
+    }
+
+    return proofInput;
+  }
+
+  /**
    * Encode vault call options for KeyVault clients (Path: discover authenticator from chain).
    * 
    * authProof passed in as structured partial input 
@@ -220,21 +250,7 @@ export class AuthProofEncoder {
       /** @type {Address} */ (keyVaultAddr)
     );
 
-    let proofInput = spec.collectProofInput(resolved);
-    proofInput = spec.applySessionInput(session, {
-      ...proofInput,
-      addresses: this._config.addresses
-    });
-
-    if (proofInput.action == null && typeof buildAction === 'function') {
-      proofInput = { ...proofInput, action: buildAction(resolved) };
-    } else if (proofInput.action == null && typeof buildAction !== 'function') {
-      throw new ValidationError(
-        'authProof.action is required for structured auth proofs on this call',
-        'authProof',
-        proofInput
-      );
-    }
+    const proofInput = this._mergeProofInput(spec, resolved, session, buildAction);
 
     logVaultAuthResolved({
       encoderId: spec.id,
@@ -342,7 +358,7 @@ export class AuthProofEncoder {
    * @param {EncodeAuthProofInputOptions} options
    * @returns {Promise<EncodeAuthProofOptionsResult>}
    */
-  async encode(options) {
+  async encode(options) { // TODO: check if this is used anywhere in production code
     const { authProof, keyVaultAddr, ...rest } = options;
 
     if (!authProof || isPreEncodedAuthProof(authProof)) {

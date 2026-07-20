@@ -175,30 +175,16 @@ export default class ExecutionPipeline {
   }
 
   /**
-   * Replay a mined-but-failed transaction with {@code eth_call} at the receipt's block to recover
-   * revert data that ethers v6 omits from {@code tx.wait()} failures.
-   *
-   * Best-effort: always returns an object even when enrichment fails.
+   * Resolve {@code to}/{@code from}/{@code data} for replaying a failed mined tx.
    *
    * @private
    * @async
-   * @param {EthersProvider} readProvider - Provider used to replay the call (must support {@code call} at a block tag)
-   * @param {TransactionReceipt} receipt - Receipt of the failed transaction
-   * @param {string} txHash - Transaction hash (for {@code getTransaction} lookup)
-   * @param {EthersInterface | null} iface - ABI used to decode custom errors
-   * @returns {Promise<{ revertData: string | null, revertReason: string | null, revertArgs: unknown, revertSignature: string | null }>} Enrichment data (any field may be {@code null})
+   * @param {EthersProvider} readProvider
+   * @param {TransactionReceipt} receipt
+   * @param {string} txHash
+   * @returns {Promise<{ toAddr: string | null | undefined, fromAddr: string | null | undefined, calldata: string | null }>}
    */
-  async _enrichMinedTransactionRevert(readProvider, receipt, txHash, iface) {
-    const result = {
-      revertData: /** @type {string | null} */ (null),
-      revertReason: null,
-      revertArgs: null,
-      revertSignature: /** @type {string | null} */ (null)
-    };
-    if (!readProvider || !txHash || receipt?.blockNumber == null) {
-      return result;
-    }
-
+  async _resolveFailedTxCall(readProvider, receipt, txHash) {
     let toAddr = receipt.to;
     let fromAddr = receipt.from;
     /** @type {string | null} */
@@ -216,45 +202,231 @@ export default class ExecutionPipeline {
         calldata = tx.data ?? null;
       }
     } catch (e) {
-      log.debug('getTransaction failed while resolving revert data', { message: /** @type {Error} */ (e).message });
+      log.debug('getTransaction failed while resolving revert data', {
+        message: /** @type {Error} */ (e).message
+      });
     }
+
+    return { toAddr, fromAddr, calldata };
+  }
+
+  /**
+   * Replay a call at {@code blockTag} and pull revert bytes / reason from the thrown error.
+   *
+   * @private
+   * @async
+   * @param {EthersProvider} readProvider
+   * @param {{ toAddr: string, fromAddr: string, calldata: string }} call
+   * @param {number | string} blockTag
+   * @returns {Promise<{ revertData: string | null, revertReason: string | null }>}
+   */
+  async _replayCallForRevert(readProvider, call, blockTag) {
+    /** @type {string | null} */
+    let revertData = null;
+    /** @type {string | null} */
+    let revertReason = null;
+
+    try {
+      await readProvider.call({
+        to: call.toAddr,
+        data: call.calldata,
+        from: call.fromAddr,
+        blockTag
+      });
+    } catch (callErr) {
+      const extracted = extractRpcRevertBytes(callErr);
+      if (extracted) {
+        revertData = extracted;
+      }
+      const rev = /** @type {{ revert?: { name?: string } }} */ (callErr).revert;
+      if (rev?.name) {
+        revertReason = rev.name;
+      }
+    }
+
+    return { revertData, revertReason };
+  }
+
+  /**
+   * Decode custom-error fields onto an enrichment result when {@code iface} is available.
+   *
+   * @private
+   * @param {{ revertData: string | null, revertReason: string | null, revertArgs: unknown, revertSignature: string | null }} result
+   * @param {EthersInterface | null} iface
+   * @returns {void}
+   */
+  _applyDecodedCustomError(result, iface) {
+    if (!result.revertData || !iface) {
+      return;
+    }
+    const decoded = decodeCustomError(iface, result.revertData);
+    if (decoded.revertReason) {
+      result.revertReason = decoded.revertReason;
+    }
+    if (decoded.revertArgs != null) {
+      result.revertArgs = decoded.revertArgs;
+    }
+    if (decoded.revertSignature) {
+      result.revertSignature = decoded.revertSignature;
+    }
+  }
+
+  /**
+   * Replay a mined-but-failed transaction with {@code eth_call} at the receipt's block to recover
+   * revert data that ethers v6 omits from {@code tx.wait()} failures.
+   *
+   * Best-effort: always returns an object even when enrichment fails.
+   *
+   * @private
+   * @async
+   * @param {EthersProvider} readProvider - Provider used to replay the call (must support {@code call} at a block tag)
+   * @param {TransactionReceipt} receipt - Receipt of the failed transaction
+   * @param {string} txHash - Transaction hash (for {@code getTransaction} lookup)
+   * @param {EthersInterface | null} iface - ABI used to decode custom errors
+   * @returns {Promise<{ revertData: string | null, revertReason: string | null, revertArgs: unknown, revertSignature: string | null }>} Enrichment data (any field may be {@code null})
+   */
+  async _enrichMinedTransactionRevert(readProvider, receipt, txHash, iface) {
+    const result = {
+      revertData: /** @type {string | null} */ (null),
+      revertReason: /** @type {string | null} */ (null),
+      revertArgs: null,
+      revertSignature: /** @type {string | null} */ (null)
+    };
+    if (!readProvider || !txHash || receipt?.blockNumber == null) {
+      return result;
+    }
+
+    const { toAddr, fromAddr, calldata } = await this._resolveFailedTxCall(
+      readProvider,
+      receipt,
+      txHash
+    );
 
     if (!toAddr || !fromAddr || !calldata || calldata === '0x') {
       return result;
     }
 
-    try {
-      await readProvider.call({
-        to: toAddr,
-        data: calldata,
-        from: fromAddr,
-        blockTag: receipt.blockNumber
-      });
-    } catch (callErr) {
-      const extracted = extractRpcRevertBytes(callErr);
-      if (extracted) {
-        result.revertData = extracted;
-      }
-      const rev = /** @type {{ revert?: { name?: string } }} */ (callErr).revert;
-      if (rev?.name && !result.revertReason) {
-        result.revertReason = rev.name;
-      }
-    }
-
-    if (result.revertData && iface) {
-      const decoded = decodeCustomError(iface, result.revertData);
-      if (decoded.revertReason) {
-        result.revertReason = decoded.revertReason;
-      }
-      if (decoded.revertArgs != null) {
-        result.revertArgs = decoded.revertArgs;
-      }
-      if (decoded.revertSignature) {
-        result.revertSignature = decoded.revertSignature;
-      }
-    }
+    const replayed = await this._replayCallForRevert(
+      readProvider,
+      { toAddr, fromAddr, calldata },
+      receipt.blockNumber
+    );
+    result.revertData = replayed.revertData;
+    result.revertReason = replayed.revertReason;
+    this._applyDecodedCustomError(result, iface);
 
     return result;
+  }
+
+  /**
+   * Broadcast a write and wait for a mined receipt.
+   *
+   * @private
+   * @async
+   * @param {() => Promise<any>} txFn
+   * @param {{ methodName: string, rpcUrl: string | null, sdkContext: Record<string, unknown> }} ctx
+   * @returns {Promise<{ tx: any, receipt: TransactionReceipt }>}
+   */
+  async _submitAndConfirmWrite(txFn, { methodName, rpcUrl, sdkContext }) {
+    const tx = await txFn();
+    if (tx == null || typeof tx.hash !== 'string') {
+      const err = new NetworkError(
+        `No transaction response from ${methodName} (RPC or signer may have failed before broadcast)`,
+        rpcUrl,
+        null
+      );
+      applySdkContext(err, sdkContext);
+      throw err;
+    }
+    log.debug('tx submitted', { hash: tx.hash });
+
+    const receipt = await tx.wait();
+    if (receipt == null || typeof receipt.hash !== 'string') {
+      const err = new NetworkError(
+        `No receipt returned for ${methodName} (hash ${tx.hash})`,
+        rpcUrl,
+        null
+      );
+      applySdkContext(err, sdkContext);
+      throw err;
+    }
+    log.info('Write succeeded', { methodName, hash: receipt.hash });
+    return { tx, receipt };
+  }
+
+  /**
+   * Parse configured events from a successful write receipt.
+   *
+   * @private
+   * @param {TransactionReceipt} receipt
+   * @param {Array<{ eventDef: object, contract: object }>} parseEvents
+   * @param {boolean} requireEvents
+   * @param {Record<string, unknown>} sdkContext
+   * @returns {Record<string, unknown>}
+   */
+  _collectParsedEvents(receipt, parseEvents, requireEvents, sdkContext) {
+    const parsedEvents = {};
+    if (parseEvents.length === 0) {
+      return parsedEvents;
+    }
+
+    for (const { eventDef, contract } of parseEvents) {
+      const eventName = eventDef.eventName || eventDef.name || 'Unknown';
+      const eventData = parseEventFromReceipt(eventDef, receipt, contract);
+
+      if (requireEvents && !eventData) {
+        log.warn('Expected event not found in receipt', { eventName, receiptHash: receipt.hash });
+        const err = new EventNotFoundError(eventName, receipt.hash);
+        applySdkContext(err, sdkContext);
+        throw err;
+      }
+
+      if (eventData) {
+        Object.assign(parsedEvents, eventData);
+      }
+    }
+
+    return parsedEvents;
+  }
+
+  /**
+   * Best-effort revert enrichment for mined CALL_EXCEPTION / UNPREDICTABLE_GAS_LIMIT failures.
+   *
+   * @private
+   * @async
+   * @param {Error & { code?: string; receipt?: TransactionReceipt }} err
+   * @param {{ readProvider: EthersProvider | null, revertInterface: EthersInterface | null }} deps
+   * @returns {Promise<Record<string, unknown>>}
+   */
+  async _enrichWriteFailure(err, { readProvider, revertInterface }) {
+    const code = err.code || /** @type {any} */ (err).error?.code;
+    const receipt = err.receipt;
+    const txHash = receipt?.hash ?? /** @type {any} */ (err).transactionHash;
+    const failedOnChain =
+      receipt &&
+      txHash &&
+      receipt.status != null &&
+      Number(receipt.status) === 0;
+
+    if (
+      !(code === 'CALL_EXCEPTION' || code === 'UNPREDICTABLE_GAS_LIMIT') ||
+      !failedOnChain ||
+      !readProvider
+    ) {
+      return {};
+    }
+
+    try {
+      return await this._enrichMinedTransactionRevert(
+        readProvider,
+        receipt,
+        txHash,
+        revertInterface
+      );
+    } catch (e) {
+      log.debug('revert enrichment failed', { message: /** @type {Error} */ (e).message });
+      return {};
+    }
   }
 
   /**
@@ -291,8 +463,7 @@ export default class ExecutionPipeline {
       sdkContext = {}
     } = options;
 
-    const readProvider =
-      readProviderOpt ?? this._getReadProvider({ writeSigner });
+    const readProvider = readProviderOpt ?? this._getReadProvider({ writeSigner });
     const revertInterface = this._getRevertInterface(options);
 
     if (!writeSigner) {
@@ -302,48 +473,17 @@ export default class ExecutionPipeline {
     }
 
     try {
-      const tx = await txFn();
-      if (tx == null || typeof tx.hash !== 'string') {
-        const err = new NetworkError(
-          `No transaction response from ${methodName} (RPC or signer may have failed before broadcast)`,
-          rpcUrl,
-          null
-        );
-        applySdkContext(err, sdkContext);
-        throw err;
-      }
-      log.debug('tx submitted', { hash: tx.hash });
-
-      const receipt = await tx.wait();
-      if (receipt == null || typeof receipt.hash !== 'string') {
-        const err = new NetworkError(
-          `No receipt returned for ${methodName} (hash ${tx.hash})`,
-          rpcUrl,
-          null
-        );
-        applySdkContext(err, sdkContext);
-        throw err;
-      }
-      log.info('Write succeeded', { methodName, hash: receipt.hash });
-
-      const parsedEvents = {};
-      if (parseEvents.length > 0) {
-        for (const { eventDef, contract } of parseEvents) {
-          const eventName = eventDef.eventName || eventDef.name || 'Unknown';
-          const eventData = parseEventFromReceipt(eventDef, receipt, contract);
-
-          if (requireEvents && !eventData) {
-            log.warn('Expected event not found in receipt', { eventName, receiptHash: receipt.hash });
-            const err = new EventNotFoundError(eventName, receipt.hash);
-            applySdkContext(err, sdkContext);
-            throw err;
-          }
-
-          if (eventData) {
-            Object.assign(parsedEvents, eventData);
-          }
-        }
-      }
+      const { receipt } = await this._submitAndConfirmWrite(txFn, {
+        methodName,
+        rpcUrl,
+        sdkContext
+      });
+      const parsedEvents = this._collectParsedEvents(
+        receipt,
+        parseEvents,
+        requireEvents,
+        sdkContext
+      );
 
       return /** @type {TResult} */ ({
         success: true,
@@ -357,7 +497,9 @@ export default class ExecutionPipeline {
       log.debug('Write failed before error translation', {
         methodName,
         errorName: /** @type {Error} */ (error).name,
-        errorCode: /** @type {Error & { code?: string }} */ (error).code ?? /** @type {any} */ (error).error?.code,
+        errorCode:
+          /** @type {Error & { code?: string }} */ (error).code ??
+          /** @type {any} */ (error).error?.code,
         errorMessage: /** @type {Error} */ (error).message
       });
 
@@ -366,30 +508,10 @@ export default class ExecutionPipeline {
         throw error;
       }
 
-      /** @type {Record<string, unknown>} */
-      let enrich = {};
       const err = /** @type {Error & { code?: string; receipt?: TransactionReceipt }} */ (error);
-      const code = err.code || /** @type {any} */ (err).error?.code;
       const receipt = err.receipt;
       const txHash = receipt?.hash ?? /** @type {any} */ (err).transactionHash;
-      const failedOnChain =
-        receipt &&
-        txHash &&
-        receipt.status != null &&
-        Number(receipt.status) === 0;
-
-      if ((code === 'CALL_EXCEPTION' || code === 'UNPREDICTABLE_GAS_LIMIT') && failedOnChain && readProvider) {
-        try {
-          enrich = await this._enrichMinedTransactionRevert(
-            readProvider,
-            receipt,
-            txHash,
-            revertInterface
-          );
-        } catch (e) {
-          log.debug('revert enrichment failed', { message: /** @type {Error} */ (e).message });
-        }
-      }
+      const enrich = await this._enrichWriteFailure(err, { readProvider, revertInterface });
 
       this._errorPipeline.rethrow(err, {
         methodName,
