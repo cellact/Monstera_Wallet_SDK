@@ -5,7 +5,7 @@ Thank you for your interest in contributing! This document provides guidelines a
 ## Getting Started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/Ariana0699/Wallet_SDK_JavaScript.git`
+2. Clone your fork: `git clone https://github.com/cellact/Monstera_Wallet_SDK.git`
 3. Install dependencies: `npm install`
 4. Create a branch from `main`: `git checkout -b feature/your-feature-name` (see [Branch naming](#branch-naming) below)
 

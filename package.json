@@ -59,12 +59,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Ariana0699/Wallet_SDK_JavaScript.git"
+    "url": "git+https://github.com/cellact/Monstera_Wallet_SDK.git"
   },
   "bugs": {
-    "url": "https://github.com/Ariana0699/Wallet_SDK_JavaScript/issues"
+    "url": "https://github.com/cellact/Monstera_Wallet_SDK/issues"
   },
-  "homepage": "https://github.com/Ariana0699/Wallet_SDK_JavaScript#readme",
+  "homepage": "https://github.com/cellact/Monstera_Wallet_SDK#readme",
   "dependencies": {
     "@oasisprotocol/sapphire-ethers-v6": "^6.0.1",
     "dotenv": "^17.2.3",

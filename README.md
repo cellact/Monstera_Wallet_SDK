@@ -129,7 +129,7 @@ GPL-3.0 - See [LICENSE](LICENSE) for details.
 
 ## Support
 
-- 🐛 [Report Issues](https://github.com/Ariana0699/Wallet_SDK_JavaScript/issues)
+- 🐛 [Report Issues](https://github.com/cellact/Monstera_Wallet_SDK/issues)
 - 📖 [Changelog](CHANGELOG.md)
 - 🤝 [Contributing](CONTRIBUTING.md)
 
