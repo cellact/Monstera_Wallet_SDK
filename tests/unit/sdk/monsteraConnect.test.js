@@ -5,6 +5,7 @@
 import { describe, test, expect } from '@jest/globals';
 import { Wallet } from '../../../src/adapters/ethers/index.js';
 import Monstera from '../../../src/sdk/Monstera.js';
+import { getSdkInternals } from '../../../src/sdk/sdkInternals.js';
 import { CredentialsRequiredError, WriteRequiresSignerError } from '../../../src/errors/index.js';
 import { attachTestConnectSession } from '../../utils/credentials.js';
 import { VALID_TEST_ADDRESS } from '../../utils/fixtures.js';
@@ -16,6 +17,9 @@ describe('Monstera.connect', () => {
     const sdk = Monstera.connect({ mainnet: false, signer: TEST_SIGNER, checkVersion: false });
     expect(sdk.hasWriteAccess()).toBe(true);
     expect(sdk.hasCredentials()).toBe(false);
+    expect(sdk._keyVaultAuthPipeline).toBeUndefined();
+    expect(sdk._authConfigEncoder).toBeUndefined();
+    expect(sdk._connectSession).toBeUndefined();
   });
 
   test('connect with credentials only', () => {
@@ -52,7 +56,7 @@ describe('Monstera.connect', () => {
       checkVersion: false
     });
 
-    const resolved = await sdk._keyVaultAuthPipeline.mergeVaultOptions({
+    const resolved = await getSdkInternals(sdk).keyVaultAuthPipeline.mergeVaultOptions({
       keyVaultAddr: VALID_TEST_ADDRESS
     });
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
@@ -93,7 +97,7 @@ describe('Monstera.connect', () => {
     });
     attachTestConnectSession(sdk);
 
-    const resolved = await sdk._keyVaultAuthPipeline.mergeVaultOptions({});
+    const resolved = await getSdkInternals(sdk).keyVaultAuthPipeline.mergeVaultOptions({});
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);
     expect(resolved.index).toBeUndefined();
   });
@@ -106,7 +110,7 @@ describe('Monstera.connect', () => {
     });
     attachTestConnectSession(sdk);
 
-    const resolved = await sdk._keyVaultAuthPipeline.mergeVaultOptions({
+    const resolved = await getSdkInternals(sdk).keyVaultAuthPipeline.mergeVaultOptions({
       passwordHash: '0x' + '11'.repeat(32)
     });
     expect(resolved.keyVaultAddr).toBe(VALID_TEST_ADDRESS);

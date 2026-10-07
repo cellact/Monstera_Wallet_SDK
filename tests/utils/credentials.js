@@ -3,6 +3,7 @@
  */
 
 import { ConnectSession } from '../../src/internal/auth/session/ConnectSession.js';
+import { getSdkInternals } from '../../src/sdk/sdkInternals.js';
 import { VALID_TEST_ADDRESS } from './fixtures.js';
 
 /**
@@ -29,6 +30,7 @@ export function attachTestConnectSession(sdk, overrides = {}) {
 
   session._walletAddr = walletAddr;
   session._keyVaultAddr = keyVaultAddr;
-  sdk._connectSession = session;
-  sdk._keyVaultAuthPipeline?.setConnectSession(session);
+  const stored = getSdkInternals(sdk);
+  stored.connectSession = session;
+  stored.keyVaultAuthPipeline.setConnectSession(session);
 }

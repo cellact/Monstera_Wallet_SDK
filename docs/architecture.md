@@ -39,18 +39,18 @@ The SDK is organized into modular components:
 
 ## Execution map
 
-`Monstera` is a thin composer: [`src/sdk/Monstera.js`](../src/sdk/Monstera.js) wires clients and pipelines in the constructor, then mixes domain methods from [`src/sdk/domains/`](../src/sdk/domains/). Use this table to trace a public call to its pipeline, action builder, and client.
+`Monstera` is a thin composer: [`src/sdk/Monstera.js`](../src/sdk/Monstera.js) wires clients in the constructor and stores the session, encoders, and pipelines in a `WeakMap` ([`sdkInternals.js`](../src/sdk/sdkInternals.js)), then mixes domain methods from [`src/sdk/domains/`](../src/sdk/domains/). Use this table to trace a public call to its pipeline, action builder, and client.
 
 ### Operation recipes
 
-Domain modules do not call pipelines directly for writes or configure flows. They use standardized recipes from [`MonsteraRecipes.js`](../src/sdk/domains/MonsteraRecipes.js), mixed onto the `Monstera` prototype before other domains. **Each recipe accepts a single descriptor object** (`{ options, buildAction, invoke, … }`) so call sites stay consistent and avoid long positional parameter lists.
+Domain modules do not call pipelines directly for writes or configure flows. They import functions from [`MonsteraRecipes.js`](../src/sdk/domains/MonsteraRecipes.js) and pass the SDK instance. Those functions are not methods on `Monstera`. **Each recipe accepts the instance and a single descriptor object** (`sdk, { options, buildAction, invoke, … }`) so call sites stay consistent and avoid long positional parameter lists.
 
-| Recipe | Facade method | Pipeline(s) | When to use |
-|--------|---------------|-------------|-------------|
-| **Vault-authenticated** | `_invokeVaultAuthenticated` | `KeyVaultAuthPipeline.invokeWithAuthProof` | KeyVault signing views and vault admin writes (import key, upgrade impl, swap authenticator, …) |
-| **Authenticator-managed write / verify** | `_invokeAuthenticatorManaged` | `ExplicitAuthPipeline.invokeWithAuthProof` | Authenticator admin writes and on-chain verify probes (`updatePassword`, `isPasswordValid`, …) |
-| **Authenticator-managed encode** | `_encodeAuthenticatorManaged` | `ExplicitAuthPipeline.encodeAuthProof` | Off-chain proof building (`createAuthProof*`) |
-| **Configure** | `_configureAuthenticator` | `AuthConfigPipeline.configure` | Initial authenticator setup (`configurePassword`, …) — no auth proof |
+| Recipe | Function | Pipeline(s) | When to use |
+|--------|----------|-------------|-------------|
+| **Vault-authenticated** | `invokeVaultAuthenticated` | `KeyVaultAuthPipeline.invokeWithAuthProof` | KeyVault signing views and vault admin writes (import key, upgrade impl, swap authenticator, …) |
+| **Authenticator-managed write / verify** | `invokeAuthenticatorManaged` | `ExplicitAuthPipeline.invokeWithAuthProof` | Authenticator admin writes and on-chain verify probes (`updatePassword`, `isPasswordValid`, …) |
+| **Authenticator-managed encode** | `encodeAuthenticatorManaged` | `ExplicitAuthPipeline.encodeAuthProof` | Off-chain proof building (`createAuthProof*`) |
+| **Configure** | `configureAuthenticator` | `AuthConfigPipeline.configure` | Initial authenticator setup (`configurePassword`, …) — no auth proof |
 
 Read-only vault-scoped calls still use `KeyVaultAuthPipeline.mergeVaultOptions` directly (no recipe wrapper). Factory wallet creation uses `AuthConfigEncoder.encode` inline before delegating to `factory.createWallet*`.
 
@@ -58,41 +58,41 @@ Read-only vault-scoped calls still use `KeyVaultAuthPipeline.mergeVaultOptions` 
 
 | User calls | Domain module | Pipeline | Action builder | Client method |
 |------------|---------------|----------|----------------|---------------|
-| `monstera.signTransaction()` | `MonsteraSigning` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignTransactionAction` | `keyVault.signTransaction` |
-| `monstera.signMessage()` | `MonsteraSigning` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignMessageAction` | `keyVault.signMessage` |
-| `monstera.sign()` | `MonsteraSigning` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignAction` | `keyVault.sign` |
-| `monstera.signAuthorization()` | `MonsteraSigning` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` + `executeSignAuthorization` | `buildExecuteWithAuthAction` | `keyVault.executeWithAuth` |
-| `monstera.executeWithAuth()` | `MonsteraSigning` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildExecuteWithAuthAction` | `keyVault.executeWithAuth` |
-| `monstera.signWithImportedKey()` | `MonsteraSigning` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignWithImportedKeyAction` | `keyVault.signWithImportedKey` |
-| `monstera.signSolana()` | `MonsteraSigning` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignSolanaAction` | `keyVault.signSolana` |
+| `monstera.signTransaction()` | `MonsteraSigning` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignTransactionAction` | `keyVault.signTransaction` |
+| `monstera.signMessage()` | `MonsteraSigning` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignMessageAction` | `keyVault.signMessage` |
+| `monstera.sign()` | `MonsteraSigning` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignAction` | `keyVault.sign` |
+| `monstera.signAuthorization()` | `MonsteraSigning` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` + `executeSignAuthorization` | `buildExecuteWithAuthAction` | `keyVault.executeWithAuth` |
+| `monstera.executeWithAuth()` | `MonsteraSigning` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildExecuteWithAuthAction` | `keyVault.executeWithAuth` |
+| `monstera.signWithImportedKey()` | `MonsteraSigning` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignWithImportedKeyAction` | `keyVault.signWithImportedKey` |
+| `monstera.signSolana()` | `MonsteraSigning` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSignSolanaAction` | `keyVault.signSolana` |
 
 ### KeyVault writes (authenticated)
 
 | User calls | Domain module | Pipeline | Action builder | Client method |
 |------------|---------------|----------|----------------|---------------|
-| `monstera.updateKeyVaultImplAddr()` | `MonsteraKeyVault` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildUpgradeImplementationAction` | `keyVault.updateKeyVaultImplAddr` |
-| `monstera.updateAuthenticatorAddr()` | `MonsteraKeyVault` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildChangeAuthenticatorAction` | `keyVault.updateAuthenticatorAddr` |
-| `monstera.importKey()` | `MonsteraKeyVault` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildImportKeyAction` | `keyVault.importKey` |
-| `monstera.deactivateKey()` / `activateKey()` | `MonsteraKeyVault` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildDeactivateKeyAction` / `buildActivateKeyAction` | `keyVault.deactivateKey` / `activateKey` |
-| `monstera.setChainBaseKeys()` | `MonsteraKeyVault` | `_invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSetChainBaseKeysAction` | `keyVault.setChainBaseKeys` |
+| `monstera.updateKeyVaultImplAddr()` | `MonsteraKeyVault` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildUpgradeImplementationAction` | `keyVault.updateKeyVaultImplAddr` |
+| `monstera.updateAuthenticatorAddr()` | `MonsteraKeyVault` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildChangeAuthenticatorAction` | `keyVault.updateAuthenticatorAddr` |
+| `monstera.importKey()` | `MonsteraKeyVault` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildImportKeyAction` | `keyVault.importKey` |
+| `monstera.deactivateKey()` / `activateKey()` | `MonsteraKeyVault` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildDeactivateKeyAction` / `buildActivateKeyAction` | `keyVault.deactivateKey` / `activateKey` |
+| `monstera.setChainBaseKeys()` | `MonsteraKeyVault` | `invokeVaultAuthenticated` → `KeyVaultAuthPipeline` | `buildSetChainBaseKeysAction` | `keyVault.setChainBaseKeys` |
 
 ### Authenticator management (authenticated)
 
 | User calls | Domain module | Pipeline | Action builder | Client method |
 |------------|---------------|----------|----------------|---------------|
-| `monstera.updatePassword()` | `MonsteraAuth` | `_invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `buildChangePasswordAction` | `auth.password.updatePassword` |
-| `monstera.addToWhitelist()` | `MonsteraAuth` | `_invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `buildAddToWhitelistAction` | `auth.walletSignature.addToWhitelist` |
-| `monstera.updatePasswordDualFactor()` | `MonsteraAuth` | `_invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `buildDualFactorChangePasswordAction` | `auth.dualFactor.updatePassword` |
-| `monstera.rotateApiKey()` | `MonsteraAuth` | `_invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `buildRotateApiKeyAction` | `auth.apiKeySession.rotateApiKey` |
-| `monstera.addMultiAuthenticator()` | `MonsteraAuth` | `_invokeAuthenticatorManaged` + `AuthConfigEncoder` (child config) | `buildAddAuthenticatorAction` | `auth.multi.addAuthenticator` |
+| `monstera.updatePassword()` | `MonsteraAuth` | `invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `buildChangePasswordAction` | `auth.password.updatePassword` |
+| `monstera.addToWhitelist()` | `MonsteraAuth` | `invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `buildAddToWhitelistAction` | `auth.walletSignature.addToWhitelist` |
+| `monstera.updatePasswordDualFactor()` | `MonsteraAuth` | `invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `buildDualFactorChangePasswordAction` | `auth.dualFactor.updatePassword` |
+| `monstera.rotateApiKey()` | `MonsteraAuth` | `invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `buildRotateApiKeyAction` | `auth.apiKeySession.rotateApiKey` |
+| `monstera.addMultiAuthenticator()` | `MonsteraAuth` | `invokeAuthenticatorManaged` + `AuthConfigEncoder` (child config) | `buildAddAuthenticatorAction` | `auth.multi.addAuthenticator` |
 
 ### Auth proof builders (off-chain, no tx)
 
 | User calls | Domain module | Pipeline | Client method |
 |------------|---------------|----------|---------------|
-| `monstera.createAuthProofWalletSignature()` | `MonsteraAuth` | `_encodeAuthenticatorManaged` → `ExplicitAuthPipeline` | — |
-| `monstera.createAuthProofDualFactor()` | `MonsteraAuth` | `_encodeAuthenticatorManaged` → `ExplicitAuthPipeline` | — |
-| `monstera.createAuthProofMulti()` | `MonsteraAuth` | `_encodeAuthenticatorManaged` → `ExplicitAuthPipeline` | — |
+| `monstera.createAuthProofWalletSignature()` | `MonsteraAuth` | `encodeAuthenticatorManaged` → `ExplicitAuthPipeline` | — |
+| `monstera.createAuthProofDualFactor()` | `MonsteraAuth` | `encodeAuthenticatorManaged` → `ExplicitAuthPipeline` | — |
+| `monstera.createAuthProofMulti()` | `MonsteraAuth` | `encodeAuthenticatorManaged` → `ExplicitAuthPipeline` | — |
 
 ### Wallet creation & factory admin
 
@@ -100,8 +100,8 @@ Read-only vault-scoped calls still use `KeyVaultAuthPipeline.mergeVaultOptions` 
 |------------|---------------|----------|---------------|
 | `monstera.createWallet()` | `MonsteraFactory` | `AuthConfigEncoder` (in method) | `factory.createWallet` |
 | `monstera.initializeWalletLogic()` | `MonsteraFactory` | `ConnectSession` (resolve `keyVaultAddr`) | `logic.initialize` |
-| `monstera.configurePassword()` | `MonsteraAuth` | `_configureAuthenticator` → `AuthConfigPipeline` | `auth.password.configure` |
-| `monstera.getKeyVaultAddr()` | `MonsteraFactory` | `ConnectSession` (via `_resolveWalletProxyOptions`) | `factory.getKeyVaultAddr` |
+| `monstera.configurePassword()` | `MonsteraAuth` | `configureAuthenticator` → `AuthConfigPipeline` | `auth.password.configure` |
+| `monstera.getKeyVaultAddr()` | `MonsteraFactory` | `ConnectSession` (via `resolveWalletProxyOptions`) | `factory.getKeyVaultAddr` |
 | `monstera.updateWalletLogicImplAddr()` | `MonsteraFactory` | — (admin signer) | `factory.updateWalletLogicImplAddr` |
 | `monstera.setAuthenticatorAllowed()` | `MonsteraFactory` | — (admin signer) | `factory.setAuthenticatorAllowed` |
 
@@ -118,7 +118,7 @@ Read-only vault-scoped calls still use `KeyVaultAuthPipeline.mergeVaultOptions` 
 | User calls | Domain module | Client method |
 |------------|---------------|---------------|
 | `monstera.getAccountAddr()` | `MonsteraKeyVault` | `keyVault.getAccountAddr` |
-| `monstera.isPasswordValid()` | `MonsteraAuth` | `_invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `auth.password.verify` |
+| `monstera.isPasswordValid()` | `MonsteraAuth` | `invokeAuthenticatorManaged` → `ExplicitAuthPipeline` | `auth.password.verify` |
 | `monstera.getWhitelist()` | `MonsteraAuth` | `auth.walletSignature.getWhitelist` |
 | `monstera.isWallet()` | `MonsteraFactory` | `factory.isWallet` |
 

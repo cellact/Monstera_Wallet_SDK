@@ -5,6 +5,57 @@
  */
 
 import { defineDomainMethods } from './defineDomainMethods.js';
+import { getSdkInternals } from '../sdkInternals.js';
+
+/**
+ * Inject {@code walletAddr} from the credentials session when omitted.
+ *
+ * @param {Monstera} sdk
+ * @param {Record<string, unknown>} [options]
+ * @returns {Promise<Record<string, unknown>>}
+ */
+export async function resolveWalletProxyOptions(sdk, options = {}) {
+  if (options.walletAddr || !sdk.hasCredentials()) {
+    return options;
+  }
+
+  return {
+    ...options,
+    walletAddr: await getSdkInternals(sdk).keyVaultAuthPipeline.getConnectSession().getWalletAddr()
+  };
+}
+
+/**
+ * Inject {@code walletOrKeyVaultAddr} from resolved {@code keyVaultAddr} when omitted.
+ *
+ * @param {Monstera} sdk
+ * @param {Record<string, unknown>} [options]
+ * @returns {Promise<Record<string, unknown>>}
+ */
+export async function resolveWalletOrKeyVaultScope(sdk, options = {}) {
+  if (options.walletOrKeyVaultAddr) {
+    return options;
+  }
+
+  const resolved = await getSdkInternals(sdk).keyVaultAuthPipeline.mergeVaultOptions(options);
+  return { ...options, ...resolved, walletOrKeyVaultAddr: resolved.keyVaultAddr };
+}
+
+/**
+ * Merge ApiKeySession call options with connect credentials and SDK config defaults.
+ *
+ * @param {Monstera} sdk
+ * @param {Record<string, unknown>} [options]
+ * @param {ResolveVaultOptionsFlags} [flags]
+ * @returns {Promise<Record<string, unknown>>}
+ */
+export async function resolveApiKeySessionProofOptions(sdk, options = {}, flags = { defaultApiKeySecret: true }) {
+  const resolved = await getSdkInternals(sdk).keyVaultAuthPipeline.mergeVaultOptions(options, flags);
+  return {
+    ...resolved,
+    chainId: sdk.config.chainId
+  };
+}
 
 export const monsteraSessionMethods = defineDomainMethods({
   // ============================================================================
@@ -41,60 +92,7 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @returns {boolean},
    */
   hasCredentials() {
-    return this._keyVaultAuthPipeline.hasCredentials();
-  },
-
-  /**
-   * Inject {@code walletAddr} from the credentials session when omitted.
-   *
-   * @private
-   * @async
-   * @param {Record<string, unknown>} options
-   * @returns {Promise<Record<string, unknown>>},
-   */
-  async _resolveWalletProxyOptions(options = {}) {
-    if (options.walletAddr || !this.hasCredentials()) {
-      return options;
-    }
-
-    return {
-      ...options,
-      walletAddr: await this._keyVaultAuthPipeline.getConnectSession().getWalletAddr()
-    };
-  },
-
-  /**
-   * Inject {@code walletOrKeyVaultAddr} from resolved {@code keyVaultAddr} when omitted.
-   *
-   * @private
-   * @async
-   * @param {Record<string, unknown>} options
-   * @returns {Promise<Record<string, unknown>>},
-   */
-  async _resolveWalletOrKeyVaultScope(options = {}) {
-    if (options.walletOrKeyVaultAddr) {
-      return options;
-    }
-
-    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options);
-    return { ...options, ...resolved, walletOrKeyVaultAddr: resolved.keyVaultAddr };
-  },
-
-  /**
-   * Merge ApiKeySession call options with connect credentials and SDK config defaults.
-   *
-   * @private
-   * @async
-   * @param {Record<string, unknown>} [options={}]
-   * @param {ResolveVaultOptionsFlags} [flags]
-   * @returns {Promise<Record<string, unknown>>},
-   */
-  async _resolveApiKeySessionProofOptions(options = {}, flags = { defaultApiKeySecret: true }) {
-    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options, flags);
-    return {
-      ...resolved,
-      chainId: this.config.chainId
-    };
+    return getSdkInternals(this).keyVaultAuthPipeline.hasCredentials();
   },
 
   /**
@@ -107,8 +105,8 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getSessionWalletAddr() {
-    this._keyVaultAuthPipeline.requireUserAccess('getSessionWalletAddr');
-    return this._keyVaultAuthPipeline.getConnectSession().getWalletAddr();
+    getSdkInternals(this).keyVaultAuthPipeline.requireUserAccess('getSessionWalletAddr');
+    return getSdkInternals(this).keyVaultAuthPipeline.getConnectSession().getWalletAddr();
   },
 
   /**
@@ -126,7 +124,7 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getSessionKeyVaultAddr() {
-    const { keyVaultAddr } = await this._keyVaultAuthPipeline.mergeVaultOptions({});
+    const { keyVaultAddr } = await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions({});
     return keyVaultAddr;
   },
 

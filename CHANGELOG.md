@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **App API**: [`docs/api.md`](docs/api.md#app-api) lists the calls an application should use. `sdk.factory`, `sdk.logic`, `sdk.keyVault`, and `sdk.auth` are labeled advanced. Existing methods are unchanged.
 - **`authProof.signer`**: Wallet-signature, dual-factor, and password-or-wallet proofs accept any object with `signTypedData`, including a browser signer. A `Wallet` or `HDNodeWallet` still works. A private-key string is still rejected. The connect `signer` remains the gas payer.
 - **Contract addresses**: `sdk.addresses` is the documented source of the preset addresses. `addresses` on `connect` replaces only the keys you pass. The address list includes `apiKeySessionAuth`, `multiAuthenticator`, and `passwordOrWalletSigAuth`. Preset values are unchanged.
+- **Quickstart**: The README and `npx monstera` show the same first session: testnet connect, `createWalletForUsername` with the password authenticator, and one `signMessage`. The gas `signer` and the user's `credentials` are separate inputs. `signMessage` omits `authProof` because the credentials supply the password.
+- **Types**: `npm run build` writes `dist/types` from the existing JSDoc. `package.json` `types` points at `dist/types/index.d.ts`. There is no hand-written declaration to maintain.
+- **Internal recipes**: Vault, authenticator, and configure helpers are functions the public methods import. The session, encoders, and pipelines are stored in a `WeakMap`, not on the instance. Neither shows up in autocomplete. Public method behavior is unchanged.
 
 ### Added
 

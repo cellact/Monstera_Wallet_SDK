@@ -6,6 +6,8 @@
  */
 
 import { defineDomainMethods } from './defineDomainMethods.js';
+import { getSdkInternals } from '../sdkInternals.js';
+import { resolveWalletOrKeyVaultScope, resolveWalletProxyOptions } from './MonsteraSession.js';
 
 export const monsteraFactoryMethods = defineDomainMethods({
   // ============================================================================
@@ -35,7 +37,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWallet(options = {}) {
     return this.factory.createWallet(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -61,7 +63,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWalletFromMnemonic(options = {}) {
     return this.factory.createWalletFromMnemonic(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -87,7 +89,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWalletWithHook(options = {}) {
     return this.factory.createWalletWithHook(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -113,7 +115,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWalletCore(options = {}) {
     return this.factory.createWalletCore(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -139,7 +141,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWalletWithCustomLogic(options = {}) {
     return this.factory.createWalletWithCustomLogic(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -162,7 +164,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWalletForUsername(options = {}) {
     return this.factory.createWalletForUsername(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -183,7 +185,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWalletForUsernameFromMnemonic(options = {}) {
     return this.factory.createWalletForUsernameFromMnemonic(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -204,7 +206,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWalletForUsernameHash(options = {}) {
     return this.factory.createWalletForUsernameHash(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -225,7 +227,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    */
   async createWalletForUsernameHashFromMnemonic(options = {}) {
     return this.factory.createWalletForUsernameHashFromMnemonic(
-      this._authConfigEncoder.encode(options)
+      getSdkInternals(this).authConfigEncoder.encode(options)
     );
   },
 
@@ -245,9 +247,9 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async initializeWalletLogic(options = {}) {
-    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options);
+    const resolved = await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options);
     if (!resolved.walletAddr) {
-      Object.assign(resolved, await this._resolveWalletProxyOptions(options));
+      Object.assign(resolved, await resolveWalletProxyOptions(this, options));
     }
     return this.logic.initialize(resolved);
   },
@@ -267,7 +269,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isWallet(options = {}) {
-    return this.factory.isWallet(await this._resolveWalletProxyOptions(options));
+    return this.factory.isWallet(await resolveWalletProxyOptions(this, options));
   },
 
   /**
@@ -313,7 +315,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultAddr(options = {}) {
-    return this.factory.getKeyVaultAddr(await this._resolveWalletProxyOptions(options));
+    return this.factory.getKeyVaultAddr(await resolveWalletProxyOptions(this, options));
   },
 
   /**
@@ -329,7 +331,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getStorageAddr(options = {}) {
-    return this.factory.getStorageAddr(await this._resolveWalletProxyOptions(options));
+    return this.factory.getStorageAddr(await resolveWalletProxyOptions(this, options));
   },
 
   /**
@@ -360,7 +362,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getSecretVaultAddr(options = {}) {
-    return this.factory.getSecretVaultAddr(await this._resolveWalletProxyOptions(options));
+    return this.factory.getSecretVaultAddr(await resolveWalletProxyOptions(this, options));
   },
 
   /**
@@ -426,7 +428,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isFactoryImplementationApproved(options = {}) {
-    return this.factory.isImplementationApproved(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.factory.isImplementationApproved(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -445,7 +447,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isFactoryAuthenticatorApproved(options = {}) {
-    return this.factory.isAuthenticatorApproved(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.factory.isAuthenticatorApproved(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -493,7 +495,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getWalletUsernameHash(options = {}) {
-    return this.factory.getWalletUsernameHash(await this._resolveWalletProxyOptions(options));
+    return this.factory.getWalletUsernameHash(await resolveWalletProxyOptions(this, options));
   },
 
   // --- Factory Writes ---
@@ -595,7 +597,7 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async setWalletImplementationAllowed(options = {}) {
-    return this.factory.setWalletImplementationAllowed(await this._resolveWalletOrKeyVaultScope(options));
+    return this.factory.setWalletImplementationAllowed(await resolveWalletOrKeyVaultScope(this, options));
   },
 
   /**
@@ -614,6 +616,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async setWalletAuthenticatorAllowed(options = {}) {
-    return this.factory.setWalletAuthenticatorAllowed(await this._resolveWalletOrKeyVaultScope(options));
+    return this.factory.setWalletAuthenticatorAllowed(await resolveWalletOrKeyVaultScope(this, options));
   }
 });

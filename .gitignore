@@ -88,5 +88,6 @@ node_modules/
 # Build outputs
 dist/
 *.map
+*.tgz
 
 SDK_ANALYSIS.md

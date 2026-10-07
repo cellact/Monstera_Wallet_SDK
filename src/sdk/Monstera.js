@@ -5,7 +5,7 @@
  * four domain clients and offers high-level helpers that accept structured options.
  *
  * Domain methods live in {@code src/sdk/domains/} and are composed onto this class at load time.
- * Operation recipes ({@code MonsteraRecipes}) are mixed first so all domains share the same call patterns.
+ * Operation recipes in {@code MonsteraRecipes} are functions the domain methods import. They are not instance methods.
  * See {@code docs/architecture.md} for the execution map.
  *
  * @module sdk/Monstera
@@ -29,8 +29,8 @@ import { parseConnectCredentials } from '../internal/validators/connectOptions.j
 import { KeyVaultAuthPipeline } from '../internal/auth/pipelines/KeyVaultAuthPipeline.js';
 import { ExplicitAuthPipeline } from '../internal/auth/pipelines/ExplicitAuthPipeline.js';
 import { AuthConfigPipeline } from '../internal/auth/pipelines/AuthConfigPipeline.js';
+import { setSdkInternals } from './sdkInternals.js';
 import { SCOPE_ALL, SCOPE_SIGN_ALL } from '../internal/auth/specs/apiKeySession.js';
-import { monsteraRecipeMethods } from './domains/MonsteraRecipes.js';
 import { monsteraSessionMethods } from './domains/MonsteraSession.js';
 import { monsteraAuthMethods } from './domains/MonsteraAuth.js';
 import { monsteraFactoryMethods } from './domains/MonsteraFactory.js';
@@ -51,12 +51,6 @@ import { monsteraSigningMethods } from './domains/MonsteraSigning.js';
  * @property {WalletLogicClient} logic - Advanced WalletLogic client. Prefer facade signing and account methods.
  * @property {KeyVaultClient} keyVault - Advanced KeyVault client. Prefer facade signing and account methods.
  * @property {AuthenticatorClient} auth - Advanced authenticator clients. Prefer facade configure, validity, and update methods.
- * @property {ConnectSession | null} _connectSession - End-user credentials session, if connected with credentials
- * @property {AuthProofEncoder} _authProofEncoder - Auth-proof encoding
- * @property {KeyVaultAuthPipeline} _keyVaultAuthPipeline - Vault-authenticated write pipeline
- * @property {ExplicitAuthPipeline} _explicitAuthPipeline - Authenticator management write pipeline
- * @property {AuthConfigPipeline} _authConfigPipeline - Authenticator configure pipeline
- * @property {AuthConfigEncoder} _authConfigEncoder - Auth config encoder
  */
 class Monstera {
   constructor(config) {
@@ -87,8 +81,7 @@ class Monstera {
     /** @type {AuthenticatorClient} */
     this.auth = new AuthenticatorClient(this.readProvider, this.writeSigner, resolvedConfig);
 
-    /** @type {ConnectSession | null} */
-    this._connectSession = parsedCredentials
+    const connectSession = parsedCredentials
       ? new ConnectSession(parsedCredentials, {
           hashUsername: (opts) => this.factory.hashUsername(opts),
           walletOfUsername: (opts) => this.factory.walletOfUsername(opts),
@@ -96,31 +89,35 @@ class Monstera {
         })
       : null;
 
-    /** @type {AuthProofEncoder} */
-    this._authProofEncoder = new AuthProofEncoder({
+    const authProofEncoder = new AuthProofEncoder({
       config: resolvedConfig,
       readProvider: this.readProvider,
       getAuthenticatorAddr: (keyVaultAddr) => this.getAuthenticatorAddr({ keyVaultAddr })
     });
 
-    /** @type {KeyVaultAuthPipeline} */
-    this._keyVaultAuthPipeline = new KeyVaultAuthPipeline({
-      connectSession: this._connectSession,
-      authProofEncoder: this._authProofEncoder
+    const keyVaultAuthPipeline = new KeyVaultAuthPipeline({
+      connectSession,
+      authProofEncoder
     });
 
-    /** @type {ExplicitAuthPipeline} */
-    this._explicitAuthPipeline = new ExplicitAuthPipeline({
-      connectSession: this._connectSession,
-      authProofEncoder: this._authProofEncoder
+    const explicitAuthPipeline = new ExplicitAuthPipeline({
+      connectSession,
+      authProofEncoder
     });
-    /** @type {AuthConfigEncoder} */
-    this._authConfigEncoder = new AuthConfigEncoder({ addresses: resolvedConfig.addresses });
-    
-    /** @type {AuthConfigPipeline} */
-    this._authConfigPipeline = new AuthConfigPipeline({
-      keyVaultAuthPipeline: this._keyVaultAuthPipeline,
-      authConfigEncoder: this._authConfigEncoder
+    const authConfigEncoder = new AuthConfigEncoder({ addresses: resolvedConfig.addresses });
+
+    const authConfigPipeline = new AuthConfigPipeline({
+      keyVaultAuthPipeline,
+      authConfigEncoder
+    });
+
+    setSdkInternals(this, {
+      connectSession,
+      authProofEncoder,
+      keyVaultAuthPipeline,
+      explicitAuthPipeline,
+      authConfigEncoder,
+      authConfigPipeline
     });
 
     // Check version in background only when explicitly enabled.
@@ -261,7 +258,6 @@ class Monstera {
 
 Object.assign(
   Monstera.prototype,
-  monsteraRecipeMethods,
   monsteraSessionMethods,
   monsteraAuthMethods,
   monsteraFactoryMethods,

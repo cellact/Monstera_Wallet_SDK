@@ -9,7 +9,7 @@
 // ============================================================================
 
 /**
- * @typedef {string} Bytes - Hex string representing bytes
+ * @typedef {string | Uint8Array} Bytes - Hex string (`0x`...) or raw bytes
  * @typedef {string} Bytes4 - Hex string representing 4 bytes
  * @typedef {string} Bytes32 - Hex string representing 32 bytes
  * @typedef {string} Address - Ethereum address (0x-prefixed hex string, 42 characters)

@@ -16,6 +16,8 @@ Monstera expects **ethers** v6 at runtime (`peerDependencies` in `package.json`)
 npm install ethers
 ```
 
+Editors read `dist/types`, generated from the JSDoc during `npm run build`. You do not need a local declaration file.
+
 ## Basic Usage
 
 Pass optional `signer` and/or `credentials` to `Monstera.connect()` depending on what you need.

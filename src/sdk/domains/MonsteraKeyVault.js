@@ -17,6 +17,8 @@ import {
 } from '../../internal/vault/actions/index.js';
 import { withDefaultAccountIndex } from '../../internal/vault/accountIndex.js';
 import { defineDomainMethods } from './defineDomainMethods.js';
+import { getSdkInternals } from '../sdkInternals.js';
+import { invokeVaultAuthenticated } from './MonsteraRecipes.js';
 
 export const monsteraKeyVaultMethods = defineDomainMethods({
   // ============================================================================
@@ -41,7 +43,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @remarks Most callers should use a {@code createWallet*} factory method instead, which wires the KeyVault for you.
    */
   async initialize(options = {}) {
-    return this.keyVault.initialize(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.initialize(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -60,7 +62,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async initializeExplicit(options = {}) {
-    return this.keyVault.initializeExplicit(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.initializeExplicit(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   // --- KeyVault Reads ---
@@ -78,7 +80,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultStorageAddr(options = {}) {
-    return this.keyVault.getStorageAddr(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.getStorageAddr(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -94,7 +96,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getAuthenticatorAddr(options = {}) {
-    return this.keyVault.getAuthenticatorAddr(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.getAuthenticatorAddr(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -110,7 +112,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultImplAddr(options = {}) {
-    return this.keyVault.getKeyVaultImplAddr(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.getKeyVaultImplAddr(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -126,7 +128,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isInitialized(options = {}) {
-    return this.keyVault.isInitialized(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.isInitialized(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -142,7 +144,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async computeActionHash(options = {}) {
-    return this.keyVault.computeActionHash(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.computeActionHash(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -160,7 +162,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async computeMultiAuthenticatorActionHash(options = {}) {
-    return this.auth.multi.computeActionHash(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.auth.multi.computeActionHash(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -176,7 +178,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async computeCustomImplementationAckHash(options = {}) {
-    return this.keyVault.computeCustomImplementationAckHash(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.computeCustomImplementationAckHash(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -192,7 +194,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async computeCustomAuthenticatorAckHash(options = {}) {
-    return this.keyVault.computeCustomAuthenticatorAckHash(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.computeCustomAuthenticatorAckHash(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -208,7 +210,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getPolicyRegistry(options = {}) {
-    return this.keyVault.getPolicyRegistry(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.getPolicyRegistry(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -224,7 +226,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isImplementationApproved(options = {}) {
-    return this.keyVault.isImplementationApproved(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.isImplementationApproved(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -240,7 +242,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async isAuthenticatorApproved(options = {}) {
-    return this.keyVault.isAuthenticatorApproved(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.isAuthenticatorApproved(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -256,7 +258,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddr(options = {}) {
-    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options);
+    const resolved = await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options);
     return this.keyVault.getAccountAddr(withDefaultAccountIndex(resolved));
   },
 
@@ -273,7 +275,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddresses(options = {}) {
-    return this.keyVault.getAccountAddresses(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.getAccountAddresses(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -289,7 +291,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getImportedKeyIds(options = {}) {
-    return this.keyVault.getImportedKeyIds(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.getImportedKeyIds(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -305,7 +307,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getKeyMetadata(options = {}) {
-    return this.keyVault.getKeyMetadata(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.getKeyMetadata(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -321,7 +323,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async keyExists(options = {}) {
-    return this.keyVault.keyExists(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.keyExists(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -337,7 +339,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getImportedKeyAddr(options = {}) {
-    return this.keyVault.getImportedKeyAddr(await this._keyVaultAuthPipeline.mergeVaultOptions(options));
+    return this.keyVault.getImportedKeyAddr(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
   },
 
   /**
@@ -353,7 +355,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async getSolanaAddr(options = {}) {
-    const resolved = await this._keyVaultAuthPipeline.mergeVaultOptions(options);
+    const resolved = await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options);
     return this.keyVault.getSolanaAddr(withDefaultAccountIndex(resolved));
   },
 
@@ -373,7 +375,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddr(options = {}) {
-    return this._invokeVaultAuthenticated({
+    return invokeVaultAuthenticated(this, {
       options,
       buildAction: (o) => buildUpgradeImplementationAction({ newImplAddr: o.newImplAddr }),
       invoke: (encoded) => this.keyVault.updateKeyVaultImplAddr(encoded)
@@ -396,7 +398,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddrCustom(options = {}) {
-    return this._invokeVaultAuthenticated({
+    return invokeVaultAuthenticated(this, {
       options,
       buildAction: (o) =>
         buildUpgradeImplementationCustomAction({
@@ -423,7 +425,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddr(options = {}) {
-    return this._invokeVaultAuthenticated({
+    return invokeVaultAuthenticated(this, {
       options,
       buildAction: (o) =>
         buildChangeAuthenticatorAction({
@@ -450,7 +452,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddrCustom(options = {}) {
-    return this._invokeVaultAuthenticated({
+    return invokeVaultAuthenticated(this, {
       options,
       buildAction: (o) =>
         buildChangeAuthenticatorCustomAction({
@@ -478,7 +480,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async importKey(options = {}) {
-    return this._invokeVaultAuthenticated({
+    return invokeVaultAuthenticated(this, {
       options,
       buildAction: (o) =>
         buildImportKeyAction({
@@ -511,7 +513,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async deactivateKey(options = {}) {
-    return this._invokeVaultAuthenticated({
+    return invokeVaultAuthenticated(this, {
       options,
       buildAction: (o) => buildDeactivateKeyAction({ keyId: o.keyId }),
       invoke: (encoded) => this.keyVault.deactivateKey(encoded)
@@ -534,7 +536,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async activateKey(options = {}) {
-    return this._invokeVaultAuthenticated({
+    return invokeVaultAuthenticated(this, {
       options,
       buildAction: (o) => buildActivateKeyAction({ keyId: o.keyId }),
       invoke: (encoded) => this.keyVault.activateKey(encoded)
@@ -557,7 +559,7 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @throws {WalletError} For other unrecognised failures
    */
   async setChainBaseKeys(options = {}) {
-    return this._invokeVaultAuthenticated({
+    return invokeVaultAuthenticated(this, {
       options,
       buildAction: (o) =>
         buildSetChainBaseKeysAction({

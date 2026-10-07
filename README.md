@@ -51,6 +51,8 @@ npm install @monstera_protocol/sdk
 
 Install **ethers** v6 in your app as well (`npm install ethers`). The SDK lists it as a peer dependency so your bundler resolves a single copy. The SDK uses the ethers v6 API.
 
+TypeScript and JavaScript editors read `dist/types`, generated from the JSDoc during `npm run build`. You do not need a local declaration file. `instanceof ValidationError` type-checks.
+
 The calls an app should use are the [App API](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/docs/api.md#app-api). `sdk.factory`, `sdk.logic`, `sdk.keyVault`, and `sdk.auth` stay available for contract-level work.
 
 **Note:** This SDK uses ES Modules (ESM). Requires Node.js 14+ or a bundler. **web3.js is not used** by this package; use ethers for all Ethereum interactions.
@@ -74,28 +76,39 @@ npx monstera
 
 ```javascript
 import { Monstera } from '@monstera_protocol/sdk';
-import { ethers } from 'ethers';
+import { keccak256, toUtf8Bytes } from 'ethers';
 
-const monstera = Monstera.connect({ 
-  mainnet: false, 
-  signer: '0x...', // Your private key (or ethers Signer)
-  debug: true     // optional: enable debug logs; or use logLevel: 'info' | 'warn' | 'error'
+const username = 'alice';
+const password = 'your-secure-password';
+
+// `signer` pays Sapphire gas. `credentials` are the user's password.
+const sdk = Monstera.connect({
+  mainnet: false,
+  signer: process.env.SIGNER_PRIVATE_KEY,
+  credentials: { username, password }
 });
 
-// Create password hash for authentication
-const passwordHash = ethers.keccak256(ethers.toUtf8Bytes('your-secure-password'));
+const wallet = await sdk.createWalletForUsername({
+  authenticatorAddr: sdk.addresses.passwordAuth,
+  authConfig: { passwordHash: keccak256(toUtf8Bytes(password)) },
+  username
+});
 
-// Create a wallet
-const wallet = await monstera.createWallet({
-  authenticatorAddr: monstera.addresses.passwordAuth,
-  authConfig: { passwordHash } 
+// Password vault: the proof is filled from `credentials`.
+const signature = await sdk.signMessage({
+  message: toUtf8Bytes('Hello from Monstera')
 });
 
 console.log('Wallet created:', wallet.wallet);
 console.log('Save this mnemonic securely:', wallet.mnemonic);
+console.log('Signature:', signature);
 ```
 
-That's it! Built-in contract addresses are `monstera.addresses`, taken from the network presets. Pass `addresses` on `connect` to replace one key when a deployment differs; every key you omit stays on the preset. Use `monstera.setLogLevel('debug')` at runtime to change log verbosity.
+`signer` pays gas and is a server private key. `credentials` are the user's username and password. `signMessage` uses those credentials, so this call does not pass `authProof`.
+
+`createWalletForUsername` registers that password wallet under `alice`. The same create-and-sign session without a username is the password-only track, which passes `keyVaultAddr` and `authProof` on each sign. Both tracks are in [examples/nodejs/getting-started/](https://github.com/cellact/Monstera_Wallet_SDK/tree/main/examples/nodejs/getting-started).
+
+Built-in contract addresses are `sdk.addresses`, taken from the network presets. Pass `addresses` on `connect` to replace one key when a deployment differs; every key you omit stays on the preset. Use `sdk.setLogLevel('debug')` at runtime to change log verbosity.
 
 **Upgrading from 1.x?** See the [2.0.0 changelog](CHANGELOG.md#200---2026-06-16) for action-bound `authProof` and network preset changes. Unreleased auth-pipeline improvements are listed under [Unreleased](CHANGELOG.md#unreleased) in the changelog.
 
