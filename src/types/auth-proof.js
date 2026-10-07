@@ -60,7 +60,7 @@
 /**
  * Structured input options to create auth proof for WalletSignatureAuthenticator.
  * @typedef {Object} WalletSignatureAuthProofInputOptions
- * @property {EthersWallet | EthersHDNodeWallet} signer
+ * @property {TypedDataSigner} signer - Whitelisted account. Any object with {@code signTypedData}, including a browser signer.
  * @property {number} [deadline] - Deadline for the auth proof (Unix timestamp in seconds) (optional)
  * @property {AuthActionInput} [action] - Operation being authorized; required when {@code actionHash} is omitted
  * @property {Bytes32} [actionHash] - Pre-resolved on-chain action hash; required when {@code action} is omitted
@@ -70,7 +70,7 @@
  * Structured input options to create auth proof for DualFactorAuthenticator.
  * @typedef {Object} DualFactorAuthProofInputOptions
  * @property {Bytes32} passwordHash
- * @property {EthersWallet | EthersHDNodeWallet} signer
+ * @property {TypedDataSigner} signer - Guardian account. Any object with {@code signTypedData}.
  * @property {number} [deadline] - Deadline for the auth proof (Unix timestamp in seconds) (optional)
  * @property {AuthActionInput} [action] - Operation being authorized; required when {@code actionHash} is omitted
  * @property {Bytes32} [actionHash] - Pre-resolved on-chain action hash; required when {@code action} is omitted
@@ -89,7 +89,7 @@
  * @typedef {Object} PasswordOrWalletSignatureAuthProofInputOptions
  * @property {'password' | 'walletSignature'} [method] - Explicit method; inferred from {@code signer} vs {@code password} when omitted
  * @property {Uint8Array} [password] - UTF-8 password bytes (defaults from connect credentials when omitted)
- * @property {EthersWallet | EthersHDNodeWallet} [signer] - Whitelisted wallet for the signature path
+ * @property {TypedDataSigner} [signer] - Whitelisted account for the signature path. Any object with {@code signTypedData}.
  * @property {number | bigint} [deadline] - Wallet-signature path only (defaults to now + 1 hour)
  * @property {AuthActionInput} [action] - Operation being authorized; required when {@code actionHash} is omitted
  * @property {Bytes32} [actionHash] - Pre-resolved on-chain action hash; required when {@code action} is omitted
@@ -670,7 +670,7 @@
  *   addressToAdd: Address;
  *   nonce?: Bytes32;
  *   deadline?: number | bigint;
- *   linkSigner?: EthersWallet | EthersHDNodeWallet;
+ *   linkSigner?: TypedDataSigner;
  *   newWalletSignature?: Bytes;
  * }} AddPasswordOrWalletSignatureWhitelistWithProofOptions
  */

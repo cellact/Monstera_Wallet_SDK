@@ -42,7 +42,7 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @async
    * @param {CreateAuthProofWalletSignatureOptions} options - Inputs for the proof ({@code action} or {@code actionHash} required)
    * @returns {Promise<EncodedAuthProofWalletSignature>} ABI-encoded auth proof bytes
-   * @throws {ValidationError} If {@code signer} is not a {@link EthersWallet}/{@link EthersHDNodeWallet}, addresses or {@code deadline} are invalid, or neither {@code action} nor {@code actionHash} is supplied
+   * @throws {ValidationError} If {@code signer} does not provide {@code signTypedData}, addresses or {@code deadline} are invalid, or neither {@code action} nor {@code actionHash} is supplied
    * @throws {NetworkError} If the signer's transport fails during typed-data signing
    * @throws {WalletError} For other unrecognised signing failures
    */

@@ -11,7 +11,7 @@
 import {
   requireAddress,
   requireBytes32,
-  requireWalletOrHdNode,
+  requireTypedDataSigner,
   requireChainId,
   requirePositiveInteger,
   requireProviderMethod,
@@ -24,8 +24,8 @@ import {
  * @public
  * @param {CreateAuthProofWalletSignatureOptions} options - Caller options
  * @returns {{ normalizedChainId: ChainId }} Validated chain id
- * @throws {ValidationError} If {@code signer} is not a {@code Wallet}/{@code HDNodeWallet}
- *   ({@link requireWalletOrHdNode}); {@code chainId} is missing/invalid ({@link requireChainId});
+ * @throws {ValidationError} If {@code signer} does not provide {@code signTypedData}
+ *   ({@link requireTypedDataSigner}); {@code chainId} is missing/invalid ({@link requireChainId});
  *   {@code authenticatorAddr} or {@code keyVaultAddr} fail address validation
  *   ({@link requireAddress}); {@code deadline} is not a positive integer
  *   ({@link requirePositiveInteger}); {@code deadline} is in the past ({@link isInFuture}); or
@@ -34,7 +34,7 @@ import {
 export function assertWalletSignatureAuthProofOptions(options) {
   const { signer, chainId, authenticatorAddr, deadline, keyVaultAddr, actionHash } = options;
 
-  requireWalletOrHdNode(signer, 'signer');
+  requireTypedDataSigner(signer, 'signer');
   const normalizedChainId = requireChainId(chainId, 'chainId');
   requireAddress(authenticatorAddr, 'authenticatorAddr');
   requireAddress(keyVaultAddr, 'keyVaultAddr');
@@ -79,7 +79,7 @@ export function assertMinuteSignatureAuthProofOptions(options) {
  * @param {CreateAuthProofDualFactorWithProviderOptions} options - Caller options
  * @returns {{ normalizedChainId: ChainId }} Validated chain id
  * @throws {ValidationError} Forwarded from {@link assertMinuteSignatureAuthProofOptions}; plus
- *   thrown if {@code signer} is not a {@code Wallet}/{@code HDNodeWallet}, or {@code deadline} is not
+ *   thrown if {@code signer} does not provide {@code signTypedData}, or {@code deadline} is not
  *   a positive integer or is in the past
  */
 export function assertDualFactorAuthProofOptions(options) {
@@ -87,7 +87,7 @@ export function assertDualFactorAuthProofOptions(options) {
 
   const { normalizedChainId } = assertMinuteSignatureAuthProofOptions(options);
 
-  requireWalletOrHdNode(signer, 'signer');
+  requireTypedDataSigner(signer, 'signer');
   requirePositiveInteger(deadline, 'deadline');
   isInFuture(deadline, 'deadline');
 

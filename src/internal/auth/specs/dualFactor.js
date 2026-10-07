@@ -5,7 +5,7 @@
  */
 
 import { ValidationError } from '../../../errors/index.js';
-import { requireBytes32, requireWalletOrHdNode } from '../../validation/assert.js';
+import { requireBytes32, requireTypedDataSigner } from '../../validation/assert.js';
 import { createDualFactorAuthConfig } from '../config/bytes.js';
 import {
   createActionBoundEncoder,
@@ -37,7 +37,7 @@ export const dualFactorAuthenticator = createAuthenticatorSpec({
 
     if (merged.signer == null) {
       throw new ValidationError(
-        'authProof.signer is required for DualFactorAuthenticator; pass the guardian Wallet or HDNodeWallet',
+        'authProof.signer is required for DualFactorAuthenticator; pass the guardian signer with signTypedData',
         'authProof.signer',
         merged.signer
       );
@@ -57,7 +57,7 @@ export const dualFactorAuthenticator = createAuthenticatorSpec({
   },
   validate: (options) => {
     requireBytes32(options.passwordHash, 'passwordHash');
-    requireWalletOrHdNode(options.signer, 'signer');
+    requireTypedDataSigner(options.signer, 'signer');
   },
 
   proofEncoder: createActionBoundEncoder({

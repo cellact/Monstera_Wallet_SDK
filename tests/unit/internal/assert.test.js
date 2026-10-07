@@ -18,7 +18,7 @@ import {
   requirePositiveInteger,
   requireArray,
   requireBytes32,
-  requireWalletOrHdNode,
+  requireTypedDataSigner,
   requireStringOrNumber,
   requireChainId,
   requireBigInt,
@@ -443,28 +443,36 @@ describe('Assert Utilities', () => {
         });
     });
 
-    describe('requireWalletOrHdNode', () => {
+    describe('requireTypedDataSigner', () => {
         test('does not throw for ethers Wallet', () => {
             const w = Wallet.createRandom();
-            expect(() => requireWalletOrHdNode(w)).not.toThrow();
+            expect(() => requireTypedDataSigner(w)).not.toThrow();
         });
 
         test('does not throw for HDNodeWallet', () => {
             const mnemonic = Mnemonic.fromEntropy(randomBytes(16)).phrase;
             const hd = HDNodeWallet.fromPhrase(mnemonic);
-            expect(() => requireWalletOrHdNode(hd, 'signer')).not.toThrow();
+            expect(() => requireTypedDataSigner(hd, 'signer')).not.toThrow();
         });
 
-        test('throws for null, undefined, or plain objects', () => {
-            expect(() => requireWalletOrHdNode(null)).toThrow(
-                'signer is required and must be a Wallet or HDNodeWallet'
+        test('does not throw for an object that only implements signTypedData', () => {
+            const browserSigner = { signTypedData: async () => '0x' };
+            expect(() => requireTypedDataSigner(browserSigner, 'signer')).not.toThrow();
+        });
+
+        test('throws for null, undefined, a private key string, or an object without signTypedData', () => {
+            expect(() => requireTypedDataSigner(null)).toThrow(
+                'signer is required and must provide signTypedData'
             );
-            expect(() => requireWalletOrHdNode(undefined)).toThrow(
-                'signer is required and must be a Wallet or HDNodeWallet'
+            expect(() => requireTypedDataSigner(undefined)).toThrow(
+                'signer is required and must provide signTypedData'
+            );
+            expect(() => requireTypedDataSigner('0xabc', 'signer')).toThrow(
+                'signer is required and must provide signTypedData'
             );
             const notSigner = {};
-            expect(() => requireWalletOrHdNode(notSigner, 'signer')).toThrow(
-                'signer is required and must be a Wallet or HDNodeWallet'
+            expect(() => requireTypedDataSigner(notSigner, 'signer')).toThrow(
+                'signer is required and must provide signTypedData'
             );
         });
     });

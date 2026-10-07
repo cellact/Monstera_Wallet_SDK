@@ -5,7 +5,6 @@
  */
 
 import { ValidationError } from '../../errors/index.js';
-import { HDNodeWallet, Wallet } from '../../adapters/ethers/index.js';
 import { Mnemonic } from '../../adapters/ethers/index.js';
 import { normalizeBigInt, normalizeChainId, normalizeMnemonic, normalizeUsername } from '../utils/normalize.js';
 import { nowUnixTimestampSeconds } from '../utils/time.js';
@@ -133,12 +132,21 @@ export function requireArray(value, name = 'array') {
 }
 
 /**
- * @param {Wallet | HDNodeWallet} value
+ * Require an object that can sign EIP-712 typed data.
+ *
+ * ethers `Wallet`, `HDNodeWallet`, and a browser `JsonRpcSigner` qualify. A private-key string does not.
+ * The value stored on the error is the value's type, not the signer object.
+ *
+ * @param {TypedDataSigner} value
  * @param {string} [name]
  */
-export function requireWalletOrHdNode(value, name = 'signer') {
-  if (!value || !(value instanceof Wallet || value instanceof HDNodeWallet)) {
-    throw new ValidationError(`${name} is required and must be a Wallet or HDNodeWallet`, name, value);
+export function requireTypedDataSigner(value, name = 'signer') {
+  if (!value || typeof value.signTypedData !== 'function') {
+    throw new ValidationError(
+      `${name} is required and must provide signTypedData`,
+      name,
+      value == null ? value : typeof value
+    );
   }
 }
 

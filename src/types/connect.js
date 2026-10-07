@@ -28,6 +28,10 @@
  * @typedef {import('ethers').Contract} EthersContract - Ethers.js Contract type
  * @typedef {import('ethers').Wallet} EthersWallet - Ethers.js Wallet type
  * @typedef {import('ethers').HDNodeWallet} EthersHDNodeWallet - Ethers.js HDNodeWallet type
+ *
+ * Signer for an auth proof. The connect {@code signer} is a different input: it pays gas.
+ * @typedef {Object} TypedDataSigner
+ * @property {function(Object, Object, Object): Promise<string>} signTypedData - EIP-712 sign method (ethers Wallet, HDNodeWallet, or browser JsonRpcSigner)
  * @typedef {import('ethers').TransactionReceipt} TransactionReceipt - Ethers.js TransactionReceipt type
  * @typedef {import('ethers').AbstractProvider} EthersAbstractProvider - Ethers.js AbstractProvider (e.g. {@code getBlock})
  * @typedef {import('ethers').Interface} EthersInterface - Ethers.js ABI Interface (decode errors, encode calls)

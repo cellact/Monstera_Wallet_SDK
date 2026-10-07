@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`dotenv`**: Moved to `devDependencies`. Examples and integration tests still load it; apps that install the SDK no longer get it.
+- **`ethers`**: Peer dependency only, v6 (`^6.0.0`). Removed from `dependencies`. This repo keeps `ethers` in `devDependencies` for tests and examples.
+- **App API**: [`docs/api.md`](docs/api.md#app-api) lists the calls an application should use. `sdk.factory`, `sdk.logic`, `sdk.keyVault`, and `sdk.auth` are labeled advanced. Existing methods are unchanged.
+- **`authProof.signer`**: Wallet-signature, dual-factor, and password-or-wallet proofs accept any object with `signTypedData`, including a browser signer. A `Wallet` or `HDNodeWallet` still works. A private-key string is still rejected. The connect `signer` remains the gas payer.
+- **Contract addresses**: `sdk.addresses` is the documented source of the preset addresses. `addresses` on `connect` replaces only the keys you pass. The address list includes `apiKeySessionAuth`, `multiAuthenticator`, and `passwordOrWalletSigAuth`. Preset values are unchanged.
+
+### Added
+
+- **Monstera website**: README will link the public site ([Monstera](https://cellact.github.io/monstera-main-website/), source [cellact/monstera-main-website](https://github.com/cellact/monstera-main-website)).
+
+### Deprecated
+
+- **Non-botanical SDK surface names**: Public names will shift to the Monstera site metaphor. Replacement vocabulary: `leaf` = SDK instance (`const leaf = Monstera.connect(...)`); `root` = wallet/KeyVault foundation; `roots` = low-level domain clients (`leaf.roots.wallet`, `leaf.roots.auth`); `stem` = connect session; `branch` = scoped capability / child app on the same wallet; `node` = signer, authenticator, or endpoint; `canopy` = high-level signing surface; `vine` = relayer / transport / cross-app link; `sprout` = wallet bootstrap (alternative to `createWallet`); `bud` / `bloom` = pending vs activated; `grove` / `garden` = collections and project environment. Do not use `seed` except for cryptographic seed material; do not use `sap` or `petiole` as public API names. Current APIs remain until the rename lands.
+
 ## [2.4.2] - 2026-10-06
 
 ### Changed

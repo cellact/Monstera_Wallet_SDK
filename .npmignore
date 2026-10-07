@@ -24,9 +24,5 @@ tests/
 __tests__/
 jest.config.js
 
-# Build artifacts (if you add a build step later)
-dist/
-build/
-
 # Examples (optional)
 examples/

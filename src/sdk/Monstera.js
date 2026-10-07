@@ -47,10 +47,10 @@ import { monsteraSigningMethods } from './domains/MonsteraSigning.js';
  * @property {string} version - SDK version string
  * @property {EthersAbstractProvider} readProvider - Provider for read-only RPC calls
  * @property {WrappedEthersSigner | null} writeSigner - Sapphire-wrapped signer for writes, or null
- * @property {WalletFactoryClient} factory - WalletFactory client
- * @property {WalletLogicClient} logic - WalletLogic client
- * @property {KeyVaultClient} keyVault - KeyVault client
- * @property {AuthenticatorClient} auth - Authenticator client
+ * @property {WalletFactoryClient} factory - Advanced WalletFactory client. Prefer the facade methods in the app API.
+ * @property {WalletLogicClient} logic - Advanced WalletLogic client. Prefer facade signing and account methods.
+ * @property {KeyVaultClient} keyVault - Advanced KeyVault client. Prefer facade signing and account methods.
+ * @property {AuthenticatorClient} auth - Advanced authenticator clients. Prefer facade configure, validity, and update methods.
  * @property {ConnectSession | null} _connectSession - End-user credentials session, if connected with credentials
  * @property {AuthProofEncoder} _authProofEncoder - Auth-proof encoding
  * @property {KeyVaultAuthPipeline} _keyVaultAuthPipeline - Vault-authenticated write pipeline
@@ -77,7 +77,7 @@ class Monstera {
     /** @type {WrappedEthersSigner | null} */
     this.writeSigner = resolvedConfig.signer ? createWriteSigner(resolvedConfig.signer, resolvedConfig.rpcUrl, 'write') : null;
 
-    // Wire domain clients
+    // Advanced contract clients. Application code should use the facade methods.
     /** @type {WalletFactoryClient} */
     this.factory = new WalletFactoryClient(this.readProvider, this.writeSigner, resolvedConfig);
     /** @type {WalletLogicClient} */

@@ -21,7 +21,7 @@ export const ACTION_AUTH_EIP712_FIELDS = [
  * Sign an EIP-712 action-bound authenticator proof and return encoded output bytes.
  *
  * @param {Object} params
- * @param {EthersWallet | EthersHDNodeWallet} params.signer
+ * @param {TypedDataSigner} params.signer
  * @param {string} params.contractName - EIP-712 domain {@code name}
  * @param {string} params.structName - Primary typed-data struct name
  * @param {ChainId} params.chainId

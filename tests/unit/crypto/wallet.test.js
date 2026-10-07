@@ -78,7 +78,27 @@ describe('Wallet Crypto Utilities', () => {
       expect(authProof.startsWith('0x')).toBe(true);
     });
 
-    test('should throw an error if the signer is not a Wallet or HDNodeWallet', async () => {
+    test('accepts a signer that only implements signTypedData', async () => {
+      const { chainId, authenticatorAddr, deadline, keyVaultAddr, actionHash } = defaultParams;
+      const signature = '0x' + 'ab'.repeat(65);
+      const signer = {
+        signTypedData: async () => signature
+      };
+
+      const authProof = await createAuthProofWalletSignature({
+        signer,
+        chainId,
+        authenticatorAddr,
+        deadline,
+        keyVaultAddr,
+        actionHash
+      });
+      const decoded = defaultAbiCoder.decode(['uint256', 'bytes'], authProof);
+      expect(decoded[0]).toBe(BigInt(deadline));
+      expect(decoded[1]).toBe(signature);
+    });
+
+    test('should throw an error if the signer does not provide signTypedData', async () => {
       const { chainId, authenticatorAddr, deadline, keyVaultAddr, actionHash } = defaultParams;
 
       await expect(
@@ -90,7 +110,7 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr,
           actionHash
         })
-      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must provide signTypedData');
       await expect(
         createAuthProofWalletSignature({
           signer: undefined,
@@ -100,7 +120,7 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr,
           actionHash
         })
-      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must provide signTypedData');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ (123),
@@ -110,7 +130,7 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr,
           actionHash
         })
-      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must provide signTypedData');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ ('invalid'),
@@ -120,7 +140,7 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr,
           actionHash
         })
-      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must provide signTypedData');
       await expect(
         createAuthProofWalletSignature({
           signer: /** @type {any} */ (randomAddress()),
@@ -130,7 +150,7 @@ describe('Wallet Crypto Utilities', () => {
           keyVaultAddr,
           actionHash
         })
-      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must provide signTypedData');
     });
 
     test('should throw an error if the chainId is missing or not a valid chain id', async () => {
@@ -626,7 +646,7 @@ describe('Wallet Crypto Utilities', () => {
       ).rejects.toThrow('deadline must be in the future');
     });
 
-    test('should throw if signer is not a Wallet or HDNodeWallet', async () => {
+    test('should throw if signer does not provide signTypedData', async () => {
       const actionHash = mockActionHash(createDefaultAuthProofParams());
 
       await expect(
@@ -640,7 +660,7 @@ describe('Wallet Crypto Utilities', () => {
           chainId: '23295',
           actionHash
         })
-      ).rejects.toThrow('signer is required and must be a Wallet or HDNodeWallet');
+      ).rejects.toThrow('signer is required and must provide signTypedData');
     });
 
     test('should throw if passwordHash is invalid', async () => {

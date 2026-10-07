@@ -6,6 +6,9 @@
  * named properties as well as via {@link AuthenticatorClient#getClient}. Add a new authenticator
  * by importing its client and assigning it on a new property in the constructor.
  *
+ * Advanced. Authenticator administration goes through {@link Monstera} (`configurePassword`, `updatePassword`, and the matching methods for other authenticators).
+ * Use `sdk.auth` when you need the authenticator contract client directly.
+ *
  * @module clients/auth/AuthenticatorClient
  */
 

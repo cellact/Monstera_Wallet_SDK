@@ -13,7 +13,7 @@ The Monstera SDK works in browsers via ESM or IIFE builds.
   
   const sdk = Monstera.connect({
     mainnet: false,
-    signer: 'your_private_key',  // or ethers Signer instance
+    signer: 'your_private_key',  // gas payer: private key or a signer with signMessage. User wallet signatures use authProof.signer (signTypedData).
     debug: true                 // optional: enable debug logs; or logLevel: 'info' | 'warn' | 'error'
   });
 </script>
@@ -99,11 +99,10 @@ Logs never include secrets (mnemonics, passwords, auth proofs). See [Node.js con
 
 ## Entry Points
 
-The SDK provides multiple entry points via `package.json` exports:
+`package.json` exports one JavaScript entry and one browser script:
 
-- **Default**: `import { Monstera } from '@monstera_protocol/sdk'` → Uses ESM build (`dist/monstera.mjs`) for browsers, or source (`src/index.js`) for Node.js
-- **ESM Build**: `import { Monstera } from '@monstera_protocol/sdk/mjs'` → Direct access to `dist/monstera.mjs`
-- **IIFE Global**: Available at `dist/monstera.global.js` (for script tags) or via `@monstera_protocol/sdk/global` in package exports
+- **Node and bundlers**: `import { Monstera } from '@monstera_protocol/sdk'` loads `dist/monstera.mjs`
+- **IIFE / script tag**: `dist/monstera.global.js`, also available as `@monstera_protocol/sdk/global`
 
 ## Examples
 

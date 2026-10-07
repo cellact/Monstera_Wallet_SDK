@@ -10,6 +10,9 @@
  * API on the main class ({@code keyVaultAddr}); use this client when you need the WalletLogic contract surface with
  * {@code walletAddr} (proxy address), e.g. {@link WalletLogicClient#initialize} after deployment.
  *
+ * Advanced. Application signing goes through {@link Monstera} (`signMessage`, `sign`, `signTransaction`).
+ * Use this client when you already hold proof bytes and you are calling the WalletLogic proxy.
+ *
  * @module clients/logic/WalletLogicClient
  */
 

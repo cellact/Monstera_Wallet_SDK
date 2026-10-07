@@ -4,7 +4,7 @@
  * @module internal/auth/specs/walletSignature
  */
 
-import { requireWalletOrHdNode } from '../../validation/assert.js';
+import { requireTypedDataSigner } from '../../validation/assert.js';
 import { createWalletSigAuthConfig } from '../config/bytes.js';
 import { createActionBoundEncoder } from '../proof/common.js';
 import { createAuthProofWalletSignature } from '../proof/builders/walletSignature.js';
@@ -22,7 +22,7 @@ export const walletSignatureAuthenticator = createAuthenticatorSpec({
 
   applySessionInput: requirePartialField(
     'signer',
-    'authProof.signer is required for WalletSignatureAuthenticator; pass a whitelisted Wallet or HDNodeWallet'
+    'authProof.signer is required for WalletSignatureAuthenticator; pass a whitelisted signer with signTypedData'
   ),
 
   collectKeys: ['signer', 'deadline'],
@@ -30,7 +30,7 @@ export const walletSignatureAuthenticator = createAuthenticatorSpec({
     signer: true,
     deadline: true
   },
-  validate: (options) => requireWalletOrHdNode(options.signer, 'signer'),
+  validate: (options) => requireTypedDataSigner(options.signer, 'signer'),
 
   proofEncoder: createActionBoundEncoder({
     id: 'walletSignatureAuth',

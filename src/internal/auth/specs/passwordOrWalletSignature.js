@@ -9,8 +9,8 @@ import {
   requireAddress,
   requireArray,
   requireBytes32,
-  requireUtf8Bytes,
-  requireWalletOrHdNode
+  requireTypedDataSigner,
+  requireUtf8Bytes
 } from '../../validation/assert.js';
 import { createPasswordOrWalletSigAuthConfig } from '../config/bytes.js';
 import { createActionBoundEncoder, pickAuthProofPartial } from '../proof/common.js';
@@ -107,7 +107,7 @@ export const passwordOrWalletSignatureAuthenticator = createAuthenticatorSpec({
   validate: (options) => {
     const method = _resolveMethod(options);
     if (method === 'walletSignature') {
-      requireWalletOrHdNode(options.signer, 'signer');
+      requireTypedDataSigner(options.signer, 'signer');
     } else {
       requireUtf8Bytes(options.password, 'password');
     }

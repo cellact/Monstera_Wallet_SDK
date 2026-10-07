@@ -49,7 +49,9 @@ Responsibilities are split so that no single contract can compromise a wallet on
 npm install @monstera_protocol/sdk
 ```
 
-The SDK ships with a dependency on **ethers** v5/v6 for contracts and signing. You should also declare `ethers` in your app (`npm install ethers`) so your bundler resolves a single copy; the package lists ethers as a **peer dependency** for that reason.
+Install **ethers** v6 in your app as well (`npm install ethers`). The SDK lists it as a peer dependency so your bundler resolves a single copy. The SDK uses the ethers v6 API.
+
+The calls an app should use are the [App API](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/docs/api.md#app-api). `sdk.factory`, `sdk.logic`, `sdk.keyVault`, and `sdk.auth` stay available for contract-level work.
 
 **Note:** This SDK uses ES Modules (ESM). Requires Node.js 14+ or a bundler. **web3.js is not used** by this package; use ethers for all Ethereum interactions.
 
@@ -93,27 +95,29 @@ console.log('Wallet created:', wallet.wallet);
 console.log('Save this mnemonic securely:', wallet.mnemonic);
 ```
 
-That's it! Contract addresses use network presets; override with `addresses` or `rpcUrl` if needed. Use `monstera.setLogLevel('debug')` at runtime to change log verbosity.
+That's it! Built-in contract addresses are `monstera.addresses`, taken from the network presets. Pass `addresses` on `connect` to replace one key when a deployment differs; every key you omit stays on the preset. Use `monstera.setLogLevel('debug')` at runtime to change log verbosity.
 
 **Upgrading from 1.x?** See the [2.0.0 changelog](CHANGELOG.md#200---2026-06-16) for action-bound `authProof` and network preset changes. Unreleased auth-pipeline improvements are listed under [Unreleased](CHANGELOG.md#unreleased) in the changelog.
 
-**Need more details?** See [Full wallet creation guide](docs/node.md#basic-usage).
+**Need more details?** See the [full wallet creation guide](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/docs/node.md#basic-usage).
 
 ## Documentation
 
-- **[Node.js Usage](docs/node.md)** - Installation, configuration, examples, and running tests
-- **[Browser Usage](docs/browser.md)** - ESM and IIFE builds for browsers
-- **[API Reference](docs/api.md)** - Complete API documentation
-- **[Architecture](docs/architecture.md)** - Project structure and development guide
-- **[Contributing](CONTRIBUTING.md)** - Branches, tests, and pull-request expectations
+Guides stay in the repository. They are not copied into the npm package.
+
+- **[Node.js Usage](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/docs/node.md)** - Installation, configuration, examples, and running tests
+- **[Browser Usage](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/docs/browser.md)** - ESM and IIFE builds for browsers
+- **[API Reference](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/docs/api.md)** - Complete API documentation
+- **[Architecture](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/docs/architecture.md)** - Project structure and development guide
+- **[Contributing](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/CONTRIBUTING.md)** - Branches, tests, and pull-request expectations
 
 ## Examples
 
-Check out the **[examples/](examples/)** directory — organized by task with flows, recipes, and reference tours:
+Examples stay in the repository: **[examples/](https://github.com/cellact/Monstera_Wallet_SDK/tree/main/examples)**.
 
-- **[examples/README.md](examples/README.md)** — Start here: “I want to…” index
-- **Node.js**: [examples/nodejs/](examples/nodejs/) — `getting-started/`, `wallet/`, `signing/`, `authentication/`, and more
-- **Browser**: [examples/browser/](examples/browser/) — ESM and IIFE usage
+- **[examples/README.md](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/examples/README.md)** — Start here: “I want to…” index
+- **Node.js**: [examples/nodejs/](https://github.com/cellact/Monstera_Wallet_SDK/tree/main/examples/nodejs) — `getting-started/`, `wallet/`, `signing/`, `authentication/`, and more
+- **Browser**: [examples/browser/](https://github.com/cellact/Monstera_Wallet_SDK/tree/main/examples/browser) — ESM and IIFE usage
 
 ## Security
 
@@ -131,7 +135,7 @@ GPL-3.0 - See [LICENSE](LICENSE) for details.
 
 - 🐛 [Report Issues](https://github.com/cellact/Monstera_Wallet_SDK/issues)
 - 📖 [Changelog](CHANGELOG.md)
-- 🤝 [Contributing](CONTRIBUTING.md)
+- 🤝 [Contributing](https://github.com/cellact/Monstera_Wallet_SDK/blob/main/CONTRIBUTING.md)
 
 ## Acknowledgments
 

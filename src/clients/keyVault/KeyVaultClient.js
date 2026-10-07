@@ -6,8 +6,11 @@
  * inside an authenticated context. Most {@link Monstera} read/write methods funnel through this client.
  *
  * @remarks
- * This is the preferred contract surface from {@link Monstera}: signing and account helpers take {@code keyVaultAddr}.
- * WalletLogic exposes parallel proxy methods that forward to KeyVault; using KeyVault directly avoids an extra hop.
+ * Among the contract clients, this is the one the facade uses for signing and accounts (`keyVaultAddr`).
+ * WalletLogic exposes parallel proxy methods that forward here. Application code should call the facade, not this client.
+ *
+ * Advanced. Application signing and account reads go through {@link Monstera}.
+ * Use this client for a KeyVault method that is not on the app API.
  *
  * @module clients/keyVault/KeyVaultClient
  */

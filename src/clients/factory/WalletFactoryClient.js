@@ -5,6 +5,9 @@
  * (beacon upgrade, admin transfer). All creation methods accept already-encoded {@link EncodedAuthConfigOptions}
  * — the {@link Monstera} facade uses {@link AuthConfigBuilder} to encode structured input before delegating here.
  *
+ * Advanced. Application code should call {@link Monstera} (`createWallet`, `hashUsername`, `walletOfUsername`).
+ * Use this client when you already hold encoded config bytes or you need a factory method that is not on the app API.
+ *
  * @module clients/factory/WalletFactoryClient
  */
 

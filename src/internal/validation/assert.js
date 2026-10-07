@@ -21,7 +21,7 @@ export {
   requireNonNegativeInteger,
   requirePositiveInteger,
   requireArray,
-  requireWalletOrHdNode,
+  requireTypedDataSigner,
   requireStringOrNumber,
   requireChainId,
   requireBigInt,

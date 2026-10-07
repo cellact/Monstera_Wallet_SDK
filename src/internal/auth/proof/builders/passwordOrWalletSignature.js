@@ -6,7 +6,7 @@
 
 import { defaultAbiCoder } from '../../../../adapters/ethers/encoding.js';
 import {
-  requireWalletOrHdNode,
+  requireTypedDataSigner,
   requireAddress,
   requireBytes32,
   requireNumber,
@@ -83,7 +83,7 @@ export async function createLinkWalletSignature(options = {}) {
     chainId,
   } = options;
 
-  requireWalletOrHdNode(linkSigner, 'linkSigner');
+  requireTypedDataSigner(linkSigner, 'linkSigner');
   requireAddress(keyVaultAddr, 'keyVaultAddr');
   requireAddress(newAddress, 'newAddress');
   requireBytes32(nonce, 'nonce');

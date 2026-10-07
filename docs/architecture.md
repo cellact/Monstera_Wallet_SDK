@@ -21,6 +21,8 @@ The SDK is organized into modular components:
 
 ### API Design
 
+- **App API**: The calls an application should use are listed in [`docs/api.md`](api.md#app-api) (`Monstera.connect`, create, username resolution, account address, sign, `authProof`, authenticator admin). Other facade methods still run.
+- **Advanced clients**: `sdk.factory`, `sdk.logic`, `sdk.keyVault`, and `sdk.auth` are for contract-level work. A new contract method is added on the client first and joins the app API only when an integrator must call it without the client.
 - **Read operations**: Use plain provider (no Sapphire wrapper needed)
 - **Write operations**: Automatically use Sapphire-wrapped signer for encrypted transactions
 - **Network switching**: Single config parameter (`mainnet: true` for mainnet, `mainnet: false` for testnet)
@@ -167,7 +169,7 @@ This generates:
 ## Requirements
 
 - Node.js >= 14.0.0 (ESM support required)
-- ethers ^6.0.0 or ^5.0.0 (peer dependency; required for typical usage)
+- ethers ^6.0.0 (peer dependency; required for typical usage)
 - @oasisprotocol/sapphire-ethers-v6 ^6.0.1 (for encrypted writes)
 
 **Note:** This SDK uses ES Modules (ESM). Ensure your project is configured for ESM or use a bundler that supports ESM.

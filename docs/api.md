@@ -2,6 +2,26 @@
 
 Complete API documentation for the Monstera SDK.
 
+## App API
+
+These calls are the supported way to build an app. Every other method on `Monstera` still runs. `sdk.factory`, `sdk.logic`, `sdk.keyVault`, and `sdk.auth` are advanced: use them for contract-level work, not for the path below.
+
+New contract methods land on the matching client first. They join this list only when an integrator must call them without using that client.
+
+| Task | Call |
+|------|------|
+| Connect | `Monstera.connect` |
+| Create a wallet | `createWallet`, `createWalletForUsername` |
+| Resolve a username | `hashUsername`, `walletOfUsername` |
+| Account address | `getKeyVaultAddr`, `getAccountAddr` |
+| Sign | `signMessage`, `sign`, `signTransaction`, `signAuthorization` |
+| Auth proof | Pass `authProof` on those calls, or omit it when `connect` was given `credentials` for a password or password-minute-signature vault. `authProof.signer` is any object with `signTypedData` |
+| Authenticator admin | Facade methods such as `configurePassword`, `isPasswordConfigured`, `isPasswordValid`, and `updatePassword`, and the matching methods for the other built-in authenticators |
+
+The other `createWallet*` methods, the low-level `createAuthProof*` helpers, and the catalog under [Advanced surface](#advanced-surface) stay callable.
+
+`Monstera.connect({ signer })` is the gas payer. That value may be a private key. `authProof.signer` is the whitelisted account that signs the EIP-712 proof. It must provide `signTypedData`. A browser wallet qualifies. A private-key string does not.
+
 ## Monstera
 
 Main SDK class for wallet operations.
@@ -23,7 +43,7 @@ Connect to Monstera. Pass optional `signer` and/or `credentials` as needed.
 - `credentials` (optional): `{ username, password }` for username-registered wallets
 - `provider` (optional): You may pass an ethers `Provider` for reads; otherwise the SDK uses the default RPC for the selected network.
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
-- `addresses` (optional): Object with contract addresses to override defaults (`factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`)
+- `addresses` (optional): Replace one or more preset addresses. Omitted keys stay on `sdk.addresses`. Keys: `factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`, `apiKeySessionAuth`, `multiAuthenticator`, `passwordOrWalletSigAuth`
 - `logLevel` (optional): `'error'` | `'warn'` | `'info'` | `'debug'` (default: `'error'`)
 - `debug` (optional): If `true`, sets log level to `'debug'`
 - `checkVersion` (optional): If **`true`**, runs the npm registry version check once on connect (Node.js). If omitted or `false`, the check is skipped.
@@ -233,9 +253,11 @@ const usernameHash = await sdk.hashUsername({ username: 'alice' });
 const walletAddr = await sdk.walletOfUsername({ usernameHash });
 ```
 
-## SDK Clients
+## Advanced surface
 
-The SDK provides access to domain-specific clients:
+Everything in this section still works. It is the full facade catalog plus the domain clients. Prefer the [App API](#app-api) for application code.
+
+`sdk.factory`, `sdk.logic`, `sdk.keyVault`, and `sdk.auth` talk to the contracts directly. The same writes are also on `Monstera` (for example `sdk.createWallet` and `sdk.factory.createWallet`). Use the client when you already hold encoded bytes or you need a contract method that is not in the app API.
 
 ```javascript
 // Factory client - wallet creation and factory administration

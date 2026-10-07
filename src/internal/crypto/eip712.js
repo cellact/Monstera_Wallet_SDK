@@ -8,11 +8,11 @@
  */
 
 /**
- * Sign EIP-712 typed data with an ethers {@code Wallet} / {@code HDNodeWallet}.
+ * Sign EIP-712 typed data with any signer that provides {@code signTypedData}.
  *
  * @public
  * @param {Object} params
- * @param {EthersWallet | EthersHDNodeWallet} params.signer
+ * @param {TypedDataSigner} params.signer
  * @param {Record<string, unknown>} params.domain - EIP-712 domain
  * @param {Record<string, Array<{ name: string, type: string }>>} params.types - Primary type map
  * @param {Record<string, unknown>} params.value - Message value

@@ -10,7 +10,7 @@ npm install @monstera_protocol/sdk
 
 ## Peer Dependencies
 
-Monstera expects **`ethers`** (v5 or v6) at runtime (`peerDependencies` in `package.json`).
+Monstera expects **ethers** v6 at runtime (`peerDependencies` in `package.json`).
 
 ```bash
 npm install ethers
@@ -132,8 +132,8 @@ The SDK includes presets for both networks:
 
 ### Address Overrides
 
-Default contract addresses come from **`config/networks.js`** for the selected network.
-You can override default contract addresses when creating the SDK:
+Default contract addresses are `sdk.addresses`, from **`config/networks.js`** for the selected network.
+Pass `addresses` to replace a key when a deployment differs. Keys you omit stay on the preset.
 
 ```javascript
 const sdk = Monstera.connect({
@@ -144,7 +144,10 @@ const sdk = Monstera.connect({
     passwordAuth: '0x...',          // Override password authenticator
     walletSignatureAuth: '0x...',   // Override wallet signature authenticator
     dualFactorAuth: '0x...',        // Override dual factor authenticator
-    passwordMinuteSignatureAuth: '0x...' // Override password-minute-signature authenticator
+    passwordMinuteSignatureAuth: '0x...', // Override password-minute-signature authenticator
+    apiKeySessionAuth: '0x...',     // Override API-key session authenticator
+    multiAuthenticator: '0x...',    // Override multi authenticator
+    passwordOrWalletSigAuth: '0x...' // Override password-or-wallet authenticator
   }
 });
 ```
@@ -176,6 +179,9 @@ const sdkWithOverrides = Monstera.connect({
     walletSignatureAuth: '0x...',
     dualFactorAuth: '0x...',
     passwordMinuteSignatureAuth: '0x...',
+    apiKeySessionAuth: '0x...',
+    multiAuthenticator: '0x...',
+    passwordOrWalletSigAuth: '0x...',
   },
   signer: 'your_private_key' // Private key string or ethers Signer instance
 });
