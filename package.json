@@ -29,6 +29,7 @@
     "build:watch": "rollup -c --watch",
     "prepublishOnly": "npm run build",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:bundle": "node tests/package/installEntry.test.mjs",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
     "lint": "eslint src/**/*.js",
     "test:types": "tsc -p tsconfig.declarations.json && node scripts/attachFacadeTypes.js && tsc -p tsconfig.types.json",

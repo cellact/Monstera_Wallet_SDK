@@ -28,17 +28,12 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
   /**
    * Initialize a freshly deployed KeyVault contract by wiring its storage, authenticator, and access token.
    *
-   * Delegates to {@link KeyVaultClient#initialize}.
-   *
    * @public
    * @async
    * @param {InitializeOptions} options - {@code keyVaultAddr}, {@code storageAddr}, {@code authenticatorAddr}, {@code accessToken}, {@code authConfig},
    * @returns {Promise<BaseTransactionResult>} Standard write result ({@code success}, {@code transactionHash}, {@code blockNumber}, {@code gasUsed})
    * @throws {ValidationError} If any address is invalid, {@code authConfig} is missing, or {@code accessToken} is not a 32-byte hex string
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC call to broadcast the transaction or fetch its receipt fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {WalletError} For other unrecognised failures
    *
    * @remarks Most callers should use a {@code createWallet*} factory method instead, which wires the KeyVault for you.
    */
@@ -49,17 +44,12 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
   /**
    * Initialize a KeyVault with an explicit policy registry (factory-managed policy).
    *
-   * Delegates to {@link KeyVaultClient#initializeExplicit}.
-   *
    * @public
    * @async
    * @param {InitializeExplicitOptions} options - Same as {@link Monstera#initialize} plus required {@code policyRegistry},
    * @returns {Promise<BaseTransactionResult>} Standard write result
    * @throws {ValidationError} If any address is invalid, {@code authConfig} is missing, or {@code accessToken} is not a 32-byte hex string
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC call to broadcast the transaction or fetch its receipt fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {WalletError} For other unrecognised failures
    */
   async initializeExplicit(options = {}) {
     return this.keyVault.initializeExplicit(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -75,9 +65,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultStorageAddr(options = {}) {
     return this.keyVault.getStorageAddr(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -91,9 +78,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<Address>} Authenticator address
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getAuthenticatorAddr(options = {}) {
     return this.keyVault.getAuthenticatorAddr(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -107,9 +91,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<Address>} Implementation address
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultImplAddr(options = {}) {
     return this.keyVault.getKeyVaultImplAddr(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -123,9 +104,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<boolean>} {@code true} if the KeyVault is initialized
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isInitialized(options = {}) {
     return this.keyVault.isInitialized(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -139,9 +117,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {ComputeActionHashOptions} options - {@code keyVaultAddr}, 4-byte {@code selector}, and {@code paramsHash},
    * @returns {Promise<Bytes32>} Action hash bound into auth proofs
    * @throws {ValidationError} If {@code keyVaultAddr}, {@code selector}, or {@code paramsHash} are invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async computeActionHash(options = {}) {
     return this.keyVault.computeActionHash(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -150,16 +125,11 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
   /**
    * Compute the action hash for a {@code MultiAuthenticator} management call.
    *
-   * Delegates to {@link MultiAuthenticatorClient#computeActionHash}.
-   *
    * @public
    * @async
    * @param {ComputeMultiAuthenticatorActionHashOptions} options - {@code keyVaultAddr}, 4-byte {@code selector}, and {@code paramsHash},
    * @returns {Promise<Bytes32>} Action hash bound into routed child auth proofs
    * @throws {ValidationError} If {@code keyVaultAddr}, {@code selector}, or {@code paramsHash} are invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async computeMultiAuthenticatorActionHash(options = {}) {
     return this.auth.multi.computeActionHash(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -173,9 +143,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {ComputeCustomImplementationAckHashOptions} options - {@code keyVaultAddr} and {@code newImplementation},
    * @returns {Promise<Bytes32>},
    * @throws {ValidationError} If addresses are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async computeCustomImplementationAckHash(options = {}) {
     return this.keyVault.computeCustomImplementationAckHash(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -189,9 +156,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {ComputeCustomAuthenticatorAckHashOptions} options - {@code keyVaultAddr}, {@code newAuthenticator}, {@code configHash},
    * @returns {Promise<Bytes32>},
    * @throws {ValidationError} If addresses or {@code configHash} are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async computeCustomAuthenticatorAckHash(options = {}) {
     return this.keyVault.computeCustomAuthenticatorAckHash(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -205,9 +169,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<Address>},
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getPolicyRegistry(options = {}) {
     return this.keyVault.getPolicyRegistry(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -221,9 +182,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {IsImplementationApprovedOptions} options - {@code keyVaultAddr} and {@code implementation},
    * @returns {Promise<boolean>},
    * @throws {ValidationError} If addresses are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isImplementationApproved(options = {}) {
     return this.keyVault.isImplementationApproved(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -237,9 +195,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {IsAuthenticatorApprovedOptions} options - {@code keyVaultAddr} and {@code authenticator},
    * @returns {Promise<boolean>},
    * @throws {ValidationError} If addresses are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isAuthenticatorApproved(options = {}) {
     return this.keyVault.isAuthenticatorApproved(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -253,9 +208,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAddrIndexOptions} options - {@code keyVaultAddr} and {@code index},
    * @returns {Promise<Address>} Account address
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code index} is not a non-negative integer
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddr(options = {}) {
     const resolved = await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options);
@@ -270,9 +222,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAccountSliceOptions} options - {@code keyVaultAddr}, {@code fromIndex}, {@code count},
    * @returns {Promise<Address[]>} Array of account addresses (length {@code count})
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid, or {@code fromIndex}/{@code count} is not a non-negative integer
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getAccountAddresses(options = {}) {
     return this.keyVault.getAccountAddresses(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -286,9 +235,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<Bytes32[]>} Imported key IDs
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getImportedKeyIds(options = {}) {
     return this.keyVault.getImportedKeyIds(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -302,9 +248,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId},
    * @returns {Promise<KeyMetadataResult>} {@code curve}, {@code chain}, {@code active}, {@code labelHash},
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts (e.g. unknown {@code keyId})
-   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyMetadata(options = {}) {
     return this.keyVault.getKeyMetadata(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -318,9 +261,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId},
    * @returns {Promise<boolean>} {@code true} if the key exists
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async keyExists(options = {}) {
     return this.keyVault.keyExists(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -334,9 +274,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultImportedKeyOptions} options - {@code keyVaultAddr} and {@code keyId},
    * @returns {Promise<Bytes>} Address bytes (curve/chain-dependent encoding)
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code keyId} is not a 32-byte hex string
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getImportedKeyAddr(options = {}) {
     return this.keyVault.getImportedKeyAddr(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -350,9 +287,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @param {KeyVaultAddrIndexOptions} options - {@code keyVaultAddr} and {@code index},
    * @returns {Promise<Bytes>} Solana public key bytes
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code index} is not a non-negative integer
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts (e.g. Solana base keys not configured)
-   * @throws {WalletError} For other unrecognised failures
    */
   async getSolanaAddr(options = {}) {
     const resolved = await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options);
@@ -368,11 +302,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @returns {Promise<UpdateKeyVaultImplAddrResult>} Standard write result with parsed {@code newImplAddr},
    * @throws {ValidationError} If addresses or {@code authProof} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
-   * @throws {EventNotFoundError} If the {@code KeyVaultImplUpdated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddr(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -391,11 +320,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @returns {Promise<UpdateKeyVaultImplAddrCustomResult>},
    * @throws {ValidationError} If addresses, {@code authProof}, or {@code customAckHash} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
-   * @throws {EventNotFoundError} If the {@code CustomImplementationUpgraded} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async updateKeyVaultImplAddrCustom(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -418,11 +342,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @returns {Promise<UpdateAuthenticatorAddrResult>} Standard write result with parsed {@code newAuthenticator},
    * @throws {ValidationError} If addresses or {@code authProof} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
-   * @throws {EventNotFoundError} If the {@code AuthenticatorUpdated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddr(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -445,11 +364,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @returns {Promise<UpdateAuthenticatorAddrCustomResult>},
    * @throws {ValidationError} If addresses, {@code authProof}, {@code newAuthConfig}, or {@code customAckHash} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
-   * @throws {EventNotFoundError} If the {@code CustomAuthenticatorChanged} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async updateAuthenticatorAddrCustom(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -473,11 +387,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @returns {Promise<ImportKeyResult>} Standard write result with parsed {@code keyId},
    * @throws {ValidationError} If addresses, {@code authProof}, {@code privateKey}, or metadata fields are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or duplicate key)
-   * @throws {EventNotFoundError} If the {@code KeyImported} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async importKey(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -506,11 +415,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @returns {Promise<DeactivateKeyResult>} Standard write result with parsed {@code keyId},
    * @throws {ValidationError} If addresses, {@code authProof}, or {@code keyId} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or unknown {@code keyId})
-   * @throws {EventNotFoundError} If the {@code KeyDeactivated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async deactivateKey(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -529,11 +433,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @returns {Promise<ActivateKeyResult>} Standard write result with parsed {@code keyId},
    * @throws {ValidationError} If addresses, {@code authProof}, or {@code keyId} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or unknown {@code keyId})
-   * @throws {EventNotFoundError} If the {@code KeyActivated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async activateKey(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -554,9 +453,6 @@ export const monsteraKeyVaultMethods = defineDomainMethods({
    * @returns {Promise<BaseTransactionResult>} Standard write result
    * @throws {ValidationError} If addresses, {@code authProof}, {@code chain}, or seed material are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or already provisioned)
-   * @throws {WalletError} For other unrecognised failures
    */
   async setChainBaseKeys(options = {}) {
     return invokeVaultAuthenticated(this, {

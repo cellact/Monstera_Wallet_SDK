@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.5.0] - 2026-10-08
+
 ### Changed
 
 - **`dotenv`**: Moved to `devDependencies`. Examples and integration tests still load it; apps that install the SDK no longer get it.
@@ -17,14 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Quickstart**: The README and `npx monstera` show the same first session: testnet connect, `createWalletForUsername` with the password authenticator, and one `signMessage`. The gas `signer` and the user's `credentials` are separate inputs. `signMessage` omits `authProof` because the credentials supply the password.
 - **Types**: `npm run build` writes `dist/types` from the existing JSDoc. `package.json` `types` points at `dist/types/index.d.ts`. There is no hand-written declaration to maintain.
 - **Internal recipes**: Vault, authenticator, and configure helpers are functions the public methods import. The session, encoders, and pipelines are stored in a `WeakMap`, not on the instance. Neither shows up in autocomplete. Public method behavior is unchanged.
+- **Source in the package**: `files` includes `src` so declaration maps can open the original `.js`. The runtime entry is still `dist/monstera.mjs`. `exports` does not allow a `src` import path.
+- **API page**: [`docs/api.md`](docs/api.md#authenticators) documents password, password-minute-signature, wallet signature, dual factor, password-or-wallet, API-key session, and multi. `selector` and `paramsHash` are in the advanced proof section. `npx monstera` prints the API page URL.
+- **Facade JSDoc**: Public methods keep a short description, parameters, return value, and the errors a caller branches on (`ValidationError`, `CredentialsRequiredError`, `WriteRequiresSignerError`). RPC and event errors stay on the client and in [`docs/api.md`](docs/api.md#error-handling).
 
-### Added
+### Security
 
-- **Monstera website**: README will link the public site ([Monstera](https://cellact.github.io/monstera-main-website/), source [cellact/monstera-main-website](https://github.com/cellact/monstera-main-website)).
-
-### Deprecated
-
-- **Non-botanical SDK surface names**: Public names will shift to the Monstera site metaphor. Replacement vocabulary: `leaf` = SDK instance (`const leaf = Monstera.connect(...)`); `root` = wallet/KeyVault foundation; `roots` = low-level domain clients (`leaf.roots.wallet`, `leaf.roots.auth`); `stem` = connect session; `branch` = scoped capability / child app on the same wallet; `node` = signer, authenticator, or endpoint; `canopy` = high-level signing surface; `vine` = relayer / transport / cross-app link; `sprout` = wallet bootstrap (alternative to `createWallet`); `bud` / `bloom` = pending vs activated; `grove` / `garden` = collections and project environment. Do not use `seed` except for cryptographic seed material; do not use `sap` or `petiole` as public API names. Current APIs remain until the rename lands.
+- **Private keys in errors**: `createWriteSigner` throws `ValidationError` for an invalid private key. The message is fixed and the key is redacted in `context`. A rejected `authProof.signer` is recorded as its type.
 
 ## [2.4.2] - 2026-10-06
 

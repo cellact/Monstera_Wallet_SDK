@@ -37,17 +37,13 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Build the EIP-712 {@code authProof} for {@code WalletSignatureAuthenticator}.
    *
-   * Signs {@code WalletAuth(wallet, actionHash, deadline)} typed data with the supplied {@code signer} and ABI-encodes
-   * {@code (uint256 deadline, bytes signature)}. {@code authenticatorAddr} and {@code deadline},
-   * default from the SDK config (deadline = now + 1 hour). Sapphire {@code chainId} always comes from SDK config.
+   * {@code deadline} defaults to one hour from now. Chain id comes from the SDK config.
    *
    * @public
    * @async
    * @param {CreateAuthProofWalletSignatureOptions} options - Inputs for the proof ({@code action} or {@code actionHash} required)
    * @returns {Promise<EncodedAuthProofWalletSignature>} ABI-encoded auth proof bytes
    * @throws {ValidationError} If {@code signer} does not provide {@code signTypedData}, addresses or {@code deadline} are invalid, or neither {@code action} nor {@code actionHash} is supplied
-   * @throws {NetworkError} If the signer's transport fails during typed-data signing
-   * @throws {WalletError} For other unrecognised signing failures
    */
   async createAuthProofWalletSignature(options = {}) {
     const { authProof } = await encodeAuthenticatorManaged(this, { flowId: 'walletSignature', options });
@@ -57,17 +53,13 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Build the {@code authProof} for {@code PasswordMinuteSignatureAuthenticator}.
    *
-   * Reads the latest block from the SDK read provider to derive the current minute bucket,
-   * derives an ephemeral signer from {@code keccak256(passwordHash || minuteBucket)},
-   * signs the EIP-191 digest of {@code keccak256(wallet, authenticator, chainId, minuteBucket, actionHash)},
-   * and ABI-encodes {@code (bytes signature)}.
+   * The proof is bound to the current minute. The result includes that minute and the derived signer address.
    *
    * @public
    * @async
    * @param {CreateAuthProofMinuteSignatureOptions} options - Inputs ({@code keyVaultAddr}, {@code passwordHash}, {@code action} or {@code actionHash}, optional {@code authenticatorAddr})
    * @returns {Promise<CreateAuthProofMinuteSignatureResult>} Encoded auth proof, minute bucket, and derived signer address
    * @throws {ValidationError} If {@code keyVaultAddr}, {@code authenticatorAddr} are missing/invalid, {@code passwordHash} is not a 32-byte hex string, or neither {@code action} nor {@code actionHash} is supplied
-   * @throws {NetworkError} If the read provider fails to return the latest block
    */
   async createAuthProofMinuteSignature(options = {}) {
     const { authProof, minuteBucket, derivedAddress } = await encodeAuthenticatorManaged(this, {
@@ -93,10 +85,6 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Build the routed {@code authProof} for {@code MultiAuthenticator}.
    *
-   * ABI-encodes {@code (address child, bytes childProof)} by delegating proof construction to the
-   * selected child authenticator ({@code childFlowId} or {@code child}). Session password and API
-   * key material are merged when connect credentials are active.
-   *
    * @public
    * @async
    * @param {CreateAuthProofMultiOptions} options
@@ -114,8 +102,7 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Build the unified {@code authProof} for {@code PasswordOrWalletSignatureAuthenticator}.
    *
-   * ABI-encodes {@code (uint8 method, bytes methodProof)} using password (session default) or a
-   * whitelisted wallet signature. Method is inferred from {@code signer} vs {@code password} when omitted.
+   * Uses the session password, or a whitelisted {@code signer}. Set {@code method} when both are present.
    *
    * @public
    * @async
@@ -162,9 +149,6 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Configure {@code PasswordAuthenticator} for a wallet by storing the password hash on-chain.
    *
-   * The {@code passwordHash} is forwarded directly as the encoded {@code authConfig} (bytes32).
-   * Delegates to {@link PasswordAuthenticatorClient#configure}.
-   *
    * @public
    * @async
    * @param {ConfigurePasswordOptions} options - Optional {@code keyVaultAddr} (resolved from credentials when omitted) and 32-byte {@code passwordHash},
@@ -172,11 +156,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code passwordHash} is not a 32-byte hex string
    * @throws {CredentialsRequiredError} If neither credentials nor {@code keyVaultAddr} is available
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code PasswordConfigured} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async configurePassword(options = {}) {
     return configureAuthenticator(this, {
@@ -191,19 +170,12 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Configure {@code WalletSignatureAuthenticator} for a wallet by ABI-encoding {@code initialWhitelist}.
    *
-   * Delegates to {@link WalletSignatureAuthenticatorClient#configure}.
-   *
    * @public
    * @async
    * @param {ConfigureWalletSignatureOptions} options - Optional {@code keyVaultAddr} and {@code initialWhitelist} (at least one address)
    * @returns {Promise<ConfigureWalletSignatureResult>} Standard write result with parsed {@code wallet} and {@code initialWhitelist},
    * @throws {ValidationError} If {@code keyVaultAddr} or any whitelist address is invalid, or {@code initialWhitelist} is empty
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code WalletConfigured} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async configureWalletSignature(options = {}) {
     return configureAuthenticator(this, {
@@ -218,19 +190,12 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Configure {@code DualFactorAuthenticator} for a wallet by ABI-encoding {@code (passwordHash, guardianAddr)}.
    *
-   * Delegates to {@link DualFactorAuthenticatorClient#configure}.
-   *
    * @public
    * @async
    * @param {ConfigureDualFactorOptions} options - Optional {@code keyVaultAddr}, 32-byte {@code passwordHash}, guardian {@code guardianAddr},
    * @returns {Promise<ConfigurePasswordDualFactorResult>} Standard write result with parsed {@code wallet} and {@code guardian},
    * @throws {ValidationError} If {@code keyVaultAddr}/{@code guardianAddr} are invalid or {@code passwordHash} is not a 32-byte hex string
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code WalletConfigured} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async configureDualFactor(options = {}) {
     return configureAuthenticator(this, {
@@ -248,8 +213,6 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Configure {@code PasswordMinuteSignatureAuthenticator} for a wallet by storing the password hash on-chain.
    *
-   * Delegates to {@link PasswordMinuteSignatureAuthenticatorClient#configure}.
-   *
    * @public
    * @async
    * @param {ConfigurePasswordMinuteOptions} options - Optional {@code keyVaultAddr} and 32-byte {@code passwordHash},
@@ -257,11 +220,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code passwordHash} is not a 32-byte hex string
    * @throws {CredentialsRequiredError} If neither credentials nor {@code keyVaultAddr} is available
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code PasswordConfigured} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async configurePasswordMinuteSignature(options = {}) {
     return configureAuthenticator(this, {
@@ -276,19 +234,12 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Configure {@code ApiKeySessionAuthenticator} for a wallet by storing the API key hash on-chain.
    *
-   * Delegates to {@link ApiKeySessionAuthenticatorClient#configure}.
-   *
    * @public
    * @async
    * @param {ConfigureApiKeySessionOptions} options - Optional {@code keyVaultAddr} and 32-byte {@code apiKeySecret} (defaults from connect credentials when omitted)
    * @returns {Promise<ConfigureApiKeySessionResult>} Standard write result with the parsed {@code wallet} field
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code apiKeySecret} is not a 32-byte hex string
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code ApiKeySessionConfigured} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async configureApiKeySession(options = {}) {
     return configureAuthenticator(this, {
@@ -335,10 +286,6 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Configure {@code MultiAuthenticator} for a wallet.
    *
-   * Encodes structured {@code authConfig.children} entries into
-   * {@code abi.encode(address[] children, bytes[] childConfigs)} before delegating to
-   * {@link MultiAuthenticatorClient#configure}.
-   *
    * @public
    * @async
    * @param {ConfigureMultiAuthenticatorOptions} options - {@code keyVaultAddr} and structured multi {@code authConfig},
@@ -365,9 +312,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<boolean>} {@code true} if configured
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordConfigured(options = {}) {
     return this.auth.password.isConfigured(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -381,9 +325,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {VerifyPasswordOptions} options - {@code keyVaultAddr} and {@code currentPassword} (raw UTF-8 {@link Uint8Array})
    * @returns {Promise<boolean>} {@code true} if the password matches
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code currentPassword} is not a non-empty Uint8Array
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordValid(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -405,9 +346,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<boolean>} {@code true} if configured
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isWalletSignatureConfigured(options = {}) {
     return this.auth.walletSignature.isConfigured(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -421,9 +359,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {WhitelistCheckOptions} options - {@code keyVaultAddr} and {@code addressToCheck},
    * @returns {Promise<boolean>} {@code true} if {@code addressToCheck} is whitelisted
    * @throws {ValidationError} If addresses are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isWhitelisted(options = {}) {
     return this.auth.walletSignature.isWhitelisted(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -437,9 +372,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<Address[]>} Whitelisted addresses
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getWhitelist(options = {}) {
     return this.auth.walletSignature.getWhitelist(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -452,9 +384,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @async
    * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Bytes32>} 32-byte domain separator
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getDomainSeparator(options = {}) {
     return this.auth.walletSignature.getDomainSeparator(options);
@@ -470,9 +399,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {CreateAuthProofWalletSignatureOptions} options - Same inputs as {@link Monstera#createAuthProofWalletSignature},
    * @returns {Promise<boolean>} {@code true} if the on-chain verifier accepts the proof
    * @throws {ValidationError} If required parameters are missing or invalid (proof builder)
-   * @throws {NetworkError} If signing or the verify RPC call fails
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isWalletSignatureValid(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -493,9 +419,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<boolean>} {@code true} if configured
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isDualFactorConfigured(options = {}) {
     return this.auth.dualFactor.isConfigured(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -509,9 +432,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {CreateAuthProofDualFactorOptions} options - Same inputs as {@link Monstera#createAuthProofDualFactor},
    * @returns {Promise<boolean>} {@code true} if both factors verify
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If provider/signer transports fail or the verify RPC call fails
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordDualFactorValid(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -532,9 +452,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<Address>} Guardian address
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getGuardian(options = {}) {
     return this.auth.dualFactor.getGuardian(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -547,9 +464,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @async
    * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Bytes32>} 32-byte domain separator
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getDomainSeparatorDualFactor(options = {}) {
     return this.auth.dualFactor.getDomainSeparator(options);
@@ -563,9 +477,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<boolean>} {@code true} if configured
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordMinuteSignatureConfigured(options = {}) {
     return this.auth.passwordMinuteSignature.isConfigured(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -579,9 +490,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {CreateAuthProofMinuteSignatureOptions} options - Same inputs as {@link Monstera#createAuthProofMinuteSignature},
    * @returns {Promise<boolean>} {@code true} if the signature matches the derived signer for the current minute bucket and action
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the read provider fails to return the latest block, or the verify RPC call fails
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isPasswordMinuteSignatureValid(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -602,9 +510,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {KeyVaultAddrOptions} options - {@code keyVaultAddr},
    * @returns {Promise<boolean>} {@code true} if configured
    * @throws {ValidationError} If {@code keyVaultAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isApiKeySessionConfigured(options = {}) {
     return this.auth.apiKeySession.isConfigured(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -654,9 +559,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {CreateAuthProofMultiOptions} [options={}] - {@code childFlowId} or {@code child} required; session password/API key defaults apply
    * @returns {Promise<boolean>} {@code true} if the on-chain verifier accepts the routed child proof
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the read provider fails to return the latest block, or the verify RPC call fails
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isMultiValid(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -802,9 +704,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {CreateAuthProofApiKeySessionVerifyOptions} [options={}] - Optional overrides; defaults from connect credentials and SDK config
    * @returns {Promise<boolean>} {@code true} if the on-chain verifier accepts the proof
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the read provider fails to return the latest block, or the verify RPC call fails
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isApiKeySessionValid(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -826,7 +725,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {ComputeTokenMacOptions} [options={}] - {@code keyVaultAddr} and {@code apiKeySecret} default from connect credentials; {@code chainId} from SDK config; {@code expiry} now + 1h; {@code scopeMask} {@code SCOPE_SIGN_ALL},
    * @returns {Promise<Bytes32>} Token MAC
    * @throws {ValidationError} If {@code keyVaultAddr} is invalid or {@code apiKeySecret} is not a 32-byte hex string
-   * @throws {NetworkError} If the read call fails over RPC
    */
   async computeTokenMac(options = {}) {
     const resolved = await resolveApiKeySessionProofOptions(this, options);
@@ -850,7 +748,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {ComputeActionMacOptions} [options={}] - {@code apiKeySecret} defaults from connect credentials; supply {@code action} or {@code actionHash},
    * @returns {Promise<Bytes32>} Action MAC
    * @throws {ValidationError} If {@code apiKeySecret} is not a 32-byte hex string or neither {@code action} nor {@code actionHash} is supplied
-   * @throws {NetworkError} If the read call fails over RPC
    */
   async computeActionMac(options = {}) {
     const resolved = await resolveApiKeySessionProofOptions(this, options);
@@ -877,7 +774,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {BuildTokenAuthProofOptions} [options={}]
    * @returns {Promise<EncodedAuthProofApiKeySession>} ABI-encoded auth proof bytes
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
    */
   async buildTokenAuthProof(options = {}) {
     const resolved = await resolveApiKeySessionProofOptions(this, options);
@@ -900,7 +796,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {BuildActionAuthProofOptions} [options={}] - Supply {@code action} or {@code actionHash},
    * @returns {Promise<EncodedAuthProofApiKeySession>} ABI-encoded auth proof bytes
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
    */
   async buildActionAuthProof(options = {}) {
     const resolved = await resolveApiKeySessionProofOptions(this, options);
@@ -928,9 +823,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @param {SelectorBitOptions} options - {@code selector},
    * @returns {Promise<SelectorBitResult>} {@code ok} and {@code bit},
    * @throws {ValidationError} If {@code selector} is not a 4-byte hex string
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async selectorBit(options = {}) {
     return this.auth.apiKeySession.selectorBit(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -947,11 +839,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet},
    * @throws {ValidationError} If {@code keyVaultAddr}/{@code newPasswordHash} are invalid or {@code currentPassword} is not a non-empty Uint8Array
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. wrong current password)
-   * @throws {EventNotFoundError} If the {@code PasswordUpdated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async updatePassword(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -972,20 +859,12 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Add an address to a wallet's whitelist using a freshly built wallet-signature proof.
    *
-   * Internally calls {@link Monstera#createAuthProofWalletSignature} with the same {@code options}, then forwards
-   * to {@link WalletSignatureAuthenticatorClient#addToWhitelist}.
-   *
    * @public
    * @async
    * @param {AddWhitelistOptions} options - {@code keyVaultAddr}, {@code signer} (whitelisted), {@code addressToAdd}, optional EIP-712 fields
    * @returns {Promise<AddToWhitelistResult>} Standard write result with parsed {@code addedAddress},
    * @throws {ValidationError} If addresses, {@code signer}, or proof inputs are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
-   * @throws {NetworkError} If proof signing or the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or address already whitelisted)
-   * @throws {EventNotFoundError} If the {@code AddressAddedToWhitelist} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async addToWhitelist(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -1007,11 +886,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<RemoveFromWhitelistResult>} Standard write result with parsed {@code removedAddress},
    * @throws {ValidationError} If addresses, {@code signer}, or proof inputs are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
-   * @throws {NetworkError} If proof signing or the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof, last whitelisted address)
-   * @throws {EventNotFoundError} If the {@code AddressRemovedFromWhitelist} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async removeFromWhitelist(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -1027,20 +901,12 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Replace the password hash on {@code DualFactorAuthenticator} (dual-factor auth required).
    *
-   * Internally calls {@link Monstera#createAuthProofDualFactor} with the same {@code options}, then forwards
-   * to {@link DualFactorAuthenticatorClient#updatePassword}.
-   *
    * @public
    * @async
    * @param {UpdatePasswordDualFactorOptions} options - {@code keyVaultAddr}, {@code passwordHash} (current), {@code newPasswordHash}, guardian {@code signer}, optional {@code deadline}/{@code authenticatorAddr},
    * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet},
    * @throws {ValidationError} If addresses, password hashes, {@code signer}, or {@code deadline} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
-   * @throws {NetworkError} If proof signing or the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
-   * @throws {EventNotFoundError} If the {@code PasswordUpdated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordDualFactor(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -1062,11 +928,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<UpdateGuardianResult>} Standard write result with parsed {@code newGuardian},
    * @throws {ValidationError} If addresses, {@code passwordHash}, {@code signer}, or {@code deadline} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured for broadcasting
-   * @throws {NetworkError} If proof signing or the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof)
-   * @throws {EventNotFoundError} If the {@code GuardianUpdated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async updateGuardian(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -1089,11 +950,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<UpdatePasswordResult>} Standard write result with parsed {@code wallet},
    * @throws {ValidationError} If {@code keyVaultAddr}/{@code newPasswordHash} are invalid or {@code currentPassword} is not a non-empty Uint8Array
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. wrong current password)
-   * @throws {EventNotFoundError} If the {@code PasswordUpdated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async updatePasswordMinuteSignature(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -1121,11 +977,6 @@ export const monsteraAuthMethods = defineDomainMethods({
    * @returns {Promise<RotateApiKeyResult>} Standard write result with parsed {@code wallet},
    * @throws {ValidationError} If addresses or {@code newApiKeySecret} are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction or proof builder transports fail
-   * @throws {ContractRevertError} If the transaction reverts (e.g. invalid auth proof or new API key hash is zero)
-   * @throws {EventNotFoundError} If the {@code ApiKeyRotated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async rotateApiKey(options = {}) {
     return invokeAuthenticatorManaged(this, {
@@ -1269,9 +1120,7 @@ export const monsteraAuthMethods = defineDomainMethods({
   /**
    * Add a wallet to the whitelist using a link signature from the new wallet.
    *
-   * Generates {@code nonce} and {@code deadline} when omitted, computes the link action hash
-   * on-chain, signs {@code LinkWallet} when {@code newWalletSignature} is omitted, and builds the
-   * admin auth proof via password (session default) or wallet signature.
+   * {@code nonce} and {@code deadline} are generated when omitted. The link is signed when {@code newWalletSignature} is omitted.
    *
    * @public
    * @async

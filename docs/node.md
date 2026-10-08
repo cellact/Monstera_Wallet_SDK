@@ -252,6 +252,7 @@ Or use npm scripts: `npm run example:create-wallet`
 
 ```bash
 npm test
+npm run build && npm run test:bundle
 ```
 
-Unit tests under `tests/unit/` are intended to run without a live RPC. Integration tests under `tests/integration/` need network access and environment variables (see `examples/nodejs/` and your `.env`). See [CONTRIBUTING.md](../CONTRIBUTING.md) for more detail.
+Unit tests under `tests/unit/` are intended to run without a live RPC. They import `src/`. `npm run test:bundle` imports the built package entry (`dist/monstera.mjs`) and needs `npm run build` first. Integration tests under `tests/integration/` need network access and environment variables (see `examples/nodejs/` and your `.env`). See [CONTRIBUTING.md](../CONTRIBUTING.md) for more detail.

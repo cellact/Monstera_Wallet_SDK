@@ -36,7 +36,8 @@ Thank you for your interest in contributing! This document provides guidelines a
 ### Testing
 
 - Write tests for all new features; cover error cases as well as success paths.
-- **Unit tests** (default `npm test`): fast, offline-first; Jest runs with `--experimental-vm-modules`.
+- **Unit tests** (default `npm test`): fast, offline-first; Jest runs with `--experimental-vm-modules`. They import `src/`.
+- **Bundle test** (`npm run test:bundle`): imports `@monstera_protocol/sdk`, which resolves to `dist/monstera.mjs`. Run `npm run build` first. Jest does not load this file.
 - **Integration tests** live under `tests/integration/` and expect RPC access (and typically `SIGNER_PRIVATE_KEY`, `PASSWORD`, etc. via `.env`). Run the full suite with network available when validating end-to-end behavior.
 
 ```bash

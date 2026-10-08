@@ -24,17 +24,11 @@ export const monsteraSigningMethods = defineDomainMethods({
   /**
    * Sign a raw EVM transaction with the wallet's HD account at {@code index} (authenticated view).
    *
-   * Encodes the structured {@code authProof} via {@link AuthProofBuilder} when needed, then delegates to
-   * {@link KeyVaultClient#signTransaction}.
-   *
    * @public
    * @async
    * @param {SignTransactionOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, plus EVM tx fields
    * @returns {Promise<Bytes>} RLP-encoded signed transaction
    * @throws {ValidationError} If addresses, {@code authProof}, or numeric tx fields are missing/invalid
-   * @throws {NetworkError} If the RPC view call fails (e.g. provider failure during minute-bucket leg)
-   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
-   * @throws {WalletError} For other unrecognised failures
    */
   async signTransaction(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -62,9 +56,6 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @param {SignMessageOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, {@code message},
    * @returns {Promise<Bytes>} Signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the RPC view call fails
-   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
-   * @throws {WalletError} For other unrecognised failures
    */
   async signMessage(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -82,9 +73,6 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @param {SignHashOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, 32-byte {@code hash},
    * @returns {Promise<Bytes>} Signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the RPC view call fails
-   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof)
-   * @throws {WalletError} For other unrecognised failures
    */
   async sign(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -98,25 +86,13 @@ export const monsteraSigningMethods = defineDomainMethods({
   /**
    * Sign an EIP-7702-style authorization tuple via KeyVault (same digest as ethers {@code hashAuthorization}).
    *
-   * Resolves missing {@code chainId} / {@code nonce} from {@code options.provider} (preferred), the SDK
-   * {@code readProvider}, or the signer's provider. The internal {@code implCall} is built and forwarded to
-   * {@link KeyVaultClient#executeWithAuth}; the raw return is decoded into an ethers-style split signature.
-   *
    * @public
    * @async
    * @param {SignAuthorizationOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code delegateAddr}, optional {@code index}/{@code chainId}/{@code nonce}/{@code provider},
    * @returns {Promise<SignedAuthorizationResult>} Ethers-compatible signed authorization
    * @throws {ValidationError} If required addresses are invalid, {@code chainId} or {@code nonce} can't be resolved (no provider), or numeric values are out of range
-   * @throws {NetworkError} If chain id / nonce resolution or the underlying RPC call fails
-   * @throws {ContractRevertError} If the underlying view call reverts (e.g. invalid auth proof or yParity)
-   * @throws {WalletError} For other unrecognised failures
    *
-   * @remarks
-   * For an authorization targeting a chain different from the SDK's RPC, pass {@code provider} connected to that chain
-   * so nonce and chain id stay consistent.
-   * Orchestration lives in {@code internal/vault/signEip7702Authorization.js}; pure EIP-7702
-   * helpers in {@code internal/crypto/eip7702.js}; KeyVault calldata encode/decode in
-   * {@code internal/vault/eip7702.js}.
+   * @remarks For a chain other than the SDK RPC, pass {@code provider} for that chain so {@code nonce} and {@code chainId} match.
    */
   async signAuthorization(options = {}) {
     return executeSignAuthorization(
@@ -142,9 +118,6 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @param {ExecuteWithAuthOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code implCall},
    * @returns {Promise<Bytes>} Raw return bytes from the implementation function
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the RPC view call fails
-   * @throws {ContractRevertError} If the underlying call reverts (e.g. invalid auth proof or implementation revert)
-   * @throws {WalletError} For other unrecognised failures
    */
   async executeWithAuth(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -162,9 +135,6 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @param {SignWithImportedKeyOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code keyId}, 32-byte {@code digest},
    * @returns {Promise<Bytes>} Signature bytes (format depends on the imported key's curve)
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the RPC view call fails
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async signWithImportedKey(options = {}) {
     return invokeVaultAuthenticated(this, {
@@ -182,9 +152,6 @@ export const monsteraSigningMethods = defineDomainMethods({
    * @param {SignSolanaOptions} options - {@code keyVaultAddr}, {@code authProof}, {@code index}, {@code message},
    * @returns {Promise<Bytes>} Solana signature bytes
    * @throws {ValidationError} If required parameters are missing or invalid
-   * @throws {NetworkError} If the RPC view call fails
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async signSolana(options = {}) {
     return invokeVaultAuthenticated(this, {

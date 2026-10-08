@@ -78,7 +78,6 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @public
    * @async
    * @returns {Promise<Address|null>} Signer address, or {@code null} when no signer is configured
-   * @throws {Error} If the underlying signer's {@code getAddress()} rejects (rare; e.g. hardware-wallet failures)
    */
   async getSignerAddr() {
     if (!this.writeSigner) return null;
@@ -101,8 +100,6 @@ export const monsteraSessionMethods = defineDomainMethods({
    * @returns {Promise<Address>} Wallet proxy address
    * @throws {CredentialsRequiredError} If no credentials session is configured
    * @throws {ValidationError} If no wallet is registered for the session username
-   * @throws {NetworkError} If factory lookups fail over RPC
-   * @throws {WalletError} For other unrecognised failures
    */
   async getSessionWalletAddr() {
     getSdkInternals(this).keyVaultAuthPipeline.requireUserAccess('getSessionWalletAddr');
@@ -112,16 +109,11 @@ export const monsteraSessionMethods = defineDomainMethods({
   /**
    * Resolve the cached KeyVault address for the connect-time username.
    *
-   * Uses the same {@link ConnectSession} → {@link WalletFactoryClient#getKeyVaultAddr} path as
-   * vault-scoped facade methods ({@link KeyVaultAuthPipeline#mergeVaultOptions}).
-   *
    * @public
    * @async
    * @returns {Promise<Address>} KeyVault contract address
    * @throws {CredentialsRequiredError} If no credentials session is configured
    * @throws {ValidationError} If no wallet is registered for the session username
-   * @throws {NetworkError} If factory lookups fail over RPC
-   * @throws {WalletError} For other unrecognised failures
    */
   async getSessionKeyVaultAddr() {
     const { keyVaultAddr } = await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions({});

@@ -470,10 +470,22 @@ describe('Assert Utilities', () => {
             expect(() => requireTypedDataSigner('0xabc', 'signer')).toThrow(
                 'signer is required and must provide signTypedData'
             );
-            const notSigner = {};
+            try {
+                requireTypedDataSigner('0xabc', 'signer');
+            } catch (error) {
+                expect(error.message).not.toContain('0xabc');
+                expect(error.context.value).toBe('string');
+            }
+            const notSigner = { secret: '0x' + 'ab'.repeat(32) };
             expect(() => requireTypedDataSigner(notSigner, 'signer')).toThrow(
                 'signer is required and must provide signTypedData'
             );
+            try {
+                requireTypedDataSigner(notSigner, 'signer');
+            } catch (error) {
+                expect(JSON.stringify(error)).not.toContain(notSigner.secret);
+                expect(error.context.value).toBe('object');
+            }
         });
     });
 

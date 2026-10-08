@@ -15,7 +15,7 @@ New contract methods land on the matching client first. They join this list only
 | Resolve a username | `hashUsername`, `walletOfUsername` |
 | Account address | `getKeyVaultAddr`, `getAccountAddr` |
 | Sign | `signMessage`, `sign`, `signTransaction`, `signAuthorization` |
-| Auth proof | Pass `authProof` on those calls, or omit it when `connect` was given `credentials` for a password or password-minute-signature vault. `authProof.signer` is any object with `signTypedData` |
+| Auth proof | Pass a structured `authProof`, or omit it when [Authenticators](#authenticators) says the session can fill it. `authProof.signer` is any object with `signTypedData` |
 | Authenticator admin | Facade methods such as `configurePassword`, `isPasswordConfigured`, `isPasswordValid`, and `updatePassword`, and the matching methods for the other built-in authenticators |
 
 The other `createWallet*` methods, the low-level `createAuthProof*` helpers, and the catalog under [Advanced surface](#advanced-surface) stay callable.
@@ -40,7 +40,7 @@ Connect to Monstera. Pass optional `signer` and/or `credentials` as needed.
 **Parameters:**
 - `mainnet` (required): `true` for mainnet, `false` for testnet
 - `signer` (optional): Private key string (0x-prefixed hex) or ethers `Signer` instance
-- `credentials` (optional): `{ username, password }` for username-registered wallets
+- `credentials` (optional): `{ username, password }` or `{ username, apiKey }`. `apiKey` is the raw 32-byte hex key. The session stores `keccak256(apiKey)`.
 - `provider` (optional): You may pass an ethers `Provider` for reads; otherwise the SDK uses the default RPC for the selected network.
 - `rpcUrl` (optional): Custom RPC URL (overrides default)
 - `addresses` (optional): Replace one or more preset addresses. Omitted keys stay on `sdk.addresses`. Keys: `factory`, `passwordAuth`, `walletSignatureAuth`, `dualFactorAuth`, `passwordMinuteSignatureAuth`, `apiKeySessionAuth`, `multiAuthenticator`, `passwordOrWalletSigAuth`
@@ -50,7 +50,7 @@ Connect to Monstera. Pass optional `signer` and/or `credentials` as needed.
 
 **Returns:** `Monstera` instance. Use `sdk.hasWriteAccess()` and `sdk.hasCredentials()` to inspect capabilities.
 
-**Session defaults (credentials):** When `credentials` are set, `keyVaultAddr` is resolved from the factory and HD `index` defaults to `0`. On vault calls you may omit `authProof`; the SDK discovers the wallet’s on-chain authenticator and fills proof input from the session for **password** and **password-minute-signature** wallets (`password` or derived `passwordHash`). **Wallet-signature** and **dual-factor** wallets still require an explicit `authProof.signer` (guardian for dual-factor). You can override session defaults with a partial structured `authProof` (e.g. `{ password: Uint8Array }` — for minute-signature, `password` is hashed to `passwordHash` automatically).
+**Session defaults (credentials):** When `credentials` are set, `keyVaultAddr` is resolved from the factory and HD `index` defaults to `0`. Whether you can omit `authProof` depends on the authenticator. See [Authenticators](#authenticators).
 
 ## Wallet Creation Methods
 
@@ -164,64 +164,52 @@ Same as `createWalletForUsernameHash()`, but uses a caller-supplied mnemonic.
 
 **Returns:** Same as `createWalletForUsername()`
 
-## Action-bound authentication (2.0+)
+## Authenticators
 
-KeyVaultV3 binds every auth proof to the **specific operation** being authorized. Each proof covers a canonical action hash derived from:
+For `signMessage`, `sign`, `signTransaction`, `signAuthorization`, and the other vault methods on `Monstera`, pass a structured `authProof` or omit it when the table says the session can fill it. The SDK reads the authenticator from the vault, builds the action, and encodes the proof. Do not pass `selector` or `paramsHash` on these calls. That pair is for [advanced proof builders](#advanced-proof-builders).
 
-- `selector` — 4-byte function selector of the vault operation
-- `paramsHash` — `keccak256(abi.encode(...))` of call parameters (excluding `authProof`)
-- `target` (optional) — executing contract (defaults to `keyVaultAddr`)
+`authProof.signer` is any object with `signTypedData`. A browser wallet qualifies. A private-key string does not. The connect `signer` is a different value: it pays Sapphire gas.
 
-### High-level KeyVault calls (recommended)
+`authConfig` on `createWallet` / `createWalletForUsername` is a plain object. Pass `authenticatorAddr` from `sdk.addresses`. The SDK encodes the bytes.
 
-For `signMessage`, `sign`, `signTransaction`, `signAuthorization`, `importKey`, upgrades, and similar **`Monstera`** methods, pass a **structured** `authProof` object when you need to override session defaults, or omit it when connected with **`credentials`** and the vault uses password or password-minute-signature auth. The SDK discovers the on-chain authenticator, merges session input, builds the action context, and encodes proof bytes automatically:
+| Authenticator | `sdk.addresses` key | `authConfig` | Omit `authProof` when `credentials` are set? | `authProof` fields | Example |
+|---|---|---|---|---|---|
+| Password | `passwordAuth` | `{ passwordHash }` | Yes | `{ password }` | [username and password](../examples/nodejs/getting-started/username-and-password/02-use-wallet.js) |
+| Password-minute-signature | `passwordMinuteSignatureAuth` | `{ passwordHash }` | Yes | `{ password }` or `{ passwordHash }` | [create and sign](../examples/nodejs/authentication/password-minute-signature/create-and-sign.js) |
+| Wallet signature | `walletSignatureAuth` | `{ initialWhitelist }` | No | `{ signer, deadline? }` | [whitelist flow](../examples/nodejs/authentication/wallet-signature/whitelist-flow.js) |
+| Dual factor | `dualFactorAuth` | `{ passwordHash, guardianAddr }` | No | `{ passwordHash, signer, deadline? }` | No example file yet. Facade methods: `configureDualFactor`, `createAuthProofDualFactor`, `updatePasswordDualFactor`, `updateGuardian` |
+| Password-or-wallet | `passwordOrWalletSigAuth` | `{ passwordHash?, initialWhitelist }` | Yes, for the password path | `{ password }` or `{ signer, deadline? }`. Optional `method`: `'password'` or `'walletSignature'` | [create wallet](../examples/nodejs/authentication/password-or-wallet-signature/create-wallet.js) |
+| API-key session | `apiKeySessionAuth` | `{ apiKeySecret }` | Yes, for ACTION mode | `{ apiKeySecret? }` for ACTION. TOKEN adds `mode: 'token'`, `expiry?`, `scopeMask?` | [username and API key](../examples/nodejs/getting-started/username-and-apiKey/02-use-wallet.js) |
+| Multi | `multiAuthenticator` | `{ children: [{ authenticatorAddr, authConfig }] }` | Follows the child | Child proof fields, plus `child` or `viaChild` (the child address) | [create wallet](../examples/nodejs/authentication/multi/create-wallet.js) |
+
+`passwordHash` and `apiKeySecret` are `keccak256` of the raw secret. Connect `credentials.apiKey` is the raw 32-byte hex key. The session hashes it.
+
+API-key ACTION proofs are bound to one vault call. TOKEN proofs are reusable until `expiry`. `scopeMask` defaults to `Monstera.API_KEY_SESSION_SCOPE_SIGN_ALL` (`0x1F`, signing except `executeWithAuth`). `Monstera.API_KEY_SESSION_SCOPE_ALL` (`0x3F`) includes `executeWithAuth`. With credentials, `signMessage` uses ACTION mode and you can omit `authProof`. Call `buildTokenAuthProof` or pass `{ mode: 'token', expiry, scopeMask }` when you want a bearer token. `buildActionAuthProof` is the explicit ACTION builder.
 
 ```javascript
 import { toUtf8Bytes } from 'ethers';
 
-// With credentials session — authProof optional for password / minute-signature vaults
+// Password vault, credentials on connect. The SDK fills the proof.
 await sdk.signMessage({
-  index: 0,
   message: toUtf8Bytes('Hello')
 });
 
-// Explicit override (works for password and minute-signature; password is hashed for minute-signature)
+// Same vault, no credentials. Pass the password on this call.
 await sdk.signMessage({
   keyVaultAddr,
   authProof: { password: toUtf8Bytes('your-password') },
-  index: 0,
+  message: toUtf8Bytes('Hello')
+});
+
+// Wallet-signature vault. signer is the whitelisted account, not the gas key.
+await sdk.signMessage({
+  keyVaultAddr,
+  authProof: { signer: browserSigner },
   message: toUtf8Bytes('Hello')
 });
 ```
 
-Supported structured shapes depend on the vault’s authenticator:
-
-| Authenticator | Session can omit `authProof`? | Typical structured fields |
-|---|---|---|
-| Password | Yes (with `credentials`) | `{ password: Uint8Array }` |
-| Password-minute-signature | Yes (with `credentials`) | `{ password: Uint8Array }` or `{ passwordHash: Bytes32 }` |
-| Wallet signature | No | `{ signer, deadline? }` |
-| Dual factor | No | `{ passwordHash?, password?, signer, deadline? }` |
-
-See `src/types/index.js` for full typedefs. Pre-encoded proof hex strings pass through unchanged.
-
-### Low-level proof builders
-
-`createAuthProofWalletSignature`, `createAuthProofMinuteSignature`, and `createAuthProofDualFactor` require an **`action`** (`selector` + `paramsHash`) or a precomputed **`actionHash`**. Use `sdk.computeActionHash()` when you need the on-chain hash explicitly.
-
-```javascript
-const authProof = await sdk.createAuthProofWalletSignature({
-  signer: walletSigner,
-  keyVaultAddr,
-  deadline: Math.floor(Date.now() / 1000) + 3600,
-  action: {
-    selector: '0x...',   // 4-byte selector
-    paramsHash: '0x...'    // keccak256(abi.encode(...)) of params
-  }
-});
-```
-
-Pre-encoded proof hex strings without action context are **not** sufficient for KeyVaultV3 gated calls.
+Pre-encoded proof hex is accepted and passed through. It must already be bound to the action. A bare password string is not a proof.
 
 ## SDK Instance Methods
 
@@ -234,17 +222,6 @@ const signerAddress = await sdk.getSignerAddr(); // string | null
 
 // Set log level at runtime ('error' | 'warn' | 'info' | 'debug')
 sdk.setLogLevel('debug');
-
-// Create an auth proof for wallet signature authentication (low-level; action required)
-const authProof = await sdk.createAuthProofWalletSignature({
-  signer: walletSigner,
-  keyVaultAddr,
-  deadline: Math.floor(Date.now() / 1000) + 3600,
-  action: {
-    selector: '0x...',
-    paramsHash: '0x...'
-  }
-});
 
 // Hash a normalized username (trim + lowercase)
 const usernameHash = await sdk.hashUsername({ username: 'alice' });
@@ -297,8 +274,7 @@ await sdk.setWalletAuthenticatorAllowed({ walletOrKeyVaultAddr, authenticatorAdd
 await sdk.initializeWalletLogic({ walletAddr, keyVaultAddr });
 
 // KeyVault-shaped API on `sdk` — signing, accounts, upgrades (`keyVaultAddr`)
-// authProof: structured object for the vault's authenticator (SDK binds action automatically)
-// e.g. { password: Uint8Array } for password auth — see types in src/types/index.js
+// authProof: structured object from the Authenticators section. The SDK binds the action.
 await sdk.getKeyVaultStorageAddr({ keyVaultAddr });
 await sdk.getAuthenticatorAddr({ keyVaultAddr });
 await sdk.getKeyVaultImplAddr({ keyVaultAddr });
@@ -338,8 +314,37 @@ const passwordAuth = sdk.getAuthClient('password');
 const walletSigAuth = sdk.getAuthClient('walletSignature');
 const dualFactorAuth = sdk.getAuthClient('dualFactor');
 const passwordMinuteSigAuth = sdk.getAuthClient('passwordMinuteSignature');
-const availableTypes = sdk.getAvailableAuthTypes(); // includes 'walletSignature', 'password', 'dualFactor', 'passwordMinuteSignature'
+const apiKeySessionAuth = sdk.getAuthClient('apiKeySession');
+const multiAuth = sdk.getAuthClient('multi');
+const passwordOrWalletAuth = sdk.getAuthClient('passwordOrWalletSignature');
+const availableTypes = sdk.getAvailableAuthTypes();
 ```
+
+### Advanced proof builders
+
+`selector` and `paramsHash` are how a proof is bound to one vault call. Facade methods such as `signMessage` build that pair. Pass them only when you call `createAuthProof*` or `computeActionHash` yourself.
+
+- `selector` — 4-byte function selector of the vault operation
+- `paramsHash` — `keccak256(abi.encode(...))` of the call parameters, excluding `authProof`
+- `target` (optional) — executing contract. Defaults to `keyVaultAddr`
+
+`createAuthProofWalletSignature`, `createAuthProofMinuteSignature`, `createAuthProofDualFactor`, `createAuthProofPasswordOrWalletSignature`, `createAuthProofMulti`, `buildActionAuthProof`, and `buildTokenAuthProof` return proof bytes (minute-signature also returns `minuteBucket` and `derivedAddress`). Each proof builder takes `action: { selector, paramsHash }` or a precomputed `actionHash`, except `buildTokenAuthProof`, which takes `expiry` and `scopeMask`.
+
+```javascript
+const authProof = await sdk.createAuthProofWalletSignature({
+  signer: walletSigner,
+  keyVaultAddr,
+  deadline: Math.floor(Date.now() / 1000) + 3600,
+  action: {
+    selector: '0x...',
+    paramsHash: '0x...'
+  }
+});
+
+await sdk.computeActionHash({ keyVaultAddr, selector, paramsHash });
+```
+
+A pre-encoded proof hex string without that action context is not enough for a KeyVault call.
 
 ### `sdk.signAuthorization(options)`
 
@@ -348,7 +353,7 @@ Sign an EIP-7702-style **authorization** for a delegate contract through the Key
 **Parameters:**
 
 - `keyVaultAddr` (required unless `credentials` session resolves it): KeyVault contract address
-- `authProof` (optional with `credentials` on password / minute-signature vaults; otherwise required): Structured object for the vault’s authenticator (e.g. `{ password: Uint8Array }`). The SDK binds the proof to the `signAuthorization` action automatically.
+- `authProof` (optional when [Authenticators](#authenticators) says the session can omit it): Structured object for the vault’s authenticator (e.g. `{ password: Uint8Array }`). The SDK binds the proof to the `signAuthorization` action automatically.
 - `delegateAddr` (required): Delegate (implementation) contract address for the authorization
 - `index` (optional): HD account index (default `0`)
 - `chainId` (optional): Chain ID; if omitted, fetched from `provider` / SDK read provider / signer provider

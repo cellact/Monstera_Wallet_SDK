@@ -57,8 +57,8 @@ function wrapSigner(signer) {
  * {@code role} label is forwarded to the underlying provider only as a log hint.
  *
  * @remarks Detection of "is this a signer?" is duck-typed on the presence of {@code signMessage};
- * any other input shape is rejected with {@link ValidationError}. Private-key strings are NOT
- * inspected here — invalid keys surface from the underlying {@code Wallet} constructor.
+ * any other input shape is rejected with {@link ValidationError}. An invalid private-key string
+ * is also a {@link ValidationError}. The key is not copied into the message or the context.
  *
  * @public
  * @param {string | EthersSigner} providedSigner - Private-key hex string, or an ethers signer
@@ -67,7 +67,7 @@ function wrapSigner(signer) {
  * @returns {WrappedEthersSigner} Sapphire-wrapped signer ready for encrypted writes
  * @throws {ConfigError} If a private-key string is provided without {@code rpcUrl}
  * @throws {ValidationError} If {@code providedSigner} is neither a string nor a signer-shaped
- *   object exposing {@code signMessage}
+ *   object exposing {@code signMessage}, or if a string is not a usable private key
  * @throws {SapphireRequiredError} If Sapphire wrapping fails (see {@link wrapSigner})
  */
 function createWriteSigner(providedSigner, rpcUrl, role) {
@@ -80,7 +80,15 @@ function createWriteSigner(providedSigner, rpcUrl, role) {
       'RPC URL is required when providing private key as string'
     );
     const provider = createProvider(rpcUrl, role);
-    signer = new Wallet(providedSigner, provider);
+    try {
+      signer = new Wallet(providedSigner, provider);
+    } catch {
+      throw new ValidationError(
+        'Invalid private key.',
+        'providedSigner',
+        providedSigner
+      );
+    }
   } 
   else if (providedSigner && typeof providedSigner.signMessage === 'function') {
     signer = providedSigner;

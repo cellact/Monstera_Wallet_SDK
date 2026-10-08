@@ -17,23 +17,14 @@ export const monsteraFactoryMethods = defineDomainMethods({
   /**
    * Create a new HD wallet (full stack) and store its mnemonic on the result.
    *
-   * Deploys WalletStorage, KeyVault, and a WalletLogic BeaconProxy. Encodes structured {@code authConfig},
-   * via {@link AuthConfigBuilder} before delegating to {@link WalletFactoryClient#createWallet}.
-   *
    * @public
    * @async
    * @param {CreateWalletBaseOptions} options - {@code authConfig} (structured or pre-encoded) and optional {@code authenticatorAddr},
    * @returns {Promise<WalletCreationResult>} Write result plus addresses ({@code wallet}, {@code keyVault}, {@code storage}, {@code authenticator}) and the generated {@code mnemonic},
    * @throws {ValidationError} If {@code authConfig} is missing/invalid for the resolved authenticator, or {@code authenticatorAddr} is set but not a built-in authenticator
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    *
-   * @remarks
-   * Mnemonic memory handling: see {@link WalletFactoryClient#createWallet}. Treat {@link WalletCreationResult.mnemonic} as a high-value secret.
+   * @remarks The returned mnemonic is a secret. Do not log it.
    */
   async createWallet(options = {}) {
     return this.factory.createWallet(
@@ -53,13 +44,8 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<WalletCreationResult>} Write result plus addresses and the supplied {@code mnemonic},
    * @throws {ValidationError} If {@code authConfig} is invalid or {@code mnemonic} is not a valid BIP39 phrase
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    *
-   * @remarks Mnemonic on the result: see {@link WalletFactoryClient#createWalletFromMnemonic}.
+   * @remarks The returned mnemonic is the one you passed. Do not log it.
    */
   async createWalletFromMnemonic(options = {}) {
     return this.factory.createWalletFromMnemonic(
@@ -79,13 +65,8 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<WalletCreationResult>} Write result plus addresses and generated {@code mnemonic},
    * @throws {ValidationError} If {@code authConfig}, {@code hookAddr}, or {@code hookData} is missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction (or the hook itself) reverts on-chain
-   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    *
-   * @remarks Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
+   * @remarks The returned mnemonic is a secret. Do not log it.
    */
   async createWalletWithHook(options = {}) {
     return this.factory.createWalletWithHook(
@@ -105,13 +86,8 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<WalletCreationResult>} Write result with addresses ({@code wallet} === {@code keyVault}) and generated {@code mnemonic},
    * @throws {ValidationError} If {@code authConfig} is invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    *
-   * @remarks Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
+   * @remarks The returned mnemonic is a secret. Do not log it.
    */
   async createWalletCore(options = {}) {
     return this.factory.createWalletCore(
@@ -131,13 +107,8 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<WalletCreationResult>} Write result plus addresses and generated {@code mnemonic},
    * @throws {ValidationError} If {@code authConfig}, {@code customLogicImplAddr}, or {@code logicData} is missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If the {@code WalletCreated} event is missing
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    *
-   * @remarks Mnemonic handling: see {@link WalletFactoryClient#createWallet}.
+   * @remarks The returned mnemonic is a secret. Do not log it.
    */
   async createWalletWithCustomLogic(options = {}) {
     return this.factory.createWalletWithCustomLogic(
@@ -154,11 +125,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<UsernameWalletCreationResult>} Write result plus addresses, generated {@code mnemonic}, and {@code usernameHash},
    * @throws {ValidationError} If {@code authConfig} or {@code username} is missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If a required event is missing from the receipt
-   * @throws {EventParseError} If an event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    *
    * @remarks Usernames are normalised (trim + lowercase) before hashing. The factory stores only the hash.
    */
@@ -177,11 +143,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<UsernameWalletCreationResult>} Write result plus addresses, supplied {@code mnemonic}, and {@code usernameHash},
    * @throws {ValidationError} If required fields are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If a required event is missing from the receipt
-   * @throws {EventParseError} If an event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async createWalletForUsernameFromMnemonic(options = {}) {
     return this.factory.createWalletForUsernameFromMnemonic(
@@ -198,11 +159,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<UsernameWalletCreationResult>} Write result plus addresses, generated {@code mnemonic}, and {@code usernameHash},
    * @throws {ValidationError} If required fields are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If a required event is missing from the receipt
-   * @throws {EventParseError} If an event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async createWalletForUsernameHash(options = {}) {
     return this.factory.createWalletForUsernameHash(
@@ -219,11 +175,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<UsernameWalletCreationResult>} Write result plus addresses, supplied {@code mnemonic}, and {@code usernameHash},
    * @throws {ValidationError} If required fields are missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {EventNotFoundError} If a required event is missing from the receipt
-   * @throws {EventParseError} If an event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async createWalletForUsernameHashFromMnemonic(options = {}) {
     return this.factory.createWalletForUsernameHashFromMnemonic(
@@ -234,17 +185,12 @@ export const monsteraFactoryMethods = defineDomainMethods({
   /**
    * Initialize a freshly deployed WalletLogic proxy by binding it to a {@code keyVaultAddr}.
    *
-   * Delegates to {@link WalletLogicClient#initialize}.
-   *
    * @public
    * @async
    * @param {InitializeWalletLogicOptions} options - {@code walletAddr} (proxy) and {@code keyVaultAddr},
    * @returns {Promise<BaseTransactionResult>} Standard write result
    * @throws {ValidationError} If {@code walletAddr} or {@code keyVaultAddr} is missing/invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts on-chain
-   * @throws {WalletError} For other unrecognised failures
    */
   async initializeWalletLogic(options = {}) {
     const resolved = await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options);
@@ -264,9 +210,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {WalletProxyOptions} options - {@code walletAddr} (proxy address)
    * @returns {Promise<boolean>} {@code true} if the address is a wallet created by this factory
    * @throws {ValidationError} If {@code walletAddr} is missing or not a valid address
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isWallet(options = {}) {
     return this.factory.isWallet(await resolveWalletProxyOptions(this, options));
@@ -279,9 +222,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @async
    * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context (no required fields)
    * @returns {Promise<Address>} Admin address
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getAdmin(options = {}) {
     return this.factory.getAdmin(options);
@@ -294,9 +234,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @async
    * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Address>} Current WalletLogic implementation
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getWalletLogicImplAddr(options = {}) {
     return this.factory.getWalletLogicImplAddr(options);
@@ -310,9 +247,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {WalletProxyOptions} options - {@code walletAddr},
    * @returns {Promise<Address>} KeyVault contract address
    * @throws {ValidationError} If {@code walletAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultAddr(options = {}) {
     return this.factory.getKeyVaultAddr(await resolveWalletProxyOptions(this, options));
@@ -326,9 +260,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {WalletProxyOptions} options - {@code walletAddr},
    * @returns {Promise<Address>} Storage contract address
    * @throws {ValidationError} If {@code walletAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getStorageAddr(options = {}) {
     return this.factory.getStorageAddr(await resolveWalletProxyOptions(this, options));
@@ -341,9 +272,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @async
    * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Address>} Beacon address
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getBeaconAddr(options = {}) {
     return this.factory.getBeaconAddr(options);
@@ -357,9 +285,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {WalletProxyOptions} options - {@code walletAddr},
    * @returns {Promise<Address>} Secret vault contract address
    * @throws {ValidationError} If {@code walletAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getSecretVaultAddr(options = {}) {
     return this.factory.getSecretVaultAddr(await resolveWalletProxyOptions(this, options));
@@ -372,9 +297,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @async
    * @param {Record<string, unknown>} [options={}] - Reserved for forwarding to error context
    * @returns {Promise<Address>} KeyVault template implementation address
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getKeyVaultTemplate(options = {}) {
     return this.factory.getKeyVaultTemplate(options);
@@ -388,9 +310,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {FactoryAllowedAuthenticatorsOptions} options - {@code authenticatorAddr},
    * @returns {Promise<boolean>} {@code true} if the authenticator is on the factory allowlist
    * @throws {ValidationError} If {@code authenticatorAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async allowedAuthenticators(options = {}) {
     return this.factory.allowedAuthenticators(options);
@@ -404,9 +323,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {FactoryAllowedKeyVaultImplementationsOptions} options - {@code implementationAddr},
    * @returns {Promise<boolean>} {@code true} if the implementation is on the factory allowlist
    * @throws {ValidationError} If {@code implementationAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async allowedKeyVaultImplementations(options = {}) {
     return this.factory.allowedKeyVaultImplementations(options);
@@ -415,17 +331,11 @@ export const monsteraFactoryMethods = defineDomainMethods({
   /**
    * Check whether a KeyVault implementation is approved via the factory policy registry.
    *
-   * Distinct from {@link Monstera#isImplementationApproved}, which reads the KeyVault's local allowlist.
-   * Equivalent to {@link WalletFactoryClient#isImplementationApproved}.
-   *
    * @public
    * @async
    * @param {FactoryIsImplementationApprovedOptions} options - {@code keyVaultAddr}, {@code implementationAddr},
    * @returns {Promise<boolean>},
    * @throws {ValidationError} If addresses are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isFactoryImplementationApproved(options = {}) {
     return this.factory.isImplementationApproved(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -434,17 +344,11 @@ export const monsteraFactoryMethods = defineDomainMethods({
   /**
    * Check whether an authenticator is approved via the factory policy registry.
    *
-   * Distinct from {@link Monstera#isAuthenticatorApproved}, which reads the KeyVault's local allowlist.
-   * Equivalent to {@link WalletFactoryClient#isAuthenticatorApproved}.
-   *
    * @public
    * @async
    * @param {FactoryIsAuthenticatorApprovedOptions} options - {@code keyVaultAddr}, {@code authenticatorAddr},
    * @returns {Promise<boolean>},
    * @throws {ValidationError} If addresses are missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async isFactoryAuthenticatorApproved(options = {}) {
     return this.factory.isAuthenticatorApproved(await getSdkInternals(this).keyVaultAuthPipeline.mergeVaultOptions(options));
@@ -458,9 +362,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {FactoryHashUsernameOptions} options - {@code username},
    * @returns {Promise<Bytes32>} {@code keccak256(bytes(normalizedUsername))},
    * @throws {ValidationError} If {@code username} is missing or empty after normalisation
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async hashUsername(options = {}) {
     return this.factory.hashUsername(options);
@@ -474,9 +375,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {FactoryWalletOfUsernameOptions} options - {@code usernameHash},
    * @returns {Promise<Address>} Wallet proxy address, or the zero address if unregistered
    * @throws {ValidationError} If {@code usernameHash} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async walletOfUsername(options = {}) {
     return this.factory.walletOfUsername(options);
@@ -490,9 +388,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @param {FactoryWalletUsernameHashOptions} options - {@code walletAddr},
    * @returns {Promise<Bytes32>} Username hash, or zero bytes32 if none
    * @throws {ValidationError} If {@code walletAddr} is missing or invalid
-   * @throws {NetworkError} If the read call fails over RPC
-   * @throws {ContractRevertError} If the underlying call reverts
-   * @throws {WalletError} For other unrecognised failures
    */
   async getWalletUsernameHash(options = {}) {
     return this.factory.getWalletUsernameHash(await resolveWalletProxyOptions(this, options));
@@ -512,11 +407,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<UpdateWalletLogicImplAddrResult>} Standard write result with parsed {@code newImplAddr},
    * @throws {ValidationError} If {@code newLogicAddr} is missing or invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
-   * @throws {EventNotFoundError} If the implementation-update event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    *
    * @remarks Wallets created via {@link Monstera#createWalletWithCustomLogic} do not follow this beacon.
    */
@@ -533,11 +423,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<TransferAdminResult>} Standard write result with parsed {@code newAdminAddr},
    * @throws {ValidationError} If {@code newAdminAddr} is missing or invalid
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the current admin)
-   * @throws {EventNotFoundError} If the {@code AdminTransferred} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async transferAdmin(options = {}) {
     return this.factory.transferAdmin(options);
@@ -552,11 +437,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<SetAuthenticatorAllowedResult>},
    * @throws {ValidationError} If {@code authenticatorAddr} is missing/invalid or {@code allowed} is not a boolean
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
-   * @throws {EventNotFoundError} If the {@code AuthenticatorAllowed} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async setAuthenticatorAllowed(options = {}) {
     return this.factory.setAuthenticatorAllowed(options);
@@ -571,11 +451,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<SetKeyVaultImplementationAllowedResult>},
    * @throws {ValidationError} If {@code implementationAddr} is missing/invalid or {@code allowed} is not a boolean
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
-   * @throws {EventNotFoundError} If the {@code KeyVaultImplementationAllowed} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async setKeyVaultImplementationAllowed(options = {}) {
     return this.factory.setKeyVaultImplementationAllowed(options);
@@ -590,11 +465,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<SetWalletImplementationAllowedResult>},
    * @throws {ValidationError} If addresses are missing/invalid or {@code allowed} is not a boolean
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
-   * @throws {EventNotFoundError} If the {@code WalletImplementationAllowed} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async setWalletImplementationAllowed(options = {}) {
     return this.factory.setWalletImplementationAllowed(await resolveWalletOrKeyVaultScope(this, options));
@@ -609,11 +479,6 @@ export const monsteraFactoryMethods = defineDomainMethods({
    * @returns {Promise<SetWalletAuthenticatorAllowedResult>},
    * @throws {ValidationError} If addresses are missing/invalid or {@code allowed} is not a boolean
    * @throws {WriteRequiresSignerError} If no signer is configured
-   * @throws {NetworkError} If the RPC interaction fails
-   * @throws {ContractRevertError} If the transaction reverts (e.g. caller is not the factory admin)
-   * @throws {EventNotFoundError} If the {@code WalletAuthenticatorAllowed} event is missing from the receipt
-   * @throws {EventParseError} If the event log decodes but mapping fails
-   * @throws {WalletError} For other unrecognised failures
    */
   async setWalletAuthenticatorAllowed(options = {}) {
     return this.factory.setWalletAuthenticatorAllowed(await resolveWalletOrKeyVaultScope(this, options));
